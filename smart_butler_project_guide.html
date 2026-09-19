@@ -197,6 +197,7 @@ td code,th code{white-space:nowrap}
   <b>目錄</b>
   <div class="list">
     <a href="#howto"><span class="lv">00</span>怎麼使用這本手冊</a>
+    <a class="sub" href="#antigravity"><span class="lv">＊</span>使用 Antigravity</a>
     <a href="#overview"><span class="lv">01</span>專題概要</a>
     <a href="#arch"><span class="lv">02</span>系統架構</a>
     <a href="#design"><span class="lv">03</span>功能規格</a>
@@ -250,7 +251,7 @@ td code,th code{white-space:nowrap}
     <div><small>平台</small><span>Windows 10／11＋Python</span></div>
     <div><small>開發關卡</small><span>L0～L15＋延伸 L16～L19</span></div>
     <div><small>建議時程</small><span>16 週</span></div>
-    <div><small>AI 助手</small><span>Claude Code</span></div>
+    <div><small>AI 助手</small><span>Claude Code／Antigravity</span></div>
   </div>
   <div class="actions"><button class="printbtn" id="printBtn" type="button">列印／存成 PDF</button></div>
 </header>
@@ -274,6 +275,29 @@ td code,th code{white-space:nowrap}
     </ul>
   </div>
   <div class="challenge"><b>已經有 Aina 系統的組別：</b>可以用 <a href="#p-aina">07 的「整合版提示語」</a>一次規劃整個升級（附逐段說明）；想一步一步學的，就先用<a href="#p-inventory">「盤點既有專案」</a>，再從 L0 開始把現有程式整理進新的架構。</div>
+
+  <h3 id="antigravity">使用 Antigravity 開發時的注意要點</h3>
+  <p>本手冊以 Claude Code 為例，但提示語描述的是「要做什麼、不能做什麼、做到什麼程度才算完成」，Google Antigravity 等其他能讀檔、改檔、執行指令的 AI 開發工具也能使用。改用 Antigravity 時，請注意下面幾點：</p>
+  <div class="tbl" tabindex="0"><table>
+    <thead><tr><th>項目</th><th>注意要點</th></tr></thead>
+    <tbody>
+      <tr><td>先出計畫再執行</td><td>請它先產生<b>任務清單或實作計畫</b>給你審核，同意後才開始改程式。這就是本手冊「每關停下來回報」的做法。</td></tr>
+      <tr><td>自主程度</td><td>把「執行終端機指令」設成<b>需要審核</b>，不要設成全自動。安裝套件、刪除檔案、開啟攝影機或麥克風前，都必須經過你同意。</td></tr>
+      <tr><td>一個對話只做一關</td><td>每一關開一個新的對話；開頭一樣請它先讀 <code>PROGRESS.md</code> 與 <code>docs/專案規則.md</code>。</td></tr>
+      <tr><td>善用內建瀏覽器</td><td>L9 管理介面可以請它用內建瀏覽器，以 375px（手機）和 1440px（電腦）寬度檢查版面，並附上截圖。</td></tr>
+      <tr><td>模型差異</td><td>不同模型對同一段提示語的反應會有差異。第一關要特別確認它有沒有遵守規則檔；沒遵守就明確指出，並請它重讀規則。</td></tr>
+      <tr><td>進度檔一樣適用</td><td><code>PROGRESS.md</code>、<code>docs/專案規則.md</code> 是普通檔案，<b>換工具也能接續</b>。同一個專案可以前幾關用 Claude Code、後面改用 Antigravity。</td></tr>
+      <tr><td>金鑰安全</td><td>不要把 Webhook、Token、API 金鑰貼進對話框；一律放 <code>.env</code>，請它從 <code>.env</code> 讀取。</td></tr>
+    </tbody>
+  </table></div>
+  <p>使用 Antigravity 時，把下面這段<b>貼在每一關提示語的最前面</b>：</p>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>請先不要修改任何檔案。
+先讀 PROGRESS.md 與 docs/專案規則.md，再根據下面的關卡內容，產生一份實作計畫給我審核：要建立或修改哪些檔案、需要安裝哪些套件、要執行哪些指令、怎麼測試。
+我同意計畫後才開始執行；執行終端機指令、安裝套件、刪除檔案前都要再經過我同意。
+完成後附上測試指令與實際輸出，並更新 PROGRESS.md。
+
+（以下貼上本關的提示語）</code></pre></div>
+  <p class="sim-note" style="font-size:14px;color:var(--muted)">Antigravity 版本更新很快，實際的按鈕名稱與設定位置，請以你電腦上的版本為準。</p>
 </section>
 
 <section id="overview" class="page">
@@ -400,7 +424,7 @@ td code,th code{white-space:nowrap}
       <tr><td>Python 3.11 以上</td><td>安裝時勾選「Add python.exe to PATH」</td></tr>
       <tr><td>Git</td><td>每一關做完都要 commit，出錯才能退回</td></tr>
       <tr><td>VS Code（選用）</td><td>方便看程式與改設定檔；不熟悉也沒關係，Claude Code 會回報改了哪些檔案，也可以請它解說</td></tr>
-      <tr><td>Claude Code</td><td>在專案資料夾開啟，貼上每一關的提示語</td></tr>
+      <tr><td>Claude Code 或 Antigravity</td><td>擇一使用，在專案資料夾開啟，貼上每一關的提示語；使用 Antigravity 請先看 <a href="#antigravity">注意要點</a></td></tr>
       <tr><td>Discord</td><td>建立一個<b>練習用</b>伺服器，開兩個頻道：<code>#測試通報</code>、<code>#留言板</code></td></tr>
     </tbody>
   </table></div>
@@ -1518,7 +1542,7 @@ td code,th code{white-space:nowrap}
     <li>每關結束的「停下來回報」是教學重點：請學生在 commit 前向組員或老師說明這關做了什麼，避免只是複製貼上。</li>
     <li>Discord 請統一使用練習伺服器；正式頻道與真實家電只在 L15 實際環境測試時開放，並需家長同意。</li>
     <li>攝影與錄音的示範影片由學生自行演出錄製，避免使用他人影像。</li>
-    <li>本手冊的提示語以 Claude Code 為對象，其他具備檔案操作能力的 AI 程式助手也可參考使用，但需自行確認行為一致。</li>
+    <li>本手冊的提示語以 Claude Code 為對象；使用 Antigravity 時，請學生在每關提示語前加上 <a href="#antigravity">「先出計畫再執行」的開頭段落</a>，並把終端機指令設為需要審核。</li>
   </ul>
 </section>
 
