@@ -11,6 +11,6 @@ git commit -m "Auto Update: %date% %time%"
 git push -u origin main --force
 echo.
 echo ========================================================
-echo   更新完成！請開啟 https://fbkstj.github.io/www/ 查看！
+echo   更新完成！請開啟 https://fbkstj.github.io/stj/ 查看！
 echo ========================================================
 pause

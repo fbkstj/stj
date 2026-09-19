@@ -1,11 +1,11 @@
 ---
 name: push
-description: 把 stjweb 的修改 commit 並推送到 GitHub（fbkstj/www，GitHub Pages 正式站）。使用者說「推上 GitHub」「推送」「上傳網站」「push」「部署」或打 /push 時使用。會先檢查機密檔與大型檔，再用不會卡住的方式推送，不使用 --force。
+description: 把 stjweb 的修改 commit 並推送到 GitHub（fbkstj/stj，GitHub Pages 正式站）。使用者說「推上 GitHub」「推送」「上傳網站」「push」「部署」或打 /push 時使用。會先檢查機密檔與大型檔，再用不會卡住的方式推送，不使用 --force。
 ---
 
 # 推送 stjweb 到 GitHub
 
-正式站 https://fbkstj.github.io/www/ 由 repo `fbkstj/www` 的 `main` 分支自動部署。網站完全公開，推上去就等於發布。
+正式站 https://fbkstj.github.io/stj/ 由 repo `fbkstj/stj` 的 `main` 分支自動部署（本機 remote `origin`）。舊站 `fbkstj/www`（remote `www`）只保留少數連結，平常不推；要改它見 CLAUDE.md。網站完全公開，推上去就等於發布。
 
 ## 1. 看有哪些修改
 
