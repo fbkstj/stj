@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【專題實作】AirTouch 無接觸手勢＋語音遙控｜學生實作手冊</title>
+<meta name="description" content="高中職專題實作手冊：用 USB 鏡頭與 MediaPipe 手部關節點辨識手勢，加上中文語音指令，不碰鍵盤滑鼠控制 YouTube、PowerPoint 簡報、PDF 與視訊會議。含功能設計、手勢與語音原理、程式包、樣本收集與評估工具、測試方法與評分表。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #cbd5e1;
+    --text: #0f172a;
+    --muted: #475569;
+    --primary: #0369a1;
+    --primary-soft: #e0f2fe;
+    --accent: #a16207;
+    --accent-soft: #fef9c3;
+    --danger: #b91c1c;
+    --danger-soft: #fef2f2;
+    --ok: #047857;
+    --ok-soft: #ecfdf5;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--text);
+    background: var(--bg);
+  }
+  a { color: var(--primary); }
+  :focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; border-radius: 4px; }
+  .skip { position: absolute; left: -9999px; }
+  .skip:focus { left: 16px; top: 8px; background: #fff; padding: 6px 12px; z-index: 10; }
+
+  header.hero {
+    background: linear-gradient(135deg, #312e81 0%, #0e7490 100%);
+    color: #fff;
+    padding: 48px 20px 40px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .hero .wrap { padding: 0; }
+  .hero .eyebrow {
+    display: inline-block; background: rgba(15,23,42,0.4); border: 1px solid rgba(255,255,255,0.35);
+    padding: 2px 12px; border-radius: 999px; font-size: 0.9rem; font-weight: 700;
+  }
+  .hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.3; margin: 14px 0 10px; font-weight: 900; }
+  .hero p { font-size: 1.1rem; max-width: 760px; margin: 0 0 20px; color: #f0f9ff; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px;
+    font-weight: 700; text-decoration: none; border: 2px solid transparent; font-size: 1rem; cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary { background: #fde047; color: #0f172a; }
+  .btn-primary:hover { background: #facc15; }
+  .btn-ghost { color: #fff; border-color: rgba(255,255,255,0.7); background: transparent; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.12); }
+  .facts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; padding: 0; list-style: none; }
+  .facts li { background: rgba(15,23,42,0.35); border-radius: 8px; padding: 4px 12px; font-size: 0.95rem; }
+
+  .layout { display: grid; grid-template-columns: 240px 1fr; gap: 32px; padding-top: 28px; padding-bottom: 60px; }
+  nav.toc { position: sticky; top: 16px; align-self: start; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  nav.toc h2 { font-size: 1rem; margin: 0 0 6px; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; font-size: 0.95rem; line-height: 1.9; }
+  nav.toc a { text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+  main { min-width: 0; }
+
+  section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin-bottom: 24px; scroll-margin-top: 16px; }
+  section > h2 { font-size: 1.5rem; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+  .num { display: inline-flex; width: 36px; height: 36px; border-radius: 9px; background: var(--primary-soft); color: var(--primary); align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; flex-shrink: 0; }
+  h3 { font-size: 1.15rem; margin: 20px 0 6px; }
+  p { margin: 8px 0; }
+  ul, ol { padding-left: 1.4em; margin: 8px 0; }
+  li { margin: 3px 0; }
+  .muted { color: var(--muted); }
+
+  .table-wrap { overflow-x: auto; margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.97rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  thead th { background: #e2e8f0; }
+  tbody th { background: #f1f5f9; font-weight: 700; }
+
+  .note { border-radius: 10px; padding: 12px 16px; margin: 12px 0; border: 1px solid; }
+  .note > strong:first-child { display: block; }
+  .note.warn { background: var(--danger-soft); border-color: #fca5a5; color: #7f1d1d; }
+  .note.tip { background: var(--ok-soft); border-color: #6ee7b7; color: #064e3b; }
+  .note.info { background: var(--accent-soft); border-color: #fde047; color: #713f12; }
+
+  .flow { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; counter-reset: flow; }
+  .flow li { counter-increment: flow; background: var(--primary-soft); border: 1px solid #7dd3fc; border-radius: 10px; padding: 8px 12px; flex: 1 1 150px; font-size: 0.95rem; position: relative; margin: 0; }
+  .flow li::before { content: counter(flow); display: inline-block; background: var(--primary); color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 0.8rem; font-weight: 700; margin-right: 6px; }
+  .flow li b { display: block; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .box { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: #f8fafc; }
+  .box h3 { margin-top: 0; }
+
+  pre, code { font-family: "JetBrains Mono", Consolas, monospace; }
+  code { background: #e2e8f0; padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-text); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 0.9rem; line-height: 1.6; margin: 8px 0; }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  .prompt { border: 1px solid var(--border); border-radius: 10px; margin: 12px 0; overflow: hidden; }
+  .prompt-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #f1f5f9; padding: 8px 12px; font-weight: 700; flex-wrap: wrap; }
+  .prompt pre { margin: 0; border-radius: 0; white-space: pre-wrap; }
+  .copy { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 4px 12px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+  .copy:hover { background: #075985; }
+
+  .check { list-style: none; padding-left: 0; }
+  .check li::before { content: "☐ "; font-weight: 700; color: var(--primary); }
+
+  footer { text-align: center; color: var(--muted); padding: 24px 16px 40px; font-size: 0.95rem; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static; }
+    .grid2 { grid-template-columns: 1fr; }
+    section { padding: 20px 16px; }
+    body { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    nav.toc, .hero .actions, .copy, .calc { display: none; }
+    .layout { display: block; }
+    section { break-inside: avoid; }
+  }
+</style>
+<style>
+  .figure { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin: 12px 0; }
+  .figure svg { display: block; width: 100%; height: auto; max-width: 720px; margin: 0 auto; }
+  .figure figcaption { text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 6px; }
+  .svg-label { font: 500 14px "Noto Sans TC", sans-serif; fill: #0f172a; }
+  .svg-sub { font: 400 12px "Noto Sans TC", sans-serif; fill: #475569; }
+  .formula { font-family: "JetBrains Mono", Consolas, monospace; background: var(--primary-soft); border: 1px solid #7dd3fc; border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 1.05rem; overflow-x: auto; }
+  .calc { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 14px 0; background: #f8fafc; }
+  .calc h3 { margin-top: 0; }
+  .calc-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .calc label { display: flex; flex-direction: column; font-weight: 700; font-size: 0.95rem; }
+  .calc input { font: inherit; width: 130px; padding: 6px 8px; border: 1px solid #94a3b8; border-radius: 8px; background: #fff; color: var(--text); }
+  .calc-out { margin-top: 10px; padding: 8px 12px; border-radius: 8px; font-weight: 700; border: 1px solid var(--border); background: #fff; }
+  .calc-out.lv0 { border-color: #6ee7b7; background: var(--ok-soft); color: #064e3b; }
+  .calc-out.lv1 { border-color: #fde047; background: var(--accent-soft); color: #713f12; }
+  .calc-out.lv2 { border-color: #fca5a5; background: var(--danger-soft); color: #7f1d1d; }
+  kbd { font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.88em; background: #fff; border: 1px solid #94a3b8; border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+  table.nw1 tbody th, table.nw1 thead th:first-child, table.nw3 td:nth-child(3), table.nw3 th:nth-child(3), table.nw3 td:nth-child(4),
+  table.nw12 th:first-child, table.nw12 td:nth-child(2), table.nw12 thead th:nth-child(2) { white-space: nowrap; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; margin-right: 4px; border: 1px solid #334155; }
+</style>
+<!-- at-sim:css -->
+<style>
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .sim { border: 1px solid var(--border); border-radius: 12px; padding: 14px; background: #f8fafc; margin: 12px 0; }
+  .sim-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .sim-tab, .sim-chip { font: inherit; font-size: 0.92rem; border: 1px solid #94a3b8; background: #fff; color: var(--text); border-radius: 999px; padding: 3px 14px; cursor: pointer; }
+  .sim-chip.small { font-size: 0.85rem; padding: 2px 10px; }
+  .sim-tab[aria-selected="true"], .sim-chip[aria-pressed="true"], .sim-chip.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .sim-tab:hover, .sim-chip:hover { border-color: var(--primary); }
+  .sim-chip:disabled { opacity: 0.45; cursor: default; }
+  .sim-controls { display: grid; gap: 8px; margin-bottom: 12px; }
+  .sim-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .sim-label { font-weight: 700; font-size: 0.92rem; min-width: 7.5em; }
+  .sim-auto { font-size: 0.92rem; display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+  .sim-gesture { font: inherit; display: inline-flex; align-items: center; gap: 6px; border: 1px solid #94a3b8; background: #fff; color: var(--text); border-radius: 10px; padding: 4px 10px 4px 6px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none; text-align: left; }
+  .sim-gesture .gi { font-size: 1.4rem; line-height: 1; }
+  .sim-gesture b { display: block; font-size: 0.9rem; }
+  .sim-gesture small { display: block; font-size: 0.75rem; color: var(--muted); }
+  .sim-gesture.down { background: var(--accent-soft); border-color: var(--accent); box-shadow: inset 0 2px 4px rgba(0,0,0,0.15); }
+  .sim-voice { display: flex; gap: 6px; flex: 1; min-width: 220px; }
+  .sim-voice input { font: inherit; flex: 1; min-width: 0; padding: 4px 8px; border: 1px solid #94a3b8; border-radius: 8px; background: #fff; color: var(--text); }
+  .sim-voice button { font: inherit; border: none; border-radius: 8px; background: var(--primary); color: #fff; padding: 4px 14px; cursor: pointer; font-weight: 700; }
+
+  .dev { display: grid; grid-template-columns: minmax(200px, 250px) 1fr; gap: 12px; }
+  .cam { position: relative; background: #1e293b; border-radius: 10px; color: #f8fafc; padding: 8px; min-height: 290px; display: flex; flex-direction: column; gap: 6px; }
+  .hud { font-size: 0.78rem; line-height: 1.55; background: rgba(15,23,42,0.75); border-radius: 6px; padding: 4px 7px; }
+  .hud.locked { background: #991b1b; }
+  .hand-svg { width: 100%; max-width: 190px; margin: 0 auto; display: block; }
+  .hand-svg .hand line { stroke: #38bdf8; stroke-width: 1.6; stroke-linecap: round; }
+  .hand-svg .hand circle { fill: #5eead4; }
+  .hand-svg .ring { transition: stroke 0.2s; }
+  .hand-svg .nohand { fill: #94a3b8; font-size: 9px; }
+  .notes { background: #3b2a14; border-radius: 6px; padding: 4px 7px; font-size: 0.78rem; line-height: 1.5; }
+  .notes b { color: #fcd34d; }
+  .bubble { position: absolute; left: 10px; right: 10px; bottom: 46px; background: #fff; color: #0f172a; border-radius: 12px; padding: 4px 10px; font-size: 0.9rem; box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
+  .toast { margin-top: auto; font-size: 0.82rem; border-radius: 6px; padding: 3px 8px; min-height: 1.7em; }
+  .toast.ok { background: #166534; }
+  .toast.fail { background: #991b1b; }
+
+  .screen { border: 8px solid #334155; border-radius: 10px; background: #fff; display: flex; flex-direction: column; min-height: 290px; overflow: hidden; }
+  .win-title { background: #e2e8f0; font-size: 0.78rem; padding: 3px 8px; color: #334155; display: flex; justify-content: space-between; gap: 8px; }
+  .win-title span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .fg-tag { background: var(--primary); color: #fff; border-radius: 4px; padding: 0 6px; flex-shrink: 0; }
+  .win-body { flex: 1; position: relative; display: flex; }
+  .win-body > div { flex: 1; }
+  .sysbar { background: #0f172a; color: #e2e8f0; font-size: 0.78rem; padding: 3px 8px; display: flex; justify-content: space-between; gap: 8px; }
+
+  .yt { display: flex; flex-direction: column; background: #0f0f0f; color: #fff; }
+  .yt-video { flex: 1; position: relative; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 40% 40%, #7c2d12, #1c1917 70%); min-height: 150px; }
+  .yt.full .yt-video { min-height: 200px; }
+  .yt-icon { font-size: 2.4rem; opacity: 0.9; }
+  .yt-ad { position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; justify-content: space-between; align-items: center; background: rgba(250,204,21,0.9); color: #111; font-size: 0.8rem; padding: 3px 8px; border-radius: 4px; }
+  .yt-skip { background: rgba(0,0,0,0.75); color: #fff; padding: 2px 10px; border-radius: 12px; }
+  .yt-cc { position: absolute; bottom: 42px; background: rgba(0,0,0,0.75); padding: 1px 8px; font-size: 0.85rem; }
+  .yt-bar { height: 4px; background: #525252; }
+  .yt-bar div { height: 100%; background: #ef4444; }
+  .yt-meta { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; font-size: 0.82rem; padding: 5px 8px; }
+  .yt-closed, .notepad { display: flex; align-items: center; justify-content: center; text-align: center; color: var(--muted); padding: 16px; }
+
+  .ppt-edit { display: flex; gap: 8px; padding: 8px; background: #f1f5f9; }
+  .ppt-edit ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; font-size: 0.7rem; }
+  .ppt-edit li { width: 34px; height: 14px; border: 1px solid #cbd5e1; background: #fff; text-align: center; line-height: 12px; margin: 0; }
+  .ppt-edit li.on { border-color: #c2410c; background: #ffedd5; }
+  .ppt-slide.small { flex: 1; background: #fff; border: 1px solid #cbd5e1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; font-size: 1.05rem; }
+  .ppt-slide.small span { font-size: 0.78rem; color: var(--muted); }
+  .ppt-show { position: relative; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #fff7ed, #ffedd5); color: #7c2d12; font-size: 1.3rem; padding: 16px; text-align: center; }
+  .ppt-show.black { background: #000; color: #a3a3a3; font-size: 0.9rem; }
+  .ppt-show.white { background: #fff; color: #525252; font-size: 0.9rem; }
+  .ppt-no { position: absolute; right: 10px; bottom: 6px; font-size: 0.78rem; color: #9a3412; }
+  .ppt-tool { position: absolute; left: 10px; bottom: 6px; font-size: 0.75rem; color: #9a3412; }
+  .laser { position: absolute; left: 62%; top: 58%; width: 12px; height: 12px; border-radius: 50%; background: #ef4444; box-shadow: 0 0 10px 4px rgba(239,68,68,0.7); animation: laser 1.6s ease-in-out infinite alternate; }
+  @keyframes laser { from { transform: translate(0, 0); } to { transform: translate(-40px, -18px); } }
+
+  .pdf { display: flex; flex-direction: column; align-items: center; background: #525659; padding: 10px; overflow: hidden; }
+  .pdf-page { background: #fff; width: 58%; min-height: 150px; padding: 10px; transform-origin: top center; transition: transform 0.25s; }
+  .pdf-page p { margin: 2px 0 8px; font-size: 0.8rem; color: var(--muted); }
+  .pdf-page i { display: block; height: 6px; background: #e2e8f0; margin: 6px 0; border-radius: 3px; }
+  .pdf-meta { margin-top: auto; color: #fff; font-size: 0.8rem; padding-top: 6px; }
+
+  .meet { display: flex; flex-direction: column; background: #292524; color: #fff; }
+  .tiles { flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px; }
+  .tile { position: relative; background: #57534e; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 0.9rem; min-height: 90px; }
+  .tile.me { background: #0e7490; }
+  .tile.off { background: #3f3f46; color: #d4d4d8; }
+  .hand-up { position: absolute; top: 4px; right: 6px; font-size: 1.3rem; }
+  .meet-bar { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; padding: 6px; background: #1c1917; font-size: 0.8rem; }
+  .meet-bar span { border-radius: 999px; padding: 2px 10px; background: #44403c; }
+  .meet-bar .on { background: #15803d; }
+  .meet-bar .off { background: #b91c1c; }
+
+  .scene-caption { min-height: 3.6em; margin: 10px 0 6px; font-weight: 500; }
+  .scene-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .scene-step { font-size: 0.9rem; color: var(--muted); }
+  .scene-dots { display: flex; gap: 4px; margin-left: auto; }
+  .scene-dots i { width: 10px; height: 10px; border-radius: 50%; background: #cbd5e1; }
+  .scene-dots i.done { background: #7dd3fc; }
+  .scene-dots i.on { background: var(--primary); }
+  .sim-log-title { margin: 10px 0 2px; font-weight: 700; font-size: 0.92rem; }
+  .sim-log { margin: 0; padding-left: 1.2em; font-size: 0.85rem; font-family: "JetBrains Mono", Consolas, "Noto Sans TC", monospace; min-height: 2em; }
+  .sim-log li.ok { color: #065f46; }
+  .sim-log li.fail { color: #991b1b; }
+
+  @media (max-width: 640px) {
+    .dev { grid-template-columns: 1fr; }
+    .cam, .screen { min-height: 0; }
+    .sim-label { min-width: 100%; }
+    .scene-dots { margin-left: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .laser { animation: none; }
+    .pdf-page, .hand-svg .ring { transition: none; }
+  }
+  @media print { .sim { display: none; } }
+</style>
+<!-- /at-sim:css -->
+</head>
+<body>
+<a class="skip" href="#main">跳到主要內容</a>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">專題製作・學生實作手冊</span>
+    <h1>AirTouch 無接觸手勢＋語音遙控：<br>不碰鍵盤滑鼠，控制影片、簡報與會議</h1>
+    <p>手油油、手濕，或手部行動不方便時，拿滑鼠、碰鍵盤都不方便。這個專題用一顆 USB 鏡頭辨識 21 個手部關節點，判斷手勢；再加上中文語音指令，控制 YouTube、PowerPoint 簡報、PDF 文件與 Teams／Zoom／Meet 視訊會議；程式會看目前使用的程式，自動切換手勢的意思。</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="airtouch_starter_pack.zip" download="airtouch_starter_pack.zip">⬇ 下載程式包（ZIP）</a>
+      <a class="btn btn-ghost" href="#simulate">看情境模擬</a>
+      <a class="btn btn-ghost" href="#design">看功能設計</a>
+      <a class="btn btn-ghost" href="#profiles">看應用程式模式</a>
+    </div>
+    <ul class="facts">
+      <li>難度：進階 ★★</li>
+      <li>建議人數：2～4 人</li>
+      <li>時程：約 12～16 週</li>
+      <li>核心技術：MediaPipe 手部關節點 ＋ 規則判斷 ＋ 語音辨識</li>
+      <li>預算：約 0～1,500 元（用筆電內建鏡頭與麥克風可免費）</li>
+    </ul>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="本頁目錄">
+    <h2>目錄</h2>
+    <ol>
+      <li><a href="#overview">專題概要</a></li>
+      <li><a href="#layout">系統架構與情境模擬</a></li>
+      <li><a href="#design">功能設計</a></li>
+      <li><a href="#hardware">硬體與軟體</a></li>
+      <li><a href="#gesture">手勢辨識原理</a></li>
+      <li><a href="#voice">語音指令原理</a></li>
+      <li><a href="#action">操作 YouTube 的方法</a></li>
+      <li><a href="#profiles">應用程式模式</a></li>
+      <li><a href="#flow">12 週製作流程</a></li>
+      <li><a href="#code">程式包使用說明</a></li>
+      <li><a href="#prompts">AI 助手提示語</a></li>
+      <li><a href="#verify">測試與驗證</a></li>
+      <li><a href="#ethics">安全、隱私與規範</a></li>
+      <li><a href="#trouble">常見問題</a></li>
+      <li><a href="#v2">延伸挑戰</a></li>
+      <li><a href="#report">書面報告與評分</a></li>
+    </ol>
+  </nav>
+
+  <main id="main">
+
+    <section id="overview">
+      <h2><span class="num">1</span>專題概要</h2>
+      <h3>要解決的問題</h3>
+      <ul>
+        <li>吃東西時手油油，或在廚房照著食譜影片做菜時手濕，不想碰鍵盤、觸控板。</li>
+        <li>手部行動不方便的人，操作滑鼠的小按鈕很吃力。</li>
+        <li>實習工場、實驗室戴著手套，或需要保持清潔時，不方便觸碰設備。</li>
+        <li>老師上課走到教室中間時，想換投影片卻沒有簡報筆；視訊會議中想快速開關麥克風。</li>
+      </ul>
+      <h3>專題目標</h3>
+      <ol>
+        <li>辨識 7 種手勢：手掌張開、食指向右、食指向左、大拇指朝上、大拇指朝下、剪刀手、握拳。</li>
+        <li>手勢要「維持一下」才觸發，並有手勢鎖、太遠不理會等設計，<strong>降低誤觸</strong>。</li>
+        <li>聽懂自然的中文語音指令，例如「往前快轉一分半」「關閉這首換播稻香」。</li>
+        <li>控制 YouTube 的播放、快轉、音量、全螢幕、字幕、速度、下一部、點歌、關閉分頁。</li>
+        <li>依目前使用的程式自動切換模式：簡報換頁與雷射筆、PDF 翻頁縮放、視訊會議開關麥克風與舉手。</li>
+        <li>用自己收集的樣本與測試句，量出<strong>辨識率、誤觸率、反應時間</strong>，並和滑鼠操作比較。</li>
+      </ol>
+      <div class="note warn">
+        <strong>關於廣告的規範</strong>
+        本專題的「略過」功能，只在 YouTube 已經顯示「略過」按鈕時，代替使用者按下去。<strong>不要</strong>加入封鎖廣告、把廣告快轉到結尾、自動靜音跳過等功能：這類做法違反 YouTube 服務條款，也不適合作為公開發表的專題成果。
+      </div>
+      <p class="muted">展示頁：<a href="airtouch_project_showcase.html">AirTouch 成果展示</a>、<a href="airtouch_competition_report.html">競賽書面報告</a>。報告裡的數字要用自己測到的結果，不要照抄。</p>
+    </section>
+
+    <section id="layout">
+      <h2><span class="num">2</span>系統架構與情境模擬</h2>
+      <figure class="figure">
+        <svg viewBox="0 0 680 330" role="img" aria-labelledby="archTitle archDesc">
+          <title id="archTitle">AirTouch 系統架構圖</title>
+          <desc id="archDesc">上排是手勢流程：USB 鏡頭、MediaPipe 手部關節點、手勢判斷、觸發邏輯。下排是語音流程：麥克風、判斷說話起訖、Google 語音辨識、指令解析。兩條流程匯入動作執行，再分別控制 YouTube 視窗、系統音量與瀏覽器；同時更新畫面提示並寫入紀錄。</desc>
+          <defs><marker id="arrA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <text class="svg-sub" x="20" y="22">手勢（每秒約 30 張畫面）</text>
+          <g fill="#e0e7ff" stroke="#4338ca">
+            <rect x="20" y="30" width="104" height="54" rx="8"/><rect x="140" y="30" width="104" height="54" rx="8"/>
+            <rect x="260" y="30" width="104" height="54" rx="8"/><rect x="380" y="30" width="104" height="54" rx="8"/>
+          </g>
+          <text class="svg-label" x="72" y="53" text-anchor="middle">USB 鏡頭</text><text class="svg-sub" x="72" y="71" text-anchor="middle">左右翻轉畫面</text>
+          <text class="svg-label" x="192" y="53" text-anchor="middle">MediaPipe</text><text class="svg-sub" x="192" y="71" text-anchor="middle">21 個關節點</text>
+          <text class="svg-label" x="312" y="53" text-anchor="middle">手勢判斷</text><text class="svg-sub" x="312" y="71" text-anchor="middle">角度＋長度比例</text>
+          <text class="svg-label" x="432" y="53" text-anchor="middle">觸發邏輯</text><text class="svg-sub" x="432" y="71" text-anchor="middle">蓄力／冷卻／鎖</text>
+
+          <text class="svg-sub" x="20" y="126">語音（說完一句才辨識）</text>
+          <g fill="#cffafe" stroke="#0e7490">
+            <rect x="20" y="134" width="104" height="54" rx="8"/><rect x="140" y="134" width="104" height="54" rx="8"/>
+            <rect x="260" y="134" width="104" height="54" rx="8"/><rect x="380" y="134" width="104" height="54" rx="8"/>
+          </g>
+          <text class="svg-label" x="72" y="157" text-anchor="middle">麥克風</text><text class="svg-sub" x="72" y="175" text-anchor="middle">16 kHz 錄音</text>
+          <text class="svg-label" x="192" y="157" text-anchor="middle">說話偵測</text><text class="svg-sub" x="192" y="175" text-anchor="middle">音量門檻</text>
+          <text class="svg-label" x="312" y="157" text-anchor="middle">語音辨識</text><text class="svg-sub" x="312" y="175" text-anchor="middle">Google 線上</text>
+          <text class="svg-label" x="432" y="157" text-anchor="middle">指令解析</text><text class="svg-sub" x="432" y="175" text-anchor="middle">關鍵詞＋數字</text>
+
+          <g stroke="#475569" stroke-width="1.5" fill="none">
+            <line x1="124" y1="57" x2="138" y2="57" marker-end="url(#arrA)"/><line x1="244" y1="57" x2="258" y2="57" marker-end="url(#arrA)"/>
+            <line x1="364" y1="57" x2="378" y2="57" marker-end="url(#arrA)"/>
+            <line x1="124" y1="161" x2="138" y2="161" marker-end="url(#arrA)"/><line x1="244" y1="161" x2="258" y2="161" marker-end="url(#arrA)"/>
+            <line x1="364" y1="161" x2="378" y2="161" marker-end="url(#arrA)"/>
+            <path d="M484 57 H516 V100 H530" marker-end="url(#arrA)"/>
+            <path d="M484 161 H516 V118 H530" marker-end="url(#arrA)"/>
+          </g>
+          <rect x="532" y="82" width="128" height="54" rx="8" fill="#fef9c3" stroke="#a16207"/>
+          <text class="svg-label" x="596" y="105" text-anchor="middle">動作執行</text><text class="svg-sub" x="596" y="123" text-anchor="middle">依目前模式決定</text>
+
+          <g stroke="#475569" stroke-width="1.5" fill="none">
+            <path d="M596 136 V230" />
+            <line x1="100" y1="230" x2="596" y2="230"/>
+            <line x1="100" y1="230" x2="100" y2="252" marker-end="url(#arrA)"/>
+            <line x1="250" y1="230" x2="250" y2="252" marker-end="url(#arrA)"/>
+            <line x1="400" y1="230" x2="400" y2="252" marker-end="url(#arrA)"/>
+            <line x1="570" y1="230" x2="570" y2="252" marker-end="url(#arrA)"/>
+          </g>
+          <g fill="#dcfce7" stroke="#15803d">
+            <rect x="30" y="254" width="140" height="56" rx="8"/><rect x="180" y="254" width="140" height="56" rx="8"/>
+            <rect x="330" y="254" width="140" height="56" rx="8"/><rect x="500" y="254" width="140" height="56" rx="8"/>
+          </g>
+          <text class="svg-label" x="100" y="278" text-anchor="middle">應用程式視窗</text><text class="svg-sub" x="100" y="296" text-anchor="middle">影片、簡報、PDF、會議</text>
+          <text class="svg-label" x="250" y="278" text-anchor="middle">系統音量</text><text class="svg-sub" x="250" y="296" text-anchor="middle">音量鍵、靜音鍵</text>
+          <text class="svg-label" x="400" y="278" text-anchor="middle">瀏覽器</text><text class="svg-sub" x="400" y="296" text-anchor="middle">開網站、點歌</text>
+          <text class="svg-label" x="570" y="278" text-anchor="middle">畫面與紀錄</text><text class="svg-sub" x="570" y="296" text-anchor="middle">提示、嗶聲、logs/</text>
+        </svg>
+        <figcaption>手勢和語音是兩條獨立的輸入，最後都交給「動作執行」；它依目前的應用程式模式（第 8 章），決定要按哪個快捷鍵</figcaption>
+      </figure>
+      <div class="note info">
+        <strong>為什麼用「規則」判斷手勢，而不是訓練 AI 模型？</strong>
+        MediaPipe 已經把畫面變成 21 個座標點，剩下的判斷用角度和長度比例就能做得很好，而且每一條規則都看得懂、改得動、說得出為什麼認錯。延伸挑戰可以再訓練分類模型，和規則法比較。
+      </div>
+<!-- at-sim:markup -->
+      <h3 id="simulate">情境動畫</h3>
+      <p>先看三個情境怎麼運作。動畫會自動播放（電腦設定「減少動畫」時請按「播放」），也可以按「上一步／下一步」慢慢看。深藍色區塊是鏡頭畫面上的 AirTouch 懸浮視窗（手勢、進度環、狀態列），灰框是電腦螢幕。</p>
+      <div class="sim" id="at-scenes">
+        <noscript><p>情境動畫需要開啟 JavaScript。</p></noscript>
+      </div>
+
+      <h3>互動模擬器</h3>
+      <p>自己動手試：先選「最前面的視窗」，再<strong>按住</strong>手勢按鈕（放開＝手放下；用鍵盤時按住空白鍵），或輸入一句話代替語音。可以觀察：</p>
+      <ul>
+        <li>進度環要填滿才觸發；還沒填滿就放開，什麼都不會發生。</li>
+        <li>大拇指、食指按住不放，會連續觸發；手掌張開要放開再按才會再觸發一次。</li>
+        <li>按住「握拳」1.5 秒會鎖定，狀態列變紅，其他手勢都沒反應；再按住一次解鎖。</li>
+        <li>換到記事本時，模式不會變；在簡報模式說「快轉」，只會提示「沒有這個功能」。</li>
+        <li>會議模式說兩次「靜音」：快捷鍵是「切換」，第二次會把麥克風打開。</li>
+      </ul>
+      <div class="sim" id="at-sim">
+        <noscript><p>互動模擬器需要開啟 JavaScript。</p></noscript>
+      </div>
+      <div class="note tip">
+        <strong>模擬器和程式包用同一套規則</strong>
+        手勢對應、維持秒數、重複間隔、冷卻、手勢鎖都讀自程式包的 <code>config.json</code>；語音解析的比對順序與 <code>voice_commands.py</code> 相同。網頁只改變畫面上的模擬螢幕，不會操作你的電腦；真正的手勢辨識要用程式包加上鏡頭。
+      </div>
+<!-- /at-sim:markup -->
+    </section>
+
+    <section id="design">
+      <h2><span class="num">3</span>功能設計</h2>
+      <p>先把「系統要做到什麼、怎麼算做到」寫清楚。下面是程式包已經實作的設計，報告的「研究方法」可以直接引用；改良時也要回來更新。</p>
+
+      <h3>3.1 功能清單與驗收標準</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <colgroup><col><col style="width:15%"><col style="width:37%"><col style="width:22%"><col style="width:26%"></colgroup>
+          <thead><tr><th scope="col">編號</th><th scope="col">功能</th><th scope="col">說明</th><th scope="col">對應程式</th><th scope="col">驗收標準</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">F1</th><td>影像輸入</td><td>USB 鏡頭（左右翻轉成鏡像）或影片檔</td><td><code>airtouch.py</code></td><td>兩種來源都能執行</td></tr>
+            <tr><th scope="row">F2</th><td>手部關節點</td><td>MediaPipe 找出最多 2 隻手，取最大的一隻；模型自動下載</td><td><code>airtouch.py</code></td><td>第一次執行自動下載並載入</td></tr>
+            <tr><th scope="row">F3</th><td>手勢判斷</td><td>用手指彎曲角度、長度比例、方向角判斷 7 種手勢</td><td><code>gestures.analyze</code></td><td>自己的樣本整體辨識率達組內目標</td></tr>
+            <tr><th scope="row">F4</th><td>距離過濾</td><td>手太小（太遠）一律不理會</td><td><code>gestures.analyze</code></td><td>後方走過的人不會觸發</td></tr>
+            <tr><th scope="row">F5</th><td>平滑與蓄力</td><td>最近 5 格多數決；同一手勢維持設定秒數才觸發，畫面顯示進度環</td><td><code>GestureTrigger</code></td><td>一兩格認錯不會打斷；太短不觸發</td></tr>
+            <tr><th scope="row">F6</th><td>重複與冷卻</td><td>音量、快轉可持續觸發；其他手勢要換手勢才能再觸發；動作後短時間不觸發別的動作</td><td><code>GestureTrigger</code></td><td>符合 <code>test_trigger.py</code> 的 10 項測試</td></tr>
+            <tr><th scope="row">F7</th><td>手勢鎖</td><td>握拳 1.5 秒鎖定或解鎖；鎖定時只認得握拳</td><td><code>GestureTrigger</code></td><td>鎖定後比其他手勢都沒反應</td></tr>
+            <tr><th scope="row">F8</th><td>語音錄音與分段</td><td>先量背景雜音，音量超過門檻開始、安靜 0.8 秒結束</td><td><code>voice_listener.py</code></td><td>一句話只送出一次；小聲雜音不送出</td></tr>
+            <tr><th scope="row">F9</th><td>語音辨識</td><td>Google 語音辨識（繁體中文）；打字模式可替代</td><td><code>voice_listener.py</code></td><td>沒網路時顯示原因，不會當掉</td></tr>
+            <tr><th scope="row">F10</th><td>指令解析</td><td>關鍵詞、中文數字、分鐘秒數、歌名、喚醒詞</td><td><code>voice_commands.py</code></td><td><code>test_voice_commands.py</code> 全部通過</td></tr>
+            <tr><th scope="row">F11</th><td>應用程式控制</td><td>找到目前模式的視窗、切到前景、送出該模式的快捷鍵；不支援的動作不按鍵</td><td><code>actions.py</code></td><td>各模式的動作都能正確執行</td></tr>
+            <tr><th scope="row">F12</th><td>點歌與換歌</td><td>搜尋第一部影片並開啟；換歌時先關閉舊分頁</td><td><code>actions.py</code></td><td>找不到影片時改開搜尋結果頁</td></tr>
+            <tr><th scope="row">F13</th><td>按下「略過」</td><td>在 YouTube 視窗截圖，多尺度比對按鈕樣板，有看到才點，點完滑鼠移回原位</td><td><code>actions.click_skip</code></td><td>沒有按鈕時不點擊，並顯示相似度</td></tr>
+            <tr><th scope="row">F14</th><td>模擬模式</td><td>只顯示會做什麼，不按鍵、不開網頁</td><td><code>--dry-run</code></td><td>上課測試不會干擾其他視窗</td></tr>
+            <tr><th scope="row">F15</th><td>畫面與回饋</td><td>狀態列、進度環、結果提示、說明頁、除錯資訊、提示音</td><td><code>airtouch.py</code></td><td>旁人看畫面就知道目前狀態</td></tr>
+            <tr><th scope="row">F16</th><td>懸浮視窗</td><td>置頂、三段透明度、小視窗</td><td><code>FloatingWindow</code></td><td>看影片時不擋畫面也能確認手勢</td></tr>
+            <tr><th scope="row">F17</th><td>紀錄與摘要</td><td>每個動作寫入 CSV；結束時寫入摘要 JSON</td><td><code>airtouch.py</code></td><td>可以用紀錄算出誤觸次數與辨識時間</td></tr>
+            <tr><th scope="row">F19</th><td>應用程式模式</td><td>依前景視窗自動切換 YouTube、簡報、PDF、Teams、Zoom、Meet；可手動固定；切換時換手勢對應</td><td><code>ProfileManager</code>、<code>match_profile</code></td><td><code>test_profiles.py</code> 全部通過</td></tr>
+            <tr><th scope="row">F20</th><td>簡報進階功能</td><td>PowerPoint 程式介面：頁碼、備忘稿、跳到第 N 頁、依標題找投影片</td><td><code>ppt_com.py</code></td><td>沒有 PowerPoint 時自動改用按鍵</td></tr>
+            <tr><th scope="row">F21</th><td>語音意圖轉換</td><td>同一句話依模式換成不同動作，例如會議模式的「靜音」＝麥克風開關</td><td><code>voice_map</code></td><td>各模式說「靜音」的結果正確</td></tr>
+            <tr><th scope="row">F18</th><td>樣本收集與評估</td><td>收集關節點樣本；計算辨識率、精確率、混淆矩陣、誤觸率；可暫時改門檻比較</td><td><code>collect_samples.py</code>、<code>evaluate_gestures.py</code></td><td>輸出認錯樣本清單</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.2 非功能需求</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">項目</th><th scope="col">目標</th><th scope="col">怎麼量</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">流暢度</th><td>畫面每秒 15 張以上</td><td>狀態列的 FPS、摘要的平均 FPS</td></tr>
+            <tr><th scope="row">手勢反應</th><td>由組員訂目標，例如「開始比到觸發在 1 秒內」</td><td>手機慢動作錄影數影格</td></tr>
+            <tr><th scope="row">語音反應</th><td>由組員訂目標，例如「說完到動作在 2 秒內」</td><td>紀錄的辨識秒數＋錄影</td></tr>
+            <tr><th scope="row">誤觸</th><td>由組員訂目標，例如「日常動作 10 分鐘內誤觸不超過 1 次」</td><td>模擬模式下做日常動作，數紀錄</td></tr>
+            <tr><th scope="row">可調整</th><td>手勢對應、門檻、時間都在 <code>config.json</code>，不必改程式</td><td>請同學只改設定完成一項調整</td></tr>
+            <tr><th scope="row">隱私</th><td>不錄影、不存照片；語音可隨時關閉</td><td>檢查 <code>data/</code>、<code>logs/</code> 的內容</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.3 手勢觸發狀態機</h3>
+      <figure class="figure">
+        <svg viewBox="0 0 680 250" role="img" aria-labelledby="trgTitle trgDesc">
+          <title id="trgTitle">手勢觸發狀態機</title>
+          <desc id="trgDesc">等待狀態在出現指令手勢時進入蓄力，進度環逐漸填滿；維持到設定秒數就觸發並進入已觸發。已觸發狀態下，可重複的手勢每隔重複秒數再觸發一次；換手勢或放下手就回到等待。蓄力中換手勢也回到等待。任何狀態握拳 1.5 秒都會切換到鎖定，鎖定時再握拳 1.5 秒才解鎖。</desc>
+          <defs><marker id="arrT" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#334155" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <rect x="30" y="70" width="130" height="54" rx="10" fill="#e2e8f0" stroke="#64748b"/>
+          <rect x="275" y="70" width="130" height="54" rx="10" fill="#fef9c3" stroke="#a16207"/>
+          <rect x="520" y="70" width="130" height="54" rx="10" fill="#dcfce7" stroke="#15803d"/>
+          <rect x="275" y="186" width="130" height="50" rx="10" fill="#fee2e2" stroke="#b91c1c"/>
+          <text class="svg-label" x="95" y="93" text-anchor="middle">等待</text><text class="svg-sub" x="95" y="112" text-anchor="middle">沒有指令手勢</text>
+          <text class="svg-label" x="340" y="93" text-anchor="middle">蓄力中</text><text class="svg-sub" x="340" y="112" text-anchor="middle">進度環填滿中</text>
+          <text class="svg-label" x="585" y="93" text-anchor="middle">已觸發</text><text class="svg-sub" x="585" y="112" text-anchor="middle">送出動作</text>
+          <text class="svg-label" x="340" y="208" text-anchor="middle">手勢鎖定</text><text class="svg-sub" x="340" y="226" text-anchor="middle">只認得握拳</text>
+          <g stroke="#334155" stroke-width="1.5" fill="none">
+            <line x1="160" y1="88" x2="273" y2="88" marker-end="url(#arrT)"/>
+            <line x1="275" y1="106" x2="162" y2="106" marker-end="url(#arrT)"/>
+            <line x1="405" y1="97" x2="518" y2="97" marker-end="url(#arrT)"/>
+            <path d="M585 70 C 585 20, 640 20, 640 68" marker-end="url(#arrT)"/>
+            <path d="M540 70 C 470 10, 180 10, 110 68" marker-end="url(#arrT)"/>
+            <path d="M95 124 C 95 200, 200 212, 273 212" marker-end="url(#arrT)"/>
+            <path d="M405 212 C 520 212, 585 180, 585 126" marker-end="url(#arrT)" stroke-dasharray="5 4"/>
+          </g>
+          <text class="svg-sub" x="216" y="80" text-anchor="middle">比出指令手勢</text>
+          <text class="svg-sub" x="216" y="122" text-anchor="middle">換手勢／太短</text>
+          <text class="svg-sub" x="461" y="89" text-anchor="middle">維持 hold_sec</text>
+          <text class="svg-sub" x="612" y="16" text-anchor="middle">每 repeat_sec 再一次</text>
+          <text class="svg-sub" x="330" y="52" text-anchor="middle">換手勢或放下手</text>
+          <text class="svg-sub" x="160" y="238" text-anchor="middle">握拳 1.5 秒</text>
+          <text class="svg-sub" x="500" y="238" text-anchor="middle">握拳 1.5 秒（解鎖）</text>
+        </svg>
+        <figcaption>「冷卻」：任何動作之後 <code>cooldown_sec</code> 秒內，不會觸發「另一種」動作，避免手勢轉換途中誤觸</figcaption>
+      </figure>
+
+      <h3>3.4 介面規格</h3>
+      <div class="table-wrap">
+        <table>
+          <caption class="muted" style="text-align:left;padding-bottom:4px">手勢對應 <code>config.json → profiles → 模式名稱 → gestures</code></caption>
+          <thead><tr><th scope="col">欄位</th><th scope="col">意義</th><th scope="col">範例</th></tr></thead>
+          <tbody>
+            <tr><td><code>action</code></td><td>要執行的動作名稱（見 3.5）</td><td><code>"seek_forward"</code></td></tr>
+            <tr><td><code>hold_sec</code></td><td>維持幾秒才觸發</td><td><code>0.35</code></td></tr>
+            <tr><td><code>repeat_sec</code></td><td>繼續比著，每隔幾秒再觸發；不寫或 0 代表不重複</td><td><code>1.0</code></td></tr>
+            <tr><td><code>arg</code></td><td>動作參數（秒數、格數）</td><td><code>10</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid2">
+        <div class="box">
+          <h3>動作紀錄 <code>logs/session_時間.csv</code></h3>
+          <div class="table-wrap">
+            <table style="min-width:0">
+              <tbody>
+                <tr><td><code>time</code></td><td>啟動後的秒數</td></tr>
+                <tr><td><code>source</code></td><td>gesture、voice 或 key</td></tr>
+                <tr><td><code>input</code></td><td>手勢名稱或聽到的句子</td></tr>
+                <tr><td><code>action</code>、<code>arg</code></td><td>動作與參數</td></tr>
+                <tr><td><code>ok</code>、<code>message</code></td><td>是否成功、顯示文字</td></tr>
+                <tr><td><code>hold_or_recog_sec</code></td><td>手勢維持秒數，或語音辨識花費秒數</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="box">
+          <h3>手勢樣本 <code>data/*.csv</code></h3>
+          <div class="table-wrap">
+            <table style="min-width:0">
+              <tbody>
+                <tr><td><code>label</code></td><td>真正的手勢（none＝非指令、too_far＝太遠）</td></tr>
+                <tr><td><code>tag</code></td><td>人、距離、光線等標籤</td></tr>
+                <tr><td><code>width</code>、<code>height</code></td><td>畫面大小</td></tr>
+                <tr><td><code>x0,y0 … x20,y20</code></td><td>21 個關節點，0～1 的比例座標</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="muted">語音測試句 <code>voice_test_phrases.csv</code>：<code>text</code>、<code>expected_action</code>、<code>expected_arg</code>（歌名寫成「歌名|是否換歌」）。</p>
+        </div>
+      </div>
+
+      <h3>3.5 動作一覽</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">動作名稱</th><th scope="col">效果</th><th scope="col">怎麼做到</th><th scope="col">手勢</th><th scope="col">語音例句</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>play_pause</code></th><td>播放／暫停</td><td>YouTube 按 <kbd>k</kbd></td><td>手掌張開</td><td>暫停、繼續播放</td></tr>
+            <tr><th scope="row"><code>seek_forward</code></th><td>快轉</td><td><kbd>l</kbd> 每次 10 秒、<kbd>→</kbd> 每次 5 秒</td><td>食指向右</td><td>快轉一分半</td></tr>
+            <tr><th scope="row"><code>seek_back</code></th><td>倒退</td><td><kbd>j</kbd>、<kbd>←</kbd></td><td>食指向左</td><td>倒退十五秒</td></tr>
+            <tr><th scope="row"><code>volume_up</code><br><code>volume_down</code></th><td>系統音量</td><td>鍵盤音量鍵</td><td>大拇指朝上／下</td><td>音量調大五格</td></tr>
+            <tr><th scope="row"><code>mute</code></th><td>系統靜音切換</td><td>靜音鍵</td><td>—</td><td>靜音</td></tr>
+            <tr><th scope="row"><code>video_mute</code></th><td>影片靜音切換</td><td><kbd>m</kbd></td><td>—</td><td>影片靜音</td></tr>
+            <tr><th scope="row"><code>fullscreen</code></th><td>全螢幕切換</td><td><kbd>f</kbd></td><td>—</td><td>全螢幕</td></tr>
+            <tr><th scope="row"><code>captions</code></th><td>字幕切換</td><td><kbd>c</kbd></td><td>—</td><td>開字幕</td></tr>
+            <tr><th scope="row"><code>next_video</code></th><td>下一部</td><td><kbd>Shift</kbd>＋<kbd>N</kbd></td><td>—</td><td>下一部</td></tr>
+            <tr><th scope="row"><code>speed_up</code><br><code>speed_down</code></th><td>播放速度</td><td><kbd>Shift</kbd>＋<kbd>&gt;</kbd>／<kbd>&lt;</kbd></td><td>—</td><td>播快一點</td></tr>
+            <tr><th scope="row"><code>skip_ad</code></th><td>按下「略過」</td><td>比對按鈕圖片後點擊</td><td>剪刀手</td><td>跳過廣告</td></tr>
+            <tr><th scope="row"><code>open_youtube</code></th><td>開啟 YouTube</td><td>預設瀏覽器開網址</td><td>—</td><td>打開YouTube</td></tr>
+            <tr><th scope="row"><code>play_song</code></th><td>點歌／換歌</td><td>搜尋第一部影片並開啟</td><td>—</td><td>換播五月天</td></tr>
+            <tr><th scope="row"><code>close_video</code></th><td>關閉影片分頁</td><td><kbd>Ctrl</kbd>＋<kbd>W</kbd></td><td>—</td><td>關閉這首</td></tr>
+            <tr><th scope="row"><code>lock</code><br><code>unlock</code></th><td>手勢鎖</td><td>程式內部狀態</td><td>握拳 1.5 秒</td><td>鎖定手勢、啟用手勢</td></tr>
+            <tr><th scope="row"><code>exit</code></th><td>結束程式</td><td>—</td><td>—</td><td>關閉程式</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="muted">上表是 YouTube 模式與共通動作；簡報、PDF、視訊會議模式的動作見第 8 章。</p>
+
+      <h3>3.6 畫面與回饋設計</h3>
+      <ul>
+        <li><strong>狀態列</strong>：目前模式（自動或固定）、手勢是否啟用（鎖定時整條變紅）、語音狀態、目前手勢與進度、簡報頁碼、FPS、是否模擬模式。</li>
+        <li><strong>備忘稿</strong>：簡報模式按 <kbd>n</kbd>，在畫面下方顯示這頁的備忘稿。</li>
+        <li><strong>進度環</strong>：畫在手掌中心，比對手勢時逐漸填滿，填滿即觸發；鎖定時變成紅色。</li>
+        <li><strong>結果提示</strong>：畫面下方綠色＝成功、紅色＝失敗或聽不懂，顯示 2.5 秒。</li>
+        <li><strong>提示音</strong>：成功時短嗶；鎖定低音、解鎖高音。</li>
+        <li><strong>視窗按鍵</strong>：<kbd>q</kbd> 結束、<kbd>g</kbd> 手勢鎖、<kbd>v</kbd> 語音開關、<kbd>p</kbd> 換模式、<kbd>a</kbd> 自動切換、<kbd>n</kbd> 備忘稿、<kbd>t</kbd> 置頂、<kbd>o</kbd> 透明度、<kbd>s</kbd> 小視窗、<kbd>h</kbd> 說明、<kbd>d</kbd> 除錯資訊。</li>
+      </ul>
+
+      <h3>3.7 例外處理</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">狀況</th><th scope="col">系統反應</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">鏡頭打不開</th><td>顯示「無法開啟鏡頭或影片」並結束</td></tr>
+            <tr><th scope="row">模型還沒下載</th><td>自動下載到 <code>models/</code>；資料夾路徑有中文也能載入</td></tr>
+            <tr><th scope="row">找不到目前模式的視窗</th><td>提示「找不到○○的視窗」，不送出按鍵</td></tr>
+            <tr><th scope="row">無法切換到該視窗</th><td>提示失敗，不送出按鍵，避免按到別的視窗</td></tr>
+            <tr><th scope="row">目前模式沒有這個功能</th><td>提示「○○模式沒有○○」，不送出按鍵（例如簡報模式說「快轉」）</td></tr>
+            <tr><th scope="row">沒有安裝 PowerPoint</th><td>不顯示頁碼與備忘稿；跳頁改用輸入數字＋Enter；找標題會提示無法使用</td></tr>
+            <tr><th scope="row">切換模式時正在比手勢</th><td>重新計算蓄力，不會馬上觸發新模式的動作</td></tr>
+            <tr><th scope="row">畫面上沒有「略過」按鈕</th><td>不點擊，顯示最高相似度，方便調整門檻</td></tr>
+            <tr><th scope="row">點歌搜尋失敗</th><td>改開搜尋結果頁</td></tr>
+            <tr><th scope="row">麥克風打不開或套件沒裝</th><td>狀態列顯示原因，手勢照常運作</td></tr>
+            <tr><th scope="row">語音辨識沒網路或聽不清楚</th><td>狀態列顯示原因；聽不懂的句子寫入紀錄</td></tr>
+            <tr><th scope="row">滑鼠移到螢幕角落</th><td>pyautogui 安全機制中止自動操作，顯示失敗</td></tr>
+            <tr><th scope="row">關閉視窗或按 Ctrl+C</th><td>釋放鏡頭、停止錄音、存好紀錄與摘要</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.8 功能測試對照</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">測試</th><th scope="col">對應功能</th><th scope="col">方法</th><th scope="col">通過標準</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">T1</th><td>F3、F4、F18</td><td><code>0_self_check.bat</code> 的練習樣本評估</td><td>整體 96.5%、一般樣本 100%</td></tr>
+            <tr><th scope="row">T2</th><td>F10</td><td><code>test_voice_commands.py</code></td><td>79/79 通過</td></tr>
+            <tr><th scope="row">T3</th><td>F5、F6、F7</td><td><code>test_trigger.py</code></td><td>14/14 通過</td></tr>
+            <tr><th scope="row">T4</th><td>F1、F2、F15、F16</td><td><code>1_start_dry_run.bat</code>，逐一比 7 種手勢，試各個視窗按鍵</td><td>進度環與提示都正確</td></tr>
+            <tr><th scope="row">T5</th><td>F8、F9</td><td>模擬模式下說 10 句指令，再故意製造背景聲音</td><td>每句只辨識一次；雜音不觸發</td></tr>
+            <tr><th scope="row">T6</th><td>F11、F12、F13</td><td>正式模式逐一測試 3.5 的動作</td><td>全部動作正確；沒有按鈕時不點擊</td></tr>
+            <tr><th scope="row">T7</th><td>F18</td><td>收集自己的樣本並評估</td><td>達到組內訂的辨識率與誤觸率目標</td></tr>
+            <tr><th scope="row">T8</th><td>F17</td><td>模擬模式下做 10 分鐘日常動作</td><td>用紀錄算出誤觸次數</td></tr>
+            <tr><th scope="row">T9</th><td>例外處理</td><td>拔鏡頭、關網路、關掉 YouTube、把滑鼠移到角落</td><td>都依 3.7 的方式反應，程式不當掉</td></tr>
+            <tr><th scope="row">T10</th><td>F19、F21</td><td><code>test_profiles.py</code>（視窗標題、動作支援、語音轉換、快捷鍵名稱）</td><td>77/77 通過</td></tr>
+            <tr><th scope="row">T11</th><td>F11、F19、F20</td><td>開 PowerPoint 放映與 PDF，切換視窗觀察模式；逐一測試第 8 章的動作、頁碼與備忘稿</td><td>模式切換正確，動作都有效</td></tr>
+            <tr><th scope="row">T12</th><td>F11、F21</td><td>在測試會議中用手勢與語音開關麥克風、鏡頭、舉手</td><td>三種會議軟體至少測一種，全部有效</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="hardware">
+      <h2><span class="num">4</span>硬體與軟體</h2>
+      <div class="table-wrap">
+        <table class="nw3">
+          <thead><tr><th scope="col">項目</th><th scope="col">建議規格</th><th scope="col">數量</th><th scope="col">參考價</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">筆記型電腦</th><td>Windows 10／11、Intel i5 第 8 代或同級以上、8 GB 記憶體</td><td>1</td><td>學校既有</td></tr>
+            <tr><th scope="row">USB 網路攝影機</th><td>720p、30fps 以上；筆電內建鏡頭也可以先用</td><td>1</td><td>0～1,200 元</td></tr>
+            <tr><th scope="row">麥克風</th><td>筆電內建即可；教室吵雜時用領夾或耳機麥克風</td><td>1</td><td>0～300 元</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">軟體</th><th scope="col">用途</th><th scope="col">取得方式</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Python 3.10 以上</th><td>主程式</td><td>python.org，勾選 <code>Add Python to PATH</code></td></tr>
+            <tr><th scope="row">mediapipe、opencv-python、numpy、pillow</th><td>手部關節點、影像、畫面文字</td><td rowspan="2"><code>pip install -r requirements.txt</code></td></tr>
+            <tr><th scope="row">pyautogui、pywin32、sounddevice、SpeechRecognition</th><td>按鍵與點擊、視窗控制、錄音、語音辨識</td></tr>
+            <tr><th scope="row">手部模型 <code>hand_landmarker.task</code></th><td>MediaPipe 官方模型</td><td>第一次執行自動下載</td></tr>
+            <tr><th scope="row">Google Chrome 或 Edge</th><td>播放 YouTube、閱讀 PDF、Google Meet</td><td>系統既有</td></tr>
+            <tr><th scope="row">Microsoft PowerPoint（選用）</th><td>簡報模式的頁碼、備忘稿、跳頁、找標題</td><td>學校 Office 授權</td></tr>
+            <tr><th scope="row">Teams、Zoom（選用）</th><td>視訊會議模式</td><td>學校帳號或免費版</td></tr>
+            <tr><th scope="row">OBS Studio 或 Windows 內建錄影（<kbd>Win</kbd>＋<kbd>G</kbd>）</th><td>錄製成果影片</td><td>免費</td></tr>
+            <tr><th scope="row">Google Antigravity／Claude Code</th><td>AI 程式助手（擇一）</td><td>Antigravity 免費；Claude Code 需 Claude 付費方案</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>鏡頭擺放</h3>
+      <ul>
+        <li>鏡頭放在螢幕上方，手舉在胸前、離鏡頭約 40～80 公分，手掌在畫面中至少要有手機大小。</li>
+        <li>背景單純、光線從前方來；避免背光（背後是窗戶）。</li>
+        <li>鏡頭不要對著電視或另一個螢幕，畫面裡的手也會被偵測到。</li>
+      </ul>
+    </section>
+
+    <section id="gesture">
+      <h2><span class="num">5</span>手勢辨識原理</h2>
+      <h3>步驟一：21 個關節點</h3>
+      <p>MediaPipe 在每張畫面找出手的 21 個關節點，座標是 0～1 的比例。程式先乘上畫面寬高換成像素，才不會因為畫面長寬比不同而變形。</p>
+      <figure class="figure">
+        <svg viewBox="0 0 680 360" role="img" aria-labelledby="handTitle handDesc">
+          <title id="handTitle">手部 21 個關節點與手指伸直判斷</title>
+          <desc id="handDesc">左邊是張開的手，標出 0 號手腕、1 到 4 號大拇指、5 到 8 號食指、9 到 12 號中指、13 到 16 號無名指、17 到 20 號小指，以及手腕到中指指根的手掌長度。右邊上方是伸直的手指：指根到第二關節、第二關節到指尖兩段幾乎同方向，夾角小；右邊下方是彎曲的手指：兩段夾角大，而且指尖比第二關節更靠近手腕。</desc>
+          <g stroke="#0369a1" stroke-width="3" stroke-linecap="round" fill="none">
+            <polyline points="200,340 147,302 110,272 69,239 33,211"/>
+            <polyline points="147,190 138,123 132,81 127,48"/>
+            <polyline points="185,182 185,107 185,62 185,26"/>
+            <polyline points="222,190 231,120 236,78 240,45"/>
+            <polyline points="257,205 271,151 279,119 287,90"/>
+            <polyline points="200,340 147,190 185,182 222,190 257,205 200,340"/>
+          </g>
+          <line x1="200" y1="340" x2="185" y2="182" stroke="#b45309" stroke-width="3" stroke-dasharray="6 4"/>
+          <line x1="300" y1="336" x2="330" y2="336" stroke="#b45309" stroke-width="3" stroke-dasharray="6 4"/>
+          <text class="svg-sub" x="336" y="340" style="fill:#92400e">手掌長度（0→9）</text>
+          <g fill="#fff" stroke="#0f172a" stroke-width="1">
+            <circle cx="200" cy="340" r="9"/><circle cx="147" cy="302" r="7"/><circle cx="110" cy="272" r="7"/><circle cx="69" cy="239" r="7"/><circle cx="33" cy="211" r="9"/>
+            <circle cx="147" cy="190" r="7"/><circle cx="138" cy="123" r="7"/><circle cx="132" cy="81" r="7"/><circle cx="127" cy="48" r="9"/>
+            <circle cx="185" cy="182" r="7"/><circle cx="185" cy="107" r="7"/><circle cx="185" cy="62" r="7"/><circle cx="185" cy="26" r="9"/>
+            <circle cx="222" cy="190" r="7"/><circle cx="231" cy="120" r="7"/><circle cx="236" cy="78" r="7"/><circle cx="240" cy="45" r="9"/>
+            <circle cx="257" cy="205" r="7"/><circle cx="271" cy="151" r="7"/><circle cx="279" cy="119" r="7"/><circle cx="287" cy="90" r="9"/>
+          </g>
+          <g font-size="10" font-family="JetBrains Mono, monospace" fill="#0f172a" text-anchor="middle">
+            <text x="200" y="344">0</text><text x="147" y="306">1</text><text x="110" y="276">2</text><text x="69" y="243">3</text><text x="33" y="215">4</text>
+            <text x="147" y="194">5</text><text x="138" y="127">6</text><text x="132" y="85">7</text><text x="127" y="52">8</text>
+            <text x="185" y="186">9</text><text x="185" y="111">10</text><text x="185" y="66">11</text><text x="185" y="30">12</text>
+            <text x="222" y="194">13</text><text x="231" y="124">14</text><text x="236" y="82">15</text><text x="240" y="49">16</text>
+            <text x="257" y="209">17</text><text x="271" y="155">18</text><text x="279" y="123">19</text><text x="287" y="94">20</text>
+          </g>
+          <text class="svg-label" x="400" y="40">伸直的手指</text>
+          <polyline points="420,180 420,120 420,70" stroke="#15803d" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <g fill="#fff" stroke="#15803d" stroke-width="2"><circle cx="420" cy="180" r="6"/><circle cx="420" cy="120" r="6"/><circle cx="420" cy="70" r="6"/></g>
+          <text class="svg-sub" x="436" y="184">指根</text><text class="svg-sub" x="436" y="124">第二關節</text><text class="svg-sub" x="436" y="74">指尖</text>
+          <text class="svg-sub" x="400" y="210">兩段夾角 ≈ 0°</text>
+          <text class="svg-sub" x="400" y="226">小於 40° 算伸直</text>
+
+          <text class="svg-label" x="560" y="40">彎曲的手指</text>
+          <polyline points="570,180 570,120 610,150" stroke="#b91c1c" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <g fill="#fff" stroke="#b91c1c" stroke-width="2"><circle cx="570" cy="180" r="6"/><circle cx="570" cy="120" r="6"/><circle cx="610" cy="150" r="6"/></g>
+          <path d="M570 100 A 20 20 0 0 1 588 128" fill="none" stroke="#b91c1c" stroke-width="1.5"/>
+          <text class="svg-sub" x="592" y="112">夾角大</text>
+          <text class="svg-sub" x="540" y="210">指尖比第二關節</text>
+          <text class="svg-sub" x="540" y="226">更靠近手腕</text>
+          <text class="svg-sub" x="400" y="280">只用「角度」和「長度比例」判斷，</text>
+          <text class="svg-sub" x="400" y="298">所以手轉個角度、離鏡頭遠近不同，</text>
+          <text class="svg-sub" x="400" y="316">都能得到一樣的結果。</text>
+        </svg>
+        <figcaption>0＝手腕；每根手指由指根往指尖編號；手腕到中指指根（0→9）當作「手掌長度」</figcaption>
+      </figure>
+
+      <h3>步驟二：每根手指伸直還是彎曲</h3>
+      <ul>
+        <li><strong>四指</strong>：「指根→第二關節」和「第二關節→指尖」兩段的夾角小於 <code>straight_deg</code>（40°），而且指尖到手腕的距離大於第二關節到手腕的 1.1 倍，才算伸直。</li>
+        <li><strong>大拇指</strong>：兩段夾角小於 <code>thumb_straight_deg</code>（35°），而且指尖離食指指根超過手掌長度的 <code>thumb_out_ratio</code>（0.5）倍，才算伸出。</li>
+        <li><strong>手太遠</strong>：手掌長度小於畫面高度的 <code>min_palm_ratio</code>（10%）就不判斷。</li>
+      </ul>
+
+      <h3>步驟三：組合成手勢</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">手勢</th><th scope="col">四指（食、中、無名、小）</th><th scope="col">額外條件</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">手掌張開</th><td>全部伸直</td><td>—</td></tr>
+            <tr><th scope="row">剪刀手</th><td>食指、中指伸直</td><td>兩指方向至少差 10°（分開）</td></tr>
+            <tr><th scope="row">食指向右／左</th><td>只有食指伸直</td><td>食指方向（指根→指尖）在右方或左方 ±40° 內</td></tr>
+            <tr><th scope="row">大拇指朝上／下</th><td>全部彎曲</td><td>大拇指伸出，方向在上方或下方 ±40° 內</td></tr>
+            <tr><th scope="row">握拳</th><td>全部彎曲</td><td>大拇指沒有伸出</td></tr>
+            <tr><th scope="row">沒有指令</th><td colspan="2">其他組合，例如三根手指、食指朝上、兩指併攏</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="formula">方向角 ＝ atan2(−Δy, Δx)　→　0°＝右、90°＝上、180°＝左、−90°＝下</div>
+      <p class="muted">畫面的 y 軸是往下增加，所以 Δy 要加負號，角度才和數學課的方向一致。鏡頭畫面會先左右翻轉成鏡像，「向右」就是使用者自己的右邊。</p>
+
+      <h3>步驟四：什麼時候觸發</h3>
+      <p>見 3.3 的狀態機。以練習測試為例：手掌張開從第 0.5 秒開始，多數決要約 3 格（0.07 秒）才確認換了手勢，再蓄力 0.5 秒，所以在第 1.07 秒觸發。</p>
+      <div class="note tip">
+        <strong>練習樣本的成績（<code>0_self_check.bat</code>）</strong>
+        1,350 筆合成樣本整體準確率 96.5%：一般樣本 100%，角度偏到 ±50° 的困難樣本 80%，誤觸率 2.0%。錯誤大多是「大拇指朝上／下」角度太斜被判成「沒有指令」或「握拳」。把 <code>direction_tolerance_deg</code> 暫時改成 50，整體升到 97.9%，但誤觸率變成 2.3%，這就是「放寬＝好認，但也容易誤觸」的取捨。合成手比真的手整齊，報告要用自己收集的樣本。
+      </div>
+    </section>
+
+    <section id="voice">
+      <h2><span class="num">6</span>語音指令原理</h2>
+      <h3>一句話從哪裡開始、到哪裡結束</h3>
+      <ol>
+        <li>啟動時先安靜 1 秒，量出背景雜音的音量（RMS）。</li>
+        <li>門檻＝背景音量 × <code>voice_threshold_ratio</code>（3 倍），且至少 <code>voice_min_rms</code>（300）。</li>
+        <li>每 0.05 秒檢查一次音量：超過門檻就開始錄（連同前 0.3 秒，避免第一個字被切掉）；安靜 0.8 秒就當作說完；最長 6 秒。</li>
+        <li>有聲音的部分不到 0.3 秒，多半是咳嗽或碰撞聲，直接丟掉。</li>
+        <li>把這段聲音送到 Google 語音辨識（繁體中文），得到文字。</li>
+      </ol>
+      <h3>文字變成指令</h3>
+      <p><code>voice_commands.py</code> 依照固定順序比對關鍵詞，<strong>越特別的句子越先比對</strong>：</p>
+      <ol class="flow" aria-label="語音指令比對順序">
+        <li><b>系統</b>關閉程式、手勢鎖</li>
+        <li><b>換歌</b>「換播＋歌名」</li>
+        <li><b>關閉</b>「關閉這首」</li>
+        <li><b>網站與畫面</b>開 YouTube、略過、全螢幕…</li>
+        <li><b>音量</b>大聲、小聲、靜音</li>
+        <li><b>時間</b>倒退先於快轉</li>
+        <li><b>點歌與播放</b>最後才比對</li>
+      </ol>
+      <p>例如「往後快轉 20 秒」同時有「往後」和「快轉」，因為「倒退類」先比對，所以是倒退 20 秒；「關閉這首換播稻香」先比對到「換播」，所以是換歌而不是單純關閉。</p>
+      <div class="formula">「快轉一分半」→ 1×60＋30 ＝ 90 秒　　「兩分鐘三十秒」→ 2×60＋30 ＝ 150 秒</div>
+      <p><strong>喚醒詞</strong>：在 <code>config.json</code> 設定 <code>voice_wake_word</code>（例如「小觸」）後，只有「小觸」開頭的句子才會動作，聊天時比較不會誤觸。</p>
+      <div class="note info">
+        <strong>實測參考</strong>
+        用合成語音「往前快轉三十秒」測試，辨識結果為「往前快轉30秒」，辨識花費約 0.6～0.8 秒（依網路狀況而定），解析成快轉 30 秒。
+      </div>
+    </section>
+
+    <section id="action">
+      <h2><span class="num">7</span>操作 YouTube 的方法</h2>
+      <h3>讓 YouTube 視窗在最前面</h3>
+      <p>鍵盤按鍵只會送到「前景」的視窗。程式先用視窗標題找出含有「YouTube」的瀏覽器視窗，再把它叫到最前面。Windows 為了安全，不允許背景程式隨便搶焦點，所以程式先把自己的輸入佇列接到目前的前景視窗（<code>AttachThreadInput</code>），再切換視窗；切換失敗就不送按鍵，避免按到別的程式。</p>
+      <h3>送出快捷鍵</h3>
+      <p>用 <code>pyautogui</code> 模擬按鍵，對照表見 3.5。快轉 25 秒會拆成 <kbd>l</kbd> 兩次（20 秒）加 <kbd>→</kbd> 一次（5 秒）。</p>
+      <h3>按下「略過」</h3>
+      <ol>
+        <li>只截取 YouTube 視窗的範圍。</li>
+        <li>把 <code>templates/</code> 裡的按鈕圖片，從 0.6 倍到 1.6 倍縮放 11 種大小，逐一用正規化相關係數（<code>TM_CCOEFF_NORMED</code>）比對。</li>
+        <li>最高相似度超過 <code>skip_match_threshold</code>（0.8）才點擊中心，點完把滑鼠移回原位。</li>
+        <li>YouTube 改版或語言不同時，用 <code>6_make_skip_template.bat</code> 截新的按鈕圖片。</li>
+      </ol>
+      <h3>點歌</h3>
+      <p>用歌名查詢 YouTube 搜尋結果頁，取出第一部影片的網址後開啟；查不到就開搜尋結果頁，讓使用者自己選。換歌時先對 YouTube 視窗按 <kbd>Ctrl</kbd>＋<kbd>W</kbd> 關掉舊分頁。</p>
+      <div class="note warn">
+        <strong>限制（要寫進報告）</strong>
+        <ul>
+          <li>YouTube 的搜尋框被選取時，<kbd>k</kbd>、<kbd>f</kbd> 會變成打字；先用滑鼠點一下影片畫面。</li>
+          <li>「播放」和「暫停」都是按 <kbd>k</kbd>，程式不知道影片目前是播放還是暫停。</li>
+          <li>同時開了多個 YouTube 視窗時，只會控制找到的第一個。</li>
+          <li>搜尋結果頁的格式改變時，點歌可能只會開搜尋結果頁。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="profiles">
+      <h2><span class="num">8</span>應用程式模式：簡報、PDF、視訊會議</h2>
+      <p>同一個手勢，在不同程式要做不同的事：看 YouTube 時「食指向右」是快轉，上台簡報時應該是「下一頁」。程式用「應用程式模式」解決這件事，每個模式有自己的手勢對應與快捷鍵，全部寫在 <code>config.json</code> 的 <code>profiles</code>。</p>
+
+      <h3>8.1 怎麼知道現在是哪個模式</h3>
+      <ol class="flow" aria-label="模式判斷流程">
+        <li><b>每 0.5 秒</b>讀最前面視窗的標題</li>
+        <li><b>依序比對</b>關鍵字（PowerPoint → Teams → Zoom → YouTube → Meet → PDF）</li>
+        <li><b>有變化</b>就換手勢對應，畫面顯示新模式</li>
+        <li><b>不認得</b>（例如記事本、AirTouch 自己）就維持原本模式</li>
+      </ol>
+      <ul>
+        <li><strong>比對順序很重要</strong>：「YouTube 教學簡報.pptx - PowerPoint」要算簡報；「How to use Google Meet - YouTube」要算 YouTube。<code>test_profiles.py</code> 用 14 個真實格式的標題檢查。</li>
+        <li><strong>手動固定</strong>：按 <kbd>p</kbd> 換到下一個模式、說「切換到簡報模式」，或用 <code>7_presentation_mode.bat</code> 啟動；固定後不會自動切換。按 <kbd>a</kbd> 或說「自動切換」恢復。</li>
+        <li><strong>切換瞬間不誤觸</strong>：換模式時，手上正在比的手勢要重新比，才會觸發新模式的動作。</li>
+      </ul>
+
+      <h3>8.2 各模式的手勢</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">模式</th><th scope="col">食指向右／左</th><th scope="col">手掌張開</th><th scope="col">剪刀手</th><th scope="col">大拇指朝上／下</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">YouTube</th><td>快轉／倒退 10 秒</td><td>播放／暫停</td><td>按下「略過」</td><td>音量</td></tr>
+            <tr><th scope="row">PowerPoint 簡報</th><td>下一頁／上一頁（比著不放每 1.2 秒再一次）</td><td>黑畫面切換（0.8 秒）</td><td>雷射筆（0.8 秒）</td><td>音量</td></tr>
+            <tr><th scope="row">PDF 閱讀</th><td>下一頁／上一頁</td><td>恢復頁面大小</td><td>—</td><td>放大／縮小（可連續）</td></tr>
+            <tr><th scope="row">Teams／Zoom／Meet</th><td>向右＝舉手（1.2 秒）</td><td>麥克風開關（1 秒）</td><td>鏡頭開關（1 秒）</td><td>音量</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted">握拳 1.5 秒的手勢鎖在所有模式都一樣。會議模式把維持時間設得比較長，因為誤開麥克風的後果比較嚴重。</p>
+
+      <h3>8.3 PowerPoint 簡報</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">動作</th><th scope="col">快捷鍵</th><th scope="col">語音例句</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">從頭／從這頁放映</th><td><kbd>F5</kbd>／<kbd>Shift</kbd>＋<kbd>F5</kbd></td><td>開始放映、從這頁放映</td></tr>
+            <tr><th scope="row">下一頁／上一頁</th><td><kbd>→</kbd>／<kbd>←</kbd></td><td>下一頁、翻回去</td></tr>
+            <tr><th scope="row">第一頁／最後一頁</th><td><kbd>Home</kbd>／<kbd>End</kbd></td><td>最後一頁</td></tr>
+            <tr><th scope="row">跳到第 N 頁</th><td>程式介面（沒有時改成輸入數字＋<kbd>Enter</kbd>）</td><td>跳到第五頁</td></tr>
+            <tr><th scope="row">跳到指定投影片</th><td>程式介面：先找標題，再找內文</td><td>跳到結論那頁</td></tr>
+            <tr><th scope="row">黑畫面／白畫面</th><td><kbd>B</kbd>／<kbd>W</kbd></td><td>黑畫面、白屏</td></tr>
+            <tr><th scope="row">雷射筆／畫筆／一般游標</th><td><kbd>Ctrl</kbd>＋<kbd>L</kbd>／<kbd>P</kbd>／<kbd>A</kbd></td><td>雷射筆、換成畫筆、箭頭</td></tr>
+            <tr><th scope="row">清除筆跡</th><td><kbd>E</kbd></td><td>擦掉</td></tr>
+            <tr><th scope="row">結束放映</th><td><kbd>Esc</kbd></td><td>結束放映</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>PowerPoint 程式介面（COM）</h3>
+      <p>快捷鍵只能「按下一頁」，不知道現在在第幾頁。Windows 版 PowerPoint 提供程式介面，Python 用 <code>pywin32</code> 就能讀寫：</p>
+      <pre><code>app = win32com.client.GetActiveObject("PowerPoint.Application")
+win = app.SlideShowWindows(1)          # 放映中的視窗
+win.View.Slide.SlideIndex              # 現在第幾張
+win.Presentation.Slides.Count          # 總共幾張
+win.View.GotoSlide(5)                  # 跳到第 5 張</code></pre>
+      <ul>
+        <li><strong>頁碼</strong>：懸浮視窗每秒更新「第 3／12 頁」，講者不必回頭看螢幕。</li>
+        <li><strong>備忘稿</strong>：按 <kbd>n</kbd> 在懸浮視窗顯示這頁的備忘稿（講者提示），最多 3 行。</li>
+        <li><strong>依標題找頁</strong>：說「跳到實驗結果」，程式逐頁比對標題，找不到再找內文。</li>
+        <li>電腦沒有安裝 PowerPoint 時，這些功能自動停用；跳頁改用輸入數字＋<kbd>Enter</kbd>，其他快捷鍵照常可用。</li>
+      </ul>
+      <div class="note info">
+        <strong>實測</strong>
+        用程式在背景建立一份 4 頁、有備忘稿的簡報：讀出 4 個標題與備忘稿都正確；「結論」找到第 4 頁、只出現在內文的「混淆矩陣」找到第 3 頁、不存在的「預算」回傳找不到。放映中的跳頁需要全螢幕放映，請在實機測試（T11）。
+      </div>
+
+      <h3>8.4 PDF 閱讀</h3>
+      <ul>
+        <li>換頁用 <kbd>PageDown</kbd>／<kbd>PageUp</kbd>，放大縮小用 <kbd>Ctrl</kbd>＋<kbd>=</kbd>／<kbd>-</kbd>，<kbd>Ctrl</kbd>＋<kbd>0</kbd> 恢復大小（Acrobat 是「符合頁面」，Edge 是「縮放 100%」）。</li>
+        <li>Edge 要在檢視設定選「單頁」，換頁才會剛好一頁；「跳到第幾頁」在 PDF 模式不支援，會顯示提示。</li>
+      </ul>
+
+      <h3>8.5 視訊會議</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">動作</th><th scope="col">Microsoft Teams</th><th scope="col">Zoom</th><th scope="col">Google Meet</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">麥克風開關</th><td><kbd>Ctrl</kbd>＋<kbd>Shift</kbd>＋<kbd>M</kbd></td><td><kbd>Alt</kbd>＋<kbd>A</kbd></td><td><kbd>Ctrl</kbd>＋<kbd>D</kbd></td></tr>
+            <tr><th scope="row">鏡頭開關</th><td><kbd>Ctrl</kbd>＋<kbd>Shift</kbd>＋<kbd>O</kbd></td><td><kbd>Alt</kbd>＋<kbd>V</kbd></td><td><kbd>Ctrl</kbd>＋<kbd>E</kbd></td></tr>
+            <tr><th scope="row">舉手／放下</th><td><kbd>Ctrl</kbd>＋<kbd>Shift</kbd>＋<kbd>K</kbd></td><td><kbd>Alt</kbd>＋<kbd>Y</kbd></td><td><kbd>Ctrl</kbd>＋<kbd>Alt</kbd>＋<kbd>H</kbd></td></tr>
+            <tr><th scope="row">視窗標題含有</th><td>Microsoft Teams</td><td>Zoom Meeting、Zoom 會議</td><td>Meet - 、Google Meet</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li><strong>同一句話，不同意思</strong>：會議模式用 <code>voice_map</code> 把「靜音」換成「麥克風開關」；要關電腦喇叭請說「電腦靜音」。</li>
+        <li>說「會議模式」時，程式會看 Teams、Zoom、Meet 哪一個的視窗有開，就切到那一個。</li>
+        <li><strong>快捷鍵是「切換」</strong>：程式不知道麥克風現在是開還是關，原本就靜音時說「靜音」，反而會打開麥克風。請看會議視窗的圖示確認，或在報告中討論怎麼改良（例如讀取會議軟體的狀態）。</li>
+        <li>快捷鍵只對「會議中的視窗」有效；會議軟體更新後快捷鍵可能改變，請以官方說明為準並修改 <code>config.json</code>。</li>
+      </ul>
+
+      <h3>8.6 自己新增一個模式</h3>
+      <p>在 <code>config.json</code> 的 <code>profiles</code> 加一段就能新增，例如 VLC 播放器：</p>
+      <pre><code>"vlc": {
+  "name": "VLC 播放器",
+  "window": ["VLC media player"],
+  "keys": {"play_pause": ["space"], "fullscreen": ["f"], "next_video": ["n"], "prev_video": ["p"]},
+  "gestures": {
+    "open_palm":  {"action": "play_pause", "hold_sec": 0.5},
+    "thumb_up":   {"action": "volume_up",  "hold_sec": 0.3, "repeat_sec": 0.25, "arg": 1},
+    "thumb_down": {"action": "volume_down", "hold_sec": 0.3, "repeat_sec": 0.25, "arg": 1}
+  }
+}</code></pre>
+      <p>新增後執行 <code>test_profiles.py</code>：它會檢查每個手勢的動作這個模式都支援、快捷鍵名稱都正確。記得把新程式的視窗標題加進測試的 <code>TITLES</code>，並確認比對順序不會搶走別的模式。</p>
+    </section>
+
+    <section id="flow">
+      <h2><span class="num">9</span>12 週製作流程</h2>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">週次</th><th scope="col">工作內容</th><th scope="col">要交出的成果</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">第 1 週</th><td>訪談或問卷：什麼情況下不方便碰鍵盤滑鼠？比較市售手勢控制產品、語音助理</td><td>需求紀錄、產品比較表</td></tr>
+            <tr><th scope="row">第 2 週</th><td>安裝環境，執行 <code>0_self_check.bat</code>；讀懂 <code>config.json</code>；分工</td><td>自我檢查截圖</td></tr>
+            <tr><th scope="row">第 3 週</th><td>模擬模式試用 7 種手勢，按 <kbd>d</kbd> 觀察每根手指的判斷</td><td>手勢試用紀錄</td></tr>
+            <tr><th scope="row">第 4 週</th><td>規劃樣本收集：幾個人、幾種距離與光線；用 <code>4_collect_samples.bat</code> 收集</td><td>樣本收集計畫、樣本檔</td></tr>
+            <tr><th scope="row">第 5 週</th><td>評估樣本，找出最容易認錯的手勢與情況</td><td>基準成績（辨識率、混淆矩陣、誤觸率）</td></tr>
+            <tr><th scope="row">第 6 週</th><td>用 <code>--set</code> 調整門檻，<strong>每次只改一項</strong>；必要時修改判斷規則</td><td>門檻比較表</td></tr>
+            <tr><th scope="row">第 7 週</th><td>語音：擴充測試句（每人 20 句自己的說法），修改解析直到全部通過</td><td>測試句與通過率</td></tr>
+            <tr><th scope="row">第 8 週</th><td>語音實測：安靜教室與吵雜環境、不同組員，各說 30 句</td><td>語音辨識成功率表</td></tr>
+            <tr><th scope="row">第 9 週</th><td>正式模式測試所有動作與應用程式模式（簡報、PDF、會議）；調整「略過」樣板</td><td>動作測試表（T6、T11、T12）</td></tr>
+            <tr><th scope="row">第 10 週</th><td>誤觸測試與反應時間測試</td><td>誤觸次數、反應時間</td></tr>
+            <tr><th scope="row">第 11 週</th><td>使用者測試：請同學手油油或戴手套完成任務，和滑鼠比較；請老師用簡報模式上一段課，和簡報筆比較</td><td>任務時間、滿意度問卷</td></tr>
+            <tr><th scope="row">第 12 週</th><td>錄製成果影片、整理數據</td><td>成果影片</td></tr>
+            <tr><th scope="row">第 13 週以後</th><td>撰寫書面報告、練習上台報告</td><td>書面報告、簡報</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="code">
+      <h2><span class="num">10</span>程式包使用說明</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">檔案</th><th scope="col">用途</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>0_self_check.bat</code></th><td>不用鏡頭的自我檢查：練習樣本評估、語音測試句、觸發邏輯、應用程式模式</td></tr>
+            <tr><th scope="row"><code>1_start_dry_run.bat</code></th><td>模擬模式：只顯示會做什麼，不按鍵</td></tr>
+            <tr><th scope="row"><code>2_start_airtouch.bat</code></th><td>正式使用（先開好 YouTube 影片）</td></tr>
+            <tr><th scope="row"><code>3_start_text_mode.bat</code></th><td>打字代替說話</td></tr>
+            <tr><th scope="row"><code>4_collect_samples.bat</code></th><td>收集手勢樣本（先輸入標籤）</td></tr>
+            <tr><th scope="row"><code>5_evaluate_gestures.bat</code></th><td>評估 <code>data/</code> 裡所有樣本</td></tr>
+            <tr><th scope="row"><code>6_make_skip_template.bat</code></th><td>製作「略過」按鈕樣板</td></tr>
+            <tr><th scope="row"><code>7_presentation_mode.bat</code></th><td>上台簡報用：固定在 PowerPoint 模式</td></tr>
+            <tr><th scope="row"><code>airtouch.py</code></th><td>主程式：鏡頭、畫面、懸浮視窗、紀錄</td></tr>
+            <tr><th scope="row"><code>gestures.py</code></th><td>手勢判斷與觸發邏輯</td></tr>
+            <tr><th scope="row"><code>voice_listener.py</code>／<code>voice_commands.py</code></th><td>錄音與辨識／文字解析</td></tr>
+            <tr><th scope="row"><code>actions.py</code></th><td>依模式決定動作、切換視窗、按鍵、開網頁、找「略過」按鈕</td></tr>
+            <tr><th scope="row"><code>ppt_com.py</code></th><td>PowerPoint 程式介面：頁碼、備忘稿、跳頁、找標題</td></tr>
+            <tr><th scope="row"><code>collect_samples.py</code>、<code>evaluate_gestures.py</code>、<code>make_demo_samples.py</code></th><td>收集、評估、產生練習樣本</td></tr>
+            <tr><th scope="row"><code>test_voice_commands.py</code>、<code>test_trigger.py</code>、<code>test_profiles.py</code></th><td>自動測試</td></tr>
+            <tr><th scope="row"><code>config.json</code></th><td>所有設定，說明見 <code>README_先看我.md</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>收集樣本的按鍵</h3>
+      <p>按 <kbd>1</kbd> 張開、<kbd>2</kbd> 食指向右、<kbd>3</kbd> 食指向左、<kbd>4</kbd> 大拇指朝上、<kbd>5</kbd> 大拇指朝下、<kbd>6</kbd> 剪刀手、<kbd>7</kbd> 握拳、<kbd>0</kbd> 沒有指令（抓頭、揮手、拿杯子）。倒數 1 秒後錄 2 秒，錄的時候可以慢慢轉動手腕、前後移動；<kbd>q</kbd> 結束。</p>
+      <h3>常用指令</h3>
+      <pre><code>python airtouch.py --dry-run --text          模擬模式＋打字指令
+python airtouch.py --no-voice                只用手勢
+python airtouch.py --profile pdf             固定在 PDF 模式
+python collect_samples.py --tag 王小明_遠_晚上
+python evaluate_gestures.py --set straight_deg=30
+python evaluate_gestures.py data/samples_王小明_遠_晚上.csv</code></pre>
+    </section>
+
+    <section id="prompts">
+      <h2><span class="num">11</span>AI 助手提示語（Antigravity／Claude Code）</h2>
+      <p>用 Antigravity 開啟程式包資料夾，或在 Claude 桌面版的「Code」分頁選擇資料夾，再貼上提示語。每次修改後都要執行 <code>0_self_check.bat</code>，確認原本的測試沒有壞掉。</p>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>① 讀懂手勢判斷</span><button type="button" class="copy" data-target="p1">複製</button></div>
+<pre id="p1">請閱讀 gestures.py，用高中生看得懂的繁體中文說明：
+1. analyze 怎麼判斷一根手指伸直？為什麼用角度和長度比例，而不是直接看座標？
+2. 7 種手勢各自的條件，畫成一張表
+3. GestureTrigger 的多數決、蓄力、重複、冷卻、手勢鎖分別解決什麼問題？
+先不要修改任何檔案。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>② 新增手勢：食指朝上＝下一部</span><button type="button" class="copy" data-target="p2">複製</button></div>
+<pre id="p2">請在 gestures.py 新增手勢 point_up：只有食指伸直，而且食指方向在上方 ±40° 內
+（目前這種情況會判成 none）。在 config.json 的 profiles 裡，youtube 模式的 gestures 加上 point_up 對應 next_video、
+powerpoint 模式對應 first_page，hold_sec 都設 0.8。
+同時更新 GESTURE_NAMES、SHORT_NAMES、evaluate_gestures.py 的 COMMANDS、collect_samples.py 的按鍵（用 8）。
+make_demo_samples.py 裡「食指朝上」目前被當成 none，請改成 point_up 標籤。
+改完執行 make_demo_samples.py、evaluate_gestures.py、test_trigger.py，回報成績變化。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>③ 新增語音說法</span><button type="button" class="copy" data-target="p3">複製</button></div>
+<pre id="p3">我們收集到同學的其他說法，請先把下面這些句子加進 voice_test_phrases.csv（我會附上預期動作），
+執行 test_voice_commands.py 看哪些失敗，再修改 voice_commands.py 讓它們通過，
+而且原本的 48 句仍然全部通過。修改時說明為什麼要放在那個比對順序。
+（在這裡貼上：句子, 預期動作, 預期參數）</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>④ 分析認錯的樣本</span><button type="button" class="copy" data-target="p4">複製</button></div>
+<pre id="p4">請執行 python evaluate_gestures.py，讀取 output 資料夾中最新的 gesture_eval CSV，
+找出最常被認錯的「真正手勢→程式判斷」組合，以及哪個標籤（人、距離、光線）最差。
+對最常見的錯誤，請載入那些樣本，列出每根手指的彎曲角度與大拇指伸出比例，
+說明是哪一條規則沒過，並建議要調整哪個門檻。先不要修改程式。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>⑤ 門檻實驗圖表</span><button type="button" class="copy" data-target="p5">複製</button></div>
+<pre id="p5">請寫 compare_thresholds.py：對 data 資料夾裡我們自己的樣本（排除 demo_samples.csv），
+把 straight_deg 從 25 到 55、每 5 度一組，呼叫 evaluate_gestures.py 的函式算出「指令手勢辨識率」與「誤觸率」，
+用 matplotlib 畫成折線圖存到 output/threshold_straight_deg.png，並用繁體中文說明建議的設定值。
+不要修改 config.json。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>⑥ 延伸：訓練分類模型和規則法比較</span><button type="button" class="copy" data-target="p6">複製</button></div>
+<pre id="p6">請寫 train_knn.py：讀取 data 資料夾裡我們自己的樣本，先把每筆 21 個點以手腕為原點、除以手掌長度做正規化，
+用 scikit-learn 的 KNeighborsClassifier，依「人」分組做交叉驗證（同一個人的樣本不能同時出現在訓練與測試），
+印出每個手勢的辨識率與誤觸率，並和 evaluate_gestures.py 的規則法放在同一張表比較。
+需要安裝的套件請先告訴我。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>⑦ 新增一個應用程式模式</span><button type="button" class="copy" data-target="p7">複製</button></div>
+<pre id="p7">請在 config.json 的 profiles 新增「VLC 播放器」模式（視窗標題含 VLC media player）：
+空白鍵播放暫停、f 全螢幕、n 下一部、p 上一部，手勢比照 YouTube 模式但沒有快轉與略過。
+請想清楚要放在比對順序的哪裡，並在 test_profiles.py 的 TITLES 加上 VLC 的視窗標題測試，
+執行 test_profiles.py 與 test_trigger.py 確認全部通過，最後更新 README 的模式表。</pre>
+      </div>
+    </section>
+
+    <section id="verify">
+      <h2><span class="num">12</span>測試與驗證</h2>
+      <h3>手勢樣本收集計畫</h3>
+      <ul>
+        <li>至少 4 位同學（手的大小、膚色不同），每人都要錄。</li>
+        <li>距離：近（約 40 公分）、遠（約 80 公分）；光線：白天、晚上開燈、背光。</li>
+        <li>每種組合每個手勢錄 3 次（每次約 2 秒、約 60 筆），並錄「沒有指令」的日常動作。</li>
+        <li>標籤寫成「人_距離_光線」，例如 <code>A_近_白天</code>，評估時會分開計算。</li>
+      </ul>
+      <h3>評估指標</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">指標</th><th scope="col">算法</th><th scope="col">意義</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">辨識率</th><td>某手勢被認對的筆數 ÷ 該手勢的筆數</td><td>比了會不會被認出來</td></tr>
+            <tr><th scope="row">精確率</th><td>判成某手勢且真的是 ÷ 判成該手勢的筆數</td><td>程式說是，可不可信</td></tr>
+            <tr><th scope="row">誤觸率</th><td>非指令樣本被判成指令 ÷ 非指令樣本數</td><td>日常動作會不會亂觸發</td></tr>
+            <tr><th scope="row">錯誤指令率</th><td>比 A 卻判成另一個指令 B ÷ 指令樣本數</td><td>最危險的錯誤</td></tr>
+            <tr><th scope="row">反應時間</th><td>慢動作錄影：開始比手勢到畫面提示的影格數</td><td>操作是否順手</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted">樣本是「逐格」評估；實際使用時還有多數決與蓄力，所以真正的誤觸次數要用 T8 的 10 分鐘測試來量。</p>
+      <h3>語音測試</h3>
+      <ul>
+        <li>準備 30 句指令，每位組員在安靜與吵雜（播放音樂）環境各說一次，記錄「聽對文字」與「做對動作」兩個成功率。</li>
+        <li>把聽錯的文字加進 <code>voice_test_phrases.csv</code>，看看能不能靠解析規則補救（例如「快轉2蛋秒」這類錯字）。</li>
+        <li>比較開啟與不開啟喚醒詞時，聊天 5 分鐘的誤觸次數。</li>
+      </ul>
+      <h3>使用者測試</h3>
+      <ul>
+        <li>任務：暫停 → 快轉 30 秒 → 音量調大 → 換一首歌 → 全螢幕。</li>
+        <li>比較三種方式的完成時間：滑鼠鍵盤、手勢、語音；手上塗乳液或戴手套時再測一次。</li>
+        <li>請受測者填簡單的滿意度問卷（1～5 分）：容易學、反應快、不容易誤觸、會想使用。</li>
+      </ul>
+      <h3>簡報遙控比較</h3>
+      <ul>
+        <li>同一份 15 頁簡報，分別用鍵盤、簡報筆、手勢、語音換頁，記錄每次換頁的反應時間（慢動作錄影）。</li>
+        <li>講者邊講邊比手勢 10 分鐘（手勢鎖關閉），記錄「沒有要換頁卻換頁」的次數，再比較開啟手勢鎖時的差異。</li>
+        <li>統計「跳到第 N 頁」「跳到某個標題」的成功率。</li>
+      </ul>
+    </section>
+
+    <section id="ethics">
+      <h2><span class="num">13</span>安全、隱私與規範</h2>
+      <ul class="check">
+        <li>「略過」只在 YouTube 顯示按鈕時代替使用者點擊；不封鎖、不快轉、不跳過不能略過的廣告。</li>
+        <li>程式不錄影、不存照片；手勢樣本只存關節點座標。</li>
+        <li>語音會送到 Google 辨識，使用前告知旁人；不用時按 <kbd>v</kbd> 關閉語音。</li>
+        <li>收集樣本、錄製成果影片前，先取得受測者與入鏡者同意；報告中用代號，不寫真實姓名。</li>
+        <li>自動按鍵會操作電腦：測試時先用模擬模式；把滑鼠移到螢幕角落可緊急中止。</li>
+        <li>視訊會議中，手勢與語音會開關麥克風與鏡頭：先在測試會議練習，正式會議不用時握拳鎖定手勢。</li>
+        <li>點歌只播放公開影片，展示時注意影片內容是否適合在校園播放。</li>
+      </ul>
+    </section>
+
+    <section id="trouble">
+      <h2><span class="num">14</span>常見問題</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">狀況</th><th scope="col">可能原因</th><th scope="col">解決方式</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">一直顯示「手太遠」</th><td>手離鏡頭太遠、鏡頭解析度低</td><td>手靠近一點；或把 <code>min_palm_ratio</code> 調小</td></tr>
+            <tr><th scope="row">某個手勢一直認不出來</th><td>手指沒有完全伸直或彎曲、角度太斜</td><td>按 <kbd>d</kbd> 看每根手指的判斷；調整 <code>straight_deg</code>、<code>direction_tolerance_deg</code></td></tr>
+            <tr><th scope="row">大拇指朝上被當成握拳</th><td>大拇指沒有伸出夠遠</td><td>大拇指伸直；或把 <code>thumb_out_ratio</code> 調小</td></tr>
+            <tr><th scope="row">放下手時誤觸</th><td>蓄力時間太短</td><td>加長該手勢的 <code>hold_sec</code>；平常不用時握拳鎖定</td></tr>
+            <tr><th scope="row">按鍵沒反應或打出字母</th><td>YouTube 視窗沒在前景，或搜尋框被選取</td><td>先點一下影片畫面；看狀態列的失敗原因</td></tr>
+            <tr><th scope="row">「略過」按不到</th><td>按鈕樣式或語言不同、螢幕縮放比例不同</td><td>用 <code>6_make_skip_template.bat</code> 做新樣板；看提示的相似度，必要時調整 <code>skip_match_threshold</code></td></tr>
+            <tr><th scope="row">語音一直顯示「辨識中」或連線失敗</th><td>沒有網路、學校網路擋住</td><td>確認網路；先用打字模式</td></tr>
+            <tr><th scope="row">一直誤判成在說話</th><td>環境太吵、門檻太低</td><td>加大 <code>voice_threshold_ratio</code>；使用喚醒詞；換靠近嘴邊的麥克風</td></tr>
+            <tr><th scope="row">打開的是另一顆鏡頭</th><td>鏡頭編號不對</td><td><code>config.json</code> 的 <code>camera</code> 改成 1</td></tr>
+            <tr><th scope="row">畫面很卡</th><td>電腦較慢</td><td>關掉其他程式；鏡頭解析度維持 640×480</td></tr>
+            <tr><th scope="row">模式一直自動跳來跳去</th><td>常常切換視窗</td><td>按 <kbd>p</kbd> 或用 <code>7_presentation_mode.bat</code> 固定模式</td></tr>
+            <tr><th scope="row">簡報模式換頁沒反應</th><td>PowerPoint 在編輯畫面，不在放映中</td><td>先說「開始放映」或按 <kbd>F5</kbd>；放映視窗要在前面</td></tr>
+            <tr><th scope="row">沒有顯示頁碼、跳到標題失敗</th><td>沒有安裝 PowerPoint，或用的是 Google 簡報、WPS</td><td>這些功能需要 Microsoft PowerPoint；換頁快捷鍵仍可用（固定在簡報模式）</td></tr>
+            <tr><th scope="row">會議快捷鍵沒反應</th><td>最前面的不是會議視窗、會議軟體改了快捷鍵</td><td>確認會議視窗在前面；到會議軟體的說明查詢並修改 <code>config.json</code></td></tr>
+            <tr><th scope="row">pip 安裝 mediapipe 失敗</th><td>Python 版本太新或太舊</td><td>到 PyPI 查 mediapipe 支援的 Python 版本，改裝該版本</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="v2">
+      <h2><span class="num">15</span>延伸挑戰（選做）</h2>
+      <ul>
+        <li><strong>機器學習比較</strong>：用自己的樣本訓練 KNN 或小型神經網路，和規則法比較辨識率、誤觸率與「換一個人是否仍然準」（提示語 ⑥）。</li>
+        <li><strong>動態手勢</strong>：記錄食指指尖的移動軌跡，辨識「向右揮」「畫圓」，比較和靜態手勢的誤觸率。</li>
+        <li><strong>雙手手勢</strong>：兩手張開距離變大＝放大，用在簡報或看圖。</li>
+        <li><strong>更多模式</strong>：VLC、Spotify、小畫家、Google 簡報（提示語 ⑦），或讓簡報模式用語音念出備忘稿。</li>
+        <li><strong>離線語音</strong>：改用可離線的中文語音辨識模型，比較準確率、速度與隱私。</li>
+        <li><strong>實體回饋</strong>：接一塊 ESP32 與 LED 燈條，用燈色顯示手勢鎖與辨識狀態，看影片時不用盯著視窗。</li>
+      </ul>
+    </section>
+
+    <section id="report">
+      <h2><span class="num">16</span>書面報告與評分</h2>
+      <h3>報告架構</h3>
+      <ol>
+        <li><strong>摘要：</strong>問題、方法、主要成績（用自己測到的數字）。</li>
+        <li><strong>研究動機：</strong>訪談或問卷結果。</li>
+        <li><strong>文獻與現況：</strong>手勢控制產品、語音助理、MediaPipe，說明本作品的特色與限制。</li>
+        <li><strong>研究方法：</strong>功能清單與驗收標準、系統架構、狀態機、手勢判斷規則（附關節點圖與角度公式）、語音解析順序、應用程式模式的判斷方法。</li>
+        <li><strong>測試與結果：</strong>功能測試 T1～T12、手勢辨識率與混淆矩陣（依人、距離、光線）、門檻實驗、語音成功率、誤觸次數、反應時間、使用者測試。</li>
+        <li><strong>討論：</strong>錯誤原因、方法限制、隱私與規範。</li>
+        <li><strong>結論與未來展望：</strong>例如機器學習比較、動態手勢、控制其他軟體。</li>
+      </ol>
+      <h3>評分參考</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">項目</th><th scope="col">比重</th><th scope="col">優秀的表現</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">問題定義與現況</th><td>10%</td><td>有真實使用者的需求，清楚說明和現有產品的差別</td></tr>
+            <tr><th scope="row">功能設計與原理</th><td>20%</td><td>功能與驗收標準清楚，能用自己的話說明手勢規則、狀態機與語音解析</td></tr>
+            <tr><th scope="row">資料與測試</th><td>25%</td><td>樣本涵蓋多人、多距離、多光線；有混淆矩陣、誤觸與反應時間</td></tr>
+            <tr><th scope="row">改良過程</th><td>20%</td><td>一次改一項的門檻或規則實驗，能說明取捨</td></tr>
+            <tr><th scope="row">使用者體驗</th><td>15%</td><td>有使用者測試，回饋有反映到設計上</td></tr>
+            <tr><th scope="row">隱私、規範與展示</th><td>10%</td><td>遵守服務條款、取得同意、數據真實、展示清楚</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note warn">
+        <strong>數據一定要是自己測的</strong>
+        練習樣本與測試句只能用來確認環境，報告中的數字都要來自自己收集的樣本、紀錄與錄影。
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  【專題實作】AirTouch 無接觸手勢＋語音遙控 ・ 相關頁面：<a href="airtouch_project_showcase.html">成果展示</a>・<a href="airtouch_competition_report.html">競賽書面報告</a>・<a href="ai_vision_course_guide.html">AI 視覺創客小學堂</a>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = document.getElementById(btn.dataset.target).innerText;
+      const done = () => {
+        const old = btn.textContent;
+        btn.textContent = '已複製';
+        setTimeout(() => { btn.textContent = old; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => window.prompt('請手動複製：', text));
+      } else {
+        window.prompt('請手動複製：', text);
+      }
+    });
+  });
+</script>
+<!-- at-sim:script -->
+<script type="application/json" id="at-config">{"lock_hold_sec":1.5,"cooldown_sec":0.6,"meeting_profiles":["teams","zoom","meet"],"profiles":{"powerpoint":{"name":"PowerPoint 簡報","window":["PowerPoint"],"keys":{"next_page":["right"],"prev_page":["left"],"first_page":["home"],"last_page":["end"],"black_screen":["b"],"white_screen":["w"],"start_show":["f5"],"start_here":["shift","f5"],"end_show":["esc"],"laser":["ctrl","l"],"pen":["ctrl","p"],"arrow_pointer":["ctrl","a"],"erase_ink":["e"]},"gestures":{"point_right":{"action":"next_page","hold_sec":0.35,"repeat_sec":1.2},"point_left":{"action":"prev_page","hold_sec":0.35,"repeat_sec":1.2},"open_palm":{"action":"black_screen","hold_sec":0.8},"v_sign":{"action":"laser","hold_sec":0.8},"thumb_up":{"action":"volume_up","hold_sec":0.3,"repeat_sec":0.25,"arg":1},"thumb_down":{"action":"volume_down","hold_sec":0.3,"repeat_sec":0.25,"arg":1}},"goto":"powerpoint"},"teams":{"name":"Microsoft Teams","window":["Microsoft Teams"],"keys":{"mic_toggle":["ctrl","shift","m"],"camera_toggle":["ctrl","shift","o"],"raise_hand":["ctrl","shift","k"]},"gestures":{"open_palm":{"action":"mic_toggle","hold_sec":1.0},"v_sign":{"action":"camera_toggle","hold_sec":1.0},"point_right":{"action":"raise_hand","hold_sec":1.2},"thumb_up":{"action":"volume_up","hold_sec":0.3,"repeat_sec":0.25,"arg":1},"thumb_down":{"action":"volume_down","hold_sec":0.3,"repeat_sec":0.25,"arg":1}},"voice_map":{"mute":"mic_toggle"}},"zoom":{"name":"Zoom","window":["Zoom Meeting","Zoom 會議","Zoom Workplace"],"keys":{"mic_toggle":["alt","a"],"camera_toggle":["alt","v"],"raise_hand":["alt","y"]},"gestures":{"open_palm":{"action":"mic_toggle","hold_sec":1.0},"v_sign":{"action":"camera_toggle","hold_sec":1.0},"point_right":{"action":"raise_hand","hold_sec":1.2},"thumb_up":{"action":"volume_up","hold_sec":0.3,"repeat_sec":0.25,"arg":1},"thumb_down":{"action":"volume_down","hold_sec":0.3,"repeat_sec":0.25,"arg":1}},"voice_map":{"mute":"mic_toggle"}},"youtube":{"name":"YouTube","window":["YouTube"],"keys":{"play_pause":["k"],"fullscreen":["f"],"captions":["c"],"video_mute":["m"],"next_video":["shift","n"],"prev_video":["shift","p"],"speed_up":["shift","."],"speed_down":["shift",","],"close_video":["ctrl","w"]},"gestures":{"open_palm":{"action":"play_pause","hold_sec":0.5},"point_right":{"action":"seek_forward","hold_sec":0.35,"repeat_sec":1.0,"arg":10},"point_left":{"action":"seek_back","hold_sec":0.35,"repeat_sec":1.0,"arg":10},"thumb_up":{"action":"volume_up","hold_sec":0.3,"repeat_sec":0.25,"arg":1},"thumb_down":{"action":"volume_down","hold_sec":0.3,"repeat_sec":0.25,"arg":1},"v_sign":{"action":"skip_ad","hold_sec":0.6}},"seek":true,"skip_ad":true},"meet":{"name":"Google Meet","window":["Meet - ","Google Meet"],"keys":{"mic_toggle":["ctrl","d"],"camera_toggle":["ctrl","e"],"raise_hand":["ctrl","alt","h"]},"gestures":{"open_palm":{"action":"mic_toggle","hold_sec":1.0},"v_sign":{"action":"camera_toggle","hold_sec":1.0},"point_right":{"action":"raise_hand","hold_sec":1.2},"thumb_up":{"action":"volume_up","hold_sec":0.3,"repeat_sec":0.25,"arg":1},"thumb_down":{"action":"volume_down","hold_sec":0.3,"repeat_sec":0.25,"arg":1}},"voice_map":{"mute":"mic_toggle"}},"pdf":{"name":"PDF 閱讀","window":[".pdf","Adobe Acrobat","Acrobat Reader"],"keys":{"next_page":["pagedown"],"prev_page":["pageup"],"first_page":["home"],"last_page":["end"],"zoom_in":["ctrl","="],"zoom_out":["ctrl","-"],"fit_page":["ctrl","0"]},"gestures":{"point_right":{"action":"next_page","hold_sec":0.35,"repeat_sec":0.8},"point_left":{"action":"prev_page","hold_sec":0.35,"repeat_sec":0.8},"thumb_up":{"action":"zoom_in","hold_sec":0.4,"repeat_sec":0.6},"thumb_down":{"action":"zoom_out","hold_sec":0.4,"repeat_sec":0.6},"open_palm":{"action":"fit_page","hold_sec":0.8}}}}}</script>
+<script type="application/json" id="at-poses">{"open_palm":[[60.5,92.0],[46.4,82.0],[36.4,73.9],[25.4,65.1],[16.0,57.6],[46.4,51.8],[43.9,33.9],[42.4,22.8],[41.1,14.0],[56.5,49.8],[56.5,29.7],[56.5,17.6],[56.5,8.0],[66.5,51.8],[68.8,33.1],[70.2,21.9],[71.3,13.1],[75.8,55.8],[79.6,41.5],[81.9,32.9],[84.0,25.2]],"v_sign":[[48.5,92.0],[34.3,81.9],[24.2,73.8],[30.3,62.8],[39.6,59.6],[34.3,51.5],[30.5,33.7],[28.2,22.6],[26.3,13.9],[44.4,49.5],[47.9,29.5],[50.1,17.6],[51.7,8.0],[54.6,51.5],[56.9,32.6],[67.7,35.9],[68.2,44.8],[63.9,55.6],[67.7,41.1],[75.8,44.8],[75.1,52.9]],"fist":[[48.0,92.0],[29.0,78.5],[15.4,67.6],[23.6,53.0],[36.0,48.6],[29.0,37.8],[25.6,13.7],[40.8,14.2],[44.5,25.5],[42.5,35.1],[42.5,8.0],[58.6,10.8],[60.8,23.6],[56.1,37.8],[59.2,12.5],[73.7,17.0],[74.3,28.9],[68.6,43.2],[73.7,23.9],[84.6,28.9],[83.6,39.7]],"point_right":[[8.0,48.4],[18.8,33.3],[27.4,22.5],[39.0,29.0],[42.5,38.9],[51.1,33.3],[70.5,33.3],[82.5,33.3],[92.0,33.3],[53.2,44.1],[74.8,44.1],[72.5,56.8],[62.3,58.6],[51.1,54.8],[71.2,57.3],[67.6,68.8],[58.2,69.3],[46.8,64.8],[62.2,68.9],[58.2,77.5],[49.6,76.7]],"point_left":[[92.0,51.6],[81.2,66.7],[72.6,77.5],[61.0,71.0],[57.5,61.1],[48.9,66.7],[29.5,66.7],[17.5,66.7],[8.0,66.7],[46.8,55.9],[25.2,55.9],[27.5,43.2],[37.7,41.4],[48.9,45.2],[28.8,42.7],[32.4,31.2],[41.8,30.7],[53.2,35.2],[37.8,31.1],[41.8,22.5],[50.4,23.3]],"none":[[48.5,92.0],[34.4,82.0],[24.4,73.9],[30.4,63.1],[39.6,59.8],[34.4,51.8],[31.9,33.9],[30.3,22.8],[29.1,14.0],[44.5,49.8],[44.5,29.7],[44.5,17.6],[44.5,8.0],[54.5,51.8],[56.8,33.1],[58.2,21.9],[59.3,13.1],[63.8,55.8],[67.6,41.5],[75.6,45.2],[74.9,53.2]],"thumb_up":[[9.4,91.9],[8.0,66.2],[8.0,47.0],[8.0,26.0],[8.0,8.1],[43.1,38.1],[61.6,18.5],[71.6,32.0],[64.4,43.0],[54.8,48.0],[78.2,29.2],[86.8,45.0],[77.3,55.8],[61.8,61.5],[85.8,46.7],[92.0,62.3],[82.1,71.1],[65.8,76.0],[86.1,67.1],[89.2,79.9],[79.2,86.6]],"thumb_down":[[90.6,8.1],[92.0,33.8],[92.0,53.0],[92.0,74.0],[92.0,91.9],[56.9,61.9],[38.4,81.5],[28.4,68.0],[35.6,57.0],[45.2,52.0],[21.8,70.8],[13.2,55.0],[22.7,44.2],[38.2,38.5],[14.2,53.3],[8.0,37.7],[17.9,28.9],[34.2,24.0],[13.9,32.9],[10.8,20.1],[20.8,13.4]]}</script>
+<script>
+// 語音指令解析（與程式包 voice_commands.py 相同的規則與順序）
+const VoiceParse = (() => {
+  const DIG = { 零: 0, 一: 1, 二: 2, 兩: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+  const NUM = '(\\d+|[零一二兩三四五六七八九十]+)';
+  const cnToInt = s => {
+    if (/^\d+$/.test(s)) return parseInt(s, 10);
+    if (s === '十') return 10;
+    if (s.includes('十')) {
+      const [a, b] = s.split('十');
+      return (a ? (DIG[a] ?? 1) : 1) * 10 + (b ? (DIG[b] ?? 0) : 0);
+    }
+    return DIG[s] ?? 0;
+  };
+  const parseSeconds = (t, def = 10) => {
+    let total = 0;
+    let m = t.match(new RegExp(NUM + '\\s*(?:個)?(?:分鐘|分)(半)?'));
+    if (m) total += cnToInt(m[1]) * 60 + (m[2] ? 30 : 0);
+    else if (t.includes('半分鐘')) total += 30;
+    m = t.match(new RegExp(NUM + '\\s*秒'));
+    if (m) total += cnToInt(m[1]);
+    if (total === 0) {
+      m = t.match(new RegExp(NUM));
+      if (m) total = cnToInt(m[1]);
+    }
+    return total > 0 ? total : def;
+  };
+  const parseSteps = (t, def = 3) => {
+    const m = t.match(new RegExp(NUM + '\\s*(?:格|次|下)'));
+    return m ? Math.max(1, Math.min(20, cnToInt(m[1]))) : def;
+  };
+  const has = (t, words) => words.some(w => t.includes(w));
+  const L = {
+    EXIT: ['關閉程式', '結束程式', '退出程式', '關掉程式', '離開程式'],
+    LOCK: ['鎖定手勢', '暫停手勢', '關閉手勢', '停用手勢'],
+    UNLOCK: ['解鎖手勢', '啟用手勢', '開啟手勢', '恢復手勢'],
+    AUTO: ['自動切換', '自動模式', '自動偵測'],
+    CLOSE: ['關閉這首', '關掉這首', '關閉影片', '關掉影片', '關閉音樂', '關掉音樂', '關閉分頁', '不要聽了', '別播了', '不要播了'],
+    OPEN_YT: ['開啟yt', '打開yt', '開yt', '開啟youtube', '打開youtube', '開youtube'],
+    SKIP: ['跳過廣告', '略過廣告', '跳廣告', '略過'],
+    FULL: ['全螢幕', '全屏'], EXIT_FULL: ['離開全螢幕', '退出全螢幕'],
+    NEXT: ['下一部', '下一首', '下一個影片', '下一支', '換一首', '換一部'],
+    PREV_VIDEO: ['上一部', '上一首', '上一個影片', '上一支'],
+    FASTER: ['加速', '播快一點', '快一點播', '速度加快'], SLOWER: ['減速', '播慢一點', '慢一點播', '速度放慢'],
+    CAPTIONS: ['字幕'], VIDEO_MUTE: ['影片靜音', '影片取消靜音'],
+    SYSTEM_MUTE: ['系統靜音', '電腦靜音'], MUTE: ['靜音', '取消靜音', '解除靜音'],
+    VOL_UP: ['大聲', '音量調大', '提高音量', '增加音量', '音量大', '音量放大'],
+    VOL_DOWN: ['小聲', '音量調小', '降低音量', '減少音量', '音量小', '音量縮小'],
+    BACK: ['倒退', '後退', '往後', '倒轉', '退回'], FORWARD: ['快轉', '前進', '往前', '跳過'],
+    PAUSE: ['暫停', '停一下', '停止播放', '先停'], PLAY: ['播放', '繼續', '開始播放'],
+    START_HERE: ['從這頁放映', '從這頁開始', '從目前這頁', '從這張放映'],
+    START_SHOW: ['開始放映', '放映簡報', '播放簡報', '開始簡報'],
+    END_SHOW: ['結束放映', '停止放映', '離開放映', '結束簡報'],
+    BLACK: ['黑畫面', '黑屏', '螢幕變黑', '畫面變黑'], WHITE: ['白畫面', '白屏', '螢幕變白', '畫面變白'],
+    LASER: ['雷射筆', '雷射'], PEN: ['畫筆', '原子筆', '螢光筆'],
+    ERASE: ['清除筆跡', '擦掉', '清除畫筆', '清掉筆跡'], ARROW: ['箭頭', '游標', '滑鼠指標'],
+    LAST_PAGE: ['最後一頁', '最後一張', '最後頁'],
+    NEXT_PAGE: ['下頁', '翻頁', '下一頁', '下一張', '後一頁', '後一張'],
+    PREV_PAGE: ['上頁', '翻回去', '上一頁', '上一張', '前一頁', '前一張'],
+    ZOOM_IN: ['放大', '拉近'], ZOOM_OUT: ['縮小', '拉遠'],
+    FIT_PAGE: ['整頁', '符合頁面', '原始大小', '恢復大小'],
+    MIC: ['麥克風'], CAMERA: ['鏡頭', '攝影機'], RAISE: ['舉手', '放下手'],
+  };
+  const ALIASES = [
+    ['powerpoint', ['簡報', '投影片', 'powerpoint', 'ppt']], ['pdf', ['pdf', '文件', '閱讀']],
+    ['teams', ['teams']], ['zoom', ['zoom']], ['meet', ['meet']], ['meeting', ['會議', '視訊']],
+    ['youtube', ['youtube', 'yt', '影片', '影音']],
+  ];
+  const GENERIC = new Set(['影片', '音樂', '歌', '歌曲', '一下', '']);
+  const clean = q => {
+    q = q.trim().replace(/(?:的歌|的歌曲|的mv|mv|歌曲|音樂|影片)$/i, '').trim();
+    return GENERIC.has(q) ? null : q;
+  };
+  const A = (action, arg = null) => ({ action, arg });
+
+  return function parse(text, wake = '') {
+    let t = (text || '').replace(/[\s，。！？、,.!?]/g, '');
+    if (wake) {
+      if (!t.startsWith(wake)) return null;
+      t = t.slice(wake.length);
+    }
+    const tl = t.toLowerCase();
+    if (!t) return null;
+    if (has(t, L.EXIT)) return A('exit');
+    if (has(t, L.LOCK)) return A('lock');
+    if (has(t, L.UNLOCK)) return A('unlock');
+    if (has(t, L.AUTO)) return A('auto_profile');
+    let m = tl.match(/(?:切換到|切換成|換到|進入|改成|使用|開啟)?(.+?)模式/);
+    if (m) for (const [name, words] of ALIASES) if (has(m[1], words)) return A('switch_profile', name);
+
+    if (has(t, L.START_HERE)) return A('start_here');
+    if (has(t, L.START_SHOW)) return A('start_show');
+    if (has(t, L.END_SHOW)) return A('end_show');
+    if (has(t, L.BLACK)) return A('black_screen');
+    if (has(t, L.WHITE)) return A('white_screen');
+    if (has(t, L.LASER)) return A('laser');
+    if (has(t, L.PEN)) return A('pen');
+    if (has(t, L.ERASE)) return A('erase_ink');
+    if (has(t, L.ARROW)) return A('arrow_pointer');
+    m = t.match(new RegExp('第' + NUM + '(?:頁|張)'));
+    if (m && cnToInt(m[1]) > 0) return A('goto_page', cnToInt(m[1]));
+    if (has(t, L.LAST_PAGE)) return A('last_page');
+    if (has(t, L.NEXT_PAGE)) return A('next_page');
+    if (has(t, L.PREV_PAGE)) return A('prev_page');
+    m = t.match(/^(?:跳到|跳去|切到)(.+?)(?:那一?頁|那一?張|的投影片|投影片)?$/);
+    if (m && !/\d|秒|分鐘|廣告/.test(m[1])) return A('goto_title', m[1]);
+    if (has(t, L.FIT_PAGE)) return A('fit_page');
+
+    if (has(t, L.MIC)) return A('mic_toggle');
+    if (has(t, L.CAMERA)) return A('camera_toggle');
+    if (has(t, L.RAISE)) return A('raise_hand');
+
+    m = t.match(/(?:關閉這首|關掉這首)?(?:換播|換聽|換成|換一首|換開啟|換首)(.+)/);
+    if (m && clean(m[1])) return A('play_song', { query: clean(m[1]), close_current: true });
+    if (has(t, L.CLOSE)) return A('close_video');
+    if (has(tl, L.OPEN_YT)) return A('open_youtube');
+    if (has(t, L.SKIP) && !t.includes('秒')) return A('skip_ad');
+    if (has(t, L.EXIT_FULL) || has(t, L.FULL)) return A('fullscreen');
+    if (has(t, L.NEXT)) return A('next_video');
+    if (has(t, L.PREV_VIDEO)) return A('prev_video');
+    if (has(t, L.FASTER)) return A('speed_up');
+    if (has(t, L.SLOWER)) return A('speed_down');
+    if (has(t, L.CAPTIONS)) return A('captions');
+    if (has(t, L.SYSTEM_MUTE)) return A('system_mute');
+    if (has(t, L.VIDEO_MUTE)) return A('video_mute');
+    if (has(t, L.MUTE)) return A('mute');
+    if (has(t, L.VOL_UP)) return A('volume_up', parseSteps(t));
+    if (has(t, L.VOL_DOWN)) return A('volume_down', parseSteps(t));
+    if (has(t, L.ZOOM_IN)) return A('zoom_in');
+    if (has(t, L.ZOOM_OUT)) return A('zoom_out');
+    if (has(t, L.BACK)) return A('seek_back', parseSeconds(t));
+    if (has(t, L.FORWARD)) return A('seek_forward', parseSeconds(t));
+    if (has(t, L.PAUSE)) return A('play_pause');
+    m = t.match(/^(?:我想聽|想聽|我要聽|點歌|點播|來一首|播一首|放一首|幫我播放?|播放|搜尋)(.+)/);
+    if (m && clean(m[1])) return A('play_song', { query: clean(m[1]), close_current: false });
+    if (has(t, L.PLAY)) return A('play_pause');
+    return null;
+  };
+})();
+// AirTouch 網頁模擬器：與程式包相同的手勢對應、觸發規則與語音解析，但只改變畫面上的模擬螢幕
+(() => {
+  const CFG = JSON.parse(document.getElementById('at-config').textContent);
+  const POSES = JSON.parse(document.getElementById('at-poses').textContent);
+  const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const BONES = [[0, 1], [1, 2], [2, 3], [3, 4], [0, 5], [5, 6], [6, 7], [7, 8], [5, 9], [9, 10], [10, 11], [11, 12],
+    [9, 13], [13, 14], [14, 15], [15, 16], [13, 17], [0, 17], [17, 18], [18, 19], [19, 20]];
+  const G_NAME = { open_palm: '手掌張開', point_right: '食指向右', point_left: '食指向左', thumb_up: '大拇指朝上',
+    thumb_down: '大拇指朝下', v_sign: '剪刀手', fist: '握拳', none: '沒有指令', no_hand: '沒有手' };
+  const G_ICON = { open_palm: '🖐️', point_right: '👉', point_left: '👈', thumb_up: '👍', thumb_down: '👎', v_sign: '✌️', fist: '✊', none: '🤟' };
+  const ACTION_TEXT = {
+    play_pause: '播放／暫停', seek_forward: '快轉', seek_back: '倒退', video_mute: '影片靜音切換', fullscreen: '全螢幕切換',
+    captions: '字幕切換', next_video: '下一部影片', prev_video: '上一部影片', speed_up: '播放加速', speed_down: '播放減速',
+    skip_ad: '按下「略過」', close_video: '關閉目前影片分頁', next_page: '下一頁', prev_page: '上一頁', first_page: '第一頁',
+    last_page: '最後一頁', goto_page: '跳頁', goto_title: '跳到指定投影片', black_screen: '黑畫面切換', white_screen: '白畫面切換',
+    start_show: '從頭放映', start_here: '從這頁放映', end_show: '結束放映', laser: '雷射筆', pen: '畫筆', arrow_pointer: '一般游標',
+    erase_ink: '清除筆跡', zoom_in: '放大', zoom_out: '縮小', fit_page: '恢復頁面大小', mic_toggle: '麥克風開關',
+    camera_toggle: '鏡頭開關', raise_hand: '舉手／放下', volume_up: '音量調大', volume_down: '音量調小', mute: '系統靜音切換',
+    system_mute: '系統靜音切換', open_youtube: '開啟 YouTube', play_song: '搜尋並播放', lock: '手勢已鎖定', unlock: '手勢已解鎖',
+    switch_profile: '切換模式', auto_profile: '自動切換模式', exit: '結束程式',
+  };
+  const GLOBAL = new Set(['volume_up', 'volume_down', 'mute', 'open_youtube', 'play_song', 'lock', 'unlock',
+    'switch_profile', 'auto_profile', 'exit']);
+  const WINDOWS = { youtube: 'YouTube', powerpoint: 'PowerPoint', pdf: 'PDF', teams: 'Teams', notepad: '記事本' };
+  const TITLES = { youtube: '蔥油餅教學 - YouTube - Google Chrome', powerpoint: '期末報告.pptx - PowerPoint',
+    pdf: '實習講義.pdf - Microsoft Edge', teams: '專題討論 | Microsoft Teams', notepad: '未命名 - 記事本',
+    zoom: 'Zoom Meeting', meet: 'Meet - abc-defg-hij' };
+  const SLIDES = ['AirTouch 無接觸遙控', '專題動機', '系統架構', '手勢辨識原理', '語音指令', '應用程式模式', '測試方法',
+    '手勢辨識結果', '語音測試結果', '使用者回饋', '限制與改良', '結論與未來展望'];
+  const NOTES = {
+    1: '先自我介紹，說明三個使用情境。', 3: '指著架構圖：手勢和語音兩條輸入，最後交給動作執行。',
+    8: '先說明混淆矩陣怎麼看，再講最常認錯的手勢。', 12: '總結三個重點，最後感謝指導老師。',
+  };
+  const SPEEDS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2];
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const mmss = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+
+  // ---------- 觸發規則（與 gestures.py 的 GestureTrigger 相同） ----------
+  class Trigger {
+    constructor(map) {
+      this.map = map; this.hist = []; this.cur = 'no_hand'; this.start = 0; this.fired = false;
+      this.lastFire = -1e9; this.lastAction = ['', -1e9]; this.locked = false;
+    }
+    setMap(map) { this.map = map; this.fired = true; }
+    stable(g) {
+      this.hist.push(g);
+      if (this.hist.length > 5) this.hist.shift();
+      const counts = new Map();
+      this.hist.forEach(x => counts.set(x, (counts.get(x) || 0) + 1));
+      let best = null;
+      counts.forEach((n, x) => { if (best === null || n > counts.get(best)) best = x; });
+      return best;
+    }
+    update(gesture, now) {
+      const g = this.stable(gesture);
+      if (g !== this.cur) { this.cur = g; this.start = now; this.fired = false; }
+      const held = now - this.start;
+      if (g === 'fist') {
+        if (this.fired) return [g, 1, null];
+        if (held >= CFG.lock_hold_sec) {
+          this.fired = true; this.locked = !this.locked;
+          return [g, 1, { action: this.locked ? 'lock' : 'unlock', gesture: g }];
+        }
+        return [g, held / CFG.lock_hold_sec, null];
+      }
+      const spec = this.map[g];
+      if (!spec || this.locked) return [g, 0, null];
+      if (!this.fired) {
+        if (held < spec.hold_sec) return [g, held / spec.hold_sec, null];
+        const [lastName, lastTime] = this.lastAction;
+        if (spec.action !== lastName && now - lastTime < CFG.cooldown_sec) return [g, 1, null];
+        return [g, 1, this.fire(spec.action, g, now)];
+      }
+      if ((spec.repeat_sec || 0) > 0 && now - this.lastFire >= spec.repeat_sec) return [g, 1, this.fire(spec.action, g, now)];
+      return [g, 1, null];
+    }
+    fire(action, g, now) {
+      this.fired = true; this.lastFire = now; this.lastAction = [action, now];
+      return { action, gesture: g };
+    }
+  }
+
+  function matchProfile(title) {
+    const t = (title || '').toLowerCase();
+    if (!t || t.includes('airtouch')) return null;
+    for (const [name, p] of Object.entries(CFG.profiles)) if (p.window.some(k => t.includes(k.toLowerCase()))) return name;
+    return null;
+  }
+
+  function freshState() {
+    return {
+      fg: 'youtube', open: new Set(['youtube', 'powerpoint', 'pdf', 'teams', 'notepad']),
+      vol: 30, sysMute: false, notes: false,
+      yt: { title: '蔥油餅教學', t: 130, dur: 480, playing: true, muted: false, cc: false, full: false, speed: 1, ad: false, closed: false },
+      ppt: { show: false, idx: 1, black: false, white: false, tool: '一般游標' },
+      pdf: { page: 1, total: 30, zoom: 100 },
+      meet: { mic: true, cam: true, hand: false },
+    };
+  }
+
+  // ---------- 一台模擬的電腦 ----------
+  function createDevice(root, onLog) {
+    const dev = { st: freshState(), profile: CFG.profiles.youtube ? 'youtube' : Object.keys(CFG.profiles)[0],
+      auto: true, gesture: 'no_hand', progress: 0, stable: 'no_hand', visible: true, last: performance.now() / 1000 };
+    dev.trig = new Trigger(CFG.profiles[dev.profile].gestures);
+    dev.toast = { text: 'AirTouch 模擬器已啟動', ok: true };
+
+    const box = el('div', 'dev');
+    const cam = el('div', 'cam');
+    cam.setAttribute('aria-label', '鏡頭畫面與 AirTouch 懸浮視窗');
+    const hud = el('div', 'hud');
+    const svgNS = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.setAttribute('class', 'hand-svg');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = '<circle cx="50" cy="50" r="47" fill="none" stroke="#475569" stroke-width="3"/>' +
+      '<circle class="ring" cx="50" cy="50" r="47" fill="none" stroke-width="3.5" stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="295.3" stroke-dashoffset="295.3"/>' +
+      '<g class="hand"></g><text class="nohand" x="50" y="54" text-anchor="middle">沒有手</text>';
+    const notes = el('div', 'notes');
+    const bubble = el('div', 'bubble');
+    bubble.hidden = true;
+    const toast = el('div', 'toast');
+    cam.append(hud, svg, notes, bubble, toast);
+    const screen = el('div', 'screen');
+    const title = el('div', 'win-title');
+    const body = el('div', 'win-body');
+    const sys = el('div', 'sysbar');
+    screen.append(title, body, sys);
+    screen.setAttribute('aria-label', '模擬的電腦螢幕');
+    box.append(cam, screen);
+    root.append(box);
+
+    const gesturesOf = () => CFG.profiles[dev.profile].gestures;
+    const windowOf = p => (p in WINDOWS ? p : p);
+
+    function resolve(action) {
+      const prof = CFG.profiles[dev.profile];
+      let a = (prof.voice_map || {})[action] || action;
+      if (a === 'system_mute') a = 'mute';
+      if (GLOBAL.has(a) || a in prof.keys) return [a, true];
+      if (a === 'seek_forward' || a === 'seek_back') return [a, !!prof.seek];
+      if (a === 'skip_ad') return [a, !!prof.skip_ad];
+      if (a === 'goto_page' || a === 'goto_title') return [a, prof.goto === 'powerpoint'];
+      return [a, false];
+    }
+
+    function describe(a, arg) {
+      const label = ACTION_TEXT[a] || a;
+      if (a === 'seek_forward' || a === 'seek_back') return `${label} ${arg || 10} 秒`;
+      if (a === 'volume_up' || a === 'volume_down') return `${label} ${arg || 1} 格`;
+      if (a === 'play_song' && arg) return `${arg.close_current ? '換播' : '播放'}「${arg.query}」`;
+      if (a === 'goto_page') return `跳到第 ${arg} 頁`;
+      if (a === 'goto_title') return `跳到「${arg}」那頁`;
+      return label;
+    }
+
+    function setProfile(name, source, raw) {
+      dev.profile = name;
+      dev.trig.setMap(gesturesOf());
+      const msg = `切換到「${CFG.profiles[name].name}」模式`;
+      dev.toast = { text: msg, ok: true };
+      onLog && onLog(dev, source, raw || name, msg, true);
+    }
+
+    dev.setForeground = name => {
+      dev.st.fg = name;
+      if (dev.auto) {
+        const p = matchProfile(TITLES[name]);
+        if (p && p !== dev.profile) setProfile(p, 'auto', TITLES[name]);
+      }
+      render();
+    };
+
+    function apply(a, arg) {
+      const st = dev.st, yt = st.yt, ppt = st.ppt, pdf = st.pdf, m = st.meet;
+      const needShow = () => (ppt.show ? null : [false, '要在「投影片放映」中才有作用，請先說「開始放映」']);
+      switch (a) {
+        case 'play_pause': if (yt.closed) return [false, '影片分頁已關閉']; yt.playing = !yt.playing; return [true, yt.playing ? '繼續播放' : '已暫停'];
+        case 'seek_forward': yt.t = Math.min(yt.dur, yt.t + (arg || 10)); return [true, null];
+        case 'seek_back': yt.t = Math.max(0, yt.t - (arg || 10)); return [true, null];
+        case 'volume_up': st.vol = Math.min(100, st.vol + 2 * (arg || 1)); return [true, null];
+        case 'volume_down': st.vol = Math.max(0, st.vol - 2 * (arg || 1)); return [true, null];
+        case 'mute': st.sysMute = !st.sysMute; return [true, st.sysMute ? '電腦已靜音' : '電腦取消靜音'];
+        case 'video_mute': yt.muted = !yt.muted; return [true, null];
+        case 'fullscreen': yt.full = !yt.full; return [true, null];
+        case 'captions': yt.cc = !yt.cc; return [true, null];
+        case 'next_video': case 'prev_video': yt.title = a === 'next_video' ? '下一部：蛋餅教學' : '上一部：蔥花切法'; yt.t = 0; yt.playing = true; return [true, null];
+        case 'speed_up': case 'speed_down': {
+          const i = SPEEDS.indexOf(yt.speed) + (a === 'speed_up' ? 1 : -1);
+          yt.speed = SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, i))];
+          return [true, `播放速度 ${yt.speed}x`];
+        }
+        case 'skip_ad': if (!yt.ad) return [false, '畫面上沒有「略過」按鈕（相似度 0.21）']; yt.ad = false; return [true, '已按下「略過」（相似度 0.97）'];
+        case 'close_video': yt.closed = true; yt.playing = false; return [true, null];
+        case 'open_youtube': st.open.add('youtube'); st.fg = 'youtube'; yt.closed = false; yt.title = 'YouTube 首頁'; yt.playing = false; return [true, null];
+        case 'play_song': st.fg = 'youtube'; Object.assign(yt, { title: arg.query, t: 0, playing: true, closed: false, ad: false }); return [true, null];
+        case 'next_page': case 'prev_page': case 'first_page': case 'last_page': case 'goto_page': case 'goto_title': {
+          if (dev.profile === 'pdf') {
+            const n = { next_page: pdf.page + 1, prev_page: pdf.page - 1, first_page: 1, last_page: pdf.total }[a];
+            pdf.page = Math.max(1, Math.min(pdf.total, n));
+            return [true, `第 ${pdf.page}／${pdf.total} 頁`];
+          }
+          if (a === 'goto_title') {
+            const i = SLIDES.findIndex(s => s.includes(arg));
+            if (i < 0) return [false, `找不到含有「${arg}」的投影片`];
+            ppt.idx = i + 1;
+            return [true, `「${arg}」→ 跳到第 ${ppt.idx}／${SLIDES.length} 頁`];
+          }
+          if (a === 'goto_page') {
+            if (arg < 1 || arg > SLIDES.length) return [false, `沒有第 ${arg} 頁（共 ${SLIDES.length} 頁）`];
+            ppt.idx = arg;
+            return [true, `跳到第 ${arg}／${SLIDES.length} 頁`];
+          }
+          const block = needShow(); if (block) return block;
+          const n = { next_page: ppt.idx + 1, prev_page: ppt.idx - 1, first_page: 1, last_page: SLIDES.length }[a];
+          ppt.idx = Math.max(1, Math.min(SLIDES.length, n)); ppt.black = ppt.white = false;
+          return [true, `第 ${ppt.idx}／${SLIDES.length} 頁`];
+        }
+        case 'start_show': ppt.show = true; ppt.idx = 1; return [true, null];
+        case 'start_here': ppt.show = true; return [true, `從第 ${ppt.idx} 頁放映`];
+        case 'end_show': ppt.show = false; ppt.black = ppt.white = false; ppt.tool = '一般游標'; return [true, null];
+        case 'black_screen': case 'white_screen': {
+          const block = needShow(); if (block) return block;
+          const key = a === 'black_screen' ? 'black' : 'white';
+          ppt[key] = !ppt[key]; ppt[key === 'black' ? 'white' : 'black'] = false;
+          return [true, ppt[key] ? `${key === 'black' ? '黑' : '白'}畫面` : '恢復投影片'];
+        }
+        case 'laser': case 'pen': case 'arrow_pointer': {
+          const block = needShow(); if (block) return block;
+          ppt.tool = ACTION_TEXT[a]; return [true, null];
+        }
+        case 'erase_ink': return needShow() || [true, null];
+        case 'zoom_in': pdf.zoom = Math.min(400, pdf.zoom + 10); return [true, `縮放 ${pdf.zoom}%`];
+        case 'zoom_out': pdf.zoom = Math.max(30, pdf.zoom - 10); return [true, `縮放 ${pdf.zoom}%`];
+        case 'fit_page': pdf.zoom = 100; return [true, null];
+        case 'mic_toggle': m.mic = !m.mic; return [true, m.mic ? '麥克風已開啟' : '麥克風已關閉'];
+        case 'camera_toggle': m.cam = !m.cam; return [true, m.cam ? '鏡頭已開啟' : '鏡頭已關閉'];
+        case 'raise_hand': m.hand = !m.hand; return [true, m.hand ? '已舉手' : '已放下手'];
+        default: return [false, `不認得的動作：${a}`];
+      }
+    }
+
+    dev.execute = (action, arg, source, raw) => {
+      const prof = CFG.profiles[dev.profile];
+      const [a, ok0] = resolve(action);
+      let ok = ok0, msg;
+      if (!ok) {
+        msg = `「${prof.name}」模式沒有「${ACTION_TEXT[a] || a}」`;
+      } else if (a === 'lock' || a === 'unlock') {
+        dev.trig.locked = a === 'lock'; msg = ACTION_TEXT[a];
+      } else if (a === 'switch_profile') {
+        const name = arg === 'meeting' ? CFG.meeting_profiles.find(p => dev.st.open.has(p)) || CFG.meeting_profiles[0] : arg;
+        dev.auto = false;
+        setProfile(name, source, raw);
+        render();
+        return;
+      } else if (a === 'auto_profile') {
+        dev.auto = true; msg = '已開啟自動切換模式';
+        const p = matchProfile(TITLES[dev.st.fg]);
+        if (p && p !== dev.profile) { onLog && onLog(dev, source, raw, msg, true); setProfile(p, 'auto', TITLES[dev.st.fg]); render(); return; }
+      } else if (a === 'exit') {
+        msg = '結束程式（網頁模擬器不會真的關閉）';
+      } else if (!GLOBAL.has(a) && !dev.st.open.has(windowOf(dev.profile))) {
+        ok = false; msg = `找不到「${prof.name}」的視窗`;
+      } else {
+        if (!GLOBAL.has(a)) dev.st.fg = windowOf(dev.profile);   // 程式會先把該視窗叫到最前面
+        const [ok2, m2] = apply(a, arg);
+        ok = ok2; msg = m2 || describe(a, arg);
+      }
+      dev.toast = { text: (ok ? '完成：' : '失敗：') + msg, ok };
+      onLog && onLog(dev, source, raw, msg, ok);
+      render();
+    };
+
+    dev.voice = text => {
+      const cmd = VoiceParse(text);
+      if (!cmd) {
+        dev.toast = { text: `聽不懂：「${text}」`, ok: false };
+        onLog && onLog(dev, 'voice', text, '聽不懂', false);
+        render();
+        return;
+      }
+      dev.execute(cmd.action, cmd.arg, 'voice', text);
+    };
+    dev.say = (text, ms = 1600) => {
+      bubble.textContent = `🎙️「${text}」`;
+      bubble.hidden = false;
+      clearTimeout(dev.bubbleTimer);
+      dev.bubbleTimer = setTimeout(() => { bubble.hidden = true; }, ms);
+    };
+    dev.hold = g => { dev.gesture = g; };
+    dev.release = () => { dev.gesture = 'no_hand'; };
+    dev.reset = () => {
+      dev.st = freshState(); dev.auto = true; dev.gesture = 'no_hand'; dev.profile = 'youtube';
+      dev.trig = new Trigger(gesturesOf()); dev.toast = { text: '已重設', ok: true };
+      bubble.hidden = true; render();
+    };
+    dev.setProfileNow = name => { dev.profile = name; dev.trig = new Trigger(gesturesOf()); render(); };
+
+    dev.tick = now => {
+      const dt = Math.min(0.1, now - dev.last);
+      dev.last = now;
+      const [stable, progress, ev] = dev.trig.update(dev.gesture, now);
+      dev.stable = stable; dev.progress = progress;
+      if (ev) {
+        const spec = gesturesOf()[ev.gesture] || {};
+        dev.execute(ev.action, spec.arg ?? null, 'gesture', G_NAME[ev.gesture]);
+      }
+      const yt = dev.st.yt;
+      if (yt.playing && !yt.ad) yt.t = Math.min(yt.dur, yt.t + dt * yt.speed);
+      if (dev.visible) render();
+    };
+
+    let lastHand = '';
+    function render() {
+      const st = dev.st, prof = CFG.profiles[dev.profile], locked = dev.trig.locked;
+      const g = dev.stable;
+      const spec = gesturesOf()[g];
+      hud.className = 'hud' + (locked ? ' locked' : '');
+      const pct = dev.progress > 0 && dev.progress < 1 ? `（${Math.round(dev.progress * 100)}%）` : '';
+      const target = spec && !locked ? ` → ${ACTION_TEXT[spec.action]}` : '';
+      const page = dev.profile === 'powerpoint' ? `｜第 ${st.ppt.idx}／${SLIDES.length} 頁${st.ppt.show ? '' : '（編輯中）'}` : '';
+      hud.innerHTML = `<b>模式：${esc(prof.name)}</b>（${dev.auto ? '自動' : '固定'}）｜${locked ? '手勢鎖定' : '手勢啟用'}<br>` +
+        `手勢：${G_NAME[g] || g}${pct}${esc(target)}${page}`;
+      const ring = svg.querySelector('.ring');
+      ring.style.strokeDashoffset = String(295.3 * (1 - Math.max(0, Math.min(1, dev.progress))));
+      ring.style.stroke = locked ? '#f87171' : (dev.progress >= 1 ? '#34d399' : '#fbbf24');
+      if (g !== lastHand) {
+        lastHand = g;
+        const pts = POSES[g];
+        const hand = svg.querySelector('.hand');
+        svg.querySelector('.nohand').style.display = pts ? 'none' : '';
+        hand.innerHTML = pts ? BONES.map(([a, b]) => `<line x1="${pts[a][0]}" y1="${pts[a][1]}" x2="${pts[b][0]}" y2="${pts[b][1]}"/>`).join('') +
+          pts.map((p, i) => `<circle cx="${p[0]}" cy="${p[1]}" r="${[4, 8, 12, 16, 20].includes(i) ? 2.6 : 1.8}"/>`).join('') : '';
+      }
+      const showNotes = dev.profile === 'powerpoint' && st.notes;
+      notes.hidden = !showNotes;
+      if (showNotes) notes.innerHTML = `<b>備忘稿｜${esc(SLIDES[st.ppt.idx - 1])}</b><br>${esc(NOTES[st.ppt.idx] || '（這頁沒有備忘稿）')}`;
+      toast.className = 'toast ' + (dev.toast.ok ? 'ok' : 'fail');
+      toast.textContent = dev.toast.text;
+
+      title.innerHTML = `<span>${esc(TITLES[st.fg])}</span><span class="fg-tag">最前面的視窗</span>`;
+      body.innerHTML = screenHTML(st);
+      sys.innerHTML = `<span>${st.sysMute ? '🔇 電腦靜音' : `🔊 音量 ${st.vol}%`}</span><span>AirTouch 懸浮視窗置頂中</span>`;
+    }
+
+    function screenHTML(st) {
+      const yt = st.yt, ppt = st.ppt, pdf = st.pdf, m = st.meet;
+      switch (st.fg) {
+        case 'youtube':
+          if (yt.closed) return '<div class="yt-closed">YouTube 分頁已關閉</div>';
+          return `<div class="yt${yt.full ? ' full' : ''}"><div class="yt-video"><div class="yt-icon">${yt.playing ? '▶' : '❚❚'}</div>` +
+            (yt.ad ? '<div class="yt-ad">廣告・5 秒後可略過 <span class="yt-skip">略過 ▶|</span></div>' : '') +
+            (yt.cc ? '<div class="yt-cc">（字幕）把麵團揉到表面光滑</div>' : '') + '</div>' +
+            `<div class="yt-bar"><div style="width:${(yt.t / yt.dur * 100).toFixed(1)}%"></div></div>` +
+            `<div class="yt-meta"><b>${esc(yt.title)}</b><span>${mmss(yt.t)} / ${mmss(yt.dur)}${yt.speed !== 1 ? `・${yt.speed}x` : ''}${yt.muted ? '・影片靜音' : ''}${yt.full ? '・全螢幕' : ''}</span></div></div>`;
+        case 'powerpoint':
+          if (!ppt.show) {
+            return `<div class="ppt-edit"><ol>${SLIDES.map((s, i) => `<li class="${i + 1 === ppt.idx ? 'on' : ''}">${i + 1}</li>`).join('')}</ol>` +
+              `<div class="ppt-slide small"><b>${esc(SLIDES[ppt.idx - 1])}</b><span>編輯畫面</span></div></div>`;
+          }
+          if (ppt.black) return '<div class="ppt-show black">（黑畫面）</div>';
+          if (ppt.white) return '<div class="ppt-show white">（白畫面）</div>';
+          return `<div class="ppt-show"><b>${esc(SLIDES[ppt.idx - 1])}</b><span class="ppt-no">${ppt.idx} / ${SLIDES.length}</span>` +
+            (ppt.tool === '雷射筆' ? '<i class="laser"></i>' : '') + `<span class="ppt-tool">${esc(ppt.tool)}</span></div>`;
+        case 'pdf':
+          return `<div class="pdf"><div class="pdf-page" style="transform:scale(${Math.min(1.6, pdf.zoom / 100)})"><b>實習講義</b>` +
+            `<p>第 ${pdf.page} 頁</p><i></i><i></i><i></i><i></i></div><div class="pdf-meta">第 ${pdf.page}／${pdf.total} 頁・縮放 ${pdf.zoom}%</div></div>`;
+        case 'teams':
+          return `<div class="meet"><div class="tiles"><div class="tile">老師<br><small>發言中</small></div>` +
+            `<div class="tile me${m.cam ? '' : ' off'}">${m.cam ? '你（鏡頭開）' : '你（鏡頭關）'}${m.hand ? '<span class="hand-up">✋</span>' : ''}</div></div>` +
+            `<div class="meet-bar"><span class="${m.mic ? 'on' : 'off'}">${m.mic ? '🎤 麥克風開' : '🔇 麥克風關'}</span>` +
+            `<span class="${m.cam ? 'on' : 'off'}">${m.cam ? '📷 鏡頭開' : '🚫 鏡頭關'}</span><span class="${m.hand ? 'on' : ''}">✋ ${m.hand ? '已舉手' : '舉手'}</span></div></div>`;
+        default:
+          return '<div class="notepad">這是記事本，AirTouch 不認得這個視窗，<br>所以維持原本的模式。</div>';
+      }
+    }
+
+    new IntersectionObserver(es => es.forEach(e => { dev.visible = e.isIntersecting; })).observe(box);
+    DEVICES.push(dev);
+    render();
+    return dev;
+  }
+
+  const DEVICES = [];
+  const loop = () => {
+    const now = performance.now() / 1000;
+    DEVICES.forEach(d => d.tick(now));
+    requestAnimationFrame(loop);
+  };
+  requestAnimationFrame(loop);
+
+  function logger(list) {
+    const t0 = performance.now();
+    return (dev, source, raw, msg, ok) => {
+      const s = (performance.now() - t0) / 1000;
+      const src = { gesture: '手勢', voice: '語音', auto: '自動', key: '按鍵', button: '按鈕' }[source] || source;
+      const li = el('li', ok ? 'ok' : 'fail');
+      li.textContent = `${mmss(s)}｜${CFG.profiles[dev.profile].name}｜${src}：${raw} → ${msg}`;
+      list.prepend(li);
+      while (list.children.length > 8) list.lastChild.remove();
+    };
+  }
+
+  // ---------- 互動模擬器 ----------
+  const simRoot = document.getElementById('at-sim');
+  if (simRoot) {
+    const controls = el('div', 'sim-controls');
+    const rowWin = el('div', 'sim-row', '<span class="sim-label">最前面的視窗</span>');
+    const winBtns = {};
+    Object.entries(WINDOWS).forEach(([k, name]) => {
+      const b = el('button', 'sim-chip', esc(name));
+      b.type = 'button';
+      b.addEventListener('click', () => dev.setForeground(k));
+      winBtns[k] = b;
+      rowWin.append(b);
+    });
+    const autoLabel = el('label', 'sim-auto', '<input type="checkbox" checked> 自動切換模式');
+    const autoBox = autoLabel.querySelector('input');
+    autoBox.addEventListener('change', () => {
+      if (autoBox.checked) dev.execute('auto_profile', null, 'button', '勾選自動切換');
+      else { dev.auto = false; }
+    });
+    rowWin.append(autoLabel);
+
+    const rowG = el('div', 'sim-row', '<span class="sim-label">按住手勢</span>');
+    const gBtns = {};
+    ['open_palm', 'point_right', 'point_left', 'thumb_up', 'thumb_down', 'v_sign', 'fist', 'none'].forEach(g => {
+      const b = el('button', 'sim-gesture');
+      b.type = 'button';
+      const start = e => { e.preventDefault(); dev.hold(g); b.classList.add('down'); };
+      const stop = () => { if (dev.gesture === g) dev.release(); b.classList.remove('down'); };
+      b.addEventListener('pointerdown', e => { b.setPointerCapture(e.pointerId); start(e); });
+      b.addEventListener('pointerup', stop);
+      b.addEventListener('pointercancel', stop);
+      b.addEventListener('keydown', e => { if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) start(e); });
+      b.addEventListener('keyup', e => { if (e.key === ' ' || e.key === 'Enter') stop(); });
+      b.addEventListener('contextmenu', e => e.preventDefault());
+      b.addEventListener('blur', stop);
+      gBtns[g] = b;
+      rowG.append(b);
+    });
+
+    const rowV = el('div', 'sim-row', '<span class="sim-label">語音（打字代替）</span>');
+    const form = el('form', 'sim-voice', '<label class="visually-hidden" for="at-sim-text">語音指令</label>' +
+      '<input id="at-sim-text" type="text" placeholder="例如：快轉一分半" autocomplete="off"><button type="submit">說出</button>');
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      const input = form.querySelector('input');
+      const text = input.value.trim();
+      if (!text) return;
+      dev.say(text); dev.voice(text); input.value = '';
+    });
+    rowV.append(form);
+    const chips = el('div', 'sim-row sim-examples', '<span class="sim-label">試試看</span>');
+    ['暫停', '快轉一分半', '換播 周杰倫 稻香', '開始放映', '跳到第五頁', '跳到結論那頁', '黑畫面', '放大', '靜音', '電腦靜音',
+      '舉手', '切換到簡報模式', '自動切換', '鎖定手勢', '今天天氣很好'].forEach(t => {
+      const b = el('button', 'sim-chip small', esc(t));
+      b.type = 'button';
+      b.addEventListener('click', () => { dev.say(t); dev.voice(t); });
+      chips.append(b);
+    });
+    const rowX = el('div', 'sim-row', '<span class="sim-label">模擬狀況</span>');
+    const adBtn = el('button', 'sim-chip', 'YouTube 出現「略過」按鈕');
+    adBtn.type = 'button';
+    adBtn.addEventListener('click', () => { dev.st.yt.ad = true; dev.st.fg = 'youtube'; dev.setForeground('youtube'); });
+    const notesBtn = el('button', 'sim-chip', '按 n 顯示備忘稿');
+    notesBtn.type = 'button';
+    notesBtn.addEventListener('click', () => { dev.st.notes = !dev.st.notes; notesBtn.setAttribute('aria-pressed', dev.st.notes); });
+    notesBtn.setAttribute('aria-pressed', 'false');
+    const resetBtn = el('button', 'sim-chip', '全部重設');
+    resetBtn.type = 'button';
+    resetBtn.addEventListener('click', () => { dev.reset(); autoBox.checked = true; notesBtn.setAttribute('aria-pressed', 'false'); });
+    rowX.append(adBtn, notesBtn, resetBtn);
+    controls.append(rowWin, rowG, rowV, chips, rowX);
+
+    const stage = el('div');
+    const logTitle = el('p', 'sim-log-title', '動作紀錄（和程式的 logs/ 一樣，最新的在上面）');
+    const logList = el('ol', 'sim-log');
+    logList.setAttribute('aria-live', 'polite');
+    simRoot.append(controls, stage, logTitle, logList);
+    const dev = createDevice(stage, logger(logList));
+
+    const refresh = () => {
+      Object.entries(winBtns).forEach(([k, b]) => b.setAttribute('aria-pressed', String(dev.st.fg === k)));
+      autoBox.checked = dev.auto;
+      const map = CFG.profiles[dev.profile].gestures;
+      Object.entries(gBtns).forEach(([g, b]) => {
+        const spec = g === 'fist' ? { action: dev.trig.locked ? 'unlock' : 'lock', hold_sec: CFG.lock_hold_sec } : map[g];
+        const sub = spec ? `${ACTION_TEXT[spec.action]}・${spec.hold_sec} 秒${spec.repeat_sec ? '・可連續' : ''}` : '這個模式沒有作用';
+        b.innerHTML = `<span class="gi" aria-hidden="true">${G_ICON[g]}</span><span><b>${G_NAME[g]}</b><small>${esc(sub)}</small></span>`;
+      });
+    };
+    const oldTick = dev.tick;
+    let lastKey = '';
+    dev.tick = now => {
+      oldTick(now);
+      const key = `${dev.profile}|${dev.st.fg}|${dev.auto}|${dev.trig.locked}`;
+      if (key !== lastKey) { lastKey = key; refresh(); }
+    };
+    refresh();
+  }
+
+  // ---------- 情境動畫 ----------
+  const SCENES = {
+    kitchen: {
+      name: '廚房看食譜', fg: 'youtube',
+      setup: d => { Object.assign(d.st.yt, { title: '蔥油餅教學', t: 130, playing: true }); },
+      steps: [
+        { cap: '手上沾滿麵粉，食譜影片正在播放。最前面的視窗是 YouTube，AirTouch 自動進入 YouTube 模式。', wait: 2600 },
+        { cap: '要先揉麵團：手掌張開維持 0.5 秒，進度環填滿就暫停。', g: 'open_palm', hold: 1.0, act: ['play_pause'] },
+        { cap: '揉好了，再比一次手掌張開，影片繼續播放。', g: 'open_palm', hold: 1.0, act: ['play_pause'] },
+        { cap: '剛剛的步驟沒看清楚：食指向左 0.35 秒，倒退 10 秒。', g: 'point_left', hold: 0.8, act: ['seek_back', 10] },
+        { cap: '抽油煙機很吵：大拇指朝上，比著不放會一直調大音量。', g: 'thumb_up', hold: 1.4, act: ['volume_up', 1], times: 5 },
+        { cap: '廣告出現了，等到畫面出現「略過」按鈕……', run: d => { d.st.yt.ad = true; }, wait: 2000 },
+        { cap: '比剪刀手 0.6 秒：程式在畫面上找到「略過」按鈕，才代替你按下去。', g: 'v_sign', hold: 1.1, act: ['skip_ad'] },
+        { cap: '想換一道菜，直接說「換播 蛋餅教學」：舊分頁關掉，新影片開始播放。', voice: '換播 蛋餅教學' },
+        { cap: '要去洗手了：握拳 1.5 秒鎖定手勢，之後擦手、揮手都不會誤觸。', g: 'fist', hold: 2.0, act: ['lock'] },
+        { cap: '鎖定中比手掌張開，進度環不會動，也不會暫停（狀態列變紅）。', g: 'open_palm', hold: 1.4 },
+      ],
+    },
+    slides: {
+      name: '上台簡報', fg: 'powerpoint',
+      setup: d => { d.st.ppt.idx = 1; },
+      steps: [
+        { cap: '上台前 PowerPoint 還在編輯畫面。切到 PowerPoint 視窗，AirTouch 自動換成簡報模式。', wait: 2600 },
+        { cap: '說「開始放映」，從第 1 頁開始。', voice: '開始放映' },
+        { cap: '食指向右 0.35 秒換下一頁；比著不放，每 1.2 秒再換一頁。', g: 'point_right', hold: 1.9, act: ['next_page'], times: 2 },
+        { cap: '比剪刀手 0.8 秒，換成雷射筆指重點。', g: 'v_sign', hold: 1.3, act: ['laser'] },
+        { cap: '評審問到結論：說「跳到結論那頁」，程式找投影片標題直接跳過去。', voice: '跳到結論那頁' },
+        { cap: '講者按 n，懸浮視窗顯示這頁的備忘稿，不用回頭看螢幕。', run: d => { d.st.notes = true; }, wait: 2800 },
+        { cap: '進入討論：手掌張開 0.8 秒變黑畫面，大家看著講者。', g: 'open_palm', hold: 1.3, act: ['black_screen'] },
+        { cap: '再比一次，恢復投影片。', g: 'open_palm', hold: 1.3, act: ['black_screen'] },
+        { cap: '簡報模式沒有「快轉」：說了也只會提示，不會亂按鍵。', voice: '快轉20秒' },
+        { cap: '說「結束放映」回到編輯畫面。', voice: '結束放映' },
+      ],
+    },
+    meeting: {
+      name: '線上會議', fg: 'teams',
+      setup: d => { Object.assign(d.st.meet, { mic: false, cam: true, hand: false }); },
+      steps: [
+        { cap: '會議剛開始，麥克風是關的。最前面的視窗是 Teams，AirTouch 自動進入會議模式。', wait: 2600 },
+        { cap: '輪到我發言：手掌張開維持 1 秒打開麥克風。會議模式故意設得比較久，避免誤開。', g: 'open_palm', hold: 1.6, act: ['mic_toggle'] },
+        { cap: '講完了，說「靜音」。會議模式會把「靜音」換成「關麥克風」。', voice: '靜音' },
+        { cap: '想提問：食指向右維持 1.2 秒，舉手。', g: 'point_right', hold: 1.8, act: ['raise_hand'] },
+        { cap: '家人從後面經過：剪刀手 1 秒關鏡頭。', g: 'v_sign', hold: 1.6, act: ['camera_toggle'] },
+        { cap: '窗外很吵，想關電腦喇叭：要說「電腦靜音」。', voice: '電腦靜音' },
+        { cap: '手掌只比 0.6 秒就放下：進度環沒填滿，麥克風不會被打開。', g: 'open_palm', hold: 0.6 },
+      ],
+    },
+  };
+
+  const sceneRoot = document.getElementById('at-scenes');
+  if (sceneRoot) {
+    const tabs = el('div', 'sim-tabs');
+    tabs.setAttribute('role', 'tablist');
+    tabs.setAttribute('aria-label', '選擇情境');
+    const stage = el('div');
+    const caption = el('p', 'scene-caption');
+    caption.setAttribute('aria-live', 'polite');
+    const bar = el('div', 'scene-bar');
+    const prevB = el('button', 'sim-chip', '⏮ 上一步');
+    const playB = el('button', 'sim-chip primary', '▶ 播放');
+    const nextB = el('button', 'sim-chip', '下一步 ⏭');
+    const stepT = el('span', 'scene-step');
+    [prevB, playB, nextB].forEach(b => { b.type = 'button'; });
+    const dots = el('div', 'scene-dots');
+    dots.setAttribute('aria-hidden', 'true');
+    bar.append(prevB, playB, nextB, stepT, dots);
+    sceneRoot.append(tabs, stage, caption, bar);
+    const dev = createDevice(stage, null);
+
+    let scene = 'kitchen', index = 0, playing = false, token = 0;
+    const tabBtns = {};
+    Object.entries(SCENES).forEach(([k, s]) => {
+      const b = el('button', 'sim-tab', esc(s.name));
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.addEventListener('click', () => { stop(); scene = k; jump(0); });
+      tabBtns[k] = b;
+      tabs.append(b);
+    });
+
+    const sleep = (ms, my) => new Promise(resolve => {
+      const end = performance.now() + ms;
+      const check = () => {
+        if (my !== token) return resolve(false);
+        if (performance.now() >= end) return resolve(true);
+        setTimeout(check, 40);
+      };
+      check();
+    });
+
+    function prepare() {
+      dev.reset();
+      const s = SCENES[scene];
+      dev.st.fg = s.fg;
+      dev.setProfileNow(matchProfile(TITLES[s.fg]));
+      s.setup(dev);
+      dev.toast = { text: `情境：${s.name}`, ok: true };
+    }
+
+    function applyInstant(step) {
+      if (step.run) step.run(dev);
+      if (step.voice) dev.voice(step.voice);
+      if (step.act) for (let i = 0; i < (step.times || 1); i++) dev.execute(step.act[0], step.act[1] ?? null, 'gesture', G_NAME[step.g]);
+    }
+
+    function show() {
+      const steps = SCENES[scene].steps;
+      Object.entries(tabBtns).forEach(([k, b]) => b.setAttribute('aria-selected', String(k === scene)));
+      caption.textContent = steps[index].cap;
+      stepT.textContent = `第 ${index + 1}／${steps.length} 步`;
+      dots.innerHTML = steps.map((_, i) => `<i class="${i === index ? 'on' : i < index ? 'done' : ''}"></i>`).join('');
+      prevB.disabled = index === 0;
+      nextB.disabled = index >= steps.length - 1;
+      playB.textContent = playing ? '⏸ 暫停' : (index >= steps.length - 1 ? '↻ 重新播放' : '▶ 播放');
+    }
+
+    function jump(i) {
+      token++;
+      prepare();
+      const steps = SCENES[scene].steps;
+      index = Math.max(0, Math.min(steps.length - 1, i));
+      for (let k = 0; k < index; k++) applyInstant(steps[k]);
+      dev.release();
+      show();
+    }
+
+    async function runStep(step, my) {
+      if (step.wait) return sleep(step.wait, my);
+      if (!(await sleep(900, my))) return false;
+      if (step.run) step.run(dev);
+      if (step.g) {
+        dev.hold(step.g);
+        const ok = await sleep(step.hold * 1000, my);
+        dev.release();
+        if (!ok) return false;
+        return sleep(1300, my);
+      }
+      if (step.voice) {
+        dev.say(step.voice, 2200);
+        if (!(await sleep(1100, my))) return false;
+        dev.voice(step.voice);
+        return sleep(1800, my);
+      }
+      return sleep(1500, my);
+    }
+
+    async function play() {
+      const steps = SCENES[scene].steps;
+      if (index >= steps.length - 1) jump(0);
+      playing = true;
+      const my = ++token;
+      // 重新整理目前步驟之前的狀態，再從目前步驟開始播放
+      prepare();
+      for (let k = 0; k < index; k++) applyInstant(steps[k]);
+      show();
+      while (index < steps.length) {
+        show();
+        if (!(await runStep(steps[index], my))) return;
+        if (index >= steps.length - 1) break;
+        index++;
+      }
+      playing = false;
+      show();
+    }
+
+    function stop() { if (playing) { playing = false; token++; dev.release(); show(); } }
+
+    playB.addEventListener('click', () => { if (playing) stop(); else play(); });
+    prevB.addEventListener('click', () => { stop(); jump(index - 1); });
+    nextB.addEventListener('click', () => { stop(); jump(index + 1); });
+    jump(0);
+
+    if (!REDUCED) {
+      const io = new IntersectionObserver(es => {
+        if (es.some(e => e.isIntersecting)) { io.disconnect(); if (!playing && index === 0) play(); }
+      }, { threshold: 0.5 });
+      io.observe(sceneRoot);
+    }
+  }
+})();
+</script>
+<!-- /at-sim:script -->
+</body>
+</html>

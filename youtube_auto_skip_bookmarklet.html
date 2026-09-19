@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚡ YouTube 0秒自動略過廣告 - 一鍵書籤安裝指南</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --success: #2ec4b6;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+        }
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        h1 {
+            color: #38bdf8;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 28px;
+        }
+        .badge {
+            background: #e11d48;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+        .drag-box {
+            background: rgba(255,255,255,0.05);
+            border: 2px dashed var(--success);
+            padding: 30px;
+            border-radius: 16px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .bookmarklet-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #2563eb, #38bdf8);
+            color: white !important;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 16px 36px;
+            border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4);
+            cursor: move;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .bookmarklet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(56, 189, 248, 0.5);
+        }
+        .steps {
+            background: rgba(0,0,0,0.2);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+        }
+        .steps ol {
+            margin: 0;
+            padding-left: 20px;
+            line-height: 1.8;
+            font-size: 17px;
+        }
+        .code-box {
+            background: #090d16;
+            padding: 16px;
+            border-radius: 8px;
+            font-family: Consolas, monospace;
+            font-size: 13px;
+            color: #a5f3fc;
+            overflow-x: auto;
+            word-break: break-all;
+            margin-top: 15px;
+            border: 1px solid #1e293b;
+        }
+        .copy-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+        .copy-btn:hover {
+            background: #475569;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ YouTube 0秒自動略過廣告 <span class="badge">免安裝神器</span></h1>
+        <p style="font-size: 17px; color: var(--muted); line-height: 1.6;">
+            這是專為 YouTube 設計的極速自動跳過腳本！只要拖曳到書籤列，看影片時隨手點一下，即可享受「有略過按鈕 0.05 秒秒按」、「不可略過廣告 16 倍速瞬間飆過」的極致順暢體驗。
+        </p>
+
+        <div class="drag-box">
+            <p style="margin-top: 0; font-size: 16px; color: #cbd5e1;">👇 請直接將下方藍色按鈕【拖曳】至瀏覽器頂部書籤列：</p>
+            <a class="bookmarklet-btn" href="javascript:(function(){if(window._ytAutoSkipActive){alert('⚡ YouTube 0秒自動略過廣告已在執行中！');return;}window._ytAutoSkipActive=true;const t=document.createElement('div');t.innerText='🛡️ 0秒自動略過廣告已啟動';t.style.cssText='position:fixed;top:20px;right:20px;z-index:999999;background:linear-gradient(135deg,#10b981,#059669);color:white;padding:12px 24px;border-radius:50px;font-size:16px;font-weight:bold;box-shadow:0 10px 25px rgba(0,0,0,0.5);transition:opacity 0.5s;font-family:sans-serif;';document.body.appendChild(t);setTimeout(()=>t.style.opacity='0',2500);setTimeout(()=>t.remove(),3000);function check(){const s=['.ytp-skip-ad-button','.ytp-ad-skip-button','.ytp-ad-skip-button-modern','button.ytp-ad-skip-button-modern','.ytp-ad-skip-button-container button','[id^="skip-button"] button','.ytp-ad-overlay-close-button'];for(const sel of s){const b=document.querySelector(sel);if(b&&b.offsetParent!==null){b.click();console.log('[AutoSkip] 略過成功');return;}}const ad=document.querySelector('.ad-showing,.ad-interrupting,.video-ads');const v=document.querySelector('video.html5-main-video')||document.querySelector('video');if(ad&&v){v.muted=true;v.playbackRate=16.0;if(v.duration&&isFinite(v.duration)&&v.currentTime<v.duration-0.5){v.currentTime=v.duration-0.1;}}}setInterval(check,120);console.log('YouTube Auto-Skip Bookmarklet Running');})();">
+                ⚡ YT 0秒跳廣告
+            </a>
+            <p style="margin-bottom: 0; margin-top: 15px; font-size: 14px; color: #94a3b8;">（若書籤列未顯示，請按鍵盤 <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>B</kbd> 開啟）</p>
+        </div>
+
+        <div class="steps">
+            <h3 style="margin-top: 0; color: #38bdf8;">📌 使用方式</h3>
+            <ol>
+                <li>開啟任意 <strong>YouTube</strong> 影片頁面。</li>
+                <li>點一下瀏覽器書籤列上的 <strong>「⚡ YT 0秒跳廣告」</strong>。</li>
+                <li>畫面右上角會彈出綠色提示「🛡️ 0秒自動略過廣告已啟動」。</li>
+                <li>從此該分頁所有影片廣告，都會在 0.05 秒內自動點擊略過，遇長廣告自動以 16 倍速瞬間飛過！</li>
+            </ol>
+        </div>
+
+        <h3 style="color: #cbd5e1; margin-bottom: 6px;">📋 手動建立書籤（備用方案）</h3>
+        <p style="font-size: 14px; color: var(--muted); margin-top: 0;">若無法拖曳，可複製以下程式碼手動新增書籤，將「網址」欄位貼上此內容：</p>
+        <div class="code-box" id="codeContent">javascript:(function(){if(window._ytAutoSkipActive){alert('⚡ YouTube 0秒自動略過廣告已在執行中！');return;}window._ytAutoSkipActive=true;const t=document.createElement('div');t.innerText='🛡️ 0秒自動略過廣告已啟動';t.style.cssText='position:fixed;top:20px;right:20px;z-index:999999;background:linear-gradient(135deg,#10b981,#059669);color:white;padding:12px 24px;border-radius:50px;font-size:16px;font-weight:bold;box-shadow:0 10px 25px rgba(0,0,0,0.5);transition:opacity 0.5s;font-family:sans-serif;';document.body.appendChild(t);setTimeout(()=>t.style.opacity='0',2500);setTimeout(()=>t.remove(),3000);function check(){const s=['.ytp-skip-ad-button','.ytp-ad-skip-button','.ytp-ad-skip-button-modern','button.ytp-ad-skip-button-modern','.ytp-ad-skip-button-container button','[id^="skip-button"] button','.ytp-ad-overlay-close-button'];for(const sel of s){const b=document.querySelector(sel);if(b&&b.offsetParent!==null){b.click();console.log('[AutoSkip] 略過成功');return;}}const ad=document.querySelector('.ad-showing,.ad-interrupting,.video-ads');const v=document.querySelector('video.html5-main-video')||document.querySelector('video');if(ad&&v){v.muted=true;v.playbackRate=16.0;if(v.duration&&isFinite(v.duration)&&v.currentTime<v.duration-0.5){v.currentTime=v.duration-0.1;}}}setInterval(check,120);console.log('YouTube Auto-Skip Bookmarklet Running');})();</div>
+        <button class="copy-btn" onclick="copyCode()">📋 複製書籤程式碼</button>
+    </div>
+
+    <script>
+        function copyCode() {
+            const code = document.getElementById('codeContent').innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                alert('✅ 程式碼已成功複製到剪貼簿！可至瀏覽器書籤貼上。');
+            });
+        }
+    </script>
+</body>
+</html>

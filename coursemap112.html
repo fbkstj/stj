@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>楊梅高中 資訊科・電子科 課程地圖 (112學年)</title>
+<style type="text/css">
+.cmap { --paper:#f5f7f4; --ink:#1e2a36; --ink-soft:#5b6b78; --line:#cfd8cf;
+  --head:#0e7a6f; --head-soft:#e2f2ef;
+  --vision:#f2b8ab; --vision-ink:#7a2e1d;
+  --profile:#a8d8b9; --profile-ink:#1e5c38;
+  --sem:#bfe3ee; --sem-ink:#155e75;
+  --pro:#f6c9c0; --pro-ink:#8a3a2a;
+  --lab:#f7e3a8; --lab-ink:#7a5a10;
+  --grp:#cfe6f5; --grp-ink:#1d4e6e;
+  --flex:#efe6f7; --flex-ink:#5b3a86;
+  --need:#f4b9a4; --need-ink:#8a3a1a;
+  --goal:#5877a8; --goal-soft:#dbe4f2; --goal-ink:#243c63;
+  --abil:#e8c26a; --abil-soft:#faf0d8; --abil-ink:#6e5312;
+  font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  background:var(--paper); color:var(--ink); padding:14px; box-sizing:border-box; }
+.cmap *{box-sizing:border-box}
+.cmap .a4{width:1122px; max-width:100%; margin:0 auto; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 16px; box-shadow:0 2px 10px rgba(30,42,54,0.10)}
+.cmap h1{margin:0 0 10px; text-align:center; font-size:1.75rem; font-weight:normal; color:var(--head); letter-spacing:0.06em}
+.cmap h1 small{display:block; font-size:0.85rem; font-weight:normal; color:var(--ink-soft); letter-spacing:0.3em; margin-top:2px}
+.cmap .banner{border-radius:999px; text-align:center; font-weight:normal; font-size:0.95rem; padding:6px 12px; margin:0 0 6px}
+.cmap .banner.vision{background:var(--vision); color:var(--vision-ink)}
+.cmap .banner.profile{background:var(--profile); color:var(--profile-ink)}
+.cmap table{width:100%; border-collapse:separate; border-spacing:2px; table-layout:fixed}
+.cmap th, .cmap td{padding:5px 6px; vertical-align:top; border-radius:7px; font-size:0.78rem; line-height:1.45; font-weight:normal}
+.cmap thead th{background:var(--sem); color:var(--sem-ink); font-weight:normal; text-align:center; font-size:1.05rem; padding:6px 2px}
+.cmap thead th.cath{background:var(--head); color:#fff}
+.cmap thead th.need{background:var(--need); color:var(--need-ink)}
+.cmap thead th.goal{background:var(--goal); color:#fff}
+.cmap thead th.abil{background:var(--abil); color:#fff}
+.cmap .cat{background:var(--head-soft); color:var(--head); font-weight:normal; text-align:center; vertical-align:middle; font-size:1.05rem; letter-spacing:0.15em}
+.cmap .cat.grp{background:var(--grp); color:var(--grp-ink)}
+.cmap .cat.flex{background:var(--flex); color:var(--flex-ink)}
+.cmap .sub{background:#fff; border:1px solid var(--line); color:var(--ink-soft); font-weight:normal; text-align:center; vertical-align:middle; font-size:0.95rem}
+.cmap .sub.pro{background:var(--pro); border-color:transparent; color:var(--pro-ink)}
+.cmap .sub.lab{background:var(--lab); border-color:transparent; color:var(--lab-ink)}
+.cmap td.cell{background:#fafbf9; border:1px solid #e4e9e2}
+.cmap td.cell.empty{background:transparent; border:1px dashed #e0e5de}
+.cmap .chip{display:block; border-radius:6px; padding:2px 5px; margin:0 0 3px; font-weight:normal; font-size:0.85rem}
+.cmap .chip:last-child{margin-bottom:0}
+.cmap .chip.pro{background:var(--pro); color:var(--pro-ink)}
+.cmap .chip.lab{background:var(--lab); color:var(--lab-ink)}
+.cmap .chip.grp{background:var(--grp); color:var(--grp-ink)}
+.cmap .chip.flex{background:var(--flex); color:var(--flex-ink)}
+.cmap .chip small{display:block; font-weight:normal; font-size:0.72rem; opacity:0.75}
+.cmap .pick{display:block; text-align:center; font-size:0.85rem; font-weight:normal; color:#fff; background:var(--head); border-radius:5px; padding:1px 4px; margin-bottom:3px}
+.cmap .bottom3{display:grid; grid-template-columns:1fr 1fr 1.15fr; gap:6px; margin-top:6px}
+.cmap .side{border-radius:8px; padding:6px 8px; font-size:0.78rem; line-height:1.5}
+.cmap .side.need{background:#fbe9e0; color:var(--need-ink)}
+.cmap .side.goal{background:var(--goal-soft); color:var(--goal-ink)}
+.cmap .side.abil{background:var(--abil-soft); color:var(--abil-ink)}
+.cmap .bh{text-align:center; font-weight:normal; font-size:0.88rem; border-radius:6px; padding:3px 6px; margin:0 0 5px; color:#fff}
+.cmap .bh.needh{background:var(--need); color:var(--need-ink)}
+.cmap .bh.goalh{background:var(--goal)}
+.cmap .bh.abilh{background:var(--abil)}
+@media (max-width:760px){ .cmap .bottom3{grid-template-columns:1fr} }
+.cmap .side b{display:block; margin:4px 0 4px; font-size:0.8rem; font-weight:normal}
+.cmap .side ol{margin:0; padding-left:14px}
+.cmap .side ol li{margin:0 0 4px}
+@media print {
+  @page { size: A4 landscape; margin: 8mm; }
+  body{margin:0}
+  .cmap{padding:0; background:#fff}
+  .cmap .a4{width:100%; border:none; box-shadow:none; padding:0}
+}
+</style>
+</head>
+<body>
+<div class="cmap">
+<div class="a4">
+  <h1>桃園市立楊梅高中　資訊科・電子科 課程地圖（112學年入學）<small>CURRICULUM MAP</small></h1>
+  <div class="banner vision">學校願景：培育梅高學子，具備「創意教育、適性學習、專業發展」的世界公民</div>
+  <div class="banner profile">學生圖像：國際視野、團隊溝通、問題解決、美感鑑賞、品格涵養</div>
+  <table>
+    <colgroup>
+      <col style="width:34px" /><col style="width:30px" />
+      <col /><col /><col /><col /><col /><col />
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="cath" colspan="2">課程類別</th>
+        <th>一上</th><th>一下</th><th>二上</th><th>二下</th><th>三上</th><th>三下</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="cat" rowspan="2">部定必修</td>
+        <td class="sub pro">專業科目</td>
+        <td class="cell"><span class="chip pro">基本電學(3)</span></td>
+        <td class="cell"><span class="chip pro">基本電學(3)</span></td>
+        <td class="cell"><span class="chip pro">電子學(3)</span><span class="chip pro">數位邏輯設計(3)</span></td>
+        <td class="cell"><span class="chip pro">電子學(3)</span><span class="chip pro">微處理機(3)</span></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+      </tr>
+      <tr>
+        <td class="sub lab">實習科目</td>
+        <td class="cell"><span class="chip lab">程式設計實習(3)</span><span class="chip lab">基本電學實習(3)</span></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="chip lab">電子學實習(3)</span><span class="chip lab">可程式邏輯設計實習(3)<small>晶片設計領域</small></span><span class="chip lab">行動裝置應用實習(3)<small>微電腦應用領域</small></span></td>
+        <td class="cell"><span class="chip lab">電子學實習(3)</span><span class="chip lab">單晶片微處理機實習(3)<small>晶片設計領域</small></span></td>
+        <td class="cell"><span class="chip lab">介面電路控制實習(3)<small>微電腦應用領域</small></span></td>
+        <td class="cell"><span class="chip lab">微電腦應用實習(3)<small>微電腦應用領域</small></span></td>
+      </tr>
+      <tr>
+        <td class="cat" rowspan="2">校訂必修</td>
+        <td class="sub pro">專業科目</td>
+        <td class="cell"><span class="chip pro">基礎電路學(2)</span></td>
+        <td class="cell"><span class="chip pro">基礎電子學(2)</span></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+      </tr>
+      <tr>
+        <td class="sub lab">實習科目</td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="chip lab">創意創作實作(4)</span></td>
+        <td class="cell"><span class="chip lab">專題實作(4)</span></td>
+      </tr>
+      <tr>
+        <td class="cat" rowspan="2">資訊科<br />校訂選修</td>
+        <td class="sub pro">專業科目</td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="chip pro">電子電路(2)</span><span class="chip pro">微電腦結構(2)</span><span class="chip pro">電路學(2)</span></td>
+        <td class="cell"><span class="chip pro">電子電路(2)</span><span class="chip pro">微電腦結構(2)</span><span class="chip pro">電路學(2)</span></td>
+      </tr>
+      <tr>
+        <td class="sub lab">實習科目</td>
+        <td class="cell"><span class="chip lab">基礎電子學實習(3)</span></td>
+        <td class="cell"><span class="chip lab">程式設計進階實習(3)</span></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="pick">同科跨班・AG4選1</span><span class="chip lab">串列埠控制實習(3)</span><span class="chip lab">串列埠應用實習(3)</span><span class="chip lab">電腦繪圖控制實習(3)</span><span class="chip lab">電腦繪圖應用實習(3)</span></td>
+        <td class="cell">
+          <span class="pick">同科跨班・AE4選1</span>
+          <span class="chip lab">物聯網控制實習(3)</span>
+          <span class="chip lab">物聯網應用實習(3)</span>
+          <span class="chip lab">數位電路控制實習(3)</span>
+          <span class="chip lab">數位電路應用實習(3)</span>
+        </td>
+        <td class="cell">
+          <span class="pick">同科跨班・AF4選1</span>
+          <span class="chip lab">嵌入式系統控制實習(3)</span>
+          <span class="chip lab">嵌入式系統應用實習(3)</span>
+          <span class="chip lab">感測器控制實習(3)</span>
+          <span class="chip lab">感測器應用實習(3)</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="cat" rowspan="2">電子科<br />校訂選修</td>
+        <td class="sub pro">專業科目</td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="chip pro">電子電路(2)</span><span class="chip pro">微電腦結構(2)</span><span class="chip pro">電路學(2)</span></td>
+        <td class="cell"><span class="chip pro">電子電路(2)</span><span class="chip pro">微電腦結構(2)</span><span class="chip pro">電路學(2)</span></td>
+      </tr>
+      <tr>
+        <td class="sub lab">實習科目</td>
+        <td class="cell"><span class="chip lab">基礎電子學實習(3)</span></td>
+        <td class="cell"><span class="chip lab">基礎電子學實習(3)</span></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="pick">同科單班・AB2選1</span><span class="chip lab">電腦繪圖實習(3)</span><span class="chip lab">數位系統設計實習(3)</span></td>
+        <td class="cell">
+          <span class="pick">同科單班・AD2選1</span>
+          <span class="chip lab">感測器實習(3)</span>
+          <span class="chip lab">數位電路應用實習(3)</span>
+        </td>
+        <td class="cell">
+          <span class="pick">同科單班・AC2選1</span>
+          <span class="chip lab">電子電路實習(3)</span>
+          <span class="chip lab">嵌入式晶片控制實習(3)</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="cat grp" colspan="2">團體活動</td>
+        <td class="cell"><span class="chip grp">班級活動(1)</span><span class="chip grp">社團活動與週會(1)</span></td>
+        <td class="cell"><span class="chip grp">班級活動(1)</span><span class="chip grp">社團活動與週會(1)</span></td>
+        <td class="cell"><span class="chip grp">班級活動(1)</span><span class="chip grp">社團活動與週會(1)</span></td>
+        <td class="cell"><span class="chip grp">班級活動(1)</span><span class="chip grp">社團活動與週會(1)</span></td>
+        <td class="cell"><span class="chip grp">班級活動(1)</span><span class="chip grp">社團活動與週會(1)</span></td>
+        <td class="cell"><span class="chip grp">班級活動(1)</span><span class="chip grp">社團活動與週會(1)</span></td>
+      </tr>
+      <tr>
+        <td class="cat flex" colspan="2">彈性學習</td>
+        <td class="cell"><span class="chip flex">自主學習</span><span class="chip flex">充實(增廣)課程</span><span class="chip flex">補強課程</span><span class="chip flex">學校特色活動</span></td>
+        <td class="cell"><span class="chip flex">自主學習</span><span class="chip flex">充實(增廣)課程</span><span class="chip flex">補強課程</span><span class="chip flex">學校特色活動</span></td>
+        <td class="cell"><span class="chip flex">自主學習</span><span class="chip flex">充實(增廣)課程</span><span class="chip flex">補強課程</span><span class="chip flex">學校特色活動</span></td>
+        <td class="cell"><span class="chip flex">自主學習</span><span class="chip flex">充實(增廣)課程</span><span class="chip flex">補強課程</span><span class="chip flex">學校特色活動</span><span class="chip flex">選手培訓</span></td>
+        <td class="cell"><span class="chip flex">自主學習</span><span class="chip flex">充實(增廣)課程</span><span class="chip flex">補強課程</span><span class="chip flex">學校特色活動</span><span class="chip flex">選手培訓</span></td>
+        <td class="cell"><span class="chip flex">自主學習</span><span class="chip flex">充實(增廣)課程</span><span class="chip flex">補強課程</span><span class="chip flex">學校特色活動</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="bottom3">
+    <div class="side need">
+      <div class="bh needh">產業需求</div>
+      <b>晶片設計技能領域：</b>
+      <ol><li>數位IC設計助理人員</li><li>韌體設計助理人員</li></ol>
+      <b>微電腦應用技能領域：</b>
+      <ol start="3"><li>產品開發助理人員</li><li>通訊產業維修人員</li><li>電路板設計與製造助理人員</li></ol>
+    </div>
+    <div class="side goal">
+      <div class="bh goalh">科教育目標</div>
+      <ol>
+        <li>培養具有良好專業素養及職業道德與適應未來社會變遷之人才</li>
+        <li>培養電子產業基礎核心能力之人才</li>
+        <li>培養晶片設計與數位設計之人才</li>
+        <li>培養電路設計與製造之人才</li>
+        <li>培養終身學習、創新思考與自己實現能力</li>
+      </ol>
+    </div>
+    <div class="side abil">
+      <div class="bh abilh">科專業能力</div>
+      <ol>
+        <li>具備問題解決與終身學習的能力</li>
+        <li>具備電子專業素養與應用資訊科技的能力</li>
+        <li>具備世界公民與科技美學之素養</li>
+        <li>具備電學相關領域與數位電路之基礎理論與應用之能力</li>
+        <li>具備使用基本工具、電子儀表器與相關儀器之能力</li>
+        <li>具備查閱專業手冊與基礎電子控制相關電路圖識別之能力</li>
+        <li>具備電路修護、檢測與微電腦控制應用能力</li>
+        <li>具備晶片設計、數位電路設計與相關軟體使用之能力</li>
+        <li>具備電路繪圖、設計及製作與相關軟體使用之能力</li>
+        <li>具備電子專業領域創新思考與繼續精進之能力</li>
+      </ol>
+    </div>
+  </div>
+</div>
+</div>
+</body>
+</html>

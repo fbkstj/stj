@@ -1,0 +1,8 @@
+mediapipe
+opencv-python
+numpy
+pillow
+pyautogui
+pywin32
+sounddevice
+SpeechRecognition

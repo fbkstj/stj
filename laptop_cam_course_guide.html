@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>筆電攝影機 AI 視覺｜兩天課程講義</title>
+<meta name="description" content="把 AMB82-Mini 兩天研習（影像物聯網、AI 視覺辨識）改成筆電＋USB 攝影機版：12 單元的課程規劃、逐步操作、每單元 AI 提示語、情境模擬動畫、示範影片與一鍵驗收程式。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #cbd5e1;
+    --text: #0f172a;
+    --muted: #475569;
+    --primary: #0369a1;
+    --primary-soft: #e0f2fe;
+    --accent: #a16207;
+    --accent-soft: #fef9c3;
+    --danger: #b91c1c;
+    --danger-soft: #fef2f2;
+    --ok: #047857;
+    --ok-soft: #ecfdf5;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--text);
+    background: var(--bg);
+  }
+  a { color: var(--primary); }
+  :focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; border-radius: 4px; }
+  .skip { position: absolute; left: -9999px; }
+  .skip:focus { left: 16px; top: 8px; background: #fff; padding: 6px 12px; z-index: 10; }
+
+  header.hero {
+    background: linear-gradient(135deg, #0f766e 0%, #7c2d12 100%);
+    color: #fff;
+    padding: 48px 20px 40px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .hero .wrap { padding: 0; }
+  .hero .eyebrow {
+    display: inline-block; background: rgba(15,23,42,0.4); border: 1px solid rgba(255,255,255,0.35);
+    padding: 2px 12px; border-radius: 999px; font-size: 0.9rem; font-weight: 700;
+  }
+  .hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.3; margin: 14px 0 10px; font-weight: 900; }
+  .hero p { font-size: 1.1rem; max-width: 760px; margin: 0 0 20px; color: #f0f9ff; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px;
+    font-weight: 700; text-decoration: none; border: 2px solid transparent; font-size: 1rem; cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary { background: #fde047; color: #0f172a; }
+  .btn-primary:hover { background: #facc15; }
+  .btn-ghost { color: #fff; border-color: rgba(255,255,255,0.7); background: transparent; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.12); }
+  .facts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; padding: 0; list-style: none; }
+  .facts li { background: rgba(15,23,42,0.35); border-radius: 8px; padding: 4px 12px; font-size: 0.95rem; }
+
+  .layout { display: grid; grid-template-columns: 240px 1fr; gap: 32px; padding-top: 28px; padding-bottom: 60px; }
+  nav.toc { position: sticky; top: 16px; align-self: start; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  nav.toc h2 { font-size: 1rem; margin: 0 0 6px; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; font-size: 0.95rem; line-height: 1.9; }
+  nav.toc a { text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+  main { min-width: 0; }
+
+  section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin-bottom: 24px; scroll-margin-top: 16px; }
+  section > h2 { font-size: 1.5rem; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+  .num { display: inline-flex; width: 36px; height: 36px; border-radius: 9px; background: var(--primary-soft); color: var(--primary); align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; flex-shrink: 0; }
+  h3 { font-size: 1.15rem; margin: 20px 0 6px; }
+  p { margin: 8px 0; }
+  ul, ol { padding-left: 1.4em; margin: 8px 0; }
+  li { margin: 3px 0; }
+  .muted { color: var(--muted); }
+
+  .table-wrap { overflow-x: auto; margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.97rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  thead th { background: #e2e8f0; }
+  tbody th { background: #f1f5f9; font-weight: 700; }
+
+  .note { border-radius: 10px; padding: 12px 16px; margin: 12px 0; border: 1px solid; }
+  .note > strong:first-child { display: block; }
+  .note.warn { background: var(--danger-soft); border-color: #fca5a5; color: #7f1d1d; }
+  .note.tip { background: var(--ok-soft); border-color: #6ee7b7; color: #064e3b; }
+  .note.info { background: var(--accent-soft); border-color: #fde047; color: #713f12; }
+
+  .flow { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; counter-reset: flow; }
+  .flow li { counter-increment: flow; background: var(--primary-soft); border: 1px solid #7dd3fc; border-radius: 10px; padding: 8px 12px; flex: 1 1 150px; font-size: 0.95rem; position: relative; margin: 0; }
+  .flow li::before { content: counter(flow); display: inline-block; background: var(--primary); color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 0.8rem; font-weight: 700; margin-right: 6px; }
+  .flow li b { display: block; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .box { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: #f8fafc; }
+  .box h3 { margin-top: 0; }
+
+  pre, code { font-family: "JetBrains Mono", Consolas, monospace; }
+  code { background: #e2e8f0; padding: 1px 5px; border-radius: 4px; font-size: 0.92em; overflow-wrap: anywhere; }
+  pre { background: var(--code-bg); color: var(--code-text); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 0.9rem; line-height: 1.6; margin: 8px 0; }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  .prompt { border: 1px solid var(--border); border-radius: 10px; margin: 12px 0; overflow: hidden; }
+  .prompt-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #f1f5f9; padding: 8px 12px; font-weight: 700; flex-wrap: wrap; }
+  .prompt pre { margin: 0; border-radius: 0; white-space: pre-wrap; }
+  .copy { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 4px 12px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+  .copy:hover { background: #075985; }
+
+  .check { list-style: none; padding-left: 0; }
+  .check li::before { content: "☐ "; font-weight: 700; color: var(--primary); }
+
+  footer { text-align: center; color: var(--muted); padding: 24px 16px 40px; font-size: 0.95rem; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static; }
+    .grid2 { grid-template-columns: 1fr; }
+    section { padding: 20px 16px; }
+    body { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    nav.toc, .hero .actions, .copy, .calc { display: none; }
+    .layout { display: block; }
+    section { break-inside: avoid; }
+  }
+  details { margin: 8px 0 16px; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--primary); padding: 4px 0; }
+</style>
+<style>
+  .figure { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin: 12px 0; }
+  .figure svg { display: block; width: 100%; height: auto; max-width: 720px; margin: 0 auto; }
+  .figure figcaption { text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 6px; }
+  .svg-label { font: 500 14px "Noto Sans TC", sans-serif; fill: #0f172a; }
+  .svg-sub { font: 400 12px "Noto Sans TC", sans-serif; fill: #475569; }
+  .formula { font-family: "JetBrains Mono", Consolas, monospace; background: var(--primary-soft); border: 1px solid #7dd3fc; border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 1.05rem; overflow-x: auto; }
+  .calc { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 14px 0; background: #f8fafc; }
+  .calc h3 { margin-top: 0; }
+  .calc-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .calc label { display: flex; flex-direction: column; font-weight: 700; font-size: 0.95rem; }
+  .calc input { font: inherit; width: 130px; padding: 6px 8px; border: 1px solid #94a3b8; border-radius: 8px; background: #fff; color: var(--text); }
+  .calc-out { margin-top: 10px; padding: 8px 12px; border-radius: 8px; font-weight: 700; border: 1px solid var(--border); background: #fff; }
+  .calc-out.lv0 { border-color: #6ee7b7; background: var(--ok-soft); color: #064e3b; }
+  .calc-out.lv1 { border-color: #fde047; background: var(--accent-soft); color: #713f12; }
+  .calc-out.lv2 { border-color: #fca5a5; background: var(--danger-soft); color: #7f1d1d; }
+  kbd { font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.88em; background: #fff; border: 1px solid #94a3b8; border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+  table.nw1 tbody th, table.nw1 thead th:first-child, table.nw3 td:nth-child(3),
+  table.nw12 th:first-child, table.nw12 td:nth-child(2), table.nw12 thead th:nth-child(2) { white-space: nowrap; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; margin-right: 4px; border: 1px solid #334155; }
+</style>
+<style>
+  header.hero { background: linear-gradient(135deg, #0c4a6e 0%, #7c3aed 100%); }
+  .unit-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 10px; padding: 0; list-style: none; }
+  .unit-meta li { background: #f1f5f9; border: 1px solid var(--border); border-radius: 999px; padding: 2px 12px; font-size: 0.9rem; margin: 0; }
+  .simbtn { font: inherit; font-weight: 700; font-size: 0.95rem; padding: 6px 14px; border-radius: 10px; border: 2px solid var(--primary); background: var(--primary-soft); color: var(--primary); cursor: pointer; }
+  .simbtn:hover { background: #bae6fd; }
+  .day-banner { background: linear-gradient(90deg, #0369a1, #7c3aed); color: #fff; border-radius: 14px; padding: 16px 24px; margin: 8px 0 24px; }
+  .day-banner h2 { margin: 0; font-size: 1.4rem; }
+  .day-banner p { margin: 4px 0 0; color: #e0f2fe; }
+  .expect { border-left: 4px solid var(--ok); }
+  pre.expect { color: #bbf7d0; }
+  .prompt-kind { font-size: 0.8rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; margin-right: 6px; }
+  .k-gen { background: #dbeafe; color: #1e40af; } .k-test { background: #dcfce7; color: #166534; } .k-ext { background: #fef3c7; color: #92400e; }
+
+  .labsim { border: 1px solid var(--border); border-radius: 14px; background: #fff; padding: 14px; }
+  .sim-scenes { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .sim-scene { font: inherit; font-size: 0.9rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: #f8fafc; cursor: pointer; color: var(--text); }
+  .sim-scene.on { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .sim-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin: 4px 0 8px; }
+  .sim-head h3 { margin: 0; font-size: 1.1rem; }
+  .sim-ctrl { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .sim-ctrl button, .sim-ctrl select { font: inherit; font-size: 0.9rem; padding: 4px 10px; border: 1px solid #94a3b8; border-radius: 8px; background: #fff; color: var(--text); cursor: pointer; }
+  .sim-ctrl #simTime { font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.85rem; color: var(--muted); min-width: 110px; text-align: right; }
+  #simCanvas { width: 100%; height: auto; aspect-ratio: 16 / 9; display: block; border-radius: 10px; border: 1px solid var(--border); background: #fff; }
+  .sim-now { margin: 8px 0 0; padding: 8px 12px; border-radius: 8px; background: var(--primary-soft); color: #075985; font-weight: 700; }
+  .sim-opts { display: flex; flex-wrap: wrap; gap: 16px; margin: 8px 0 0; padding: 8px 12px; border-radius: 8px; background: var(--accent-soft); }
+  .sim-opts[hidden] { display: none; }
+  .sim-opts label { display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 0.95rem; }
+  .sim-opts output { min-width: 1.2em; text-align: center; color: var(--accent); }
+  .sim-bottom { display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; margin-top: 10px; }
+  .sim-steps { list-style: none; margin: 0; padding: 0; font-size: 0.93rem; }
+  .sim-steps li { padding: 4px 8px; border-radius: 6px; margin: 2px 0; color: var(--muted); }
+  .sim-steps li.on { background: var(--ok-soft); color: #064e3b; font-weight: 700; }
+  .sim-steps .st-t { display: inline-block; min-width: 3.4em; font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.82rem; }
+  .sim-log { margin: 0; background: var(--code-bg); color: #a7f3d0; border-radius: 8px; padding: 10px 12px; font-size: 0.82rem; min-height: 120px; white-space: pre-wrap; }
+  @media (max-width: 860px) { .sim-bottom { grid-template-columns: 1fr; } }
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要內容</a>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">教師研習・學生實作講義・筆電版</span>
+    <h1>筆電＋USB 攝影機 AI 視覺課程<br>兩天 12 單元，不用開發板也能全部做完</h1>
+    <p>原本的兩天 AMB82-Mini 研習（第 1 天影像物聯網、第 2 天 AI 視覺辨識），改成每個人用自己的筆電加一支 USB 攝影機就能完成。每個單元都有：<strong>情境模擬動畫</strong>先看懂在做什麼、<strong>AI 提示語</strong>讓你請 AI 寫出程式與測試方法、<strong>參考程式</strong>可以對照，還有<strong>示範影片＋一鍵驗收</strong>，不必一直對著同學拍也能確認功能正確。</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="laptop_cam_starter_pack.zip" download="laptop_cam_starter_pack.zip">⬇ 下載程式包（ZIP）</a>
+      <a class="btn btn-ghost" href="#sim">▶ 情境模擬動畫</a>
+      <a class="btn btn-ghost" href="#prepare">環境準備</a>
+      <a class="btn btn-ghost" href="#trouble">排錯總表</a>
+    </div>
+    <ul class="facts">
+      <li>兩天・每天六節（09:20～16:00）</li>
+      <li>設備：筆電＋USB 攝影機（沒有也能用示範影片）</li>
+      <li>環境：Python 3.10 以上、OpenCV、YOLO11、MediaPipe</li>
+      <li>12 單元全部有參考程式與自動驗收</li>
+    </ul>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="本頁目錄">
+    <h2>目錄</h2>
+    <ol>
+      <li><a href="#overview">課程總覽</a></li>
+      <li><a href="#prepare">設備與環境準備</a></li>
+      <li><a href="#method">學習流程與提示語用法</a></li>
+      <li><a href="#sim">情境模擬動畫</a></li>
+      <li><a href="#d1u1">1-1 定時拍照</a></li>
+      <li><a href="#d1u2">1-2 影像串流</a></li>
+      <li><a href="#d1u3">1-3 手機網頁</a></li>
+      <li><a href="#d1u4">1-4 雲端上傳</a></li>
+      <li><a href="#d1u5">1-5 錄影與狀態</a></li>
+      <li><a href="#d1u6">1-6 Telegram</a></li>
+      <li><a href="#d2u1">2-1 移動偵測與 QR</a></li>
+      <li><a href="#d2u2">2-2 人臉門禁</a></li>
+      <li><a href="#d2u3">2-3 電子圍籬＋MQTT</a></li>
+      <li><a href="#d2u4">2-4 訓練自己的模型</a></li>
+      <li><a href="#d2u5">2-5 姿態辨識</a></li>
+      <li><a href="#d2u6">2-6 姿勢遙控裝置</a></li>
+      <li><a href="#prompts">通用提示語</a></li>
+      <li><a href="#trouble">排錯總表</a></li>
+      <li><a href="#safety">安全、隱私與規範</a></li>
+      <li><a href="#check">評量與檢核</a></li>
+      <li><a href="#teacher">教師備課與備援</a></li>
+    </ol>
+  </nav>
+
+  <main id="main">
+
+    <section id="overview">
+      <h2><span class="num">1</span>課程總覽</h2>
+      <p>兩天的主題和原本的 AMB82-Mini 研習一樣，只是把「板子」換成「筆電＋USB 攝影機」：拍照、串流、上傳、錄影、遠端遙控，再到移動偵測、人臉、YOLO、自訓模型、姿態。每一節都能對應回原本的板子程式，<strong>有板子的組別可以兩種一起做、互相比較</strong>。</p>
+
+      <h3>為什麼改成筆電版</h3>
+      <div class="grid2">
+        <div class="box">
+          <h3>好處</h3>
+          <ul>
+            <li>不用等板子、不用燒錄，<strong>改一行程式馬上看到結果</strong></li>
+            <li>筆電算得比較快：可以用 YOLO11、訓練模型只要幾分鐘</li>
+            <li>每支程式都能<strong>用示範影片代替攝影機</strong>，結果可以重現、可以比較</li>
+            <li>AI 助手寫的 Python 程式最多、最好除錯，適合用提示語學習</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h3>要注意的差別</h3>
+          <ul>
+            <li>筆電不是「放在現場 24 小時」的裝置，比較適合原型與實驗</li>
+            <li>板子上的 LED、伺服馬達、TFT，改成畫面上的<strong>虛擬 LED、虛擬門、狀態小視窗</strong></li>
+            <li>「AP 模式」改成 Windows 的<strong>行動熱點</strong></li>
+            <li>模型不用轉 .nb，但要學會<strong>管理套件版本</strong>（requirements.txt）</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>12 單元對照表</h3>
+      <div class="table-wrap">
+        <table class="nw12">
+          <thead><tr><th scope="col">單元</th><th scope="col">時間</th><th scope="col">做出什麼</th><th scope="col">筆電版程式</th><th scope="col">原 AMB82 版</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">1-1</th><td>09:20～10:10</td><td>定時拍照、手動拍照</td><td><code>d1_01_snapshot.py</code></td><td>01_camera_snapshot</td></tr>
+            <tr><th scope="row">1-2</th><td>10:20～11:10</td><td>RTP／TCP／RTSP 串流，VLC 觀看、量延遲</td><td><code>d1_02_stream.py</code></td><td>02_rtsp_stream</td></tr>
+            <tr><th scope="row">1-3</th><td>11:20～12:10</td><td>手機瀏覽器看即時畫面、遙控 LED</td><td><code>d1_03_web_cam.py</code></td><td>03_ap_web_snapshot</td></tr>
+            <tr><th scope="row">1-4</th><td>13:10～14:00</td><td>有人經過就上傳雲端硬碟＋試算表＋LINE</td><td><code>d1_04_cloud_upload.py</code></td><td>04_cloud_upload</td></tr>
+            <tr><th scope="row">1-5</th><td>14:10～15:00</td><td>錄影（含觸發前 2 秒）、狀態小螢幕</td><td><code>d1_05_record.py</code></td><td>05_record_mp4_tft</td></tr>
+            <tr><th scope="row">1-6</th><td>15:10～16:00</td><td>Telegram 遠端拍照、錄影、警戒</td><td><code>d1_06_telegram_bot.py</code></td><td>06_telegram_bot</td></tr>
+            <tr><th scope="row">2-1</th><td>09:20～10:10</td><td>移動偵測；QR 白名單門禁與簽到表</td><td><code>d2_01a_motion.py</code>／<code>d2_01b_qr_gate.py</code></td><td>01a／01b</td></tr>
+            <tr><th scope="row">2-2</th><td>10:20～11:10</td><td>人臉辨識門禁（防尾隨）</td><td><code>d2_02_face_door.py</code></td><td>02_face_door</td></tr>
+            <tr><th scope="row">2-3</th><td>11:20～12:10</td><td>YOLO 電子圍籬＋MQTT 通報</td><td><code>d2_03_fence_mqtt.py</code></td><td>03_fence_mqtt</td></tr>
+            <tr><th scope="row">2-4</th><td>13:10～14:00</td><td>標註 → 檢查 → 訓練 → 接到圍籬</td><td><code>d2_04_train_custom.py</code></td><td>04_custom_model</td></tr>
+            <tr><th scope="row">2-5</th><td>14:10～15:00</td><td>33 個關節點判斷舉手、蹲下、倒下</td><td><code>d2_05_pose.py</code></td><td>pc_pose</td></tr>
+            <tr><th scope="row">2-6</th><td>15:10～16:00</td><td>用姿勢透過 MQTT 遙控虛擬裝置（或板子）</td><td><code>d2_06_pose_to_device.py</code>＋<code>d2_06_virtual_device.py</code></td><td>06_mqtt_actuator</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>每一節 50 分鐘怎麼用</h3>
+      <ol class="flow">
+        <li><b>5 分鐘・看動畫</b>情境模擬動畫：這節要解決什麼問題、資料怎麼流</li>
+        <li><b>10 分鐘・講觀念</b>老師講關鍵原理（每節的「關鍵觀念」）</li>
+        <li><b>25 分鐘・實作</b>先跑示範影片 → 再開攝影機 → 用提示語請 AI 改功能</li>
+        <li><b>10 分鐘・驗收</b>跑一鍵驗收、填學習單、兩組互看成果</li>
+      </ol>
+    </section>
+
+    <section id="prepare">
+      <h2><span class="num">2</span>設備與環境準備</h2>
+      <h3>硬體</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">項目</th><th scope="col">建議</th><th scope="col">說明</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">筆電</th><td>Windows 10／11，記憶體 8 GB 以上</td><td>沒有獨立顯示卡也可以；YOLO 約每秒 7～15 張、訓練練習資料集約 5 分鐘</td></tr>
+            <tr><th scope="row">USB 攝影機</th><td>720p 或 1080p、免驅動（UVC）</td><td>筆電內建鏡頭也能用；外接的好處是可以夾在門框、放在走廊角落</td></tr>
+            <tr><th scope="row">手機</th><td>任何有瀏覽器的手機</td><td>1-3 看畫面、1-4 收 LINE、1-6 用 Telegram</td></tr>
+            <tr><th scope="row">（選用）AMB82-Mini</th><td>有就帶</td><td>2-6 可以讓板子和虛擬裝置一起被姿勢遙控</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>軟體（課前在家做完，約 15 分鐘）</h3>
+      <ol>
+        <li>安裝 Python 3.10 以上（安裝時勾選「Add python.exe to PATH」）。</li>
+        <li>下載本頁的程式包並解壓縮，在資料夾裡開終端機，依序執行：</li>
+      </ol>
+      <pre><code>pip install -r requirements.txt
+python tools/download_models.py        # YOLO、人臉、姿態模型，共約 50 MB
+python tools/make_demo_media.py        # 產生示範影片，不用開鏡頭也能練習
+python tests/run_all_tests.py          # 一鍵驗收</code></pre>
+      <ol start="3">
+        <li>1-2 串流需要 ffmpeg：<code>winget install Gyan.FFmpeg</code>，裝完<strong>重開終端機</strong>；觀看端安裝 VLC。</li>
+        <li>最後找出自己的攝影機編號：<code>python tools/list_cameras.py</code>（會逐一打開鏡頭約 1 秒）。</li>
+      </ol>
+      <p>一鍵驗收的正確結果（講義製作時在一般筆電實測，沒有顯示卡）：</p>
+      <pre class="expect"><code>[OK] d1_01 定時拍照：拍到 3 張（預期 3 張）
+[OK] d1_02 影像串流：TCP 串流讀到：h264,1280,720
+[OK] d1_03 手機網頁：沒 key 擋下=True、LED 開=True、快照 21 KB、2 秒串流 47 張
+[OK] d1_04 雲端上傳：假雲端收到 3 張、試算表 3 列（預期 3）
+[OK] d1_05 錄影：錄到 1 段、共 1924 KB（預期 1 段）
+[OK] d1_06 Telegram：回了 5 則（照片 1、影片 1、文字 3），陌生人 0 則=True
+[OK] d2_01a 移動偵測：整段 3 次事件（預期 3）、前 1.8 秒沒人時 0 次（預期 0）
+[OK] d2_01b QR 門禁：通過 3、拒絕 1（預期 3、1）
+[OK] d2_02 人臉門禁：Tom 開門 1 次、擋下多人同框 1 次、擋下陌生人 1 次
+[OK] d2_03 電子圍籬＋MQTT：MQTT 收到 ['intrusion', 'clear']；闖入時間 6.3 秒（預期約 6 秒）
+[OK] d2_04 自訓模型：資料集產生並檢查通過（訓練要加 --with-train 才測）
+[OK] d2_05 姿態辨識：規則 24 項全過；示範影片 沒有動作 66%、畫面裡沒有人 34%、蹲下 0%
+[OK] d2_06 姿勢遙控裝置：裝置回報：['online', 'green_on', 'blink', 'close']
+
+總結：OK 13、FAIL 0、SKIP 0（共 161 秒）</code></pre>
+      <div class="note tip">
+        <strong>缺什麼就只會 SKIP，不會整個失敗</strong>
+        例如沒裝 ffmpeg，1-2 會顯示 SKIP 並告訴你怎麼裝；其他單元照樣測。只想測某幾個：<code>python tests/run_all_tests.py d2_01b d2_02</code>。
+      </div>
+
+      <h3>每支程式都有的共同參數</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">參數</th><th scope="col">用途</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>--source 0</code></th><td>攝影機編號（外接 USB 通常是 1）</td></tr>
+            <tr><th scope="row"><code>--source demo/street.mp4</code></th><td>用示範影片代替攝影機：<strong>先用影片把功能測對，再開攝影機</strong></td></tr>
+            <tr><th scope="row"><code>--no-window</code>／<code>--max-frames</code></th><td>不開視窗、跑幾張就停（自動測試用）</td></tr>
+            <tr><th scope="row"><code>--out 結果.mp4</code></th><td>把畫好框的畫面存成影片，交作業、做報告用</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">示範影片</th><th scope="col">內容</th><th scope="col">用在</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>demo/street.mp4</code></th><td>12 秒：0～2 秒沒人、2～7 秒有人走進來、7～9.5 秒站在右下角、9.5～11 秒離開</td><td>1-1～1-6、2-1、2-3、2-5</td></tr>
+            <tr><th scope="row"><code>demo/qr.mp4</code></th><td>依序出現 S001、HACKER-01、S002、S001</td><td>2-1</td></tr>
+            <tr><th scope="row"><code>demo/faces.mp4</code></th><td>0～3 秒兩人同框、3～6 秒只有 A、6～9 秒只有 B</td><td>2-2（用 <code>register_tom.jpg</code> 把 A 註冊成 Tom）</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="method">
+      <h2><span class="num">3</span>學習流程與提示語用法</h2>
+      <p>每一節都照這個順序，<strong>不要一開始就叫 AI 寫整支程式</strong>——先看懂問題，才知道 AI 寫得對不對。</p>
+      <ol class="flow">
+        <li><b>看動畫</b>情境模擬動畫：資料從哪裡來、到哪裡去</li>
+        <li><b>跑參考程式</b>用示範影片跑一次，記下「正確結果長怎樣」</li>
+        <li><b>①生成提示語</b>請 AI 從零寫一支，和參考程式比較</li>
+        <li><b>②測試提示語</b>請 AI 幫你設計測試，用示範影片驗證</li>
+        <li><b>③延伸提示語</b>加功能或除錯，再跑一次驗收</li>
+      </ol>
+      <p>每一節的提示語分三種：</p>
+      <ul>
+        <li><span class="prompt-kind k-gen">① 生成</span>把需求、參數、驗收條件寫清楚，請 AI 寫出筆電版程式。</li>
+        <li><span class="prompt-kind k-test">② 測試</span>請 AI 幫你想「怎樣算正確」、設計測試案例、解讀輸出。</li>
+        <li><span class="prompt-kind k-ext">③ 延伸</span>加一個功能或找出錯誤原因，一次只改一件事。</li>
+      </ul>
+      <div class="note warn">
+        <strong>貼給 AI 之前，先把這些換成假的</strong>
+        Apps Script 網址、Telegram Token、chat id、WiFi 密碼、同學姓名。也<strong>不要把拍到人的照片丟給 AI</strong>。
+      </div>
+      <div class="note info">
+        <strong>好提示語的四個要素</strong>
+        ①我是誰、用什麼（高中職學生、Windows、Python、OpenCV）；②要做什麼（功能一條一條列）；③怎樣算做對（驗收條件，最好附示範影片的預期結果）；④限制（不要用我沒提到的套件、加繁體中文註解、參數寫在最上面）。
+      </div>
+    </section>
+
+    <section id="sim">
+      <h2><span class="num">4</span>情境模擬動畫</h2>
+      <p>選一個單元按播放。上方灰色按鈕切換情境；黃色區塊的開關和滑桿可以<strong>改條件看結果怎麼變</strong>（例如串流改 TCP、移動偵測門檻、人臉防尾隨、圍籬改用整個框判斷）。右下角是對應的終端機輸出，和參考程式印出來的一樣。</p>
+      <div class="labsim" id="labSim">
+  <div class="sim-scenes" id="simScenes" role="group" aria-label="選擇情境"></div>
+  <div class="sim-head"><h3 id="simTitle"></h3>
+    <div class="sim-ctrl">
+      <button type="button" id="simPlay">▶ 播放</button>
+      <button type="button" id="simBack" aria-label="倒退 1 秒">⏪ 1s</button>
+      <button type="button" id="simFwd" aria-label="快轉 1 秒">1s ⏩</button>
+      <button type="button" id="simRestart">⟲ 重播</button>
+      <select id="simSpeed" aria-label="播放速度"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option><option value="2">2×</option></select>
+      <span id="simTime" aria-live="off"></span>
+    </div>
+  </div>
+  <canvas id="simCanvas" role="img" aria-label="情境模擬動畫"></canvas>
+  <p class="sim-now" id="simNow" aria-live="polite"></p>
+  <div class="sim-opts" id="simOpts" hidden></div>
+  <div class="sim-bottom">
+    <ol class="sim-steps" id="simSteps"></ol>
+    <pre class="sim-log" id="simLog"></pre>
+  </div>
+</div>
+      <p class="muted">小技巧：網址加上 <code>#sim=d2_03@6</code> 可以直接打開某個情境的第 6 秒並暫停，方便上課投影或截圖放進報告。</p>
+    </section>
+
+    <div class="day-banner"><h2>第 1 天：影像物聯網</h2><p>讓攝影機的畫面「走出去」：存檔、串流、網頁、雲端、錄影、手機遙控。</p></div>
+
+    <section id="d1u1">
+      <h2><span class="num">5</span>1-1 打開攝影機，定時拍照（09:20～10:10）</h2>
+      <ul class="unit-meta"><li>程式：d1_01_snapshot.py</li><li>原板子版：01_camera_snapshot</li><li>需要：攝影機或 demo/street.mp4</li></ul>
+      <p><strong>情境</strong>：實驗室要做「植物生長縮時」，需要每隔幾秒自動拍一張存檔；有特別的畫面時也能按一個鍵立刻拍。</p>
+      <p><button type="button" class="simbtn" data-sim="d1_01">▶ 看情境動畫</button></p>
+      <h3>學習目標</h3>
+      <ul><li>會用 OpenCV 打開 USB 攝影機、設定解析度，知道「編號」怎麼找</li><li>知道剛開鏡頭要等自動曝光穩定</li><li>會用正確方式存檔（中文路徑也不會失敗）</li></ul>
+      <h3>關鍵觀念</h3>
+      <ul>
+        <li><strong>攝影機編號</strong>：內建通常是 0、USB 通常是 1，插拔順序會改變；用 <code>tools/list_cameras.py</code> 確認。</li>
+        <li><strong>Windows 用 DirectShow</strong>（<code>cv2.CAP_DSHOW</code>）打開 USB 攝影機比較快、比較不會卡住。</li>
+        <li><strong>中文路徑陷阱</strong>：<code>cv2.imwrite</code> 路徑有中文會「安靜地失敗」（不報錯、檔案卻沒存）。要用 <code>cv2.imencode</code>＋<code>tofile</code>。</li>
+      </ul>
+      <h3>操作步驟</h3>
+      <pre><code>python d1_01_snapshot.py --source demo/street.mp4 --interval 2 --count 5   # 先用影片
+python d1_01_snapshot.py --source 1 --interval 5 --count 10              # 再開 USB 攝影機
+python d1_01_snapshot.py --source 1 --interval 1 --count 30              # 縮時：每秒一張</code></pre>
+      <p>視窗裡按 <kbd>s</kbd> 立刻多拍一張，<kbd>q</kbd> 結束。照片存在 <code>snapshots/</code>。</p>
+      <p>預期結果（示範影片、每 2 秒一張）：</p>
+      <pre class="expect"><code>第 1 張：img001.jpg  大小 42 KB  （影片時間   2.0 秒）
+第 2 張：img002.jpg  大小 62 KB  （影片時間   4.0 秒）
+…
+共拍 5 張，存在 …\snapshots</code></pre>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>寫一支定時拍照程式</span><button type="button" class="copy" data-target="p11a">複製</button></div>
+<pre id="p11a">我是高中職學生，用 Windows 筆電＋USB 攝影機、Python 3 和 OpenCV。
+請幫我寫一支「定時拍照」程式，需求：
+1. 參數 --source：數字代表攝影機編號（Windows 用 cv2.CAP_DSHOW 打開），也可以是影片檔路徑
+2. 參數 --interval（幾秒拍一張，預設 5）、--count（拍幾張就停，預設 10）
+3. 剛打開先等 2 秒再拍第一張（等自動曝光）
+4. 照片存到 snapshots/img001.jpg、img002.jpg…，要用 cv2.imencode + tofile，讓中文路徑也能存
+5. 視窗上方顯示解析度、實際 FPS、下一張倒數；按 s 立刻拍、按 q 結束
+6. 每拍一張在終端機印出檔名和大小（KB）
+驗收：用 --source 影片檔 --interval 2 --count 5 執行，要拍到 5 張而且都打得開。
+請加繁體中文註解，不要用 OpenCV、numpy 以外的套件。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>確認程式真的沒問題</span><button type="button" class="copy" data-target="p11b">複製</button></div>
+<pre id="p11b">下面是我的定時拍照程式和執行結果。請幫我：
+1. 列出 5 個應該測試的情況（例如：資料夾路徑有中文、攝影機被其他程式占用、--count 0、影片比拍攝時間還短）
+2. 每個情況寫出「怎麼執行」和「怎樣算通過」
+3. 看我的輸出，判斷有沒有不合理的地方（例如照片大小忽大忽小、時間間隔不對）
+（貼上程式碼與終端機輸出）</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>加上亮度檢查與檔名時間</span><button type="button" class="copy" data-target="p11c">複製</button></div>
+<pre id="p11c">請修改這支定時拍照程式：
+1. 檔名改成拍攝時間，例如 20260118_101530.jpg
+2. 拍之前先算畫面平均亮度，太暗（小於 40）就不存，並在終端機提醒「太暗，略過」
+3. 結束時印出「共拍幾張、略過幾張、平均大小」
+只改必要的地方，並說明你改了哪幾行、為什麼。
+（貼上 d1_01_snapshot.py）</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">打不開攝影機</th><td>編號錯（改 1 或 2）、Teams／Meet 正在用鏡頭、Windows 隱私權沒允許桌面應用程式使用相機</td></tr>
+        <tr><th scope="row">第一張全黑或過亮</th><td>自動曝光還沒穩定；延後第一張（程式預設等 2 秒）</td></tr>
+        <tr><th scope="row">程式說存好了但找不到檔案</th><td>用了 <code>cv2.imwrite</code> 又遇到中文路徑；改用 <code>imencode＋tofile</code></td></tr>
+        <tr><th scope="row">解析度設 1920×1080 卻還是 640×480</th><td>攝影機不支援或 USB 頻寬不夠；看 <code>list_cameras.py</code> 列出的可用解析度</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="d1u2">
+      <h2><span class="num">6</span>1-2 影像串流：RTP、TCP、RTSP（10:20～11:10）</h2>
+      <ul class="unit-meta"><li>程式：d1_02_stream.py</li><li>原板子版：02_rtsp_stream</li><li>需要：ffmpeg、VLC</li></ul>
+      <p><strong>情境</strong>：實習工場想在辦公室即時看到機台區的畫面。筆電接攝影機放在工場，辦公室電腦用 VLC 觀看——要選哪一種傳法？延遲多少？</p>
+      <p><button type="button" class="simbtn" data-sim="d1_02">▶ 看情境動畫（可切換 UDP／TCP）</button></p>
+      <h3>學習目標</h3>
+      <ul><li>分得清 RTP（送貨車）、RTSP（遙控器）、UDP／TCP（寄送方式）</li><li>會用 ffmpeg 送出串流、VLC 接收，並實際量延遲</li><li>能說出畫面破格和延遲變高各是什麼原因</li></ul>
+      <h3>三種模式</h3>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">模式</th><th scope="col">怎麼運作</th><th scope="col">觀看方式</th><th scope="col">特色</th></tr></thead><tbody>
+        <tr><th scope="row">rtp</th><td>ffmpeg 直接把封包丟給指定電腦（UDP）</td><td>VLC 開 <code>stream.sdp</code></td><td>延遲最低；掉封包會破格；只給一台看</td></tr>
+        <tr><th scope="row">tcp</th><td>ffmpeg 開 TCP 服務，連上來就送</td><td>VLC 開 <code>tcp://筆電IP:5000</code></td><td>會重送、畫面完整；延遲較高；一次一個觀看者（斷線自動重開）</td></tr>
+        <tr><th scope="row">rtsp</th><td>ffmpeg 推到 MediaMTX（另外下載的 RTSP 伺服器）</td><td>VLC 開 <code>rtsp://筆電IP:8554/cam</code></td><td>最接近原本板子；可以多人同時看</td></tr>
+      </tbody></table></div>
+      <h3>操作步驟</h3>
+      <pre><code>python d1_02_stream.py --list                                   # 看攝影機名稱
+python d1_02_stream.py --mode tcp --file demo/street.mp4        # 先用影片練習
+python d1_02_stream.py --mode tcp --device "USB2.0 HD UVC WebCam"
+python d1_02_stream.py --mode rtp --device "USB2.0 HD UVC WebCam" --to 192.168.1.23
+python d1_02_stream.py --mode tcp --file demo/street.mp4 --print-only   # 只看 ffmpeg 指令</code></pre>
+      <p>程式會先印出完整的 ffmpeg 指令和觀看網址。關鍵參數：<code>-preset ultrafast -tune zerolatency</code>（低延遲）、<code>-g 30</code>（每秒一張關鍵畫面）、<code>repeat-headers=1</code>（中途才連上的人也能馬上出畫面）。</p>
+      <div class="note info"><strong>檢查點</strong>VLC 看得到畫面；手機碼表對著鏡頭、拍下「碼表＋螢幕」同框，兩個時間相減就是延遲。rtp 和 tcp 各量一次。</div>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>組出 ffmpeg 串流指令</span><button type="button" class="copy" data-target="p12a">複製</button></div>
+<pre id="p12a">我要在 Windows 筆電上，用 ffmpeg 把 USB 攝影機畫面即時串流給同一個網路的另一台電腦用 VLC 觀看。
+請幫我寫一支 Python 程式，它只負責「組出 ffmpeg 指令並執行」：
+1. --list：執行 ffmpeg -list_devices true -f dshow -i dummy，整理出攝影機名稱
+2. --mode tcp：ffmpeg 當 TCP 伺服器（mpegts，port 5000，?listen=1），觀看者斷線後自動重新等待
+3. --mode rtp：送到 --to 指定的 IP，並產生 stream.sdp 給 VLC 開
+4. --file 可以用影片檔代替攝影機（用 -re -stream_loop -1）
+5. 低延遲設定：libx264、ultrafast、zerolatency、每秒一張關鍵畫面、repeat-headers=1
+6. 執行前把完整指令印出來，並印出觀看網址（要自動找出筆電的區網 IP）
+請用 subprocess 執行，不要用 shell=True，並用繁體中文註解每個 ffmpeg 參數的意思。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>設計延遲與流暢度實驗</span><button type="button" class="copy" data-target="p12b">複製</button></div>
+<pre id="p12b">我用 ffmpeg 把攝影機畫面串流給 VLC，有 rtp（UDP）和 tcp 兩種模式。
+請幫我設計一個比較實驗：要改哪些變因（模式、位元率 1M／2M／4M、解析度、距離 AP 遠近）、
+每一組要記錄什麼（延遲秒數、破格次數、VLC 顯示的丟幀數），怎麼量延遲才準，
+最後給我一張可以直接填的記錄表，並說明怎麼從結果判斷「哪一種適合監看、哪一種適合錄影存證」。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>看懂 ffmpeg 錯誤</span><button type="button" class="copy" data-target="p12c">複製</button></div>
+<pre id="p12c">我執行 ffmpeg 串流時出現下面的訊息，請用繁體中文說明：
+這是什麼意思、最可能的原因、依序該檢查哪三件事，需要改指令的話只給要改的參數。
+（貼上完整 ffmpeg 指令與錯誤訊息，例如 Could not find video device、Connection refused、non-existing PPS）</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">找不到 ffmpeg</th><td>沒裝或裝完沒重開終端機：<code>winget install Gyan.FFmpeg</code></td></tr>
+        <tr><th scope="row">Could not find video device</th><td><code>--device</code> 名稱要和 <code>--list</code> 印出的一字不差；攝影機被別的程式占用</td></tr>
+        <tr><th scope="row">VLC 一直轉圈</th><td>兩台不在同一網段（學校 WiFi 會隔離）；兩台都連同一個手機熱點；Windows 防火牆允許 ffmpeg</td></tr>
+        <tr><th scope="row">non-existing PPS</th><td>中途加入沒拿到解碼設定；本程式已加 <code>repeat-headers=1</code>，等下一張關鍵畫面（約 1 秒）</td></tr>
+        <tr><th scope="row">rtsp 模式 Connection refused</th><td>MediaMTX 沒開；先執行 mediamtx.exe 再推流</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="d1u3">
+      <h2><span class="num">7</span>1-3 手機網頁看畫面＋遙控 LED（11:20～12:10）</h2>
+      <ul class="unit-meta"><li>程式：d1_03_web_cam.py</li><li>原板子版：03_ap_web_snapshot</li><li>需要：手機、筆電開行動熱點</li></ul>
+      <p><strong>情境</strong>：校外教學現場沒有網路，老師用筆電開熱點，學生手機連上就能看到筆電攝影機的畫面，還能按按鈕開關設備（虛擬 LED）。</p>
+      <p><button type="button" class="simbtn" data-sim="d1_03">▶ 看情境動畫</button></p>
+      <h3>學習目標</h3>
+      <ul><li>知道網頁伺服器、網址、路徑（/、/stream.mjpg、/led）的關係</li><li>理解 MJPEG：一直送 JPEG，瀏覽器不斷換圖</li><li>知道對外公開時為什麼一定要有 key，以及課後要關閉</li></ul>
+      <h3>操作步驟</h3>
+      <ol>
+        <li>Windows 設定 → 網路和網際網路 → <strong>行動熱點</strong> → 開啟；手機連上。</li>
+        <li>執行程式，手機瀏覽器打開終端機印出的網址：</li>
+      </ol>
+      <pre><code>python d1_03_web_cam.py --source demo/street.mp4 --loop --key 5678
+python d1_03_web_cam.py --source 1 --key 5678
+（對外示範：另開視窗 ngrok http 8000，網址後面要加 ?key=5678）</code></pre>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">網址</th><th scope="col">功能</th></tr></thead><tbody>
+        <tr><th scope="row"><code>/</code></th><td>網頁：即時畫面＋LED 開關＋拍一張＋狀態</td></tr>
+        <tr><th scope="row"><code>/stream.mjpg</code></th><td>MJPEG 串流（不用裝 App）</td></tr>
+        <tr><th scope="row"><code>/snapshot.jpg</code></th><td>下載目前畫面</td></tr>
+        <tr><th scope="row"><code>/led?state=on</code></th><td>開關虛擬 LED，回傳 JSON</td></tr>
+        <tr><th scope="row"><code>/status</code></th><td>LED、FPS、觀看人數、執行秒數</td></tr>
+      </tbody></table></div>
+      <p>預期結果（自動驗收實測）：沒有 key 回 403；LED 可開關；快照是 JPEG；2 秒內串流約 40～70 張。</p>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>只用內建套件寫攝影機網頁伺服器</span><button type="button" class="copy" data-target="p13a">複製</button></div>
+<pre id="p13a">請用 Python 內建的 http.server（ThreadingHTTPServer）＋OpenCV 寫一支「手機看攝影機」的網頁伺服器，不要用 Flask：
+1. 主程式迴圈讀攝影機（--source，可以是影片），把最新一張壓成 JPEG 放在共用變數（要用 Lock）
+2. 網址：/ 顯示網頁、/stream.mjpg 用 multipart/x-mixed-replace 一直送最新 JPEG、/snapshot.jpg、/led?state=on|off 回 JSON、/status 回 JSON（led、fps、觀看人數、執行秒數）
+3. --key：有設定時，所有網址都要 ?key=正確值，否則回 403
+4. 網頁要適合手機：畫面寬度 100%、兩個大按鈕控制 LED、每 2 秒更新一次狀態
+5. 筆電畫面右上角畫一顆虛擬 LED，和網頁同步
+6. 啟動時印出「手機要打開的網址」（自動找區網 IP）
+請加繁體中文註解，並說明為什麼伺服器要放在另一個執行緒。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>不用手機也能測網頁</span><button type="button" class="copy" data-target="p13b">複製</button></div>
+<pre id="p13b">我寫了一個攝影機網頁伺服器（網址 /、/stream.mjpg、/snapshot.jpg、/led、/status，並可用 ?key= 保護）。
+請幫我寫一支 Python 測試程式（只用 urllib），自動檢查：
+1. 沒帶 key 會得到 403
+2. /led?state=on 之後 /status 的 led 變成 true
+3. /snapshot.jpg 開頭兩個位元組是 FF D8（JPEG）
+4. 讀 /stream.mjpg 2 秒，數出收到幾張（數 --frame 分隔字串）
+每一項印出 OK 或 FAIL 與原因。伺服器網址用參數傳入。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>加上觀看紀錄與拍照按鈕</span><button type="button" class="copy" data-target="p13c">複製</button></div>
+<pre id="p13c">請幫我在這支攝影機網頁伺服器加兩個功能：
+1. 每次有人打開 /stream.mjpg，把「時間、IP」寫進 viewers.csv；離開時也記一筆
+2. 網頁加一個「伺服器拍照」按鈕：呼叫 /capture，伺服器把目前畫面存成 captures/時間.jpg，回傳檔名
+key 的保護要套用到新的網址。只改必要的部分並說明。
+（貼上 d1_03_web_cam.py）</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">手機打不開網址</th><td>手機沒連筆電熱點；Windows 防火牆第一次會詢問，要按「允許」；網址 IP 要用終端機印的那個</td></tr>
+        <tr><th scope="row">畫面很卡</th><td>把 <code>--quality</code> 調到 50、<code>--width</code> 調到 640；同時觀看人數別太多</td></tr>
+        <tr><th scope="row">403 需要正確的 key</th><td>網址後面要加 <code>?key=…</code></td></tr>
+        <tr><th scope="row">port 8000 被占用</th><td>改 <code>--port 8001</code></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="d1u4">
+      <h2><span class="num">8</span>1-4 有人經過就上傳雲端硬碟、試算表、LINE（13:10～14:00）</h2>
+      <ul class="unit-meta"><li>程式：d1_04_cloud_upload.py＋apps_script/Code.gs</li><li>原板子版：04_cloud_upload（接收端完全共用）</li><li>需要：Google 帳號；練習可用本機假接收端</li></ul>
+      <p><strong>情境</strong>：放學後的專科教室，有人進出就自動拍照存到雲端硬碟、在試算表記一筆，並推播到老師的 LINE。</p>
+      <p><button type="button" class="simbtn" data-sim="d1_04">▶ 看情境動畫</button></p>
+      <h3>學習目標</h3>
+      <ul><li>知道 HTTP POST、表單欄位、base64 是什麼</li><li>會部署 Google Apps Script 網頁應用程式，理解「誰可以存取」的風險</li><li>會用移動偵測當觸發條件，並用冷卻時間避免洗版</li></ul>
+      <h3>先用本機假接收端練習（不用 Google 帳號）</h3>
+      <pre><code>python tools/fake_appscript.py                             # 視窗 1
+python d1_04_cloud_upload.py --url http://127.0.0.1:8080/ --on-motion --quiet 3 --source demo/street.mp4   # 視窗 2</code></pre>
+      <pre class="expect"><code>[上傳] 20260918_134916_motion_001.jpg  37 KB  花 0.1 秒  → file:///…/fake_drive/筆電攝影機/…
+[上傳] 20260918_134917_motion_002.jpg  53 KB  花 0.0 秒  → …
+[上傳] 20260918_134917_motion_003.jpg  52 KB  花 0.1 秒  → …
+結束：成功 3 張，失敗 0 張</code></pre>
+      <p>照片在 <code>fake_drive/</code>、紀錄在 <code>fake_sheet.csv</code>（和真正的試算表欄位一樣）。</p>
+      <h3>換成真正的 Google</h3>
+      <ol>
+        <li>script.google.com → 新增專案，貼上 <code>apps_script/Code.gs</code>。</li>
+        <li>部署 → 新增部署作業 → 網頁應用程式；執行身分「我」，<strong>誰可以存取選「任何人」</strong>（不然會收到 302 轉址後失敗）。</li>
+        <li>複製網址，設成環境變數（不要寫進程式）：<code>set APPS_SCRIPT_URL=https://script.google.com/macros/s/…/exec</code></li>
+        <li>執行 <code>python d1_04_cloud_upload.py --on-motion --source 1</code></li>
+        <li>要 LINE 推播：Apps Script 專案設定 → 指令碼屬性加入 <code>LINE_TOKEN</code>、<code>LINE_TO</code>（LINE Notify 已停止服務，改用 Messaging API）。</li>
+      </ol>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>移動觸發＋背景上傳</span><button type="button" class="copy" data-target="p14a">複製</button></div>
+<pre id="p14a">請用 Python（OpenCV＋urllib，不要用 requests）寫一支「有人經過就拍照上傳」的程式：
+1. 用格子比對做移動偵測：畫面縮成 320×180 灰階＋模糊，切成 16×9 格，和上一張比較，至少 3 格在動才算
+2. 觸發後 --quiet 秒（預設 10）內不再上傳；另外可以用 --every 定時上傳、按 u 手動上傳
+3. 上傳用 POST（application/x-www-form-urlencoded），欄位：myFoldername、myFilename、myDevice、
+   myFile＝"data:image/jpeg;base32," + base64 內容（這是現有 Apps Script 規定的格式，不要改）
+4. 上傳要放在背景執行緒＋佇列，畫面才不會卡住；每張印出檔名、大小、花幾秒、回傳的網址
+5. --url 沒給就讀環境變數 APPS_SCRIPT_URL；--dry-run 不上傳、存到 outbox/；--max-uploads 上限 20 張
+請加繁體中文註解。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>做一個假的接收端</span><button type="button" class="copy" data-target="p14b">複製</button></div>
+<pre id="p14b">我要測試「拍照上傳到 Google Apps Script」的程式，但不想每次都真的上傳。
+請用 Python 內建 http.server 寫一個「假的 Apps Script」：
+接收 POST 表單欄位 myFoldername、myFilename、myDevice、myFile（data:image/jpeg;base32, 開頭的 base64），
+解碼後確認是 JPEG（開頭 FF D8），存到 fake_drive/資料夾/檔名，並在 fake_sheet.csv 加一列（時間、裝置、檔名、路徑、KB），
+回傳 JSON {"ok": true, "file": 檔名, "url": 路徑}；格式錯誤時回 {"ok": false, "error": 原因}。
+再告訴我：怎麼用它驗證「移動觸發 3 次、冷卻時間內不重複上傳」。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>上傳失敗自動重試</span><button type="button" class="copy" data-target="p14c">複製</button></div>
+<pre id="p14c">學校網路不穩，上傳常常失敗。請修改上傳執行緒：
+1. 失敗時等 2、4、8 秒重試，最多 3 次
+2. 還是失敗就把照片存到 outbox/，下次啟動時自動補傳
+3. 結束時印出「成功、重試後成功、最後失敗」各幾張
+不要改變送出的欄位格式。（貼上 d1_04_cloud_upload.py）</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">回應不是 JSON</th><td>部署權限沒選「任何人」，或改了 Code.gs 沒有「重新部署」</td></tr>
+        <tr><th scope="row">試算表沒新增</th><td>第一次執行要授權；看 Apps Script「執行作業」的錯誤紀錄</td></tr>
+        <tr><th scope="row">上傳太多張</th><td>調大 <code>--quiet</code>、<code>--max-uploads</code>；移動偵測門檻調高</td></tr>
+        <tr><th scope="row">LINE 沒收到</th><td>指令碼屬性名稱要一字不差；圖片網址要用雲端硬碟縮圖網址（Code.gs 已處理）</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="d1u5">
+      <h2><span class="num">9</span>1-5 錄影存 MP4＋狀態小螢幕（14:10～15:00）</h2>
+      <ul class="unit-meta"><li>程式：d1_05_record.py</li><li>原板子版：05_record_mp4_tft</li><li>需要：攝影機或 demo/street.mp4；ffmpeg（選用）</li></ul>
+      <p><strong>情境</strong>：機車停車場想要「有人靠近才錄影」，而且要錄到<strong>人走進來之前</strong>的畫面——就像行車記錄器。</p>
+      <p><button type="button" class="simbtn" data-sim="d1_05">▶ 看情境動畫</button></p>
+      <h3>學習目標</h3>
+      <ul><li>會用 VideoWriter 錄影，知道 FPS、編碼（mp4v、H.264）對檔案大小與相容性的影響</li><li>理解環形暫存區（deque）怎麼做到「觸發前 2 秒」</li><li>會設計開始／停止條件（post 秒數、最長秒數）</li></ul>
+      <h3>操作步驟</h3>
+      <pre><code>python d1_05_record.py --source demo/street.mp4 --on-motion        # 先用影片
+python d1_05_record.py --source 1                                  # 按 r 開始／停止
+python d1_05_record.py --source 1 --on-motion --pre 2 --post 3 --h264</code></pre>
+      <p>另外會開一個 320×240 的「TFT」小視窗（代替板子的小螢幕），顯示時間、REC 秒數、已錄段數。錄下的畫面右下角會壓上日期時間。</p>
+      <pre class="expect"><code>[錄影] 開始 rec_20260918_134954_01.mp4（含觸發前 2.0 秒）
+[錄影] 停止 rec_20260918_134954_01_h264.mp4  長度約 11.9 秒  0.54 MB
+共錄 1 段</code></pre>
+      <div class="note tip"><strong>為什麼只錄到 1 段？</strong>示範影片裡的人 7 秒停下、9.5 秒又開始走，中間沒動靜只有 2.5 秒，比 <code>--post 3</code> 短，所以接成同一段。把 <code>--post</code> 改成 2 再試，會變成 2 段。</div>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>含觸發前畫面的移動錄影</span><button type="button" class="copy" data-target="p15a">複製</button></div>
+<pre id="p15a">請用 Python＋OpenCV 寫一支「有人經過才錄影」的程式：
+1. 沒在錄影時，用 collections.deque 保留最近 --pre 秒（預設 2）的畫面
+2. 偵測到移動（格子比對，至少 3 格在動）就開始錄：先把 deque 裡的畫面寫進檔案，再繼續寫即時畫面
+3. 最後一次偵測到移動後 --post 秒（預設 3）沒動靜就停止；單段最長 --max-len 秒
+4. 也可以按 r 手動開始／停止
+5. 每張錄進去的畫面右下角壓上 年-月-日 時:分:秒
+6. 另開一個 320×240 的狀態視窗：時間、REC 與秒數、已錄段數
+7. --h264：停止後用 ffmpeg 轉成 H.264（-movflags +faststart），轉好刪掉原檔
+檔名 recordings/rec_時間_序號.mp4。請加繁體中文註解。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>確認錄影長度與內容正確</span><button type="button" class="copy" data-target="p15b">複製</button></div>
+<pre id="p15b">我的錄影程式用一段 12 秒的測試影片跑（0～2 秒沒人、2～7 秒走進來、7～9.5 秒站著不動、9.5～11 秒離開），
+設定 --pre 2 --post 3。請幫我：
+1. 推算應該錄到幾段、每段大約從幾秒到幾秒，並解釋原因
+2. 如果 --post 改成 2，答案會怎麼變
+3. 寫一小段 Python，用 cv2.VideoCapture 讀出錄好的檔案，算出總張數與秒數，讓我對照推算結果</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>控制硬碟用量</span><button type="button" class="copy" data-target="p15c">複製</button></div>
+<pre id="p15c">請幫錄影程式加上「自動清理」：recordings/ 資料夾總大小超過 --max-mb（預設 500）時，
+從最舊的檔案開始刪，直到低於上限；每刪一個印出檔名。另外在狀態小視窗顯示目前用掉多少 MB。
+只改必要的部分。（貼上 d1_05_record.py）</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">MP4 在手機、LINE 打不開</th><td>mp4v 編碼相容性差；加 <code>--h264</code>（需要 ffmpeg）</td></tr>
+        <tr><th scope="row">影片播放速度太快或太慢</th><td>VideoWriter 的 FPS 和實際擷取速度不同；電腦慢時降低解析度</td></tr>
+        <tr><th scope="row">檔案 0 KB</th><td>寫入的畫面尺寸和建立 VideoWriter 時的尺寸不一致</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="d1u6">
+      <h2><span class="num">10</span>1-6 Telegram 遠端遙控（15:10～16:00）</h2>
+      <ul class="unit-meta"><li>程式：d1_06_telegram_bot.py</li><li>原板子版：06_telegram_bot</li><li>需要：手機 Telegram、@BotFather 申請的 Token</li></ul>
+      <p><strong>情境</strong>：老師在外面研習，想知道實驗室現在的狀況：傳 /photo 就收到照片，開啟 /alarm on，有人進實驗室會自動通知。</p>
+      <p><button type="button" class="simbtn" data-sim="d1_06">▶ 看情境動畫</button></p>
+      <h3>學習目標</h3>
+      <ul><li>理解 Bot 的 long polling（getUpdates）與 offset 的作用</li><li>會用 multipart/form-data 傳照片、影片</li><li>會用白名單（chat id）保護遙控功能</li></ul>
+      <h3>操作步驟</h3>
+      <ol>
+        <li>Telegram 找 <strong>@BotFather</strong> → <code>/newbot</code> → 拿到 Token。</li>
+        <li><code>set TELEGRAM_TOKEN=123456:ABC…</code>（Token 等於密碼，不要寫進程式）</li>
+        <li>先執行 <code>python d1_06_telegram_bot.py --source demo/street.mp4 --loop</code>，傳任何指令給 Bot，終端機會印出你的 chat id。</li>
+        <li>加上白名單再執行：<code>python d1_06_telegram_bot.py --allow 你的chatid --source 1</code></li>
+      </ol>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">指令</th><th scope="col">回應</th></tr></thead><tbody>
+        <tr><th scope="row"><code>/photo</code></th><td>拍一張傳回來</td></tr>
+        <tr><th scope="row"><code>/clip 5</code></th><td>錄 5 秒影片傳回來（最長 15 秒，傳完就刪）</td></tr>
+        <tr><th scope="row"><code>/status</code></th><td>執行秒數、LED、警戒模式、已拍張數</td></tr>
+        <tr><th scope="row"><code>/led on|off</code></th><td>開關筆電畫面上的虛擬 LED</td></tr>
+        <tr><th scope="row"><code>/alarm on|off</code></th><td>有人經過自動傳照片（每 30 秒最多一張）</td></tr>
+      </tbody></table></div>
+      <p>預期結果（用假的 Telegram 伺服器自動測試）：5 則指令回了照片 1、影片 1、文字 3；不在白名單的 chat id 傳 /photo，<strong>一則都不回</strong>，只在終端機印「[拒絕] … 要允許的話加 --allow …」。</p>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>只用 urllib 的攝影機 Bot</span><button type="button" class="copy" data-target="p16a">複製</button></div>
+<pre id="p16a">請用 Python（OpenCV＋urllib，不要用 python-telegram-bot 套件）寫一個 Telegram Bot 遙控筆電攝影機：
+1. Token 從環境變數 TELEGRAM_TOKEN 讀；--allow 是允許的 chat id（逗號分隔），不在名單的訊息一律不理，只在終端機印出對方的 chat id
+2. 背景執行緒用 getUpdates（timeout=20、offset＝最後 update_id+1）收訊息，放進 queue 給主迴圈處理
+3. 指令：/photo 傳照片、/clip N 錄 N 秒傳影片（最長 15，傳完刪檔）、/status、/led on|off、/alarm on|off、/help
+4. sendPhoto／sendVideo 要自己組 multipart/form-data
+5. /alarm on 時做移動偵測，有人經過就傳照片，30 秒內最多一張
+6. 指令格式要能處理 /led@MyBot on 這種寫法
+請把「解析指令」寫成獨立函式方便測試，並加繁體中文註解。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>不連 Telegram 也能測</span><button type="button" class="copy" data-target="p16b">複製</button></div>
+<pre id="p16b">我的 Telegram Bot 程式可以用 --api 參數換掉 https://api.telegram.org。
+請用 Python http.server 寫一個「假的 Telegram 伺服器」給我測試：
+1. 第一次 getUpdates 時回傳我預先排好的訊息（chat id 和文字），之後回空陣列
+2. 記錄 Bot 呼叫了哪些 sendMessage、sendPhoto、sendVideo（對象 chat id、文字或檔案大小）
+3. 寫一段測試：送 /photo、/led on、/status、陌生人 /photo、/clip 2，
+   檢查「照片 1、影片 1、文字至少 3、陌生人 0 則」。
+另外幫我替 parse_command 寫 5 個測試案例。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>排程回報</span><button type="button" class="copy" data-target="p16c">複製</button></div>
+<pre id="p16c">請幫 Bot 加一個指令 /every 30：每 30 分鐘自動傳一張照片（/every off 關閉），
+時間到了才拍，不要用 sleep 卡住主迴圈；/status 要顯示下一次是幾點幾分。
+只改必要的部分。（貼上 d1_06_telegram_bot.py）</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">Bot 完全沒反應</th><td>Token 錯；或有另一個程式也在 getUpdates（同一個 Bot 只能一個人收）</td></tr>
+        <tr><th scope="row">指令都被拒絕</th><td>還沒把自己的 chat id 加進 <code>--allow</code></td></tr>
+        <tr><th scope="row">[連線問題] 一直出現</th><td>學校網路擋 Telegram；改用手機熱點</td></tr>
+        <tr><th scope="row">影片傳不出去</th><td>檔案太大（Bot 上限 50 MB）；縮短秒數或降解析度</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <div class="day-banner"><h2>第 2 天：AI 視覺辨識</h2><p>讓電腦「看懂」畫面：有沒有人動、是誰、有沒有闖進禁區、在做什麼動作，然後通知或控制其他裝置。</p></div>
+
+    <section id="d2u1">
+      <h2><span class="num">11</span>2-1 移動偵測與 QR Code 門禁（09:20～10:10）</h2>
+      <ul class="unit-meta"><li>程式：d2_01a_motion.py、d2_01b_qr_gate.py</li><li>原板子版：01a_motion_detect、01b_qr_scan</li><li>不需要 AI 模型</li></ul>
+      <p><strong>情境</strong>：專科教室入口，平常用移動偵測省電待命；學生刷學生證上的 QR Code 簽到，名單外的人會被記錄下來。</p>
+      <p><button type="button" class="simbtn" data-sim="d2_01a">▶ 移動偵測動畫（可調門檻）</button> <button type="button" class="simbtn" data-sim="d2_01b">▶ QR 門禁動畫</button></p>
+      <h3>學習目標</h3>
+      <ul><li>理解格子比對法：縮小、灰階、模糊、相減、門檻</li><li>會調 min-blocks、pixel-thresh，並用數據說明誤報與漏報的取捨</li><li>會做白名單比對、重複刷卡的冷卻、簽到 CSV</li></ul>
+      <h3>A. 移動偵測</h3>
+      <pre><code>python d2_01a_motion.py --source demo/street.mp4
+python d2_01a_motion.py --source 1 --save            # 每次事件存一張到 motion_events/</code></pre>
+      <p>執行中按 <kbd>+</kbd>／<kbd>-</kbd> 即時調整 min-blocks。示範影片預期：</p>
+      <pre class="expect"><code>[移動] 第 1 次  時間   2.1 秒  在動的格子：5
+[移動] 第 2 次  時間   5.1 秒  在動的格子：14
+[移動] 第 3 次  時間   9.5 秒  在動的格子：2
+結束：共 3 次事件，182 張畫面偵測到移動</code></pre>
+      <p>0～2 秒畫面只有雜訊 → 0 次；7～9.5 秒人站著不動 → 不算移動（移動偵測只看「變化」，不是看「有沒有人」）。</p>
+      <h3>B. QR Code 門禁</h3>
+      <pre><code>python d2_01b_qr_gate.py --source demo/qr.mp4 --allow S001,S002
+python d2_01b_qr_gate.py --source 1                  # 白名單讀 allow.txt；QR 卡在 demo/qr_cards/</code></pre>
+      <pre class="expect"><code>[通過] S001　（影片時間  1.0 秒；通過 1／拒絕 0）
+[拒絕] HACKER-01　（影片時間  4.0 秒；通過 1／拒絕 1）
+[通過] S002　（影片時間  7.0 秒；通過 2／拒絕 1）
+[通過] S001　（影片時間 10.0 秒；通過 3／拒絕 1）</code></pre>
+      <div class="note warn"><strong>QR 不要鏡像</strong>鏡像後的 QR Code 讀不到，所以這支程式預設不鏡像（其他程式預設鏡像）。另外 QR 不是身分驗證：拍照就能複製，真實門禁要搭配第 2 節的人臉。</div>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>格子比對移動偵測</span><button type="button" class="copy" data-target="p21a">複製</button></div>
+<pre id="p21a">請用 Python＋OpenCV 寫移動偵測（不要用背景相減模型，要用我指定的格子比對法）：
+1. 每張畫面縮成 320×180、轉灰階、5×5 高斯模糊，和「上一張」相減
+2. 差值 > --pixel-thresh（預設 25）的像素算有變；切成 16×9 格，一格裡超過 10% 像素有變，這格就算在動
+3. 在動的格子 >= --min-blocks（預設 2）才算「有東西在動」；觸發後 --quiet 秒（預設 3）內不重複回報
+4. 在動的格子畫青色框；按 + / - 即時調整 min-blocks；--save 時每次事件存一張照片
+5. 時間要用「影片時間」（第幾張÷FPS），用同一段影片測，每次結果才會一樣
+把偵測寫成一個 class（update、moving、draw），方便其他程式重複使用。請加繁體中文註解。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>找出最好的門檻</span><button type="button" class="copy" data-target="p21b">複製</button></div>
+<pre id="p21b">我的移動偵測有兩個門檻：min-blocks（1～8）和 pixel-thresh（10～50）。
+我有一段 12 秒的測試影片：0～2 秒沒人（只有雜訊）、2～7 秒有人走過、7～9.5 秒站著、9.5～11 秒離開。
+請幫我：
+1. 定義什麼叫「誤報」「漏報」，在這段影片裡怎麼算
+2. 寫一支 Python 程式，把兩個門檻所有組合都跑一遍（用 --no-window），整理成表格
+3. 告訴我怎麼從表格挑出最好的組合，以及為什麼「站著不動」不該被算成移動</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>QR 簽到加上時段與重複檢查</span><button type="button" class="copy" data-target="p21c">複製</button></div>
+<pre id="p21c">請修改這支 QR 門禁程式：
+1. allow.txt 每行改成「代號,姓名」，簽到表多一欄姓名（姓名只存在本機，不上傳）
+2. 同一個代號今天已經簽到過，再刷就顯示「已簽到」，不重複記錄
+3. 只在 --start 08:00 到 --end 08:30 之間算「準時」，之後算「遲到」
+只改必要的地方。（貼上 d2_01b_qr_gate.py）</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">一直誤報</th><td>光線閃爍、攝影機自動曝光在跳；調大 pixel-thresh 或 min-blocks，或把鏡頭避開窗戶</td></tr>
+        <tr><th scope="row">人走過去沒偵測到</th><td>人太遠、太小；調小 min-blocks</td></tr>
+        <tr><th scope="row">QR 讀不到</th><td>太遠（QR 至少佔畫面 1/6）、反光、對焦模糊、畫面被鏡像</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="d2u2">
+      <h2><span class="num">12</span>2-2 人臉辨識門禁（10:20～11:10）</h2>
+      <ul class="unit-meta"><li>程式：d2_02_face_door.py</li><li>原板子版：02_face_door（SCRFD＋MobileFaceNet）</li><li>模型：YuNet＋SFace（OpenCV 內建）</li></ul>
+      <p><strong>情境</strong>：實驗室門口，只有註冊過的同學能開門；兩個人同時站在鏡頭前不開（防止有人跟著進來）；陌生人會被記錄。</p>
+      <p><button type="button" class="simbtn" data-sim="d2_02">▶ 看情境動畫（可切換防尾隨）</button></p>
+      <h3>學習目標</h3>
+      <ul><li>分得清「偵測」（找到臉）和「辨識」（是誰）</li><li>理解特徵值與餘弦相似度、門檻 0.363 的意義</li><li>理解生物特徵的隱私責任：只存數字、可刪除、要同意</li></ul>
+      <h3>操作步驟</h3>
+      <pre><code>python tools/download_models.py face
+python d2_02_face_door.py --register Tom --image demo/register_tom.jpg   # 用照片註冊
+python d2_02_face_door.py --source demo/faces.mp4                         # 用示範影片測
+python d2_02_face_door.py --source 1          # 開攝影機；只有自己一張臉時按 r，到終端機輸入名字
+python d2_02_face_door.py --list            # 看有誰
+python d2_02_face_door.py --delete Tom      # 刪一個人
+python d2_02_face_door.py --reset           # 全部清掉（下課前一定要做）</code></pre>
+      <pre class="expect"><code>已註冊 Tom（名單共 1 筆特徵）
+[拒絕] 多人同框，不開門（影片時間 0.0 秒）
+[開門] Tom（相似度 0.96，影片時間 3.0 秒）
+[拒絕] 陌生人，不開門（影片時間 6.0 秒）
+結束：開門 1 次，紀錄在 …\door_log.csv</code></pre>
+      <div class="note warn"><strong>一定要做</strong>只註冊自己或事先同意的同學；報告截圖把臉打馬賽克；<strong>下課前執行 <code>--reset</code></strong>。註冊資料只有 128 個數字（<code>faces/face_db.npz</code>），不存照片。</div>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>YuNet＋SFace 門禁</span><button type="button" class="copy" data-target="p22a">複製</button></div>
+<pre id="p22a">請用 Python＋OpenCV 的 FaceDetectorYN（YuNet）和 FaceRecognizerSF（SFace）寫人臉門禁：
+1. 模型檔在 models/ 資料夾；載入失敗時（舊版 OpenCV 遇到中文路徑）改用 np.fromfile 讀成 buffer 再載入
+2. 找臉時先把畫面縮到寬 640 再偵測，座標再放大回原圖
+3. 註冊：--register 名字 --image 照片，或執行中按 r 輸入名字；畫面必須剛好 1 張臉；特徵存在 faces/face_db.npz（名字＋128 維特徵，不存照片）
+4. 辨識：alignCrop → feature → 和每個註冊特徵比 FR_COSINE，最高分 >= 0.363 就是那個人，否則 unknown
+5. 門禁：剛好一張認得的臉 → 開門 5 秒；兩張以上的臉 → 不開（防尾隨，可用 --allow-multi 關掉）；陌生人 → 不開
+6. 開門與拒絕都寫進 door_log.csv；另有 --list、--delete、--reset
+請加繁體中文註解，並說明餘弦相似度是什麼。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>量出誤認率</span><button type="button" class="copy" data-target="p22b">複製</button></div>
+<pre id="p22b">我的人臉門禁用 SFace 的餘弦相似度，門檻 0.363。我想用數據決定門檻要不要調整。
+請幫我設計實驗並寫程式：
+1. 我準備 A 同學 10 張不同角度、光線的照片，和 5 位其他同學各 3 張（都已經同意）
+2. 用 A 的第 1 張註冊，算出其他照片和它的相似度
+3. 畫出（或列出）「本人」和「別人」兩組分數的分布
+4. 在門檻 0.30、0.363、0.45 時，各算出「本人被拒」和「別人被放行」的比例
+結果怎麼解讀、門禁應該偏向哪一邊，也請說明。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>防照片攻擊的想法</span><button type="button" class="copy" data-target="p22c">複製</button></div>
+<pre id="p22c">有人拿手機顯示 Tom 的照片給鏡頭看，門就開了。
+請用高中生聽得懂的方式說明：為什麼單純人臉辨識擋不住照片，常見的「活體偵測」方法有哪些（眨眼、轉頭、深度），
+並幫我在現有程式加一個最簡單的版本：開門前要求對方在 3 秒內眨一次眼（用 YuNet 的眼睛關鍵點或畫面變化判斷），
+說明這個方法的限制。（貼上 d2_02_face_door.py）</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">註冊失敗：有 2 張臉</th><td>註冊照裡只能有一個人；背景海報上的臉也會被算進去</td></tr>
+        <tr><th scope="row">本人常被拒</th><td>註冊照太暗、側臉；同一個人多註冊 2～3 張不同角度</td></tr>
+        <tr><th scope="row">找不到模型</th><td>先執行 <code>python tools/download_models.py face</code></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="d2u3">
+      <h2><span class="num">13</span>2-3 YOLO 電子圍籬＋MQTT 通報（11:20～12:10）</h2>
+      <ul class="unit-meta"><li>程式：d2_03_fence_mqtt.py、tools/mini_broker.py、tools/mqtt_check.py</li><li>原板子版：03_fence_mqtt</li><li>模型：YOLO11n</li></ul>
+      <p><strong>情境</strong>：實習工場的機台周圍劃一塊禁區，有人踩進去就通報值班電腦和老師手機；待多久、什麼時候離開也要記錄。</p>
+      <p><button type="button" class="simbtn" data-sim="d2_03">▶ 看情境動畫（可切換判斷方式）</button></p>
+      <h3>學習目標</h3>
+      <ul><li>會用 YOLO 偵測人和車、理解信心分數</li><li>理解「腳的位置」判斷比整個框準，會用 pointPolygonTest</li><li>理解 MQTT 的主題、發佈、訂閱，會設計 intrusion／still_inside／clear 三種事件</li></ul>
+      <h3>操作步驟</h3>
+      <pre><code>python tools/mini_broker.py                                  # 視窗 1：自己的 MQTT 轉送站
+python tools/mqtt_check.py --sub                             # 視窗 2：看訊息
+python d2_03_fence_mqtt.py --source demo/street.mp4          # 視窗 3：示範影片
+python d2_03_fence_mqtt.py --source 1 --edit-fence           # 用滑鼠點出自己的禁區，Enter 存檔
+python d2_03_fence_mqtt.py --source 1</code></pre>
+      <pre class="expect"><code>[MQTT] ymhs/lab/fence/01 {"event": "intrusion", "count": 1, "objects": "person", "total": 1, "video_s": 6.3, …}
+[MQTT] ymhs/lab/fence/01 {"event": "clear", "dwell_s": 4.5, "video_s": 11.5}
+結束：共 1 次闖入事件</code></pre>
+      <div class="note tip"><strong>為什麼用自己的 broker</strong>學校網路常擋 1883 埠，而且公開伺服器（test.mosquitto.org）全世界都看得到。<code>mini_broker.py</code> 在自己筆電跑，終端機會印出每一則經過的訊息，最適合學；同網路的手機或 AMB82 板子填筆電 IP 就能連。</div>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>多邊形禁區＋三種事件</span><button type="button" class="copy" data-target="p23a">複製</button></div>
+<pre id="p23a">請用 Python＋ultralytics YOLO11n＋paho-mqtt（2.x 版）寫電子圍籬：
+1. 禁區是多邊形，座標用 0～1 比例存在 fence.json；--edit-fence 模式顯示第一張畫面，用滑鼠左鍵點頂點、c 清除、Enter 存檔
+2. 只看 person、bicycle、car、motorcycle（--watch 可改）；判斷點用框的底邊中點（腳的位置），用 cv2.pointPolygonTest
+3. 事件狀態機：連續在裡面 --confirm 0.3 秒才算 intrusion；還在裡面每 --repeat 5 秒送 still_inside（附停留秒數）；離開超過 1 秒送 clear（附總停留秒數）
+4. MQTT 送到 --broker（預設 127.0.0.1）、主題 ymhs/lab/fence/01，內容是 JSON；連不上就改成只印出來
+5. 闖入時存一張證據照；畫面：禁區半透明、框和腳點在禁區內變紅
+6. 時間用影片時間，用同一段影片測結果要一樣
+請加繁體中文註解。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>驗證事件順序</span><button type="button" class="copy" data-target="p23b">複製</button></div>
+<pre id="p23b">我的電子圍籬會送 intrusion、still_inside、clear 三種 MQTT 事件。
+請寫一支測試程式：在同一支程式裡啟動訂閱者（paho-mqtt），再用 subprocess 執行圍籬程式跑一段測試影片，
+收集所有訊息後檢查：
+1. intrusion 剛好一次，而且在 clear 之前
+2. clear 的 dwell_s 要大於 0，而且小於影片長度
+3. 如果有 still_inside，它的 dwell_s 要遞增
+另外說明：怎麼改影片或參數，才能故意測到「站在邊界上一直進出」的情況。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>隱私遮罩</span><button type="button" class="copy" data-target="p23c">複製</button></div>
+<pre id="p23c">電子圍籬存的證據照會拍到人臉。請幫我加 --blur 參數：存檔前把每個 person 框的上方 1/4（頭部）做強烈高斯模糊，
+畫面上顯示的可以不模糊。另外說明：這樣做可以降低哪些隱私風險、還剩下哪些風險。
+（貼上 d2_03_fence_mqtt.py）</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">MQTT 連不上</th><td>先開 <code>mini_broker.py</code>；或加 <code>--dry-run</code> 先不送</td></tr>
+        <tr><th scope="row">收到別組的訊息</th><td>主題加上自己的座號，例如 <code>--topic ymhs/lab/fence/306-01</code></td></tr>
+        <tr><th scope="row">很卡（每秒幾張）</th><td>沒有顯示卡是正常的；降低解析度 <code>--size 640x480</code></td></tr>
+        <tr><th scope="row">站在禁區外也報</th><td>禁區畫太大、或人離鏡頭太近腳被切掉；重畫禁區，鏡頭架高一點</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="d2u4">
+      <h2><span class="num">14</span>2-4 訓練自己的模型（13:10～14:00）</h2>
+      <ul class="unit-meta"><li>程式：d2_04_train_custom.py、tools/make_demo_dataset.py、tools/dataset_check.py</li><li>原板子版：04_custom_model（Colab 訓練＋轉 .nb＋SD 卡）</li></ul>
+      <p><strong>情境</strong>：YOLO 認得「人」，但認不得「三角錐有沒有被移走」「有沒有戴安全帽」。要自己拍照、標註、訓練，再把新模型接到電子圍籬。</p>
+      <p><button type="button" class="simbtn" data-sim="d2_04">▶ 看情境動畫</button></p>
+      <h3>學習目標</h3>
+      <ul><li>看得懂 YOLO 標註格式（類別 中心x 中心y 寬 高，0～1）</li><li>會在訓練前檢查資料集</li><li>看得懂 loss、mAP50，知道資料不平衡的影響</li></ul>
+      <h3>操作步驟（先用練習資料集走一遍）</h3>
+      <pre><code>python tools/make_demo_dataset.py                         # 三角錐／球，train 150、val 40 張
+python tools/dataset_check.py datasets/demo_shapes
+python d2_04_train_custom.py --data datasets/demo_shapes --epochs 15
+python d2_03_fence_mqtt.py --model runs/custom/weights/best.pt --source 1</code></pre>
+      <pre class="expect"><code>全部類別 mAP50 = 0.972　mAP50-95 = 0.943
+  cone         AP50 = 0.995
+  ball         AP50 = 0.948
+val_000.jpg 偵測到：cone 0.80
+完成！模型在：…\runs\custom\weights\best.pt</code></pre>
+      <p>一般筆電（沒有顯示卡）訓練 15 輪約 5 分鐘。自己的題目建議每類 150 張以上、imgsz 640、60 輪，時間會長很多，可以午休前開始訓練。</p>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>規劃我的資料集</span><button type="button" class="copy" data-target="p24a">複製</button></div>
+<pre id="p24a">我要用 YOLO11 訓練一個模型，題目是「（寫你的題目，例如：工場走道上有沒有擺放三角錐）」，
+會用筆電＋USB 攝影機在現場拍照。請幫我規劃：
+1. 類別要怎麼定義，每一類寫到「兩個人標會標一樣」的程度
+2. 每一類拍幾張、要涵蓋哪些情況（角度、光線、距離、遮擋、沒有目標的背景圖）
+3. 標註規則：框要多緊、被遮住多少就不標
+4. 資料夾排法（images/train、images/val、labels/train、labels/val）與 data.yaml 範例
+不要幫我寫訓練程式，只要規劃與檢查清單。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>看懂訓練結果</span><button type="button" class="copy" data-target="p24b">複製</button></div>
+<pre id="p24b">下面是我訓練 YOLO 之後的驗證結果（mAP50、各類 AP50）與 dataset_check 的統計。
+請用繁體中文幫我解讀：
+1. 整體表現算好還是不好，依據是什麼
+2. 哪一類最弱，最可能的原因（照片數、標註一致性、類別太像）
+3. 接下來三個最值得做的改進，依效果排序
+4. 設計一個「現場測試」：拍 30 張新照片（訓練時沒看過的），怎麼算準確率才公平
+（貼上輸出）</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>找出標錯的圖</span><button type="button" class="copy" data-target="p24c">複製</button></div>
+<pre id="p24c">請寫一支 Python 程式：用我訓練好的 best.pt 對驗證集每一張圖做預測，和標註檔比對（IoU 0.5），
+列出「漏抓」「多抓」「類別錯」最多的前 10 張圖，並把預測框（紅）和標註框（綠）畫在同一張圖存到 review/，
+讓我逐張檢查是模型的問題還是標註的問題。用 ultralytics 和 OpenCV，檔案路徑可能有中文。</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">dataset_check 說座標不在 0～1</th><td>標註存成像素了；標註工具輸出格式要選 YOLO</td></tr>
+        <tr><th scope="row">類別編號超出範圍</th><td>classes.txt 的順序和標註時不一致</td></tr>
+        <tr><th scope="row">訓練很慢</th><td>沒有顯示卡；先用 <code>--imgsz 320 --epochs 15</code> 確認流程，正式訓練放到午休或回家跑</td></tr>
+        <tr><th scope="row">mAP 很高但現場不準</th><td>訓練照片和現場差太多（光線、角度）；補拍現場照片重訓</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="d2u5">
+      <h2><span class="num">15</span>2-5 姿態辨識：33 個關節點（14:10～15:00）</h2>
+      <ul class="unit-meta"><li>程式：d2_05_pose.py、pose_rules.py</li><li>原板子版：pc_pose/pose_basics.py</li><li>模型：MediaPipe Pose Landmarker</li></ul>
+      <p><strong>情境</strong>：長照教室想做「跌倒偵測」、體育課想做「動作次數計算」——先學會從關節點判斷舉手、平舉、蹲下、倒下。</p>
+      <p><button type="button" class="simbtn" data-sim="d2_05">▶ 看情境動畫</button></p>
+      <h3>學習目標</h3>
+      <ul><li>理解關節點座標（0～1，y 越小越高）與 visibility</li><li>會把動作寫成「比大小」的規則，並知道判斷順序的重要</li><li>理解為什麼要「維持幾張」才算數（PoseTrigger）</li></ul>
+      <h3>操作步驟</h3>
+      <pre><code>python tests/test_pose_rules.py              # 先確認規則：通過 24 項，失敗 0 項
+python d2_05_pose.py --image 照片.jpg         # 用一張照片
+python d2_05_pose.py --source demo/street.mp4
+python d2_05_pose.py --source 1 --log        # 開攝影機，每一張的判斷寫進 pose_log.csv</code></pre>
+      <div class="note warn"><strong>左右手的陷阱</strong>MediaPipe 的「LEFT」是那個人自己的左手，但前提是給它<strong>沒翻過</strong>的畫面。如果先鏡像再判斷，左右會對調。程式的做法是：先用原始畫面判斷，顯示時才鏡像（像照鏡子）。</div>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>把動作寫成規則</span><button type="button" class="copy" data-target="p25a">複製</button></div>
+<pre id="p25a">MediaPipe Pose 會給 33 個關節點（x、y 是 0～1，y 越小越高，每點有 visibility）。
+請幫我寫一個不依賴 mediapipe 的 Python 函式 classify_pose(landmarks)，可以吃 [(x, y, visibility), ...]：
+- 肩（11、12）、髖（23、24）visibility < 0.5 → "no_person"
+- 肩到髖「橫的距離」大於「直的距離」→ "fall"
+- 兩腕（15、16）都比同側肩高 0.05 以上 → "both_up"
+- 兩腕和肩高度差 < 0.08 且水平距離 > 0.15 → "t_pose"
+- 單手 → "raise_left" / "raise_right"
+- 踝到髖 < 肩到髖 × 1.2 → "squat"，其他 → "none"
+判斷順序照上面。再寫一個 PoseTrigger：最近 5 張多數決、要維持 6 張才觸發、同一動作 20 張內不重複、手放下才能再觸發，
+而且不同動作各自冷卻。最後附上 10 個用假資料的測試。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>算出判斷準確率</span><button type="button" class="copy" data-target="p25b">複製</button></div>
+<pre id="p25b">我的姿態程式用 --log 把每一張的判斷寫進 pose_log.csv（秒數、判斷、左腕y、右腕y、左肩y、右肩y）。
+我錄了一段 60 秒的影片，並手寫了正確答案：0～10 秒站著、10～20 秒舉左手、20～30 秒雙手舉高、30～40 秒平舉、40～50 秒蹲下、50～60 秒站著。
+請寫一支 Python 程式讀這兩份資料，算出每個動作的正確率、做成混淆表（哪個動作最常被判成哪個），
+並從數值欄位推測是哪一個門檻需要調整。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>跌倒要持續 3 秒</span><button type="button" class="copy" data-target="p25c">複製</button></div>
+<pre id="p25c">請修改姿態判斷：「倒下」要持續 3 秒（用時間，不是張數）才發出 fall_alert 事件，
+中間如果站起來超過 1 秒就重新計時；發出後要等人站起來才能再發。
+請寫成獨立的 class，並附 5 個用假時間序列的測試（例如 2.5 秒就起來 → 不發；躺 4 秒 → 發一次）。</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">舉左手判成右手</th><td>先鏡像才判斷；要用原始畫面判斷</td></tr>
+        <tr><th scope="row">一直 no_person</th><td>髖部沒入鏡；退後讓上半身和腰都入鏡</td></tr>
+        <tr><th scope="row">蹲下判不到</th><td>腳被桌子擋住（腳踝 visibility 低）；換角度或調 SQUAT_RATIO</td></tr>
+        <tr><th scope="row">找不到模型</th><td><code>python tools/download_models.py pose</code></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="d2u6">
+      <h2><span class="num">16</span>2-6 用姿勢遙控裝置（15:10～16:00）</h2>
+      <ul class="unit-meta"><li>程式：d2_06_pose_to_device.py、d2_06_virtual_device.py</li><li>原板子版：pose_to_mqtt＋06_mqtt_actuator</li><li>有 AMB82 可一起接</li></ul>
+      <p><strong>情境</strong>：雙手不方便的人，用手勢開關教室設備：舉左手開燈、平舉開門、蹲下鎖門。今天所有技術的整合。</p>
+      <p><button type="button" class="simbtn" data-sim="d2_06">▶ 看情境動畫</button></p>
+      <h3>學習目標</h3>
+      <ul><li>會設計「動作 → 指令」對照表</li><li>理解雙向 MQTT：指令主題（cmd）與狀態主題（status）</li><li>會用自我測試、試跑、正式連線三步驟找問題</li></ul>
+      <h3>操作步驟（三個視窗，照順序開）</h3>
+      <pre><code>python tools/mini_broker.py                          # 視窗 1
+python d2_06_virtual_device.py                       # 視窗 2：等到印出「已連線」
+python d2_06_pose_to_device.py --selftest --selftest-send   # 視窗 3：不開鏡頭，送 green_on、blink、close
+python d2_06_pose_to_device.py --dry-run --source 1  # 開鏡頭但不送，確認動作判得對
+python d2_06_pose_to_device.py --source 1            # 正式遙控</code></pre>
+      <pre class="expect"><code>（視窗 2 虛擬裝置）
+收到指令 [ymhs/lab/cmd/01] green_on
+[狀態] {"state": "green_on", "count": 1, "green": true, "blue": false, "door": "closed"}
+收到指令 [ymhs/lab/cmd/01] blink
+收到指令 [ymhs/lab/cmd/01] close
+[狀態] {"state": "close", "count": 3, "green": false, "blue": true, "door": "closed"}</code></pre>
+      <div class="note tip"><strong>有 AMB82 的組別</strong>板子燒 <code>06_mqtt_actuator</code>，程式裡的 mqttServer 改成筆電 IP（mini_broker 印出來的那個），topicCmd 改成 <code>ymhs/lab/cmd/01</code>，板子和虛擬裝置就會一起動。</div>
+      <div class="note warn"><strong>一定要先開裝置</strong>MQTT 預設不保留訊息：裝置還沒連上時送出的指令會直接消失。等裝置印出「已連線」再送。</div>
+      <h3>AI 提示語</h3>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-gen">① 生成</span>虛擬裝置</span><button type="button" class="copy" data-target="p26a">複製</button></div>
+<pre id="p26a">請用 Python＋paho-mqtt（2.x）＋OpenCV 寫一個「虛擬裝置」：
+1. 連到 --broker（預設 127.0.0.1），訂閱 ymhs/lab/cmd/01
+2. 指令（純文字，也要認得包在 JSON 裡的，例如 {"cmd":"open"}）：green_on、green_off、blue_on、blue_off、blink、open、close、ping
+3. 視窗畫出綠燈、藍燈、一扇門（開＝綠色、關＝紅色 LOCK），blink 時兩顆燈閃 1 秒
+4. 每收到一個指令，把狀態 JSON（state、count、green、blue、door）發佈到 ymhs/lab/status/01；不認得的指令回 unknown_command
+5. --no-window 時只印在終端機；--run-seconds 可以自動結束（測試用）
+請加繁體中文註解。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-test">② 測試</span>整條路的自動測試</span><button type="button" class="copy" data-target="p26b">複製</button></div>
+<pre id="p26b">我的系統有三個部分：MQTT broker、虛擬裝置（訂閱 cmd、回報 status）、姿態送指令程式（有 --selftest 會送 green_on、blink、close）。
+請寫一支 Python 測試：
+1. 啟動 broker 和虛擬裝置（subprocess），等裝置回報 online 再繼續（不要用固定 sleep）
+2. 執行 --selftest，收集 status 主題的訊息
+3. 檢查最後三個狀態依序是 green_on、blink、close
+4. 最後把所有子程式關乾淨
+並說明：如果不等 online 就送，為什麼會偶爾失敗（我真的遇過）。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span><span class="prompt-kind k-ext">③ 延伸</span>自訂手勢對照表</span><button type="button" class="copy" data-target="p26c">複製</button></div>
+<pre id="p26c">請讓「動作 → 指令」對照表改成讀 mapping.json（例如 {"raise_left": "green_on", "t_pose": "open"}），
+檔案不存在就用預設值；程式啟動時印出對照表；對照表裡有不認得的動作名稱要提醒。
+再加一個安全設計：「open」指令要連續做兩次平舉（10 秒內）才送出，避免誤觸開門。
+（貼上 d2_06_pose_to_device.py 和 pose_rules.py）</pre></div>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">常見錯誤</th><th scope="col">原因與處理</th></tr></thead><tbody>
+        <tr><th scope="row">送了指令裝置沒反應</th><td>裝置還沒連上就送（先等「已連線」）；兩邊主題不一樣</td></tr>
+        <tr><th scope="row">裝置一直斷線重連</th><td>兩個程式用了同一個 client id，broker 會踢掉舊的；每個程式用不同 id</td></tr>
+        <tr><th scope="row">動作判得對但一直重複送</th><td>調大 <code>--cooldown</code>；手要放下才會再觸發</td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="prompts">
+      <h2><span class="num">17</span>通用提示語</h2>
+      <p>任何一節卡住都能用。貼程式前記得把網址、Token、密碼、姓名換成假的。</p>
+      <div class="prompt"><div class="prompt-head"><span>看懂一支程式</span><button type="button" class="copy" data-target="g1">複製</button></div>
+<pre id="g1">這是一支 Python＋OpenCV 的程式，我是高中職學生，請用繁體中文說明：
+1. 程式從開始到結束依序做了哪些事（用 5～8 個步驟）
+2. 每個自訂函式或 class 的用途
+3. 最上面哪些參數我可以安全修改、改了會有什麼效果
+4. 哪一段最容易出錯，為什麼
+先不要改程式。
+（貼上程式碼）</pre></div>
+      <div class="prompt"><div class="prompt-head"><span>看懂錯誤訊息</span><button type="button" class="copy" data-target="g2">複製</button></div>
+<pre id="g2">我執行 Python 程式時出現下面的錯誤。我的環境：Windows、Python（版本）、OpenCV（版本）。
+請說明：這個錯誤是什麼意思、最可能的原因（依可能性排序）、我應該依序檢查哪三件事、
+需要改程式的話只給要改的那幾行並說明原因。
+（貼上完整錯誤訊息，從 Traceback 開始，以及我執行的指令）</pre></div>
+      <div class="prompt"><div class="prompt-head"><span>幫我設計測試</span><button type="button" class="copy" data-target="g3">複製</button></div>
+<pre id="g3">我的程式可以用 --source 影片檔 代替攝影機，也有 --no-window、--max-frames 參數。
+請幫我設計這支程式的測試：
+1. 正常情況、邊界情況、錯誤情況各至少 2 個
+2. 每個測試寫出：用什麼輸入、執行什麼指令、預期看到什麼輸出
+3. 能自動判斷的，請寫成一支 Python 測試程式（用 subprocess 執行、檢查輸出文字）
+（貼上程式碼，並描述我的示範影片內容）</pre></div>
+      <div class="prompt"><div class="prompt-head"><span>一次只改一件事</span><button type="button" class="copy" data-target="g4">複製</button></div>
+<pre id="g4">請幫我在這支程式加上「（一個功能）」。規則：
+- 只改必要的地方，其他功能與參數名稱不要動
+- 先用文字說明你打算怎麼改（改哪個函式、新增哪個參數），再給程式
+- 改過的地方加上中文註解
+- 最後告訴我：要用什麼指令、看到什麼結果，才能確認新功能正常而且沒有弄壞原本的功能
+（貼上程式碼）</pre></div>
+      <div class="prompt"><div class="prompt-head"><span>把成果寫成報告</span><button type="button" class="copy" data-target="g5">複製</button></div>
+<pre id="g5">我完成了一個「（專題名稱）」的原型，用筆電＋USB 攝影機、Python、（用到的模型）。
+以下是我的測試數據（貼上）。請幫我整理成專題報告的「系統架構、研究方法、結果與討論、限制與改進」四段，
+要求：數據要引用我給的數字、不要編造沒做過的實驗、限制要包含隱私與誤判、改進建議要具體可行。</pre></div>
+      <div class="prompt"><div class="prompt-head"><span>把兩天的技術變成專題題目</span><button type="button" class="copy" data-target="g6">複製</button></div>
+<pre id="g6">我會用筆電＋USB 攝影機做：拍照存檔、串流、手機網頁遙控、上傳雲端與試算表、錄影、Telegram 通知、
+移動偵測、QR 簽到、人臉門禁、YOLO 電子圍籬＋MQTT、訓練自己的 YOLO 模型、姿態辨識與姿勢遙控。
+請幫我想 5 個適合高中職專題的題目，每個寫出：要解決的問題、用到哪幾項技術、怎麼量化驗證、
+可能的困難、隱私上要注意什麼。題目要能在校園完成，不可以辨識或追蹤不特定的人。</pre></div>
+    </section>
+
+    <section id="trouble">
+      <h2><span class="num">18</span>排錯總表</h2>
+      <p>照這個順序找最快：<strong>套件裝好了嗎 → 模型下載了嗎 → 用示範影片正常嗎 → 換攝影機正常嗎 → 網路／服務設定</strong>。第三步（示範影片）如果正常，問題就一定在攝影機或網路，不在程式邏輯。</p>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">症狀</th><th scope="col">先確認</th><th scope="col">再處理</th></tr></thead><tbody>
+        <tr><th scope="row">ModuleNotFoundError</th><td><code>pip install -r requirements.txt</code> 有沒有跑完、是不是同一個 Python</td><td><code>python -m pip install …</code>，確保裝到同一個 Python</td></tr>
+        <tr><th scope="row">找不到模型</th><td><code>models/</code> 裡有沒有檔案</td><td><code>python tools/download_models.py</code></td></tr>
+        <tr><th scope="row">找不到示範影片</th><td><code>demo/</code> 裡有沒有 mp4</td><td><code>python tools/make_demo_media.py</code></td></tr>
+        <tr><th scope="row">打不開攝影機</th><td>編號、其他程式占用、Windows 隱私權</td><td><code>python tools/list_cameras.py</code></td></tr>
+        <tr><th scope="row">畫面很卡</th><td>解析度、是否同時開很多程式</td><td><code>--size 640x480</code>；關掉瀏覽器分頁</td></tr>
+        <tr><th scope="row">存檔說成功卻找不到</th><td>路徑有中文、用了 cv2.imwrite</td><td>改用 <code>imencode＋tofile</code></td></tr>
+        <tr><th scope="row">手機／其他電腦連不到筆電</th><td>同一個網路？防火牆有沒有允許？</td><td>用筆電熱點；Windows 防火牆允許 Python</td></tr>
+        <tr><th scope="row">MQTT 收不到</th><td>broker 有開嗎、主題一樣嗎、client id 有沒有撞名</td><td><code>python tools/mqtt_check.py --sub --topic ymhs/lab/#</code> 聽全部</td></tr>
+        <tr><th scope="row">終端機中文亂碼</th><td>Windows 終端機編碼</td><td>執行 <code>chcp 65001</code> 或改用 Windows Terminal</td></tr>
+        <tr><th scope="row">一鍵驗收有 FAIL</th><td>看 FAIL 那一行的說明</td><td>單獨執行那一單元：<code>python tests/run_all_tests.py d2_02</code></td></tr>
+      </tbody></table></div>
+    </section>
+
+    <section id="safety">
+      <h2><span class="num">19</span>安全、隱私與規範</h2>
+      <ul class="check">
+        <li><strong>開鏡頭前先說</strong>：程式打開攝影機前都會提醒；鏡頭前的人要知道、要同意。練習優先用示範影片。</li>
+        <li><strong>人臉是生物特徵</strong>：只註冊自己或事先同意的同學；只存 128 個數字；下課前 <code>--reset</code>。</li>
+        <li><strong>不追蹤不特定的人</strong>：不可以把鏡頭對著走廊、校門口長時間錄影或辨識；不可以用來監看特定同學或老師。</li>
+        <li><strong>網址與 Token 等於密碼</strong>：Apps Script 網址、Telegram Token 用環境變數，不寫進程式、不貼到報告或 GitHub、不貼給 AI。</li>
+        <li><strong>對外公開要上鎖、要收回</strong>：1-3 用 ngrok 時一定加 <code>--key</code>；課後關掉 ngrok、關掉熱點。</li>
+        <li><strong>雲端要清理</strong>：課後刪除雲端硬碟裡的照片，或把 Apps Script 部署改成「僅限自己」。</li>
+        <li><strong>MQTT 預設不出門</strong>：程式預設連 127.0.0.1；改用公開伺服器時只送事件，不送姓名、照片。</li>
+        <li><strong>AI 會判錯</strong>：辨識結果只能當提醒，不能當成處罰或考核依據；報告要寫出誤判率。</li>
+      </ul>
+    </section>
+
+    <section id="check">
+      <h2><span class="num">20</span>評量與檢核</h2>
+      <h3>每節的完成條件與記錄</h3>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">單元</th><th scope="col">完成條件</th><th scope="col">記錄下來</th></tr></thead><tbody>
+        <tr><th scope="row">1-1</th><td>☐ 示範影片拍到 5 張　☐ 攝影機拍到照片</td><td>1280×720 一張 ___ KB；640×480 一張 ___ KB</td></tr>
+        <tr><th scope="row">1-2</th><td>☐ VLC 看到 tcp 串流　☐ 看到 rtp 串流</td><td>tcp 延遲 ___ 秒；rtp 延遲 ___ 秒；1M 與 4M 的差別 ___</td></tr>
+        <tr><th scope="row">1-3</th><td>☐ 手機看得到畫面　☐ 按鈕能開關 LED　☐ 沒 key 會被擋</td><td>手機上每秒約 ___ 張</td></tr>
+        <tr><th scope="row">1-4</th><td>☐ 假接收端收到 3 張　☐ 真的雲端硬碟＋試算表</td><td>一張上傳花 ___ 秒</td></tr>
+        <tr><th scope="row">1-5</th><td>☐ 錄到含觸發前的影片　☐ H.264 在手機能播</td><td>10 秒影片 ___ MB</td></tr>
+        <tr><th scope="row">1-6</th><td>☐ /photo 收到照片　☐ 陌生人被擋</td><td>傳指令到收到照片 ___ 秒</td></tr>
+        <tr><th scope="row">2-1</th><td>☐ 示範影片 3 次事件　☐ QR 通過 3、拒絕 1</td><td>最佳 min-blocks ___、誤報 ___ 次</td></tr>
+        <tr><th scope="row">2-2</th><td>☐ 認得自己　☐ 兩人同框不開　☐ 已 reset</td><td>本人 10 次成功 ___ 次；相似度約 ___</td></tr>
+        <tr><th scope="row">2-3</th><td>☐ 自己畫禁區　☐ 收到 intrusion 與 clear</td><td>10 次進出報對 ___ 次；每秒 ___ 張</td></tr>
+        <tr><th scope="row">2-4</th><td>☐ 資料集檢查通過　☐ 訓練完成並接到圍籬</td><td>mAP50 ___；最弱的類別 ___</td></tr>
+        <tr><th scope="row">2-5</th><td>☐ 24 項規則測試通過　☐ 攝影機判得出舉手</td><td>各動作 10 次判對 ___ 次</td></tr>
+        <tr><th scope="row">2-6</th><td>☐ selftest 讓裝置動　☐ 用姿勢遙控成功</td><td>從做動作到燈亮約 ___ 秒</td></tr>
+      </tbody></table></div>
+      <h3>評分規準（每單元 10 分）</h3>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">面向</th><th scope="col">4 分</th><th scope="col">2 分</th><th scope="col">0 分</th></tr></thead><tbody>
+        <tr><th scope="row">功能（4）</th><td>示範影片與攝影機都正確，一鍵驗收 OK</td><td>只有其中一種正確</td><td>無法執行</td></tr>
+        <tr><th scope="row">測試（3）</th><td>用提示語設計了至少 3 個測試並記錄結果</td><td>有測但沒記錄</td><td>沒有測試</td></tr>
+        <tr><th scope="row">延伸（2）</th><td>完成一個延伸功能且沒弄壞原功能</td><td>有嘗試、部分完成</td><td>未嘗試</td></tr>
+        <tr><th scope="row">責任（1）</th><td>隱私規範都做到（reset、key、不外流 Token）</td><td>—</td><td>有違反</td></tr>
+      </tbody></table></div>
+      <h3>思考題</h3>
+      <ol>
+        <li>移動偵測、YOLO、人臉辨識、姿態，四種方法各適合什麼題目？各舉一個校園例子。</li>
+        <li>同樣是通知，Telegram、LINE（經由 Apps Script）、MQTT 有什麼不同？從即時性、要不要網路、誰看得到三個角度比較。</li>
+        <li>你的人臉門禁如果誤放行 1%、誤拒 10%，適合用在哪裡、不適合用在哪裡？</li>
+        <li>把原型從「筆電」變成「放在現場 24 小時的裝置」，還需要解決哪些問題？（提示：第 1、2 天原本的 AMB82 版）</li>
+      </ol>
+    </section>
+
+    <section id="teacher">
+      <h2><span class="num">21</span>教師備課與備援</h2>
+      <h3>課前一週</h3>
+      <ul>
+        <li>在教室電腦或學生筆電跑一次 <code>tests/run_all_tests.py</code>，13 項都 OK 再上課。</li>
+        <li>確認教室網路：能不能連 Telegram、Google（1-4、1-6）；學生電腦之間互連會不會被隔離（1-2、1-3、2-3）。不行就準備一支手機當熱點。</li>
+        <li>模型與示範影片可以先下載好，放進隨身碟發給學生，避免上課時全班同時下載（約 50 MB＋影片 6 MB）。</li>
+        <li>準備 QR 卡（<code>demo/qr_cards/</code> 印出來）、一個「允許被註冊」的助教或老師本人。</li>
+      </ul>
+      <h3>分組建議</h3>
+      <ul>
+        <li>2 人一組、一台筆電一支 USB 攝影機；一人操作、一人記錄與寫提示語，每節交換。</li>
+        <li>1-2、1-3、2-3、2-6 需要兩台裝置互連：可以兩組合作（一組當送出端、一組當接收端）。</li>
+      </ul>
+      <h3>備援方案</h3>
+      <div class="table-wrap"><table class="nw1"><thead><tr><th scope="col">狀況</th><th scope="col">改用</th></tr></thead><tbody>
+        <tr><th scope="row">攝影機不夠或壞掉</th><td>全部單元都能用 <code>--source demo/…</code> 完成</td></tr>
+        <tr><th scope="row">沒有 Google 帳號或被擋</th><td>1-4 用 <code>tools/fake_appscript.py</code></td></tr>
+        <tr><th scope="row">Telegram 被擋</th><td>1-6 用手機熱點；或只做 <code>parse_command</code> 與假伺服器測試</td></tr>
+        <tr><th scope="row">1883 被擋、電腦互連被隔離</th><td>2-3、2-6 在同一台筆電跑 <code>mini_broker.py</code>（127.0.0.1）</td></tr>
+        <tr><th scope="row">筆電太慢</th><td>2-3 用 <code>--size 640x480</code>；2-4 只做到資料集檢查，訓練由老師示範</td></tr>
+        <tr><th scope="row">學生不能安裝軟體</th><td>請資訊組事先在電腦教室安裝 requirements.txt 的套件</td></tr>
+      </tbody></table></div>
+      <h3>和原本 AMB82 版怎麼搭配</h3>
+      <p>兩個版本的單元一一對應，而且 1-4 的 Apps Script、2-3／2-6 的 MQTT 主題格式都相容。建議：先用筆電版把概念和程式邏輯學會，再用 AMB82 版體驗「放在現場的獨立裝置」。講義：<a href="amb82_iot_course_guide.html">第 1 天 AMB82 版</a>、<a href="amb82_ai_course_guide.html">第 2 天 AMB82 版</a>（都需要密碼）。</p>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  筆電＋USB 攝影機 AI 視覺課程講義 ・ 程式包：<a href="laptop_cam_starter_pack.zip" download>laptop_cam_starter_pack.zip</a> ・ AMB82 版：<a href="amb82_iot_course_guide.html">第 1 天</a>、<a href="amb82_ai_course_guide.html">第 2 天</a>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = document.getElementById(btn.dataset.target).innerText;
+      const done = () => {
+        const old = btn.textContent;
+        btn.textContent = '已複製';
+        setTimeout(() => { btn.textContent = old; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => window.prompt('請手動複製：', text));
+      } else {
+        window.prompt('請手動複製：', text);
+      }
+    });
+  });
+</script>
+<script>
+// ===== 情境模擬動畫：筆電＋USB 攝影機 12 單元 =====
+(function () {
+  const root = document.getElementById('labSim');
+  if (!root) return;
+  const canvas = document.getElementById('simCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = 960, H = 540;
+  const FONT = '"Noto Sans TC","Microsoft JhengHei",sans-serif';
+  const C = {
+    ink: '#0f172a', muted: '#64748b', line: '#cbd5e1', panel: '#f1f5f9', white: '#ffffff',
+    blue: '#0369a1', sky: '#e0f2fe', green: '#16a34a', greenSoft: '#dcfce7', red: '#dc2626', redSoft: '#fee2e2',
+    amber: '#d97706', amberSoft: '#fef3c7', violet: '#6d28d9', violetSoft: '#ede9fe', cyan: '#0891b2', dark: '#1e293b'
+  };
+
+  function fit() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  // ---------- 小工具 ----------
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const seg = (t, a, b) => clamp((t - a) / (b - a), 0, 1);             // t 在 a～b 之間的進度 0～1
+  const ease = p => p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
+  const lerp = (a, b, p) => a + (b - a) * p;
+  const between = (t, a, b) => t >= a && t < b;
+
+  function rr(x, y, w, h, r, fill, stroke, lw) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+    if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+    if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 2; ctx.stroke(); }
+  }
+  function text(s, x, y, o) {
+    o = o || {};
+    ctx.font = `${o.bold ? 700 : 500} ${o.size || 15}px ${o.mono ? '"JetBrains Mono",Consolas,monospace' : FONT}`;
+    ctx.fillStyle = o.color || C.ink;
+    ctx.textAlign = o.align || 'left';
+    ctx.textBaseline = o.base || 'alphabetic';
+    ctx.fillText(s, x, y);
+  }
+  function line(x1, y1, x2, y2, color, w, dash) {
+    ctx.save();
+    ctx.strokeStyle = color || C.muted;
+    ctx.lineWidth = w || 2;
+    if (dash) ctx.setLineDash(dash);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.restore();
+  }
+  function arrow(x1, y1, x2, y2, color, w) {
+    line(x1, y1, x2, y2, color, w || 2);
+    const a = Math.atan2(y2 - y1, x2 - x1), s = 9;
+    ctx.fillStyle = color || C.muted;
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - s * Math.cos(a - 0.45), y2 - s * Math.sin(a - 0.45));
+    ctx.lineTo(x2 - s * Math.cos(a + 0.45), y2 - s * Math.sin(a + 0.45));
+    ctx.closePath(); ctx.fill();
+  }
+  function packet(x1, y1, x2, y2, p, color, label) {                   // 沿著線移動的小方塊
+    if (p <= 0 || p >= 1) return;
+    const x = lerp(x1, x2, ease(p)), y = lerp(y1, y2, ease(p));
+    rr(x - 22, y - 12, 44, 24, 6, color || C.blue);
+    if (label) text(label, x, y + 5, { size: 11, color: '#fff', align: 'center', bold: true });
+  }
+  function bubble(x, y, w, h, s, fill, color) {
+    rr(x, y, w, h, 10, fill || C.white, C.line, 1.5);
+    text(s, x + 10, y + h / 2 + 5, { size: 13, color: color || C.ink });
+  }
+  function led(x, y, on, color, label) {
+    ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI * 2);
+    ctx.fillStyle = on ? color : '#94a3b8'; ctx.fill();
+    if (on) { ctx.beginPath(); ctx.arc(x, y, 17, 0, Math.PI * 2); ctx.fillStyle = color + '33'; ctx.fill(); }
+    if (label) text(label, x + 20, y + 5, { size: 13, color: C.ink });
+  }
+  function badge(x, y, s, fill, color) {
+    ctx.font = `700 13px ${FONT}`;
+    const w = ctx.measureText(s).width + 18;
+    rr(x, y, w, 24, 12, fill, null);
+    text(s, x + 9, y + 17, { size: 13, color: color || '#fff', bold: true });
+    return w;
+  }
+
+  // 人：x＝腳底中心、y＝腳底；pose：walk、stand、leftUp、rightUp、bothUp、tpose、squat、lie
+  function person(x, y, s, pose, phase, color) {
+    s = s || 1; color = color || '#2563eb';
+    ctx.save();
+    ctx.translate(x, y); ctx.scale(s, s);
+    ctx.lineCap = 'round';
+    const skin = '#f3c9a5';
+    if (pose === 'lie') {
+      ctx.fillStyle = color; rr(-60, -26, 90, 22, 10, color);
+      ctx.beginPath(); ctx.arc(46, -16, 13, 0, Math.PI * 2); ctx.fillStyle = skin; ctx.fill();
+      line(-60, -18, -95, -10, '#1e3a8a', 7); line(-60, -10, -95, -2, '#1e3a8a', 7);
+      ctx.restore(); return;
+    }
+    const sq = pose === 'squat';
+    const hipY = sq ? -50 : -78, shY = sq ? -100 : -128, headY = sq ? -118 : -146;
+    const sw = pose === 'walk' ? Math.sin(phase || 0) * 16 : 0;
+    // 腿
+    if (sq) { line(-8, hipY, -22, -26, '#1e3a8a', 8); line(-22, -26, -10, 0, '#1e3a8a', 8);
+      line(8, hipY, 22, -26, '#1e3a8a', 8); line(22, -26, 10, 0, '#1e3a8a', 8); }
+    else { line(-6, hipY, -6 - sw, 0, '#1e3a8a', 8); line(6, hipY, 6 + sw, 0, '#1e3a8a', 8); }
+    // 身體
+    rr(-16, shY, 32, hipY - shY + 6, 10, color);
+    // 手：左手＝畫面左邊（鏡像）
+    const L = { walk: [[-18, shY + 6], [-24 + sw, hipY]], stand: [[-18, shY + 6], [-24, hipY]],
+      leftUp: [[-18, shY + 6], [-30, shY - 50]], rightUp: [[-18, shY + 6], [-24, hipY]],
+      bothUp: [[-18, shY + 6], [-30, shY - 50]], tpose: [[-18, shY + 6], [-72, shY + 6]], squat: [[-18, shY + 6], [-26, hipY + 10]] };
+    const R = { walk: [[18, shY + 6], [24 - sw, hipY]], stand: [[18, shY + 6], [24, hipY]],
+      leftUp: [[18, shY + 6], [24, hipY]], rightUp: [[18, shY + 6], [30, shY - 50]],
+      bothUp: [[18, shY + 6], [30, shY - 50]], tpose: [[18, shY + 6], [72, shY + 6]], squat: [[18, shY + 6], [26, hipY + 10]] };
+    const l = L[pose] || L.stand, r = R[pose] || R.stand;
+    line(l[0][0], l[0][1], l[1][0], l[1][1], color, 7);
+    line(r[0][0], r[0][1], r[1][0], r[1][1], color, 7);
+    ctx.beginPath(); ctx.arc(0, headY, 16, 0, Math.PI * 2); ctx.fillStyle = skin; ctx.fill();
+    ctx.restore();
+    return { lw: [x + l[1][0] * s, y + l[1][1] * s], rw: [x + r[1][0] * s, y + r[1][1] * s], shY: y + shY * s };
+  }
+
+  // 攝影機畫面框（走廊背景）
+  function camView(x, y, w, h, label) {
+    rr(x, y, w, h, 10, '#e7ecef', C.dark, 3);
+    ctx.save(); ctx.beginPath(); ctx.rect(x + 2, y + 2, w - 4, h - 4); ctx.clip();
+    ctx.fillStyle = '#d5dbe0'; ctx.fillRect(x, y, w, h * 0.58);
+    ctx.fillStyle = '#b8bec4'; ctx.fillRect(x, y + h * 0.58, w, h * 0.42);
+    for (let i = -3; i < 8; i++) line(x + w / 2 + i * 40, y + h * 0.58, x + w / 2 + i * 110, y + h, '#a9afb5', 1.5);
+    rr(x + 24, y + h * 0.2, w * 0.14, h * 0.38, 3, '#a47b52');
+    ctx.restore();
+    const lb = label === undefined ? '攝影機畫面' : label;
+    if (lb) text(lb, x + 10, y - 8, { size: 13, color: C.muted, bold: true });
+  }
+  function clipView(x, y, w, h, fn) { ctx.save(); ctx.beginPath(); ctx.rect(x + 2, y + 2, w - 4, h - 4); ctx.clip(); fn(); ctx.restore(); }
+
+  // 筆電＋USB 攝影機
+  function laptop(x, y, label, screenFn) {
+    rr(x, y, 200, 124, 10, C.dark);
+    rr(x + 8, y + 8, 184, 108, 6, '#0b1220');
+    rr(x - 16, y + 124, 232, 14, 6, '#94a3b8');
+    // USB 攝影機夾在螢幕上方
+    rr(x + 80, y - 22, 40, 20, 8, '#334155');
+    ctx.beginPath(); ctx.arc(x + 100, y - 12, 6, 0, Math.PI * 2); ctx.fillStyle = '#38bdf8'; ctx.fill();
+    text('USB 攝影機', x + 126, y - 8, { size: 12, color: C.muted });
+    if (screenFn) { ctx.save(); ctx.beginPath(); ctx.rect(x + 8, y + 8, 184, 108); ctx.clip(); screenFn(x + 8, y + 8, 184, 108); ctx.restore(); }
+    if (label) text(label, x + 100, y + 160, { size: 14, align: 'center', bold: true });
+  }
+  function termLines(x, y, lines, color) {
+    lines.forEach((s, i) => text(s, x + 8, y + 18 + i * 17, { size: 11.5, color: color || '#a7f3d0', mono: true }));
+  }
+  function phone(x, y, screenFn, label) {
+    rr(x, y, 150, 270, 20, C.dark);
+    rr(x + 8, y + 22, 134, 226, 6, '#f8fafc');
+    if (screenFn) { ctx.save(); ctx.beginPath(); ctx.rect(x + 8, y + 22, 134, 226); ctx.clip(); screenFn(x + 8, y + 22, 134, 226); ctx.restore(); }
+    if (label) text(label, x + 75, y + 292, { size: 14, align: 'center', bold: true });
+  }
+  function cloud(x, y, s, label) {
+    ctx.fillStyle = '#f8fafc'; ctx.strokeStyle = C.line; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, 26 * s, Math.PI * 0.5, Math.PI * 1.5);
+    ctx.arc(x + 30 * s, y - 22 * s, 30 * s, Math.PI, Math.PI * 2);
+    ctx.arc(x + 62 * s, y, 26 * s, Math.PI * 1.5, Math.PI * 0.5);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    if (label) text(label, x + 31 * s, y + 6, { size: 13, align: 'center', bold: true });
+  }
+  function door(x, y, open, label) {
+    rr(x, y, 90, 140, 4, '#e2e8f0', C.dark, 3);
+    if (open) {
+      ctx.fillStyle = '#86efac';
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 34, y + 14); ctx.lineTo(x + 34, y + 154); ctx.lineTo(x, y + 140); ctx.closePath(); ctx.fill();
+      text('OPEN', x + 62, y + 76, { size: 14, color: C.green, bold: true, align: 'center' });
+    } else {
+      rr(x + 4, y + 4, 82, 132, 3, '#fecaca');
+      text('LOCK', x + 45, y + 76, { size: 14, color: C.red, bold: true, align: 'center' });
+    }
+    if (label) text(label, x + 45, y + 164, { size: 13, align: 'center', color: C.muted });
+  }
+  function meter(x, y, w, v, thr, label, okColor) {
+    rr(x, y, w, 16, 8, '#e2e8f0');
+    rr(x, y, Math.max(16, w * clamp(v, 0, 1)), 16, 8, v >= thr ? (okColor || C.green) : C.red);
+    line(x + w * thr, y - 6, x + w * thr, y + 22, C.ink, 2);
+    text(label, x, y - 10, { size: 13, color: C.ink });
+  }
+
+  // ---------- 13 個情境 ----------
+  const S = {};
+
+  S.d1_01 = {
+    title: '第 1 天第 1 節：定時拍照', dur: 14,
+    steps: [[0, '打開 USB 攝影機，先等 2 秒讓自動曝光穩定'], [2, '倒數到 0：拍第 1 張，存成 img001.jpg'],
+      [7, '每 5 秒自動拍一張，畫面邊框閃一下代替 LED'], [9.5, '按 s：不用等倒數，立刻手動多拍一張'], [12, '拍到設定的張數（--count）就自動停止']],
+    log: [[2, '第 1 張：img001.jpg  大小 42 KB'], [7, '第 2 張：img002.jpg  大小 62 KB'], [9.5, '第 3 張：img003.jpg（按 s 手動）'],
+      [12, '第 4 張：img004.jpg  大小 61 KB']],
+    draw(t) {
+      camView(30, 60, 360, 240);
+      clipView(30, 60, 360, 240, () => person(lerp(40, 330, seg(t, 0, 14)), 280, 0.8, 'walk', t * 7));
+      const shots = [2, 7, 9.5, 12].filter(s => t >= s);
+      const last = shots.length ? shots[shots.length - 1] : -9;
+      if (t - last < 0.25) { rr(30, 60, 360, 240, 10, 'rgba(255,255,255,0.75)'); }
+      const next = t < 2 ? 2 : (t < 7 ? 7 : (t < 12 ? 12 : 17));
+      laptop(90, 350, 'd1_01_snapshot.py', (x, y, w, h) => termLines(x, y, ['next in ' + Math.max(0, next - t).toFixed(1) + 's', 'shots ' + shots.length, 's = shoot now']));
+      if (between(t, 9.3, 10)) badge(300, 420, '按下 s', C.amber);
+      // 資料夾
+      rr(470, 60, 460, 440, 14, C.panel, C.line);
+      text('snapshots/ 資料夾', 490, 92, { bold: true, size: 16 });
+      shots.forEach((s, i) => {
+        const p = seg(t, s, s + 0.6), x = 490 + (i % 2) * 215, y = 115 + Math.floor(i / 2) * 180;
+        ctx.globalAlpha = p;
+        rr(x, y, 200, 130, 8, '#fff', C.line);
+        camView(x + 10, y + 10, 180, 90, '');
+        clipView(x + 10, y + 10, 180, 90, () => person(lerp(20, 165, seg(s, 0, 14)), y + 95, 0.4, 'stand'));
+        text(`img00${i + 1}.jpg`, x + 12, y + 122, { size: 13, mono: true });
+        ctx.globalAlpha = 1;
+      });
+    }
+  };
+
+  S.d1_02 = {
+    title: '第 1 天第 2 節：影像串流（RTP／TCP）', dur: 12,
+    opts: [{ id: 'tcp', type: 'toggle', label: '改用 TCP（會重送、比較慢）' }],
+    steps: [[0, '攝影機畫面交給 ffmpeg：壓成 H.264（每秒一張關鍵畫面）'], [1.5, '切成一包一包的封包，從網路送出去'],
+      [4, 'UDP：掉了就算了，畫面會破格；TCP：掉了會重送，畫面完整但延遲變高'], [8, 'VLC 收到封包、解碼、播放；延遲＝畫面上的時間差']],
+    log(o) { return o.tcp ? [[1.5, 'ffmpeg -f mpegts tcp://0.0.0.0:5000?listen=1'], [4.5, '封包 #7 遺失 → TCP 重送'], [8, 'VLC：畫面完整，延遲約 0.8 秒']]
+      : [[1.5, 'ffmpeg -f rtp rtp://192.168.1.23:5004'], [4.5, '封包 #7 遺失（UDP 不重送）'], [8, 'VLC：畫面有破格，延遲約 0.3 秒']]; },
+    draw(t, o) {
+      camView(20, 70, 250, 170);
+      clipView(20, 70, 250, 170, () => person(80 + 60 * Math.sin(t), 225, 0.62, 'walk', t * 7));
+      laptop(40, 330, '筆電：ffmpeg 編碼', (x, y) => termLines(x, y, ['libx264 ultrafast', 'zerolatency', o.tcp ? 'mpegts over TCP' : 'RTP over UDP']));
+      // VLC
+      rr(650, 90, 290, 200, 10, C.dark);
+      text('VLC 播放端', 795, 80, { align: 'center', bold: true, size: 14, color: C.muted });
+      camView(662, 102, 266, 176, '');
+      clipView(662, 102, 266, 176, () => person(725 + 60 * Math.sin(t - (o.tcp ? 0.8 : 0.3)), 262, 0.66, 'walk', (t - 0.3) * 7));
+      if (!o.tcp && between(t, 5, 6.2)) { ctx.fillStyle = 'rgba(34,197,94,0.55)'; ctx.fillRect(700, 150, 90, 40); ctx.fillStyle = 'rgba(236,72,153,0.5)'; ctx.fillRect(790, 190, 70, 30); }
+      // 封包
+      for (let k = 0; k < 10; k++) {
+        const st = 1.5 + k * 0.6, p = seg(t, st, st + 1.4 + (o.tcp ? 0.3 : 0));
+        const lost = k === 5;
+        if (lost && p > 0.5) {
+          if (!o.tcp) { if (p < 1) text('✕', 460, 210, { size: 28, color: C.red, bold: true, align: 'center' }); continue; }
+          const p2 = seg(t, st + 1.2, st + 2.6); packet(300, 200, 640, 200, p2, C.amber, '重送'); continue;
+        }
+        packet(300, 200, 640, 200, p, k % 5 === 0 ? C.violet : C.blue, k % 5 === 0 ? 'I 幀' : '#' + (k + 1));
+      }
+      line(290, 200, 640, 200, C.line, 2, [6, 6]);
+      badge(390, 150, o.tcp ? 'TCP：確認＋重送' : 'UDP：快，但會掉', o.tcp ? C.amber : C.blue);
+      text('延遲 ' + (o.tcp ? '≈ 0.8 秒' : '≈ 0.3 秒'), 795, 320, { align: 'center', size: 16, bold: true, color: o.tcp ? C.amber : C.blue });
+    }
+  };
+
+  S.d1_03 = {
+    title: '第 1 天第 3 節：手機網頁看畫面＋遙控 LED', dur: 13,
+    steps: [[0, '筆電開「行動熱點」，程式在 8000 埠開網頁伺服器'], [2, '手機連上熱點，瀏覽器打開 http://筆電IP:8000/?key=…'],
+      [4, '網頁用 MJPEG 一直換圖，看起來就像影片'], [6.5, '手機按「LED 開」→ 筆電收到 /led?state=on → 虛擬 LED 亮'],
+      [9.5, '沒有 key 的人打開網址 → 403 擋下（用 ngrok 對外時一定要設 key）']],
+    log: [[2, '手機（192.168.137.52）連線'], [6.5, '[網頁] LED 開（來自 192.168.137.52）'], [9.8, 'GET /status → 403 需要正確的 key']],
+    draw(t) {
+      laptop(330, 210, '筆電：d1_03_web_cam.py', (x, y, w, h) => {
+        camView(x + 4, y + 4, w - 8, h - 8, '');
+        clipView(x + 4, y + 4, w - 8, h - 8, () => person(x + 60 + 50 * Math.sin(t), y + h - 6, 0.4, 'walk', t * 6));
+        led(x + w - 22, y + 18, t > 6.9, '#22c55e');
+      });
+      // 熱點波紋
+      for (let i = 0; i < 3; i++) { const r = 30 + ((t * 40 + i * 30) % 90); ctx.globalAlpha = 1 - r / 120;
+        ctx.beginPath(); ctx.arc(430, 190, r, Math.PI * 1.15, Math.PI * 1.85); ctx.strokeStyle = C.blue; ctx.lineWidth = 3; ctx.stroke(); ctx.globalAlpha = 1; }
+      text('行動熱點', 430, 115, { align: 'center', color: C.blue, bold: true });
+      const connected = t > 2;
+      phone(700, 150, (x, y, w, h) => {
+        if (!connected) { text('連線中…', x + w / 2, y + h / 2, { align: 'center', color: C.muted }); return; }
+        camView(x + 6, y + 10, w - 12, 100, '');
+        clipView(x + 6, y + 10, w - 12, 100, () => person(x + 40 + 30 * Math.sin(t - 0.2), y + 104, 0.3, 'walk', t * 6));
+        rr(x + 8, y + 124, 56, 30, 8, t > 6.5 && t < 7 ? '#15803d' : '#22c55e'); text('LED 開', x + 36, y + 144, { size: 12, align: 'center', color: '#052e16', bold: true });
+        rr(x + 70, y + 124, 56, 30, 8, '#475569'); text('LED 關', x + 98, y + 144, { size: 12, align: 'center', color: '#fff', bold: true });
+        text('LED：' + (t > 6.9 ? '開' : '關'), x + 10, y + 180, { size: 13 });
+        if (between(t, 6.3, 7)) { ctx.beginPath(); ctx.arc(x + 36, y + 140, 14, 0, Math.PI * 2); ctx.fillStyle = 'rgba(15,23,42,0.25)'; ctx.fill(); }
+      }, '同學的手機');
+      if (connected) line(700, 260, 540, 260, C.line, 2, [6, 6]);
+      packet(700, 250, 540, 250, seg(t, 6.5, 6.9), C.green, 'LED 開');
+      // 陌生人
+      if (t > 9.3) {
+        phone(40, 150, (x, y, w, h) => {
+          rr(x + 10, y + 70, w - 20, 70, 8, C.redSoft, C.red);
+          text('403', x + w / 2, y + 100, { align: 'center', size: 22, bold: true, color: C.red });
+          text('需要正確的 key', x + w / 2, y + 126, { align: 'center', size: 12, color: C.red });
+        }, '沒有 key 的人');
+        packet(190, 250, 330, 250, seg(t, 9.4, 9.8), C.red, '沒 key');
+      }
+    }
+  };
+
+  S.d1_04 = {
+    title: '第 1 天第 4 節：有人經過就上傳雲端', dur: 14,
+    steps: [[0, '程式持續做移動偵測（--on-motion）'], [3, '偵測到有人經過 → 拍一張 → 轉成 base64'],
+      [4, 'POST 到 Apps Script 網址（和 AMB82 版送的欄位一模一樣）'], [5.5, 'Apps Script：存進雲端硬碟、試算表加一列、推播 LINE'],
+      [8, '10 秒內不重複上傳（--quiet），避免塞爆雲端硬碟']],
+    log: [[3, '[移動] 觸發上傳'], [5, '[上傳] 20260118_101530_motion_001.jpg  53 KB  花 1.2 秒'], [6, '試算表新增一列'], [6.5, 'LINE：有人經過（附縮圖）'], [9, '[移動] 仍在冷卻中，略過']],
+    draw(t) {
+      camView(20, 60, 300, 200);
+      clipView(20, 60, 300, 200, () => { if (t > 2) person(lerp(10, 290, seg(t, 2, 10)), 245, 0.7, 'walk', t * 7); });
+      const mv = between(t, 2.6, 10);
+      if (mv) { ctx.strokeStyle = C.cyan; ctx.lineWidth = 3; const px = lerp(10, 290, seg(t, 2, 10)); ctx.strokeRect(20 + px - 24, 110, 50, 140); }
+      laptop(70, 320, 'd1_04_cloud_upload.py', (x, y) => termLines(x, y, ['motion: ' + (mv ? 'YES' : 'no'), 'uploaded ' + (t > 5 ? 1 : 0), t > 8 && t < 10 ? 'quiet 10s…' : '']));
+      packet(290, 380, 470, 250, seg(t, 3.8, 5), C.blue, 'JPEG');
+      rr(470, 200, 150, 100, 12, C.violetSoft, C.violet);
+      text('Apps Script', 545, 238, { align: 'center', bold: true, color: C.violet });
+      text('doPost(e)', 545, 262, { align: 'center', mono: true, size: 13, color: C.violet });
+      // 雲端硬碟
+      rr(700, 40, 240, 120, 10, C.panel, C.line); text('Google 雲端硬碟', 715, 66, { bold: true, size: 14 });
+      if (t > 5.5) { rr(715, 80, 90, 60, 6, '#fff', C.line); camView(720, 85, 80, 50, ''); text('motion_001.jpg', 812, 116, { size: 12, mono: true }); }
+      packet(620, 220, 700, 100, seg(t, 5.2, 5.6), C.violet, '');
+      // 試算表
+      rr(700, 190, 240, 130, 10, C.panel, C.line); text('試算表', 715, 216, { bold: true, size: 14 });
+      ['時間', '裝置', '檔名'].forEach((h, i) => { rr(715 + i * 72, 228, 70, 22, 3, '#e2e8f0'); text(h, 722 + i * 72, 244, { size: 12 }); });
+      if (t > 6) { ctx.globalAlpha = seg(t, 6, 6.4); ['10:15:30', 'laptop-01', 'motion_001'].forEach((h, i) => { rr(715 + i * 72, 252, 70, 22, 3, '#fff'); text(h, 719 + i * 72, 268, { size: 11 }); }); ctx.globalAlpha = 1; }
+      packet(620, 250, 700, 260, seg(t, 5.6, 6), C.violet, '');
+      // LINE
+      rr(700, 350, 240, 150, 10, '#ecfdf5', '#86efac'); text('LINE 推播', 715, 376, { bold: true, size: 14, color: '#166534' });
+      if (t > 6.5) { bubble(715, 390, 210, 34, '有人經過！10:15:30', '#fff'); rr(715, 432, 110, 60, 6, '#fff', C.line); camView(720, 437, 100, 50, ''); }
+      packet(620, 280, 700, 420, seg(t, 6.1, 6.5), '#16a34a', '');
+    }
+  };
+
+  S.d1_05 = {
+    title: '第 1 天第 5 節：錄影（含觸發前 2 秒）＋TFT 狀態', dur: 14,
+    steps: [[0, '還沒錄影時，最近 2 秒的畫面一直存在暫存區（像行車記錄器）'], [3, '偵測到移動 → 開始錄影，先把暫存區的 2 秒寫進檔案'],
+      [4, 'TFT 小視窗顯示 REC 與秒數；畫面右下角壓上日期時間'], [9, '沒動靜超過 --post 3 秒 → 停止，存成 rec_…mp4'], [11, '--h264：用 ffmpeg 轉成手機、LINE 都能播的格式']],
+    log: [[3, '[錄影] 開始 rec_20260118_101530_01.mp4（含觸發前 2.0 秒）'], [9.5, '[錄影] 停止  長度約 8.5 秒  0.54 MB'], [11, '轉檔 → rec_…_01_h264.mp4']],
+    draw(t) {
+      camView(20, 50, 320, 210);
+      const walking = between(t, 2.4, 6.5);
+      clipView(20, 50, 320, 210, () => { if (t > 2.4 && t < 6.5) person(lerp(10, 330, seg(t, 2.4, 6.5)), 245, 0.72, 'walk', t * 7); });
+      const rec = between(t, 3, 9.5);
+      text(new Date(2026, 0, 18, 10, 15, 28 + Math.floor(t)).toTimeString().slice(0, 8), 330, 250, { size: 13, color: '#fff', align: 'right', mono: true, bold: true });
+      // 時間軸
+      text('時間軸（每格 0.5 秒）', 20, 300, { bold: true, size: 14 });
+      for (let i = 0; i < 28; i++) {
+        const ti = i * 0.5, x = 20 + i * 32;
+        let fill = '#e2e8f0';
+        if (ti <= t) fill = '#cbd5e1';
+        if (ti <= t && ti >= t - 2 && !rec && t < 3) fill = '#fde68a';
+        if (t >= 3 && ti >= 1 && ti < Math.min(t, 9.5)) fill = '#fca5a5';
+        rr(x, 312, 28, 36, 4, fill);
+        if (walking && Math.abs(ti - t) < 0.26) rr(x, 312, 28, 36, 4, null, C.cyan, 3);
+      }
+      line(20 + t * 64, 305, 20 + t * 64, 356, C.ink, 2);
+      text('黃：暫存中的最近 2 秒　紅：寫進檔案的畫面', 20, 376, { size: 13, color: C.muted });
+      // TFT
+      rr(400, 50, 240, 180, 10, '#1e293b'); text('TFT 320×240（模擬）', 520, 42, { align: 'center', size: 13, color: C.muted, bold: true });
+      text('10:15:' + String(28 + Math.floor(t)).padStart(2, '0'), 520, 92, { align: 'center', color: '#fff', size: 22, bold: true });
+      if (rec) { ctx.beginPath(); ctx.arc(450, 140, 12, 0, Math.PI * 2); ctx.fillStyle = Math.floor(t * 2) % 2 ? '#ef4444' : '#7f1d1d'; ctx.fill();
+        text('REC ' + (t - 3 + 2).toFixed(1) + 's', 470, 148, { color: '#f87171', size: 20, bold: true }); }
+      else text('STANDBY', 520, 148, { align: 'center', color: '#94a3b8', size: 20, bold: true });
+      text('clips: ' + (t > 9.5 ? 1 : 0), 420, 205, { color: '#bbf7d0', size: 15 });
+      // 檔案
+      rr(680, 50, 260, 180, 10, C.panel, C.line); text('recordings/', 700, 78, { bold: true, mono: true, size: 14 });
+      if (t > 9.5) { rr(700, 95, 220, 44, 8, '#fff', C.line); text('rec_…_01.mp4  0.54 MB', 712, 123, { size: 13, mono: true }); }
+      if (t > 11) { rr(700, 150, 220, 44, 8, C.greenSoft, '#86efac'); text('rec_…_01_h264.mp4', 712, 178, { size: 13, mono: true }); }
+    }
+  };
+
+  S.d1_06 = {
+    title: '第 1 天第 6 節：Telegram 遠端遙控', dur: 15,
+    steps: [[0, '程式在背景一直問 Telegram 伺服器「有沒有新訊息」（getUpdates）'], [1.5, '傳 /photo → 拍一張用 sendPhoto 傳回來'],
+      [5, '傳 /led on → 筆電畫面右上角的虛擬 LED 亮'], [7.5, '傳 /alarm on → 有人經過就自動傳照片'], [12, '不在 --allow 名單的人傳指令 → 不理，只在終端機印出他的 chat id']],
+    log: [[1.5, '[指令] 小明：/photo'], [5, '[指令] 小明：/led on'], [7.5, '[指令] 小明：/alarm on'], [10.2, '[警戒] 偵測到移動，已傳照片'], [12.3, '[拒絕] 路人（chat id 99887766）傳了「/photo」']],
+    draw(t) {
+      laptop(70, 280, 'd1_06_telegram_bot.py', (x, y, w, h) => { camView(x + 4, y + 4, w - 8, h - 8, '');
+        clipView(x + 4, y + 4, w - 8, h - 8, () => { if (t > 9) person(x + lerp(0, 190, seg(t, 9, 12)), y + h - 6, 0.4, 'walk', t * 7); });
+        led(x + w - 20, y + 18, t > 5.3, '#22c55e'); });
+      cloud(420, 110, 1.3, 'Telegram 伺服器');
+      phone(700, 40, (x, y, w, h) => {
+        rr(x, y, w, 26, 0, '#229ED9'); text('My Lab Bot', x + 10, y + 18, { size: 12, color: '#fff', bold: true });
+        const chat = [];
+        if (t > 1.5) chat.push(['me', '/photo']);
+        if (t > 2.8) chat.push(['bot', '📷 10:15 拍攝']);
+        if (t > 5) chat.push(['me', '/led on']);
+        if (t > 5.6) chat.push(['bot', 'LED 已開']);
+        if (t > 7.5) chat.push(['me', '/alarm on']);
+        if (t > 8) chat.push(['bot', '警戒模式已開啟']);
+        if (t > 10.5) chat.push(['bot', '📷 有人經過！']);
+        chat.slice(-7).forEach((m, i) => {
+          const me = m[0] === 'me', bw = 100;
+          rr(me ? x + w - bw - 6 : x + 6, y + 34 + i * 27, bw, 23, 8, me ? '#dcf8c6' : '#fff', C.line, 1);
+          text(m[1], me ? x + w - bw + 2 : x + 12, y + 50 + i * 27, { size: 11.5 });
+        });
+      }, '老師的手機（在 --allow 名單）');
+      const cmds = [[1.5, '/photo', 2.8], [5, '/led on', 5.6], [7.5, '/alarm on', 8]];
+      cmds.forEach(c => { packet(700, 150, 520, 110, seg(t, c[0], c[0] + 0.5), '#229ED9', c[1]);
+        packet(460, 140, 270, 280, seg(t, c[0] + 0.5, c[0] + 0.9), '#229ED9', 'poll'); });
+      packet(270, 290, 460, 150, seg(t, 2, 2.6), C.green, '照片');
+      packet(520, 110, 700, 150, seg(t, 2.6, 2.9), C.green, '照片');
+      packet(270, 290, 460, 150, seg(t, 10, 10.4), C.red, '警報');
+      packet(520, 110, 700, 150, seg(t, 10.4, 10.6), C.red, '警報');
+      if (t > 12) { rr(290, 190, 170, 60, 10, C.redSoft, C.red); text('路人：/photo', 300, 214, { size: 13 }); text('→ 不理（不在名單）', 300, 238, { size: 13, color: C.red, bold: true }); }
+    }
+  };
+
+  S.d2_01a = {
+    title: '第 2 天第 1 節：移動偵測（格子比對）', dur: 12,
+    opts: [{ id: 'minb', type: 'range', label: '至少幾格在動才算（min-blocks）', min: 1, max: 6, step: 1, value: 2 }],
+    steps: [[0, '畫面切成 16×9 格；每一格都和「上一張」同一格比較亮度'], [1.5, '盆栽的葉子晃動：只有 1 格在變 → 小於門檻，不算'],
+      [4, '有人走過：很多格同時在變 → 超過門檻，算一次事件'], [8, '事件之後 3 秒內不重複回報（--quiet），避免洗版']],
+    log(o) { const L = []; if (o.minb <= 1) L.push([1.6, '[移動] 第 1 次（葉子晃動也算：門檻太低，誤報！）']);
+      L.push([4.2, `[移動] 第 ${o.minb <= 1 ? 2 : 1} 次  在動的格子：6`]); L.push([7.3, `[移動] 第 ${o.minb <= 1 ? 3 : 2} 次  在動的格子：7`]); return L; },
+    draw(t, o) {
+      const x0 = 40, y0 = 50, w = 560, h = 315, cols = 16, rows = 9, cw = w / cols, ch = h / rows;
+      camView(x0, y0, w, h);
+      // 盆栽
+      const leaf = Math.sin(t * 9) * (between(t, 1.2, 3.2) ? 6 : 0.5);
+      rr(x0 + 470, y0 + 200, 40, 50, 4, '#92400e');
+      ctx.beginPath(); ctx.arc(x0 + 490 + leaf, y0 + 185, 26, 0, Math.PI * 2); ctx.fillStyle = '#16a34a'; ctx.fill();
+      const px = x0 + lerp(-40, 620, seg(t, 3.5, 9.5));
+      clipView(x0, y0, w, h, () => { if (between(t, 3.5, 9.5)) person(px, y0 + 300, 1, 'walk', t * 7); });
+      const cells = [];
+      if (between(t, 1.2, 3.2)) cells.push([13, 5]);
+      if (between(t, 3.6, 9.4)) { const c = Math.floor((px - x0) / cw); for (const dc of [-1, 0]) for (let r = 2; r < 9; r++) if (c + dc >= 0 && c + dc < cols && (r + c) % 2 === 0) cells.push([c + dc, r]); }
+      ctx.strokeStyle = 'rgba(15,23,42,0.18)'; ctx.lineWidth = 1;
+      for (let c = 0; c <= cols; c++) line(x0 + c * cw, y0, x0 + c * cw, y0 + h, 'rgba(15,23,42,0.15)', 1);
+      for (let r = 0; r <= rows; r++) line(x0, y0 + r * ch, x0 + w, y0 + r * ch, 'rgba(15,23,42,0.15)', 1);
+      cells.forEach(([c, r]) => { ctx.strokeStyle = '#06b6d4'; ctx.lineWidth = 3; ctx.strokeRect(x0 + c * cw + 1, y0 + r * ch + 1, cw - 2, ch - 2); });
+      const moving = cells.length >= o.minb;
+      rr(640, 60, 290, 230, 12, C.panel, C.line);
+      text('在動的格子', 660, 96, { bold: true }); text(String(cells.length), 900, 96, { bold: true, align: 'right', size: 22, color: C.cyan });
+      text('門檻 min-blocks', 660, 136, { bold: true }); text(String(o.minb), 900, 136, { bold: true, align: 'right', size: 22 });
+      text('判斷', 660, 180, { bold: true });
+      badge(760, 162, moving ? '有東西在動' : '沒事', moving ? C.amber : '#64748b');
+      led(680, 240, moving, '#f59e0b', 'MOTION');
+      text('小提醒：門檻設 1，連葉子晃都會誤報', 640, 330, { size: 14, color: C.muted });
+      text('設太大，走遠一點的人又抓不到', 640, 354, { size: 14, color: C.muted });
+    }
+  };
+
+  S.d2_01b = {
+    title: '第 2 天第 1 節：QR Code 門禁／簽到', dur: 13,
+    steps: [[0, '鏡頭對準 QR Code，OpenCV 讀出裡面的文字'], [1, 'S001 在白名單（allow.txt）→ 綠燈通過，寫進簽到表'],
+      [4, 'HACKER-01 不在名單 → 藍燈拒絕，也會留下紀錄'], [7, 'S002 通過'], [10, '同一張卡 3 秒內重複讀到只算一次；隔一陣子再刷才算新的一筆']],
+    log: [[1.1, '[通過] S001'], [4.1, '[拒絕] HACKER-01'], [7.1, '[通過] S002'], [10.1, '[通過] S001']],
+    draw(t) {
+      const cards = [[1, 3, 'S001', true], [4, 6, 'HACKER-01', false], [7, 9, 'S002', true], [10, 12, 'S001', true]];
+      camView(30, 60, 380, 260);
+      const cur = cards.find(c => between(t, c[0] - 0.4, c[1]));
+      if (cur) {
+        const p = seg(t, cur[0] - 0.4, cur[0]), x = lerp(-120, 150, p);
+        rr(30 + x, 110, 120, 140, 8, '#fff', C.line);
+        ctx.fillStyle = '#0f172a';
+        const qx = 30 + x + 15, qy = 124, m = 10;           // 9×9 格的假 QR：三個定位角＋亂數點
+        const finder = (fx, fy) => { ctx.fillRect(qx + fx * m, qy + fy * m, 3 * m, 3 * m); ctx.fillStyle = '#fff';
+          ctx.fillRect(qx + fx * m + 3, qy + fy * m + 3, 3 * m - 6, 3 * m - 6); ctx.fillStyle = '#0f172a'; ctx.fillRect(qx + fx * m + 9, qy + fy * m + 9, m + 2, m + 2); };
+        finder(0, 0); finder(6, 0); finder(0, 6);
+        for (let i = 0; i < 9; i++) for (let jj = 0; jj < 9; jj++) {
+          const inFinder = (i < 3 && jj < 3) || (i > 5 && jj < 3) || (i < 3 && jj > 5);
+          if (!inFinder && (i * 31 + jj * 17 + cur[2].length * 7) % 5 < 2) ctx.fillRect(qx + i * m, qy + jj * m, m, m);
+        }
+        text(cur[2], 30 + x + 60, 238, { align: 'center', size: 12, mono: true });
+        if (t > cur[0]) { ctx.strokeStyle = '#eab308'; ctx.lineWidth = 4; ctx.strokeRect(30 + x + 12, 122, 96, 96); }
+      }
+      const lit = cards.find(c => between(t, c[0], c[0] + 1));
+      laptop(110, 360, 'd2_01b_qr_gate.py', (x, y) => termLines(x, y, ['allow.txt:', '  S001', '  S002']));
+      led(470, 110, lit && lit[3], '#22c55e', 'PASS');
+      led(470, 160, lit && !lit[3], '#3b82f6', 'DENY');
+      rr(610, 60, 330, 300, 12, C.panel, C.line);
+      text('qr_log.csv（簽到表）', 630, 90, { bold: true });
+      ['時間', '內容', '結果'].forEach((h, i) => { rr(630 + i * 100, 104, 96, 26, 4, '#e2e8f0'); text(h, 640 + i * 100, 122, { size: 13, bold: true }); });
+      cards.filter(c => t > c[0]).forEach((c, k) => {
+        const y = 134 + k * 30;
+        rr(630, y, 96, 26, 4, '#fff'); text('10:0' + (k + 1) + ':1' + k, 636, y + 18, { size: 12, mono: true });
+        rr(730, y, 96, 26, 4, '#fff'); text(c[2], 736, y + 18, { size: 12, mono: true });
+        rr(830, y, 96, 26, 4, c[3] ? C.greenSoft : '#dbeafe'); text(c[3] ? '通過' : '拒絕', 840, y + 18, { size: 13, bold: true, color: c[3] ? C.green : '#1d4ed8' });
+      });
+      if (between(t, 1.5, 2.8)) { rr(440, 250, 150, 50, 8, C.amberSoft, '#fcd34d'); text('3 秒內重複', 450, 272, { size: 12 }); text('不再計次', 450, 290, { size: 12 }); }
+    }
+  };
+
+  S.d2_02 = {
+    title: '第 2 天第 2 節：人臉辨識門禁', dur: 14,
+    opts: [{ id: 'multi', type: 'toggle', label: '允許多人同框開門（關掉＝防尾隨）' }],
+    steps: [[0, 'YuNet 找臉，SFace 把每張臉變成 128 個數字（特徵值）'], [0.5, '兩個人同框：預設不開門，防止有人跟著進來（防尾隨）'],
+      [4, 'Tom 自己一個人：和註冊資料比相似度 0.96 ≥ 0.363 → 開門 5 秒'], [9, '陌生人：最像的也只有 0.12 → unknown，不開門'], [12, '註冊只存數字不存照片；下課前 --reset 全部清掉']],
+    log(o) { return [[0.6, o.multi ? '[開門] Tom（相似度 0.95，兩人同框也開）' : '[拒絕] 多人同框，不開門'], [4.1, '[開門] Tom（相似度 0.96）'], [9.1, '[拒絕] 陌生人，不開門']]; },
+    draw(t, o) {
+      camView(30, 60, 400, 270);
+      const face = (x, y, known, score, name) => {
+        ctx.beginPath(); ctx.arc(x, y, 38, 0, Math.PI * 2); ctx.fillStyle = '#f3c9a5'; ctx.fill();
+        ctx.fillStyle = '#0f172a'; ctx.beginPath(); ctx.arc(x - 13, y - 6, 4, 0, 7); ctx.arc(x + 13, y - 6, 4, 0, 7); ctx.fill();
+        line(x - 10, y + 16, x + 10, y + 16, '#0f172a', 3);
+        ctx.strokeStyle = known ? C.green : C.red; ctx.lineWidth = 4; ctx.strokeRect(x - 48, y - 50, 96, 104);
+        rr(x - 48, y - 76, 96, 24, 4, known ? C.green : C.red); text(`${name} ${score}`, x, y - 58, { size: 12, color: '#fff', align: 'center', bold: true });
+      };
+      let state = 'empty', score = 0;
+      if (t < 3.5) { face(160, 190, true, '0.95', 'Tom'); face(300, 200, false, '0.10', 'unknown'); state = o.multi ? 'open' : 'multi'; score = 0.95; }
+      else if (t < 8.5) { face(230, 190, true, '0.96', 'Tom'); state = 'open'; score = 0.96; }
+      else if (t < 12.5) { face(230, 190, false, '0.12', 'unknown'); state = 'unknown'; score = 0.12; }
+      laptop(130, 370, 'd2_02_face_door.py', (x, y) => termLines(x, y, ['faces/face_db.npz', 'Tom: 128 numbers', 'threshold 0.363']));
+      // 特徵值長條
+      rr(470, 50, 460, 160, 12, C.panel, C.line);
+      text('128 個特徵值（只畫 24 個）', 490, 78, { bold: true, size: 14 });
+      for (let i = 0; i < 24; i++) {
+        const v1 = Math.sin(i * 1.7) * 0.5 + 0.5, v2 = state === 'unknown' ? Math.cos(i * 2.3) * 0.5 + 0.5 : v1 + Math.sin(i) * 0.06;
+        ctx.fillStyle = '#94a3b8'; ctx.fillRect(490 + i * 18, 190 - v1 * 80, 7, v1 * 80);
+        ctx.fillStyle = state === 'unknown' ? C.red : C.green; ctx.fillRect(498 + i * 18, 190 - v2 * 80, 7, v2 * 80);
+      }
+      text('灰：註冊的 Tom　彩：畫面上這張臉', 700, 78, { size: 12, color: C.muted });
+      meter(490, 250, 420, score, 0.363, `相似度 ${score.toFixed(2)}（門檻 0.363）`);
+      const doorOpen = state === 'open';
+      door(560, 300, doorOpen, doorOpen ? '開門 5 秒後自動關' : (state === 'multi' ? '多人同框：不開' : '門鎖'));
+      if (state === 'multi') { rr(680, 330, 250, 60, 10, C.amberSoft, '#fcd34d'); text('防尾隨：一次只放一個人', 694, 366, { size: 14, bold: true, color: '#92400e' }); }
+    }
+  };
+
+  S.d2_03 = {
+    title: '第 2 天第 3 節：YOLO 電子圍籬＋MQTT', dur: 14,
+    opts: [{ id: 'box', type: 'toggle', label: '改用「整個框碰到」判斷（看看誤報）' }],
+    steps: [[0, 'YOLO11 每一張都找出人，畫出框'], [2, '判斷點：框的底邊中點＝腳站的位置'], [4, '腳踩進黃色禁區、持續 0.3 秒 → 闖入！送出 MQTT intrusion'],
+      [7, '還在裡面：每 5 秒送一次 still_inside（附停留秒數）'], [11, '離開超過 1 秒 → 送出 clear（附總停留秒數）']],
+    log(o) { return o.box ? [[2.4, '{"event":"intrusion"} ← 其實人還在禁區外（誤報）'], [11.3, '{"event":"clear","dwell_s":8.8}']]
+      : [[4.4, '{"event":"intrusion","objects":"person","video_s":6.3}'], [9.4, '{"event":"still_inside","dwell_s":5.0}'], [11.3, '{"event":"clear","dwell_s":6.8}']]; },
+    draw(t, o) {
+      const x0 = 20, y0 = 50, w = 560, h = 330;
+      camView(x0, y0, w, h);
+      const zone = [[x0 + 300, y0 + 200], [x0 + 545, y0 + 200], [x0 + 545, y0 + 322], [x0 + 300, y0 + 322]];
+      let px;
+      if (t < 5) px = lerp(20, 380, seg(t, 0, 5)); else if (t < 9.5) px = 380; else px = lerp(380, 640, seg(t, 9.5, 11));
+      const foot = [x0 + px, y0 + 312], bx = [x0 + px - 45, y0 + 90, 90, 222];
+      const footIn = foot[0] > zone[0][0] && foot[0] < zone[1][0];
+      const boxIn = bx[0] + bx[2] > zone[0][0] && bx[0] < zone[1][0];
+      const inside = o.box ? boxIn : footIn;
+      const alarm = inside && t < 11.2;
+      ctx.fillStyle = alarm ? 'rgba(220,38,38,0.25)' : 'rgba(234,179,8,0.25)';
+      ctx.beginPath(); zone.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = alarm ? C.red : '#ca8a04'; ctx.lineWidth = 3; ctx.stroke();
+      clipView(x0, y0, w, h, () => { person(foot[0], foot[1], 1.35, px === 380 ? 'stand' : 'walk', t * 7);
+        ctx.strokeStyle = inside ? C.red : '#fff'; ctx.lineWidth = 3; ctx.strokeRect(bx[0], bx[1], bx[2], bx[3]);
+        rr(bx[0], bx[1] - 22, 110, 20, 4, '#000'); text('person 0.92', bx[0] + 6, bx[1] - 7, { size: 12, color: inside ? '#fca5a5' : '#fff' });
+        ctx.beginPath(); ctx.arc(foot[0], foot[1], 8, 0, 7); ctx.fillStyle = footIn ? C.red : '#fff'; ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 2; ctx.stroke(); });
+      if (o.box && boxIn && !footIn) { rr(x0 + 150, y0 + 20, 250, 30, 8, C.redSoft, C.red); text('框碰到了，但腳還在外面 → 誤報', x0 + 160, y0 + 41, { size: 13, color: C.red, bold: true }); }
+      rr(x0, y0 + h + 12, w, 34, 8, alarm ? C.red : C.dark);
+      text(alarm ? 'INTRUSION  inside 1' : 'clear  inside 0', x0 + 12, y0 + h + 35, { color: '#fff', bold: true, mono: true, size: 14 });
+      // MQTT
+      rr(640, 180, 140, 70, 12, C.amberSoft, C.amber); text('MQTT broker', 710, 210, { align: 'center', bold: true, size: 14 }); text('mini_broker.py', 710, 232, { align: 'center', size: 12, mono: true });
+      rr(810, 60, 130, 70, 10, C.greenSoft, '#86efac'); text('值班電腦', 875, 90, { align: 'center', bold: true, size: 14 }); text('mqtt_check --sub', 875, 112, { align: 'center', size: 11, mono: true });
+      rr(810, 300, 130, 70, 10, C.greenSoft, '#86efac'); text('手機 App', 875, 330, { align: 'center', bold: true, size: 14 }); text('訂閱同主題', 875, 352, { align: 'center', size: 12 });
+      text('主題 ymhs/lab/fence/01', 710, 280, { align: 'center', size: 12, mono: true, color: C.muted });
+      const sends = (o.box ? [[2.4, 'intrusion', C.red], [11.3, 'clear', C.green]] : [[4.4, 'intrusion', C.red], [9.4, 'still', C.amber], [11.3, 'clear', C.green]]);
+      sends.forEach(s => { packet(580, 215, 640, 215, seg(t, s[0], s[0] + 0.4), s[2], s[1]);
+        packet(780, 200, 810, 100, seg(t, s[0] + 0.4, s[0] + 0.8), s[2], ''); packet(780, 230, 810, 330, seg(t, s[0] + 0.4, s[0] + 0.8), s[2], ''); });
+    }
+  };
+
+  S.d2_04 = {
+    title: '第 2 天第 4 節：訓練自己的模型', dur: 15,
+    steps: [[0, '拍照片、用 LabelImg／Roboflow 畫框：每個框一行「類別 x y 寬 高」（0～1）'], [3, 'dataset_check.py 先抓錯：類別編號超出、座標沒正規化、缺標註'],
+      [5.5, '筆電訓練：每一輪 loss（錯誤程度）下降、mAP50（準確度）上升'], [11, '拿到 best.pt，驗證 mAP50 0.97'], [12.5, '接到電子圍籬：--model runs/custom/weights/best.pt']],
+    log: [[3.5, 'train：150 張、299 個框　val：40 張'], [4.2, 'X 003.txt 第 1 行 x=320.0 不在 0～1（修正後重新檢查）'], [5, '全部檢查通過，可以開始訓練'], [11, 'mAP50 = 0.972　cone 0.995　ball 0.948'], [12.8, 'd2_03 偵測到 cone 0.80']],
+    draw(t) {
+      // 標註
+      rr(20, 50, 280, 220, 12, C.panel, C.line); text('① 標註', 36, 78, { bold: true });
+      rr(40, 92, 240, 160, 6, '#e7e5e4');
+      ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.moveTo(110, 110); ctx.lineTo(80, 180); ctx.lineTo(140, 180); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(215, 190, 30, 0, 7); ctx.fillStyle = '#16a34a'; ctx.fill();
+      const p1 = seg(t, 0.5, 1.5), p2 = seg(t, 1.5, 2.5);
+      if (p1 > 0) { ctx.strokeStyle = C.red; ctx.lineWidth = 3; ctx.strokeRect(76, 106, 68 * p1, 78 * p1); }
+      if (p2 > 0) { ctx.strokeStyle = C.blue; ctx.lineWidth = 3; ctx.strokeRect(183, 158, 64 * p2, 64 * p2); }
+      if (t > 1.5) text('0 0.35 0.55 0.28 0.49', 44, 265, { size: 11, mono: true, color: C.red });
+      // 檢查
+      rr(320, 50, 280, 220, 12, C.panel, C.line); text('② dataset_check.py', 336, 78, { bold: true });
+      const checks = [['圖片都有標註檔', 3.2], ['類別編號在範圍內', 3.6], ['座標都在 0～1', 4.4], ['兩類數量差不多', 4.8]];
+      checks.forEach((c, i) => { if (t > c[1]) { const bad = i === 2 && t < 4.9;
+        text((bad ? 'X ' : 'OK ') + c[0], 340, 110 + i * 30, { size: 14, color: bad ? C.red : C.green, bold: true }); } });
+      // 訓練曲線
+      rr(620, 50, 320, 220, 12, C.panel, C.line); text('③ 訓練（15 輪）', 636, 78, { bold: true });
+      line(650, 240, 920, 240, C.muted, 1.5); line(650, 95, 650, 240, C.muted, 1.5);
+      const pt = seg(t, 5.5, 11);
+      ctx.beginPath(); for (let i = 0; i <= 60 * pt; i++) { const x = 650 + i * 4.5, y = 110 + 120 * (1 - Math.exp(-i / 14)); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+      ctx.strokeStyle = C.red; ctx.lineWidth = 2.5; ctx.stroke();
+      ctx.beginPath(); for (let i = 0; i <= 60 * pt; i++) { const x = 650 + i * 4.5, y = 235 - 125 * (1 - Math.exp(-i / 12)); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }
+      ctx.strokeStyle = C.green; ctx.lineWidth = 2.5; ctx.stroke();
+      text('loss', 890, 225, { size: 12, color: C.red, bold: true }); text('mAP50', 870, 112, { size: 12, color: C.green, bold: true });
+      text('epoch ' + Math.round(15 * pt) + '/15', 780, 262, { size: 12, align: 'center', mono: true });
+      // 部署
+      rr(20, 300, 920, 210, 12, C.panel, C.line); text('④ 接到電子圍籬', 36, 328, { bold: true });
+      if (t > 11) { rr(40, 350, 170, 60, 10, C.violetSoft, C.violet); text('best.pt', 125, 386, { align: 'center', bold: true, mono: true, color: C.violet }); }
+      arrow(220, 380, 300, 380, t > 12 ? C.violet : C.line, 3);
+      camView(320, 345, 280, 150, 'd2_03_fence_mqtt.py --model best.pt');
+      if (t > 12.5) { ctx.fillStyle = '#f97316'; ctx.beginPath(); ctx.moveTo(460, 400); ctx.lineTo(430, 470); ctx.lineTo(490, 470); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = C.red; ctx.lineWidth = 3; ctx.strokeRect(424, 394, 72, 82); rr(424, 372, 80, 20, 4, C.red); text('cone 0.80', 430, 387, { size: 12, color: '#fff', bold: true }); }
+      text(t > 11 ? 'mAP50 = 0.972' : '', 650, 400, { size: 26, bold: true, color: C.green });
+      text('0.5 以上堪用、0.8 以上不錯', 650, 430, { size: 14, color: C.muted });
+    }
+  };
+
+  const POSE_SEQ = [[0, 2, 'stand', 'none', '沒有動作'], [2, 4.5, 'leftUp', 'raise_left', '舉左手'], [4.5, 6.5, 'stand', 'none', '沒有動作'],
+    [6.5, 9, 'bothUp', 'both_up', '雙手舉高'], [9, 11.5, 'tpose', 't_pose', '雙手平舉'], [11.5, 14, 'squat', 'squat', '蹲下'], [14, 16.5, 'lie', 'fall', '倒下']];
+  const RULES = { none: '沒有條件成立', raise_left: '左腕.y < 左肩.y − 0.05', both_up: '兩腕都高過肩膀', t_pose: '|腕.y − 肩.y| < 0.08 且張開 > 0.15',
+    squat: '踝到髖 < 肩到髖 × 1.2', fall: '肩到髖「橫」比「直」長' };
+  const CMDS = { raise_left: 'green_on', both_up: 'blink', t_pose: 'open', squat: 'close', fall: 'blink' };
+
+  S.d2_05 = {
+    title: '第 2 天第 5 節：姿態辨識（33 個關節點）', dur: 16.5,
+    steps: [[0, 'MediaPipe 找出 33 個關節點（x、y 都是 0～1，y 越小越高）'], [2, '舉左手：左手腕比左肩「高」超過 0.05'],
+      [6.5, '判斷有順序：倒下 → 雙手舉高 → 平舉 → 單手 → 蹲下'], [9, '每一張都判一次，但要「維持 6 張」才算數（下方進度條）'], [14, '倒下：身體「橫的長度」比「直的」長']],
+    log: [[2.6, '[動作] 舉左手（raise_left）'], [7.1, '[動作] 雙手舉高（both_up）'], [9.6, '[動作] 雙手平舉（t_pose）'], [12.1, '[動作] 蹲下（squat）'], [14.6, '[動作] 倒下（fall）']],
+    draw(t) {
+      const cur = POSE_SEQ.find(s => between(t, s[0], s[1])) || POSE_SEQ[0];
+      camView(40, 50, 420, 400, '畫面（已鏡像，像照鏡子）');
+      let j;
+      clipView(40, 50, 420, 400, () => { j = person(cur[2] === 'lie' ? 300 : 250, 420, 1.9, cur[2]); });
+      if (j && cur[2] !== 'lie') {
+        line(60, j.shY, 440, j.shY, '#64748b', 1.5, [6, 6]); text('肩膀高度', 64, j.shY - 6, { size: 12, color: C.muted });
+        [j.lw, j.rw].forEach(p => { ctx.beginPath(); ctx.arc(p[0], p[1], 9, 0, 7); ctx.fillStyle = '#f97316'; ctx.fill(); });
+      }
+      const hold = clamp((t - cur[0]) / 0.6, 0, 1);
+      rr(500, 60, 440, 170, 12, C.panel, C.line);
+      text('這一張的判斷', 520, 92, { bold: true });
+      badge(520, 108, cur[4] + '（' + cur[3] + '）', cur[3] === 'none' ? '#64748b' : C.violet);
+      text('規則：' + RULES[cur[3]], 520, 170, { size: 14, mono: false });
+      text('維持張數', 520, 210, { size: 13, color: C.muted });
+      rr(600, 198, 300, 16, 8, '#e2e8f0'); rr(600, 198, Math.max(16, 300 * hold), 16, 8, hold >= 1 && cur[3] !== 'none' ? C.green : C.amber);
+      rr(500, 260, 440, 190, 12, C.panel, C.line);
+      text('動作 → 指令（第 6 節會送給裝置）', 520, 292, { bold: true });
+      Object.keys(CMDS).forEach((k, i) => { const on = k === cur[3] && hold >= 1;
+        rr(520 + (i % 2) * 210, 308 + Math.floor(i / 2) * 44, 200, 36, 8, on ? C.greenSoft : '#fff', on ? C.green : C.line);
+        text(`${({ raise_left: '舉左手', both_up: '雙手舉高', t_pose: '平舉', squat: '蹲下', fall: '倒下' })[k]} → ${CMDS[k]}`, 532 + (i % 2) * 210, 332 + Math.floor(i / 2) * 44, { size: 13, bold: on }); });
+    }
+  };
+
+  S.d2_06 = {
+    title: '第 2 天第 6 節：用姿勢遙控裝置', dur: 13,
+    steps: [[0, '先開 mini_broker.py（自己的轉送站）和虛擬裝置 d2_06_virtual_device.py'], [2, '舉左手維持一下 → 送出 green_on → 裝置綠燈亮'],
+      [6, '雙手平舉 → open → 門打開'], [9.5, '蹲下 → close → 門鎖上、藍燈亮'], [11.5, '裝置每收到一個指令，就把狀態回報到 status 主題']],
+    log: [[0.5, '已連線 127.0.0.1:1883，訂閱 ymhs/lab/cmd/01'], [2.8, '→ 已送出：green_on'], [3.4, '[狀態] {"state":"green_on","green":true}'],
+      [6.8, '→ 已送出：open'], [7.4, '[狀態] {"state":"open","door":"open"}'], [10.3, '→ 已送出：close'], [10.9, '[狀態] {"state":"close","door":"closed"}']],
+    draw(t) {
+      const pose = t < 2 ? 'stand' : t < 5 ? 'leftUp' : t < 6 ? 'stand' : t < 9 ? 'tpose' : t < 9.5 ? 'stand' : 'squat';
+      camView(20, 60, 260, 300, '電腦攝影機');
+      clipView(20, 60, 260, 300, () => person(150, 340, 1.3, pose));
+      laptop(40, 390, 'd2_06_pose_to_device.py', (x, y) => termLines(x, y, ['pose: ' + ({ stand: 'none', leftUp: 'raise_left', tpose: 't_pose', squat: 'squat' })[pose], 'hold 6 frames', '']));
+      rr(360, 180, 170, 90, 12, C.amberSoft, C.amber); text('MQTT broker', 445, 215, { align: 'center', bold: true }); text('127.0.0.1:1883', 445, 240, { align: 'center', mono: true, size: 12 });
+      text('ymhs/lab/cmd/01', 320, 170, { size: 12, mono: true, color: C.muted });
+      text('ymhs/lab/status/01', 470, 305, { size: 12, mono: true, color: C.muted });
+      const sends = [[2.8, 'green_on'], [6.8, 'open'], [10.3, 'close']];
+      sends.forEach(s => { packet(280, 210, 360, 210, seg(t, s[0], s[0] + 0.3), C.violet, s[1]); packet(530, 210, 610, 210, seg(t, s[0] + 0.3, s[0] + 0.6), C.violet, s[1]);
+        packet(610, 250, 530, 250, seg(t, s[0] + 0.6, s[0] + 0.9), C.green, '狀態'); });
+      rr(610, 60, 330, 420, 14, '#1e293b');
+      text('VIRTUAL DEVICE', 775, 96, { align: 'center', color: '#fff', bold: true, size: 18 });
+      const green = (t > 3.1 && t < 10.6) || (t > 7.1 && t < 10.6);
+      led(650, 150, green, '#22c55e'); text('GREEN', 672, 156, { color: '#e2e8f0', size: 14 });
+      led(650, 200, t > 10.6, '#3b82f6'); text('BLUE', 672, 206, { color: '#e2e8f0', size: 14 });
+      door(780, 140, t > 7.1 && t < 10.6, '');
+      text('有 AMB82 板子的組別：板子燒 06_mqtt_actuator，', 630, 420, { color: '#cbd5e1', size: 12.5 });
+      text('broker 填筆電 IP，就會和虛擬裝置一起動', 630, 442, { color: '#cbd5e1', size: 12.5 });
+    }
+  };
+
+  const ORDER = ['d1_01', 'd1_02', 'd1_03', 'd1_04', 'd1_05', 'd1_06', 'd2_01a', 'd2_01b', 'd2_02', 'd2_03', 'd2_04', 'd2_05', 'd2_06'];
+  const NAMES = { d1_01: '拍照', d1_02: '串流', d1_03: '手機網頁', d1_04: '雲端上傳', d1_05: '錄影', d1_06: 'Telegram',
+    d2_01a: '移動偵測', d2_01b: 'QR 門禁', d2_02: '人臉門禁', d2_03: '電子圍籬', d2_04: '自訓模型', d2_05: '姿態', d2_06: '姿勢遙控' };
+
+  // ---------- 播放器 ----------
+  const el = id => document.getElementById(id);
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const state = { id: 'd1_01', t: 0, playing: !reduce, speed: 1, opts: {} };
+  let lastStep = -1, lastLogCount = -1, lastFrame = 0;
+
+  function buildButtons() {
+    const box = el('simScenes');
+    box.innerHTML = '';
+    ORDER.forEach(id => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'sim-scene' + (id === state.id ? ' on' : '');
+      b.textContent = (id.startsWith('d1') ? '1-' : '2-') + NAMES[id];
+      b.setAttribute('aria-pressed', id === state.id ? 'true' : 'false');
+      b.addEventListener('click', () => select(id));
+      box.appendChild(b);
+    });
+  }
+  function buildOpts() {
+    const sc = S[state.id], box = el('simOpts');
+    box.innerHTML = '';
+    state.opts = {};
+    (sc.opts || []).forEach(op => {
+      const lab = document.createElement('label');
+      const inp = document.createElement('input');
+      if (op.type === 'toggle') { inp.type = 'checkbox'; state.opts[op.id] = false; inp.addEventListener('change', () => { state.opts[op.id] = inp.checked; lastLogCount = -1; }); lab.append(inp, ' ' + op.label); }
+      else { inp.type = 'range'; inp.min = op.min; inp.max = op.max; inp.step = op.step; inp.value = op.value; state.opts[op.id] = op.value;
+        const out = document.createElement('output'); out.textContent = op.value;
+        inp.addEventListener('input', () => { state.opts[op.id] = +inp.value; out.textContent = inp.value; lastLogCount = -1; });
+        lab.append(op.label + '：', out, inp); }
+      box.appendChild(lab);
+    });
+    box.hidden = !(sc.opts || []).length;
+  }
+  function buildSteps() {
+    const sc = S[state.id];
+    el('simTitle').textContent = sc.title;
+    el('simSteps').innerHTML = sc.steps.map((s, i) => `<li data-i="${i}"><span class="st-t">${s[0].toFixed(1)}s</span>${s[1]}</li>`).join('');
+    lastStep = -1; lastLogCount = -1;
+  }
+  function select(id, t) {
+    state.id = id; state.t = t || 0;
+    buildButtons(); buildOpts(); buildSteps(); render();
+  }
+  function logsFor(sc) { return typeof sc.log === 'function' ? sc.log(state.opts) : (sc.log || []); }
+  function render() {
+    const sc = S[state.id];
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+    sc.draw(state.t, state.opts);
+    // 進度條
+    rr(0, H - 6, W, 6, 0, '#e2e8f0'); rr(0, H - 6, W * state.t / sc.dur, 6, 0, C.blue);
+    let si = 0; sc.steps.forEach((s, i) => { if (state.t >= s[0]) si = i; });
+    if (si !== lastStep) {
+      lastStep = si;
+      el('simSteps').querySelectorAll('li').forEach(li => li.classList.toggle('on', +li.dataset.i === si));
+      canvas.setAttribute('aria-label', sc.title + '：' + sc.steps[si][1]);
+      el('simNow').textContent = sc.steps[si][1];
+    }
+    const logs = logsFor(sc).filter(l => state.t >= l[0]);
+    if (logs.length !== lastLogCount) {
+      lastLogCount = logs.length;
+      el('simLog').textContent = logs.length ? logs.map(l => l[1]).join('\n') : '（終端機輸出會出現在這裡）';
+    }
+    el('simTime').textContent = state.t.toFixed(1) + ' / ' + sc.dur.toFixed(1) + ' 秒';
+  }
+  function tick(ts) {
+    const dt = lastFrame ? Math.min(0.1, (ts - lastFrame) / 1000) : 0;
+    lastFrame = ts;
+    if (state.playing && visible) {
+      state.t += dt * state.speed;
+      if (state.t >= S[state.id].dur) { state.t = 0; lastLogCount = -1; }
+      render();
+    }
+    requestAnimationFrame(tick);
+  }
+  let visible = true;
+  if ('IntersectionObserver' in window) new IntersectionObserver(es => es.forEach(e => { visible = e.isIntersecting; }), { threshold: 0.05 }).observe(canvas);
+
+  el('simPlay').addEventListener('click', () => { state.playing = !state.playing; el('simPlay').textContent = state.playing ? '⏸ 暫停' : '▶ 播放'; });
+  el('simRestart').addEventListener('click', () => { state.t = 0; lastLogCount = -1; render(); });
+  el('simBack').addEventListener('click', () => { state.t = Math.max(0, state.t - 1); lastLogCount = -1; render(); });
+  el('simFwd').addEventListener('click', () => { state.t = Math.min(S[state.id].dur - 0.01, state.t + 1); render(); });
+  el('simSpeed').addEventListener('change', e => { state.speed = +e.target.value; });
+  document.querySelectorAll('[data-sim]').forEach(b => b.addEventListener('click', () => {
+    select(b.dataset.sim); state.playing = true; el('simPlay').textContent = '⏸ 暫停';
+    root.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }));
+  window.addEventListener('resize', () => { fit(); render(); });
+
+  fit();
+  // 網址 #sim=d2_03@4.5 可以直接跳到某個情境的某一秒（截圖、上課投影用）
+  const m = /sim=([a-z0-9_]+)(?:@([\d.]+))?/.exec(location.hash);
+  if (m && S[m[1]]) { select(m[1], m[2] ? +m[2] : 0); if (m[2]) state.playing = false; } else select('d1_01');
+  el('simPlay').textContent = state.playing ? '⏸ 暫停' : '▶ 播放';
+  requestAnimationFrame(tick);
+  window.__labSim = { S, ORDER, select, state, render };
+})();
+
+</script>
+</body>
+</html>

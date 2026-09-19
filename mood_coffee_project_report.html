@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>【專題報告寫作範本】基於非接觸生理感知之智慧心情咖啡機｜AuraBrew</title>
+  <meta name="description" content="專題競賽書面報告寫作範本（非得獎作品，數據為示範值）：基於非接觸生理感知（rPPG微血管脈搏波與臉部表情分析）與自律神經醫學決策之智慧心情咖啡機（以台灣7-11 CITY CAFE為例）。">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- KaTeX for formulas -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+  <script>
+    function renderFormulas() {
+      if (typeof renderMathInElement === 'function') {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '$', right: '$', display: false}
+          ],
+          ignoredTags: ["script", "noscript", "style", "textarea", "pre", "code"],
+          throwOnError: false
+        });
+      }
+    }
+    window.addEventListener("DOMContentLoaded", () => {
+      setTimeout(renderFormulas, 100);
+      setTimeout(renderFormulas, 600);
+    });
+  </script>
+
+  <style>
+    :root {
+      --base-font-size: 18px;
+    }
+    body {
+      font-size: var(--base-font-size);
+      line-height: 1.8;
+      font-family: 'PingFang TC', 'Microsoft JhengHei', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #1e293b;
+      background-color: #f8fafc;
+    }
+    .paper-container {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #ffffff;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.06);
+      border-radius: 16px;
+    }
+    @media print {
+      body {
+        background: #ffffff;
+        font-size: 14pt;
+        line-height: 1.5;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .paper-container {
+        box-shadow: none;
+        max-width: 100%;
+        border-radius: 0;
+        padding: 0 !important;
+      }
+      .page-break {
+        page-break-before: always;
+      }
+    }
+    pre, code {
+      font-family: 'Fira Code', Consolas, Monaco, monospace;
+    }
+  </style>
+</head>
+<body class="antialiased">
+
+  <!-- 頂部導覽列 (不列印) -->
+  <nav class="no-print sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md text-white border-b border-slate-700 py-3 px-4 sm:px-8 shadow-md">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <a href="index.html" class="flex items-center space-x-2 text-amber-400 font-bold hover:text-amber-300 transition">
+          <i class="fa-solid fa-graduation-cap text-xl"></i>
+          <span class="text-base hidden sm:inline">簡老師教學網</span>
+        </a>
+        <span class="text-slate-500">/</span>
+        <a href="ai_vision_course_guide.html" class="text-slate-300 hover:text-white text-sm transition">
+          <i class="fa-solid fa-camera mr-1"></i>AI 視覺創客小學堂
+        </a>
+        <span class="text-slate-500">/</span>
+        <span class="text-amber-400 font-semibold text-sm flex items-center">
+          <i class="fa-solid fa-file-lines mr-1"></i>專題報告寫作範本
+        </span>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <!-- 字體縮放控制 -->
+        <div class="flex items-center bg-slate-800 rounded-lg p-1 border border-slate-700 text-xs">
+          <span class="px-2 text-slate-400"><i class="fa-solid fa-font mr-1"></i>字體:</span>
+          <button onclick="setFontSize('16px')" id="btn-f16" class="px-2 py-1 rounded text-slate-300 hover:bg-slate-700">小</button>
+          <button onclick="setFontSize('18px')" id="btn-f18" class="px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-bold">標準</button>
+          <button onclick="setFontSize('20px')" id="btn-f20" class="px-2 py-1 rounded text-slate-300 hover:bg-slate-700">大</button>
+          <button onclick="setFontSize('22px')" id="btn-f22" class="px-2 py-1 rounded text-slate-300 hover:bg-slate-700">特大</button>
+        </div>
+
+        <!-- 列印 / 複製報告 -->
+        <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition font-medium shadow">
+          <i class="fa-solid fa-print"></i><span>列印 / 匯出 PDF</span>
+        </button>
+        <button onclick="copyMarkdown()" id="btnCopyMd" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition font-medium shadow">
+          <i class="fa-solid fa-copy"></i><span>複製 Markdown 講義</span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 橫幅導引區 (不列印) -->
+  <div class="no-print bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 text-white py-6 px-4 mb-6 shadow-inner">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 bg-amber-500/20 text-amber-200 text-xs px-3 py-1 rounded-full border border-amber-400/30 mb-2 font-medium">
+          <i class="fa-solid fa-star"></i> 全國專題競賽 / 技專校院專題製作 / 中學生小論文 標準格式示範
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-black tracking-tight">AuraBrew：基於非接觸生理感知之智慧心情咖啡機</h1>
+        <p class="text-amber-100/90 text-sm mt-1">完整收錄研究動機、文獻醫學機轉、rPPG 演算法、7-11 決策矩陣、實測數據與結論</p>
+      </div>
+      <a href="#interactive-demo" class="shrink-0 bg-white text-slate-900 hover:bg-amber-100 font-bold px-4 py-2.5 rounded-xl shadow-lg transition text-sm flex items-center gap-2">
+        <i class="fa-solid fa-play text-amber-600"></i>立即體驗感測模擬器
+      </a>
+    </div>
+  </div>
+
+  <!-- 主要報告書本體 (紙本論文風格) -->
+  <main class="paper-container p-6 sm:p-12 mb-16 border border-slate-200">
+
+    <!-- 範本說明：非得獎作品、數據為示範值 -->
+    <div role="note" style="background:#fffbeb;border:2px solid #b45309;border-radius:12px;padding:1rem 1.25rem;margin-bottom:2rem;color:#78350f;line-height:1.75;">
+      <strong style="display:block;font-size:1.05rem;margin-bottom:0.25rem;">⚠️ 這是一份「寫作格式範本」</strong>
+      本報告用來示範專題競賽書面報告的架構（研究動機、文獻探討、方法、結果、結論），並非得獎作品。
+      文中的受試者人數、誤差值、相關係數、滿意度等數據皆為<strong>示範用數值</strong>，未實際進行受試者實驗，請勿引用。
+      同學撰寫自己的專題時，必須使用實際量測的數據；若實驗對象是人，也要先取得同意並注意安全（例如咖啡因攝取）。
+    </div>
+
+    <!-- 論文封面頁首 -->
+    <header class="border-b-2 border-slate-800 pb-8 mb-10 text-center">
+      <div class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
+        教育部全國高級中等學校專業群科 專題與創意製作競賽 示範專案
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 leading-tight mb-4">
+        基於非接觸生理感知與自律神經分析之智慧心情咖啡機
+      </h1>
+      <h2 class="text-lg sm:text-xl font-medium text-slate-600 mb-6">
+        ——以台灣連鎖超商（CITY CAFE / PRIMA）飲品決策為例
+      </h2>
+
+      <!-- 作者與指導單位 -->
+      <div class="flex flex-wrap justify-center items-center gap-4 sm:gap-8 text-sm text-slate-600 pt-4 border-t border-slate-100">
+        <div><span class="font-bold text-slate-800">參賽類別：</span>電機與資訊群（AIoT / 電腦視覺應用）</div>
+        <div><span class="font-bold text-slate-800">指導老師：</span>簡老師</div>
+        <div><span class="font-bold text-slate-800">專題團隊：</span>AI 視覺與智慧生活創客研發組</div>
+        <div><span class="font-bold text-slate-800">完成日期：</span>2026 年 9 月</div>
+      </div>
+    </header>
+
+    <!-- 互動式身心儀表板模擬體驗區 (網頁特有，列印時簡化) -->
+    <section id="interactive-demo" class="no-print bg-slate-900 text-white rounded-2xl p-6 mb-12 shadow-2xl border border-slate-800">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-4 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
+          <span class="font-bold text-amber-400 text-lg"><i class="fa-solid fa-mug-saucer mr-2"></i>AuraBrew 生理感知決策模擬器</span>
+        </div>
+        <span class="text-xs text-slate-400">點選身心狀態即時預覽推薦</span>
+      </div>
+
+      <!-- 狀態切換按鈕 -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+        <button onclick="simulateState('stressed')" id="btn-stressed" class="sim-btn bg-red-950/60 border border-red-500/40 hover:bg-red-900/80 p-3 rounded-xl text-left transition ring-2 ring-amber-400">
+          <div class="text-xs text-red-300 font-bold">🔥 狀態一</div>
+          <div class="font-black text-red-100 text-sm mt-1">高壓緊繃 / 心悸焦慮</div>
+          <div class="text-[11px] text-red-300/80 mt-1">HR: 96 BPM | 眉頭緊鎖</div>
+        </button>
+
+        <button onclick="simulateState('exhausted')" id="btn-exhausted" class="sim-btn bg-slate-800 border border-slate-700 hover:bg-slate-700 p-3 rounded-xl text-left transition">
+          <div class="text-xs text-amber-300 font-bold">🥱 狀態二</div>
+          <div class="font-black text-slate-100 text-sm mt-1">深層斷電 / 頻打哈欠</div>
+          <div class="text-[11px] text-slate-400 mt-1">HR: 62 BPM | 連續打哈欠</div>
+        </button>
+
+        <button onclick="simulateState('brainfog')" id="btn-brainfog" class="sim-btn bg-slate-800 border border-slate-700 hover:bg-slate-700 p-3 rounded-xl text-left transition">
+          <div class="text-xs text-yellow-300 font-bold">🍋 狀態三</div>
+          <div class="font-black text-slate-100 text-sm mt-1">午後腦霧 / 悶熱煩躁</div>
+          <div class="text-[11px] text-slate-400 mt-1">時間: 14:30 | 專注渙散</div>
+        </button>
+
+        <button onclick="simulateState('relaxed')" id="btn-relaxed" class="sim-btn bg-slate-800 border border-slate-700 hover:bg-slate-700 p-3 rounded-xl text-left transition">
+          <div class="text-xs text-emerald-300 font-bold">☕ 狀態四</div>
+          <div class="font-black text-slate-100 text-sm mt-1">放鬆優雅 / 靈感漫遊</div>
+          <div class="text-[11px] text-slate-400 mt-1">HR: 68 BPM | 微笑自律平衡</div>
+        </button>
+      </div>
+
+      <!-- 模擬儀表板即時資訊 -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6 bg-slate-950/80 p-5 rounded-xl border border-slate-800">
+        <div class="md:col-span-5 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-800 pb-4 md:pb-0 md:pr-4">
+          <div>
+            <div class="text-xs text-slate-400 uppercase tracking-widest font-mono">rPPG Real-time Vitals</div>
+            <div class="flex items-baseline gap-3 mt-2">
+              <span id="sim-bpm" class="text-4xl font-black text-red-400 font-mono">96</span>
+              <span class="text-sm text-slate-400">BPM (即時心率)</span>
+            </div>
+            <!-- 模擬脈衝波形動畫 -->
+            <div class="mt-3 h-10 bg-slate-900 rounded-lg flex items-center justify-between px-3 overflow-hidden border border-slate-800">
+              <div class="text-xs text-emerald-400 font-mono"><i class="fa-solid fa-heart-pulse mr-1"></i>Pulse Wave: Active</div>
+              <div class="flex items-end gap-1 h-6">
+                <span class="w-1 bg-emerald-400 h-2 animate-pulse"></span>
+                <span class="w-1 bg-emerald-400 h-5"></span>
+                <span class="w-1 bg-emerald-400 h-3"></span>
+                <span class="w-1 bg-emerald-400 h-6 animate-pulse"></span>
+                <span class="w-1 bg-emerald-400 h-4"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 space-y-2">
+            <div class="flex justify-between text-xs">
+              <span class="text-slate-400">壓力指數 (Stress Index)</span>
+              <span id="sim-si" class="font-bold text-red-400">78% (高壓警報)</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div id="sim-si-bar" class="bg-red-500 h-full transition-all duration-500" style="width: 78%"></div>
+            </div>
+
+            <div class="flex justify-between text-xs pt-1">
+              <span class="text-slate-400">疲勞計量 (Fatigue EAR/MAR)</span>
+              <span id="sim-fi" class="font-bold text-amber-400">42% (正常)</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+              <div id="sim-fi-bar" class="bg-amber-500 h-full transition-all duration-500" style="width: 42%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7-11 推薦品項與處方籤 -->
+        <div class="md:col-span-7 flex flex-col justify-between pl-0 md:pl-2">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="bg-amber-500 text-slate-950 font-black text-xs px-2 py-0.5 rounded">7-ELEVEN CITY 處方</span>
+              <span id="sim-rec-title" class="text-xs text-slate-300 font-semibold">交感神經高亢，嚴禁黑咖啡</span>
+            </div>
+            <div id="sim-rec-drink" class="text-2xl font-black text-amber-300">
+              熱【厚乳拿鐵】大杯
+            </div>
+            <div id="sim-rec-desc" class="text-sm text-slate-300 mt-2 leading-relaxed bg-slate-900/90 p-3 rounded-lg border border-slate-800">
+              加量 20% 乳量厚乳，提供溫熱絲滑包覆感。脂肪與蛋白質能延緩咖啡因吸收並保護胃黏膜，防止交感神經進一步引發心悸焦慮。
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-between pt-3 border-t border-slate-800/80">
+            <div class="text-xs text-slate-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-microchip text-indigo-400"></i>
+              <span>ESP32 邊緣指令：<code id="sim-cmd" class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-400 font-mono">CMD_DISPENSE: LATTE_HOT_L</code></span>
+            </div>
+            <span class="text-xs bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 px-2 py-0.5 rounded">
+              <i class="fa-solid fa-check mr-1"></i>致動備妥
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 【摘要】 -->
+    <section class="mb-10">
+      <div class="bg-slate-50 border-l-4 border-amber-500 p-6 rounded-r-xl">
+        <h2 class="text-xl font-bold text-slate-900 mb-3 flex items-center">
+          <i class="fa-solid fa-bookmark text-amber-500 mr-2"></i>【摘要】(Abstract)
+        </h2>
+        <p class="text-slate-700 leading-relaxed text-justify mb-4">
+          現代人生活節奏快速、高壓工時長，超商咖啡已成為不可或缺之精神支柱。然而消費者選購咖啡多依賴習慣或優惠促銷，常在高壓心悸時飲用高濃度黑咖啡導致焦慮胃痛，或在嗜睡低谷誤選低咖啡因飲品而無法提神。本研究成功開發一套<strong>「非接觸式身心生理感知智慧咖啡推薦系統（AuraBrew）」</strong>。系統利用平價 WebCam 鏡頭，結合<strong>遠端光電容積脈搏波技術（rPPG, Remote Photoplethysmography）</strong>，透過臉部微血管對綠光波長（530nm）之微弱吸收律動，在完全免接觸下提取即時心率（BPM）與自律神經變異度（HRV）；同時透過 MediaPipe 468 點人臉網格計算眼瞼長寬比（EAR）與嘴角張合度（MAR），精準捕捉打哈欠與微睡眠疲勞特徵；並整合毫米波雷達消除環境光抖動誤差。系統結合自律神經醫學與咖啡因腺苷阻斷藥理機制，精準對應台灣 7-ELEVEN（CITY CAFE / CITY PRIMA）實體飲品，並經由 ESP32 完成自動出杯閉環。經 30 位受試者進行醫用血氧儀對照，心率量測平均絕對誤差（MAE）僅 2.18 BPM，身心推薦滿意度達 89.4%，展現高實用性與商業落地價值。
+        </p>
+        <div class="text-sm text-slate-600">
+          <span class="font-bold text-slate-800">關鍵字：</span>
+          <span class="bg-white px-2 py-0.5 rounded border border-slate-200 mr-1.5">非接觸生理感測</span>
+          <span class="bg-white px-2 py-0.5 rounded border border-slate-200 mr-1.5">rPPG 視覺心率</span>
+          <span class="bg-white px-2 py-0.5 rounded border border-slate-200 mr-1.5">心率變異度 (HRV)</span>
+          <span class="bg-white px-2 py-0.5 rounded border border-slate-200 mr-1.5">咖啡因藥理學</span>
+          <span class="bg-white px-2 py-0.5 rounded border border-slate-200 mr-1.5">台灣 7-ELEVEN</span>
+          <span class="bg-white px-2 py-0.5 rounded border border-slate-200">邊緣 AIoT</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 壹、研究動機 -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-black text-slate-900 border-b pb-2 mb-4 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-amber-500 text-white inline-flex items-center justify-center text-base mr-3">壹</span>
+        研究動機 (Motivation)
+      </h2>
+      <div class="space-y-4 text-slate-700 leading-relaxed text-justify">
+        <p>
+          <strong>1. 台灣超商咖啡高度普及與盲目飲用現況：</strong><br>
+          依據台灣咖啡協會統計，台灣人每年飲用咖啡總量突破 28 億杯，平均每人每年超過 200 杯，其中以 7-ELEVEN 的 CITY CAFE 佔比最高。然而，絕大多數消費者進店點購時，僅取決於個人口味偏好或「買一送一」促銷，鮮少考量當下身體真正的生理耐受度。
+        </p>
+        <p>
+          <strong>2. 生理錯位引發之健康隱患：</strong><br>
+          當人處於交感神經高亢之緊繃狀態（心跳快、焦慮、收縮壓上升），此時胃酸分泌增多。若貿然飲用雙份高濃度黑美式，咖啡因將進一步刺激腎上腺素釋放，引發<strong>心悸、手抖、胃食道逆流與焦慮加劇</strong>；反之，若大腦已累積大量腺苷導致昏昏欲睡，卻誤點了含糖量高且咖啡因極低的風味調飲，則無法達成提神預期，陷入惡性疲憊。
+        </p>
+        <p>
+          <strong>3. 公共零售場域對「無接觸感測」之迫切需求：</strong><br>
+          傳統生理監測需配戴手環或夾指血氧儀，但在超商、企業休息區等高人流公共場所，配戴專用設備繁瑣且有衛生接觸疑慮。若能以平價 WebCam 鏡頭結合電腦視覺，做到「站到機台前 3 秒自動感應」，即可將冷冰冰的被動販賣機升級為「貼心懂你的專屬身心咖啡師」。
+        </p>
+      </div>
+    </section>
+
+    <!-- 貳、研究目的 -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-black text-slate-900 border-b pb-2 mb-4 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-amber-500 text-white inline-flex items-center justify-center text-base mr-3">貳</span>
+        研究目的 (Objectives)
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="font-bold text-slate-900 flex items-center gap-2 mb-1">
+            <i class="fa-solid fa-heart-pulse text-red-500"></i>1. 非接觸式 rPPG 視覺心率量測
+          </div>
+          <p class="text-sm text-slate-600">利用一般平價 WebCam，在 3 秒內透過綠光通道吸收率解算出心率（BPM）與自律神經平衡度（HRV）。</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="font-bold text-slate-900 flex items-center gap-2 mb-1">
+            <i class="fa-solid fa-face-tired text-amber-500"></i>2. 多模態疲勞特徵幾何模型
+          </div>
+          <p class="text-sm text-slate-600">透過 MediaPipe Face Mesh 計算眼瞼 EAR 與嘴角 MAR，量化微睡眠、打瞌睡與深層打哈欠頻率。</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="font-bold text-slate-900 flex items-center gap-2 mb-1">
+            <i class="fa-solid fa-wifi text-indigo-500"></i>3. 毫米波雷達微都卜勒環境補償
+          </div>
+          <p class="text-sm text-slate-600">整合 24GHz 毫米波雷達感測胸腔呼吸微動，消除暗室與環境光驟變之視覺干擾。</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="font-bold text-slate-900 flex items-center gap-2 mb-1">
+            <i class="fa-solid fa-store text-emerald-500"></i>4. 台灣 7-11 CITY CAFE 決策矩陣
+          </div>
+          <p class="text-sm text-slate-600">結合理論自律神經醫學與咖啡因藥理學，建立最符合真實零售品項之五大情境調飲對照表。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 參、文獻探討與理論依據 -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-black text-slate-900 border-b pb-2 mb-4 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-amber-500 text-white inline-flex items-center justify-center text-base mr-3">參</span>
+        文獻探討與理論基礎 (Literature Review)
+      </h2>
+      <div class="space-y-6 text-slate-700 leading-relaxed text-justify">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2"><i class="fa-solid fa-flask text-amber-600 mr-2"></i>1. 遠端光體積變化描記法（rPPG）之光學機制</h3>
+          <p>
+            根據 Verkruysse 等人（2008）的研究，環境光穿透人體皮膚淺層時，皮下微血管床在心臟收縮期注入富氧血紅素，對可見光中 <strong>530nm ~ 545nm（綠光波段）</strong> 的吸收係數顯著高於紅光與藍光。微血管隨心跳律動使綠光反射率產生週期性微幅震盪（振幅約 0.5%~1%）。透過 RGB 鏡頭綠色色版提取時序平均值 $G(t)$，並通過 4 階 Butterworth 帶通濾波（0.75Hz ~ 2.5Hz）與快速傅立葉轉換（FFT），即可準確擷取出主頻率 $f_{\max}$，推算出精確心率：
+          </p>
+          <div class="my-3 p-4 bg-slate-100 rounded-xl text-center font-mono text-base font-bold text-slate-800 border border-slate-200">
+            $$ \text{HR (BPM)} = f_{\max} \times 60 \quad (f \in [0.75\text{Hz}, 2.5\text{Hz}]) $$
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2"><i class="fa-solid fa-brain text-amber-600 mr-2"></i>2. 自律神經系統（ANS）與心率變異度（HRV）醫學機轉</h3>
+          <p>
+            自律神經系統分為負責「應激作戰」的交感神經（SNS）與「修養消化」的副交感神經（PNS）。當個體承受心理或生理重壓時，交感神經興奮，促使腎上腺素與皮質醇激增，心跳加快且相鄰心跳間隔（R-R Intervals）趨向僵硬規律，此時**心率變異度（HRV）大幅下降**。臨床醫學指出，處於低 HRV 且高心率之個體，若再給予大劑量刺激性中樞神經藥物（咖啡因），容易誘發急性心悸、震顫與恐慌。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2"><i class="fa-solid fa-mug-hot text-amber-600 mr-2"></i>3. 咖啡因之神經藥理學：腺苷受體（Adenosine Receptor）拮抗</h3>
+          <p>
+            Fredholm 等人（1999）指出，清醒時間越長，大腦星形膠質細胞分泌之「腺苷」累積越厚重，腺苷與 $A_1 / A_{2A}$ 受體結合後會發出強烈睏意訊號。咖啡因在化學結構上與腺苷高度同構，能穿透血腦屏障競爭性佔據受體，阻斷睡眠傳導路徑。因此在「嗜睡斷電」時，最需要的是<strong>高萃取濃度、無糖、低乳脂</strong>的純黑咖啡（如 7-11 濃萃美式），以最快速度完成受體佔位。
+          </p>
+        </div>
+
+        <div>
+          <h3 class="text-lg font-bold text-slate-900 mb-2"><i class="fa-solid fa-eye text-amber-600 mr-2"></i>4. 臉部幾何特徵疲勞指標：EAR 與 MAR</h3>
+          <p>
+            透過 MediaPipe Face Mesh 定位眼周與唇周網格關鍵點，計算幾何長寬比以量化疲憊：
+          </p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
+            <div class="p-4 bg-slate-100/90 rounded-xl text-center border border-slate-200 shadow-sm">
+              <div class="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                <i class="fa-solid fa-eye text-indigo-500 mr-1.5"></i>眼瞼長寬比 (Eye Aspect Ratio, EAR)
+              </div>
+              <div class="text-base sm:text-lg py-2 font-mono text-slate-900">
+                $$ \text{EAR} = \frac{|p_2 - p_6| + |p_3 - p_5|}{2 |p_1 - p_4|} $$
+              </div>
+              <div class="text-xs text-slate-600 mt-2 bg-white/90 py-1.5 px-3 rounded-lg inline-block border border-slate-200">
+                判定閾值：<span class="font-bold text-amber-700 font-mono">$\text{EAR} < 0.20$</span>（持續 1.5 秒判定為微睡眠）
+              </div>
+            </div>
+
+            <div class="p-4 bg-slate-100/90 rounded-xl text-center border border-slate-200 shadow-sm">
+              <div class="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">
+                <i class="fa-solid fa-face-tired text-amber-500 mr-1.5"></i>嘴巴張開度 (Mouth Aspect Ratio, MAR)
+              </div>
+              <div class="text-base sm:text-lg py-2 font-mono text-slate-900">
+                $$ \text{MAR} = \frac{|p_{\text{top}} - p_{\text{bottom}}|}{|p_{\text{left}} - p_{\text{right}}|} $$
+              </div>
+              <div class="text-xs text-slate-600 mt-2 bg-white/90 py-1.5 px-3 rounded-lg inline-block border border-slate-200">
+                判定閾值：<span class="font-bold text-amber-700 font-mono">$\text{MAR} > 0.65$</span>（持續 2.0 秒判定為打哈欠）
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 肆、研究器材與系統架構 -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-black text-slate-900 border-b pb-2 mb-4 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-amber-500 text-white inline-flex items-center justify-center text-base mr-3">肆</span>
+        研究器材與系統架構 (System Architecture)
+      </h2>
+      
+      <!-- 表格：軟硬體清單 -->
+      <div class="overflow-x-auto my-4">
+        <table class="w-full border-collapse border border-slate-200 text-sm">
+          <thead>
+            <tr class="bg-slate-100 text-slate-800 text-left">
+              <th class="border border-slate-200 p-2.5 font-bold">類別</th>
+              <th class="border border-slate-200 p-2.5 font-bold">設備 / 套件名稱</th>
+              <th class="border border-slate-200 p-2.5 font-bold">規格參數與作用</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            <tr>
+              <td class="border border-slate-200 p-2 font-semibold">視覺感測</td>
+              <td class="border border-slate-200 p-2">Logitech C920 Pro HD</td>
+              <td class="border border-slate-200 p-2">1080p @ 30FPS，固定自動曝光與白平衡以鎖定微血管光譜</td>
+            </tr>
+            <tr>
+              <td class="border border-slate-200 p-2 font-semibold">微動感測</td>
+              <td class="border border-slate-200 p-2">HLK-LD2410 毫米波雷達</td>
+              <td class="border border-slate-200 p-2">24GHz FMCW，偵測胸腔微米級起伏，作為環境暗室校正</td>
+            </tr>
+            <tr>
+              <td class="border border-slate-200 p-2 font-semibold">邊緣主控</td>
+              <td class="border border-slate-200 p-2">ESP32-WROOM-32</td>
+              <td class="border border-slate-200 p-2">雙核 240MHz，接收上位機 Python 指令驅動繼電器出杯</td>
+            </tr>
+            <tr>
+              <td class="border border-slate-200 p-2 font-semibold">致動改裝</td>
+              <td class="border border-slate-200 p-2">5V 繼電器模組 / 膠囊機</td>
+              <td class="border border-slate-200 p-2">光耦隔離，乾接點模擬咖啡機面板大杯/小杯實體按鍵</td>
+            </tr>
+            <tr>
+              <td class="border border-slate-200 p-2 font-semibold">演算法環境</td>
+              <td class="border border-slate-200 p-2">Python 3.10 + OpenCV + MediaPipe</td>
+              <td class="border border-slate-200 p-2">臉部 468 點定位、綠光信號濾波、FFT、疲勞幾何計算</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 伍、研究方法與 7-11 決策矩陣 -->
+    <section class="mb-10 page-break">
+      <h2 class="text-2xl font-black text-slate-900 border-b pb-2 mb-4 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-amber-500 text-white inline-flex items-center justify-center text-base mr-3">伍</span>
+        研究方法與 7-ELEVEN 調飲決策矩陣
+      </h2>
+
+      <p class="text-slate-700 leading-relaxed text-justify mb-4">
+        系統將感測端之即時心率（HR）、心率變異度（HRV）、打哈欠次數（MAR）、閉眼頻率（EAR）與當前時段整合，建立<strong>身心狀態專家決策矩陣</strong>，並精準對應至台灣 7-ELEVEN 實體販售之 CITY CAFE / CITY PRIMA 品項：
+      </p>
+
+      <!-- 核心決策表格 -->
+      <div class="overflow-x-auto shadow-sm rounded-xl border border-slate-200 my-4">
+        <table class="w-full border-collapse text-sm">
+          <thead class="bg-slate-800 text-white">
+            <tr>
+              <th class="p-3 text-left font-bold">身心判定類型</th>
+              <th class="p-3 text-left font-bold">生理特徵條件</th>
+              <th class="p-3 text-left font-bold">醫學藥理對策</th>
+              <th class="p-3 text-left font-bold">☕ 7-11 最佳推薦品項</th>
+              <th class="p-3 text-left font-bold">推薦規格與理由</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-200 text-slate-700">
+            <tr class="bg-red-50/40 hover:bg-red-50">
+              <td class="p-3 font-bold text-red-900">① 高壓緊繃型<br><span class="text-xs text-red-600 font-normal">火燒屁股 / 心悸焦慮</span></td>
+              <td class="p-3 font-mono text-xs">HR &gt; 90 BPM<br>低 HRV / 眉頭緊鎖</td>
+              <td class="p-3 text-xs">禁止高咖啡因黑咖啡；需高比例乳脂包覆胃壁，溫熱撫平交感神經</td>
+              <td class="p-3 font-bold text-slate-900">熱【厚乳拿鐵】<br><span class="text-xs font-normal text-slate-500">(備選: 熱燕麥拿鐵)</span></td>
+              <td class="p-3 text-xs">大杯/熱飲。加量 20% 乳香包覆，減少胃酸刺激，溫潤釋放壓力。</td>
+            </tr>
+            <tr class="bg-amber-50/40 hover:bg-amber-50">
+              <td class="p-3 font-bold text-amber-900">② 深層斷電型<br><span class="text-xs text-amber-600 font-normal">頻打哈欠 / 眼皮下垂</span></td>
+              <td class="p-3 font-mono text-xs">MAR &gt; 0.65 連續2次<br>EAR &lt; 0.20 (微睡眠)</td>
+              <td class="p-3 text-xs">腺苷受體大量堆積；需大劑量、無糖、高穿透力咖啡因強制重啟</td>
+              <td class="p-3 font-bold text-slate-900">大杯【濃萃美式】<br><span class="text-xs font-normal text-slate-500">(備選: 大杯濃萃拿鐵)</span></td>
+              <td class="p-3 text-xs">冰或熱/無糖。濃萃雙倍咖啡液，快速突破血腦屏障喚醒專注。</td>
+            </tr>
+            <tr class="bg-yellow-50/40 hover:bg-yellow-50">
+              <td class="p-3 font-bold text-yellow-900">③ 午後腦霧型<br><span class="text-xs text-yellow-600 font-normal">煩悶卡關 / 眼神渙散</span></td>
+              <td class="p-3 font-mono text-xs">時段 13:30~16:00<br>心率正常偏鈍/體感熱</td>
+              <td class="p-3 text-xs">午後低谷 (Post-lunch dip)；檸檬酸與微氣泡刺激三叉神經與嗅覺</td>
+              <td class="p-3 font-bold text-slate-900">冰【西西里檸檬氣泡咖啡】<br><span class="text-xs font-normal text-slate-500">(備選: 西西里檸檬咖啡)</span></td>
+              <td class="p-3 text-xs">特大杯/冰飲。屏東檸檬果酸刺激唾液分泌，瞬間驅散午後悶熱。</td>
+            </tr>
+            <tr class="bg-emerald-50/40 hover:bg-emerald-50">
+              <td class="p-3 font-bold text-emerald-900">④ 心情放鬆型<br><span class="text-xs text-emerald-600 font-normal">從容優雅 / 靈感漫遊</span></td>
+              <td class="p-3 font-mono text-xs">HR 65~75 BPM 平穩<br>嘴角微揚 / 自律平衡</td>
+              <td class="p-3 text-xs">自律神經平衡；嗅球與味蕾敏銳度處於顛峰，最適合品嚐單品層次</td>
+              <td class="p-3 font-bold text-slate-900">CITY PRIMA【精品美式】<br><span class="text-xs font-normal text-slate-500">(衣索比亞單品日曬豆)</span></td>
+              <td class="p-3 text-xs">中杯/熱飲。細品柑橘花果香酸質與回甘，享受極致風味層次。</td>
+            </tr>
+            <tr class="bg-slate-50 hover:bg-slate-100">
+              <td class="p-3 font-bold text-slate-800">⑤ 傍晚防失眠型<br><span class="text-xs text-slate-500 font-normal">下班時分 / 護胃舒緩</span></td>
+              <td class="p-3 font-mono text-xs">時間 &gt; 16:30<br>全日累積疲勞</td>
+              <td class="p-3 text-xs">咖啡因半衰期長達 5~7 小時；改用茶胺酸（L-Theanine）促進放鬆</td>
+              <td class="p-3 font-bold text-slate-900">現萃茶【熟成紅茶拿鐵】<br><span class="text-xs font-normal text-slate-500">(備選: 四季春青茶)</span></td>
+              <td class="p-3 text-xs">大杯/溫熱。茶香醇厚低負擔，保護夜間褪黑激素正常分泌。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 陸、研究過程與實做步驟 -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-black text-slate-900 border-b pb-2 mb-4 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-amber-500 text-white inline-flex items-center justify-center text-base mr-3">陸</span>
+        研究過程與實作步驟 (Implementation Steps)
+      </h2>
+
+      <div class="relative border-l-2 border-slate-300 ml-4 pl-6 space-y-6">
+        <div class="relative">
+          <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-amber-500 border-4 border-white"></div>
+          <h3 class="font-bold text-slate-900 text-base">步驟一：光學環境抗噪配置與 WebCam 白平衡校準</h3>
+          <p class="text-sm text-slate-600 mt-1">
+            設定鏡頭置於機台上方 55cm，視角俯角 12 度。使用 OpenCV 將自動曝光（Auto-Exposure）鎖定於固定快門值，關閉自動白平衡（AWB），避免相機韌體增益調整產生假性脈衝波。
+          </p>
+        </div>
+
+        <div class="relative">
+          <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-amber-500 border-4 border-white"></div>
+          <h3 class="font-bold text-slate-900 text-base">步驟二：Python 綠光通道動態提取與帶通濾波</h3>
+          <p class="text-sm text-slate-600 mt-1">
+            利用 MediaPipe 鎖定額頭與雙頰 3 處 ROI 區域，動態收集 150 幀（5 秒）綠光強度序列。實施 4 階 Butterworth 帶通濾波（0.75~2.5Hz），並以漢寧窗 FFT 計算峰值頻率，即時產出 BPM 心率。
+          </p>
+        </div>
+
+        <div class="relative">
+          <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-amber-500 border-4 border-white"></div>
+          <h3 class="font-bold text-slate-900 text-base">步驟三：賈維斯身心 GUI 介面與專家決策矩陣連動</h3>
+          <p class="text-sm text-slate-600 mt-1">
+            利用 CustomTkinter 開發高科技即時視覺儀表板，即時呈現人臉網格掃描線、脈搏波形、EAR/MAR 數值與 7-11 專屬卡片。
+          </p>
+        </div>
+
+        <div class="relative">
+          <div class="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-amber-500 border-4 border-white"></div>
+          <h3 class="font-bold text-slate-900 text-base">步驟四：ESP32 邊緣通訊與自動出杯閉環</h3>
+          <p class="text-sm text-slate-600 mt-1">
+            透過 PySerial 發送字元指令至 ESP32，ESP32 驅動繼電器閉合 0.8 秒觸發咖啡機按鈕，完成全自動出杯展示。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 柒、研究結果與效能分析 -->
+    <section class="mb-10 page-break">
+      <h2 class="text-2xl font-black text-slate-900 border-b pb-2 mb-4 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-amber-500 text-white inline-flex items-center justify-center text-base mr-3">柒</span>
+        研究結果與效能分析 (Results & Evaluation)
+      </h2>
+
+      <!-- 統計數據卡片 -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+          <div class="text-xs text-slate-500 font-bold uppercase">心率量測誤差 (MAE)</div>
+          <div class="text-3xl font-black text-slate-900 mt-1 font-mono">2.18 <span class="text-sm font-normal text-slate-500">BPM</span></div>
+          <div class="text-[11px] text-emerald-600 mt-1"><i class="fa-solid fa-circle-check mr-1"></i>媲美醫療指夾血氧儀</div>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+          <div class="text-xs text-slate-500 font-bold uppercase">皮爾森相關係數 (r)</div>
+          <div class="text-3xl font-black text-slate-900 mt-1 font-mono">0.963</div>
+          <div class="text-[11px] text-emerald-600 mt-1"><i class="fa-solid fa-chart-line mr-1"></i>極顯著高度正相關</div>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+          <div class="text-xs text-slate-500 font-bold uppercase">打哈欠精確度 (Precision)</div>
+          <div class="text-3xl font-black text-slate-900 mt-1 font-mono">95.2%</div>
+          <div class="text-[11px] text-indigo-600 mt-1"><i class="fa-solid fa-bullseye mr-1"></i>抗對話誤觸干擾</div>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
+          <div class="text-xs text-slate-500 font-bold uppercase">系統全流程響應時間</div>
+          <div class="text-3xl font-black text-slate-900 mt-1 font-mono">3.12 <span class="text-sm font-normal text-slate-500">秒</span></div>
+          <div class="text-[11px] text-amber-600 mt-1"><i class="fa-solid fa-bolt mr-1"></i>符合超商點餐容忍度</div>
+        </div>
+      </div>
+
+      <div class="space-y-4 text-slate-700 leading-relaxed text-justify text-sm">
+        <p>
+          <strong>1. 臨床級黃金標準對照實驗：</strong><br>
+          本專題招募 30 位受試者，佩戴通過衛生福利部醫療器材認證之指夾式血氧心率儀（作為黃金標準 Ground Truth）進行同步對比。在正常室內光照與靜止坐姿下，rPPG 演算法之平均絕對誤差（MAE）僅為 <strong>2.18 BPM</strong>，皮爾森相關係數高達 <strong>0.963</strong>，證明以一般平價鏡頭實現非接觸心率量測完全具備實用性。
+        </p>
+        <p>
+          <strong>2. 使用者雙盲滿意度調查：</strong><br>
+          將 30 位受試者進行隨機分組測試，飲用完推薦飲品 20 分鐘後進行回饋問卷：
+          <strong>89.4%</strong> 的受試者表示飲品與當下身心渴望高度相符；特別是處於高壓狀態的受試者，<strong>93.3%</strong> 對「及時阻擋高濃度黑咖啡並提供厚乳拿鐵」給予極高評價，有效避免了心悸與反胃現象。
+        </p>
+      </div>
+    </section>
+
+    <!-- 捌、結論與未來展望 -->
+    <section class="mb-10">
+      <h2 class="text-2xl font-black text-slate-900 border-b pb-2 mb-4 flex items-center">
+        <span class="w-8 h-8 rounded-lg bg-amber-500 text-white inline-flex items-center justify-center text-base mr-3">捌</span>
+        結論與未來展望 (Conclusion & Future Work)
+      </h2>
+      <div class="space-y-4 text-slate-700 leading-relaxed text-justify">
+        <p>
+          <strong>成果總結：</strong><br>
+          本研究成功研製「AuraBrew 非接觸生理感知智慧心情咖啡機」，完成<strong>「微血管視覺脈搏 rPPG + 臉部幾何疲勞 EAR/MAR + 毫米波環境校驗 + 7-11 自律神經藥理決策 + ESP32 出杯致動」</strong>的全閉環系統。本專題跳脫傳統單純看影像辨識物件的框架，深度結合醫學機轉與在地商業零售，是一套兼具學術厚度與市場落地潛力的完整專題典範。
+        </p>
+        <p>
+          <strong>未來展望：</strong><br>
+          未來可進一步對接 7-ELEVEN 之 <strong>OPENPOINT 會員 API</strong>，記錄使用者單日咖啡因累積攝取總量，當達到 300mg 上限時主動啟動安全機制改推無咖啡因國寶茶；同時將演算法蒸餾輕量化移植至 Raspberry Pi 5 邊緣盒，實現即插即用的全台超商咖啡機升級方案。
+        </p>
+      </div>
+    </section>
+
+    <!-- 玖、參考文獻 -->
+    <section class="mb-8 border-t pt-6">
+      <h2 class="text-xl font-bold text-slate-900 mb-4 flex items-center">
+        <i class="fa-solid fa-book-bookmark text-amber-500 mr-2"></i>參考文獻 (References)
+      </h2>
+      <ol class="list-decimal list-inside space-y-2 text-xs text-slate-600 font-mono leading-relaxed">
+        <li>Verkruysse, W., Svaasand, L. O., & Nelson, J. S. (2008). <i>Remote plethysmographic imaging using ambient light</i>. Optics Express, 16(26), 21434-21445.</li>
+        <li>Wang, W., den Brinker, A. C., Stuijk, S., & de Haan, G. (2016). <i>Algorithmic principles of remote PPG</i>. IEEE Transactions on Biomedical Engineering, 64(7), 1479-1491.</li>
+        <li>Nehlig, A., Daval, J. L., & Debry, G. (1992). <i>Caffeine and the central nervous system: mechanisms of action, biochemical, metabolic and psychostimulant effects</i>. Brain Research Reviews, 17(2), 139-170.</li>
+        <li>Fredholm, B. B., et al. (1999). <i>Actions of caffeine in the brain with special reference to factors that contribute to its widespread use</i>. Pharmacological Reviews, 51(1), 83-133.</li>
+        <li>Lugaresi, C., et al. (2019). <i>MediaPipe: A Framework for Building Perception Pipelines</i>. arXiv:1906.08172.</li>
+        <li>台灣咖啡協會 (2023)。《台灣咖啡產業市場白皮書與消費趨勢調研報告》。</li>
+        <li>統一超商 (2024)。《CITY CAFE / CITY PRIMA 官方產品履歷與咖啡因營養標示指南》。</li>
+      </ol>
+    </section>
+
+    <!-- 頁尾 -->
+    <footer class="border-t border-slate-200 pt-6 mt-10 text-center text-xs text-slate-400">
+      <p>© 2026 簡老師教學網・AI 視覺創客小學堂 專題競賽示範作品說明書</p>
+      <p class="mt-1">本示範專案遵循全國專題競賽格式標準，供各級學校師生教學研習、專題寫作與參賽觀摩使用。</p>
+    </footer>
+
+  </main>
+
+  <!-- 互動模擬器 Script -->
+  <script>
+    const states = {
+      stressed: {
+        bpm: 96,
+        si: '78% (高壓警報)',
+        siBar: '78%',
+        fi: '42% (正常)',
+        fiBar: '42%',
+        title: '交感神經高亢，嚴禁黑咖啡',
+        drink: '熱【厚乳拿鐵】大杯',
+        desc: '加量 20% 乳量厚乳，提供溫熱絲滑包覆感。脂肪與蛋白質能延緩咖啡因吸收並保護胃黏膜，防止交感神經進一步引發心悸焦慮。',
+        cmd: 'CMD_DISPENSE: LATTE_HOT_L'
+      },
+      exhausted: {
+        bpm: 62,
+        si: '35% (一般)',
+        siBar: '35%',
+        fi: '85% (重度嗜睡)',
+        fiBar: '85%',
+        title: '腺苷受體飽和，需高濃度咖啡因強行喚醒',
+        drink: '大杯【濃萃美式】(無糖/冰或熱)',
+        desc: '7-11 濃萃雙倍萃取濃縮液，富含充足咖啡因，以最快速度穿透血腦屏障競爭性佔領腺苷受體，快速重啟大腦專注力。',
+        cmd: 'CMD_DISPENSE: AMERICANO_STRONG_L'
+      },
+      brainfog: {
+        bpm: 72,
+        si: '55% (中度煩悶)',
+        siBar: '55%',
+        fi: '68% (午後低谷)',
+        fiBar: '68%',
+        title: '午後腦霧，需檸檬酸與冰涼氣泡喚醒神經',
+        drink: '冰【西西里風檸檬氣泡咖啡】',
+        desc: '屏東檸檬果酸強烈刺激味蕾分泌唾液，搭配微甜與清涼氣泡，能瞬間驅散午後悶熱，刺激三叉神經與大腦皮質。',
+        cmd: 'CMD_DISPENSE: SICILIAN_SPARKLING'
+      },
+      relaxed: {
+        bpm: 68,
+        si: '18% (極度放鬆)',
+        siBar: '18%',
+        fi: '20% (活力充沛)',
+        fiBar: '20%',
+        title: '自律神經黃金平衡，適合細品單品層次',
+        drink: 'CITY PRIMA【精品美式】(衣索比亞日曬)',
+        desc: '身心放鬆時嗅覺與味蕾最敏銳，適合品嚐 7-11 旗艦單品豆之柑橘、白花香氣與精緻果酸回甘，享受儀式感。',
+        cmd: 'CMD_DISPENSE: PRIMA_ETHIOPIA'
+      }
+    };
+
+    function simulateState(key) {
+      const data = states[key];
+      document.querySelectorAll('.sim-btn').forEach(b => {
+        b.classList.remove('ring-2', 'ring-amber-400');
+      });
+      document.getElementById('btn-' + key).classList.add('ring-2', 'ring-amber-400');
+
+      document.getElementById('sim-bpm').innerText = data.bpm;
+      document.getElementById('sim-si').innerText = data.si;
+      document.getElementById('sim-si-bar').style.width = data.siBar;
+      document.getElementById('sim-fi').innerText = data.fi;
+      document.getElementById('sim-fi-bar').style.width = data.fiBar;
+
+      document.getElementById('sim-rec-title').innerText = data.title;
+      document.getElementById('sim-rec-drink').innerText = data.drink;
+      document.getElementById('sim-rec-desc').innerText = data.desc;
+      document.getElementById('sim-cmd').innerText = data.cmd;
+    }
+
+    function setFontSize(size) {
+      document.documentElement.style.setProperty('--base-font-size', size);
+      localStorage.setItem('aura_font_size', size);
+      ['16px', '18px', '20px', '22px'].forEach(s => {
+        const btn = document.getElementById('btn-f' + s.replace('px', ''));
+        if (btn) {
+          if (s === size) {
+            btn.className = 'px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-bold';
+          } else {
+            btn.className = 'px-2 py-1 rounded text-slate-300 hover:bg-slate-700';
+          }
+        }
+      });
+    }
+
+    // 複製 Markdown
+    function copyMarkdown() {
+      const btn = document.getElementById('btnCopyMd');
+      const sampleText = `# 基於非接觸生理感知與自律神經分析之智慧心情咖啡機\n## ——以台灣連鎖超商飲品決策為例（專題競賽完整研究報告範本）\n\n詳細完整 Markdown 報告已收錄於教學資源包中！`;
+      navigator.clipboard.writeText(sampleText).then(() => {
+        btn.innerHTML = '<i class="fa-solid fa-check mr-1"></i>已複製講義大綱！';
+        setTimeout(() => {
+          btn.innerHTML = '<i class="fa-solid fa-copy mr-1"></i>複製 Markdown 講義';
+        }, 2500);
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedSize = localStorage.getItem('aura_font_size') || '18px';
+      setFontSize(savedSize);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# Node / Python / Dev
+node_modules/
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+
+# YouTube API 憑證（也不可放進任何 zip 打包檔）
+client_secrets.json
+yt_token.json
+
+# Claude Code 個人設定
+.claude/settings.local.json
+
+# 導盲磚專題：執行時產生的檔案
+tactile_paving_starter/output*/
+tactile_paving_starter/demo.mp4
+tactile_paving_starter/demo_config.json
+tactile_paving_starter/demo_ground_truth.csv
+tactile_paving_starter/yolo11n.pt
+
+# 警示帽專題：執行時產生的檔案
+headgear_assist_starter/logs/
+headgear_assist_starter/demo.mp4
+headgear_assist_starter/demo_sensor.csv
+headgear_assist_starter/yolo11n.pt
+
+# 自行車後方來車專題：執行時產生的檔案
+bike_rear_alert_starter/logs/
+bike_rear_alert_starter/output/
+bike_rear_alert_starter/yolo11n.pt
+# 學生拍的影片有車牌與路人，不可上傳（只保留說明檔）
+bike_rear_alert_starter/videos/*
+!bike_rear_alert_starter/videos/把影片放在這裡.txt
+
+# AirTouch 專題：執行時產生的檔案
+airtouch_starter/logs/
+airtouch_starter/output/
+airtouch_starter/models/
+airtouch_starter/data/
+
+# 加密網頁的未加密原始檔（只留在本機／雲端硬碟，不可上傳）
+_private/
+
+# AI 守望專題：執行時產生的檔案（事件截圖可能拍到人，不可上傳）
+ai_guardian_starter/events/
+ai_guardian_starter/system/events/
+ai_guardian_starter/yolov8n.pt
+ai_guardian_starter/.venv/
+ai_guardian_starter/output/
+ai_guardian_starter/logs/
+ai_guardian_starter/videos/*
+!ai_guardian_starter/videos/把影片放在這裡.txt

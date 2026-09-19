@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MegaWizard + AHDL 講義 | 數位乙級</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0f1117;--sf:#1a1d27;--sf2:#22263a;--bd:#2e3350;--a1:#6c63ff;--a2:#00d4aa;--yw:#fbbf24;--tx:#e8eaf0;--mu:#8b92a8;--cb:#141720;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;}
+header{background:linear-gradient(135deg,#1a1d27,#12152a);border-bottom:1px solid var(--bd);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:64px;position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:center;gap:12px;}.logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6c63ff,#00d4aa);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:1rem;font-weight:700;}.logo-sub{font-size:.7rem;color:var(--mu);}
+.back-btn{color:var(--mu);text-decoration:none;font-size:.9rem;font-weight:500;padding:7px 14px;border-radius:8px;border:1px solid var(--bd);transition:all .2s;}
+.back-btn:hover{color:var(--tx);background:var(--sf2);border-color:var(--a1);}
+.hero{background:linear-gradient(160deg,#12152a,#1a1d27,#0f1117);padding:52px 2rem 44px;text-align:center;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.4);color:#a89fff;border-radius:50px;padding:4px 14px;font-size:.78rem;font-weight:600;margin-bottom:16px;}
+.hero h1{font-size:clamp(1.5rem,3.5vw,2.4rem);font-weight:900;background:linear-gradient(135deg,#fff 30%,#a89fff 70%,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.25;margin-bottom:10px;}
+.hero-meta{color:var(--mu);font-size:.9rem;margin-bottom:28px;}
+.hero-pills{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;}
+.pill{background:var(--sf2);border:1px solid var(--bd);border-radius:50px;padding:5px 14px;font-size:.78rem;color:var(--mu);}
+.toc-wrap{max-width:1100px;margin:36px auto 0;padding:0 2rem;}
+.toc{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:20px 24px;}
+.toc h2{font-size:.88rem;font-weight:700;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;}
+.toc-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;}
+.toc-link{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;text-decoration:none;color:var(--mu);font-size:.86rem;transition:all .15s;border:1px solid transparent;}
+.toc-link:hover{color:var(--tx);background:var(--sf2);border-color:var(--bd);}
+.toc-num{width:22px;height:22px;border-radius:6px;background:linear-gradient(135deg,#6c63ff,#9c89ff);color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+main{max-width:1100px;margin:0 auto;padding:36px 2rem 80px;}
+.slide{background:var(--sf);border:1px solid var(--bd);border-radius:16px;margin-bottom:24px;overflow:hidden;scroll-margin-top:80px;}
+.slide-header{padding:18px 24px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:14px;}
+.slide-num{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#6c63ff,#9c89ff);display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:800;color:#fff;flex-shrink:0;}
+.slide-title{font-size:1.15rem;font-weight:800;}
+.slide-body{padding:22px 24px;}
+ul.sl{list-style:none;display:flex;flex-direction:column;gap:8px;}
+ul.sl li{display:flex;align-items:flex-start;gap:10px;font-size:.96rem;line-height:1.65;}
+ul.sl li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--a1);flex-shrink:0;margin-top:8px;}
+ol.sl{list-style:none;counter-reset:step;display:flex;flex-direction:column;gap:8px;}
+ol.sl li{display:flex;align-items:flex-start;gap:12px;font-size:.96rem;line-height:1.65;}
+ol.sl li::before{content:counter(step);counter-increment:step;min-width:22px;height:22px;border-radius:6px;background:var(--a2);color:#0f1117;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:4px;}
+.cb{background:var(--cb);border:1px solid var(--bd);border-radius:10px;padding:18px 20px;font-family:"Consolas","Courier New",monospace;font-size:.88rem;line-height:1.75;color:#c9d1d9;overflow-x:auto;white-space:pre;}
+.kw{color:#ff79c6;}.cmt{color:#6a7484;font-style:italic;}.num{color:#fbbf24;}
+.slbl{display:inline-flex;align-items:center;gap:6px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.3);color:#a89fff;border-radius:6px;padding:4px 10px;font-size:.78rem;font-weight:700;margin-bottom:10px;margin-top:6px;}
+.st{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:12px;}
+.st th,.st td{padding:9px 14px;text-align:center;border:1px solid var(--bd);}
+.st th{background:rgba(108,99,255,.12);color:#a89fff;font-weight:700;}
+.st tr:nth-child(even) td{background:rgba(255,255,255,.03);}
+.st td.key{font-weight:700;color:var(--a2);}
+.cov{text-align:center;padding:32px 24px;}
+.cov-title{font-size:1.6rem;font-weight:900;background:linear-gradient(135deg,#a89fff,#00d4aa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px;line-height:1.3;}
+.cov-meta p{color:var(--mu);font-size:.9rem;margin-bottom:6px;}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--sf2);border:1px solid var(--bd);border-radius:50px;padding:4px 14px;font-size:.82rem;margin:4px;}
+footer{text-align:center;padding:24px;border-top:1px solid var(--bd);color:var(--mu);font-size:.8rem;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="logo-icon">📘</div><div><div class="logo-text">MegaWizard + AHDL 講義</div><div class="logo-sub">數位電子乙級技術士</div></div></div>
+  <a href="index.html" target="_top" class="back-btn">← 返回教學首頁</a>
+</header>
+<div class="hero">
+  <div class="hero-badge">📄 投影片講義 HTML 版</div>
+  <h1>Altera MegaWizard + AHDL<br>七段顯示與鍵盤掃描實作</h1>
+  <p class="hero-meta">製作者：簡樹桐老師 ／ 市立楊梅高中 ｜ 數位邏輯與 CPLD 實作</p>
+  <div class="hero-pills">
+    <span class="pill">🔧 EPM3064LC44-10</span>
+    <span class="pill">⏱ CLK 4 MHz</span>
+    <span class="pill">🧩 MegaWizard 精靈</span>
+    <span class="pill">💻 AHDL 語言</span>
+    <span class="pill">📟 七段顯示器</span>
+    <span class="pill">⌨ 鍵盤掃描</span>
+  </div>
+</div>
+<div class="toc-wrap"><div class="toc"><h2>📋 目錄</h2><div class="toc-list">
+<a class="toc-link" href="#s1"><span class="toc-num">1</span>封面</a>
+<a class="toc-link" href="#s2"><span class="toc-num">2</span>整體架構說明</a>
+<a class="toc-link" href="#s3"><span class="toc-num">3</span>MegaWizard 元件設定</a>
+<a class="toc-link" href="#s4"><span class="toc-num">4</span>4 MHz 掃描頻率分析</a>
+<a class="toc-link" href="#s5"><span class="toc-num">5</span>鍵盤掃描的定義與原理</a>
+<a class="toc-link" href="#s6"><span class="toc-num">6</span>鍵盤掃描實體接線與順序</a>
+<a class="toc-link" href="#s7"><span class="toc-num">7</span>鍵盤掃描信號對應表</a>
+<a class="toc-link" href="#s8"><span class="toc-num">8</span>為什麼 q[13..10] 接到 LATCH4</a>
+<a class="toc-link" href="#s9"><span class="toc-num">9</span>鍵盤掃描對應與七段顯示</a>
+<a class="toc-link" href="#s10"><span class="toc-num">10</span>AHDL：7Asegment 程式</a>
+<a class="toc-link" href="#s11"><span class="toc-num">11</span>整體運作流程總結</a>
+</div></div></div><main>
+<div class="slide" id="s1"><div class="slide-header"><div class="slide-num">1</div><div class="slide-title">封面</div></div><div class="slide-body">
+<div class="cov"><div class="cov-title">Altera MegaWizard + AHDL<br>七段顯示與鍵盤掃描實作</div><div class="cov-meta"><p>🏫 製作者：簡樹桐老師 ／ 市立楊梅高中</p><p>📚 課程類別：數位邏輯與 CPLD 實作</p><p>🔧 晶片：EPM3064LC44-10 ｜ 時脈：4 MHz</p></div><div style="margin-top:20px;">
+<span class="chip">LPM_COUNTER (C12)</span>
+<span class="chip">LPM_DECODE (DECODE24)</span>
+<span class="chip">LPM_LATCH (LATCH4)</span>
+<span class="chip">7Asegment (AHDL 自建)</span>
+<span class="chip">OR3 / NOT 邏輯閘</span>
+</div></div>
+</div></div>
+<div class="slide" id="s2"><div class="slide-header"><div class="slide-num">2</div><div class="slide-title">整體架構說明</div></div><div class="slide-body">
+<ul class="sl">
+<li>C12：12位元遞增計數器，提供掃描節拍與顯示資料來源。</li>
+<li>q[11..10] → DECODE24 → R0~R3（鍵盤列掃描）。</li>
+<li>q[13..10] → LATCH4.data[3..0]（顯示資料輸入）。</li>
+<li>LATCH4.gate ← OR3(C0,C1,C2)（任一鍵按下鎖存）。</li>
+<li>LATCH4.q[3..0] → 7Asegment（AHDL自建七段顯示器）。</li>
+</ul>
+</div></div>
+<div class="slide" id="s3"><div class="slide-header"><div class="slide-num">3</div><div class="slide-title">MegaWizard 元件設定</div></div><div class="slide-body">
+<div class="slbl">🧩 C12 / LPM_COUNTER</div>
+<ul class="sl">
+<li>Data width = 12，Up Counter，開啟 clock、clk_en、q。</li>
+<li>clock ← CLK（4 MHz），clk_en ← NOT(外部使能)。</li>
+</ul>
+<div class="slbl">🧩 DECODE24 / LPM_DECODE</div>
+<ul class="sl">
+<li>LPM_WIDTH = 2，LPM_DECODES = 4。</li>
+<li>data[1..0] ← q[11..10] → eq0~eq3 → R0~R3。</li>
+</ul>
+<div class="slbl">🧩 LATCH4 / LPM_LATCH</div>
+<ul class="sl">
+<li>Data width = 4，啟用 gate（由 OR3 控制）。</li>
+<li>data[3..0] ← q[13..10]，輸出 q[3..0] → 7Asegment。</li>
+</ul>
+</div></div>
+<div class="slide" id="s4"><div class="slide-header"><div class="slide-num">4</div><div class="slide-title">4 MHz 掃描頻率分析</div></div><div class="slide-body">
+<ul class="sl">
+<li>q[11..10] 產生掃描頻率：4 MHz / 4096 ≈ 976 Hz。</li>
+<li>四列輪掃 → 每列約 976/4 ≈ 244 Hz。</li>
+<li>約 4 ms 完成一輪掃描，肉眼顯示穩定不閃爍。</li>
+<li>高位 (q[13..10]) 慢速變化，用於顯示資料或模擬鍵盤輸入。</li>
+</ul>
+</div></div>
+<div class="slide" id="s5"><div class="slide-header"><div class="slide-num">5</div><div class="slide-title">鍵盤掃描的定義與原理</div></div><div class="slide-body">
+<ul class="sl">
+<li>鍵盤掃描（Keyboard Scanning）是以行與列構成矩陣，透過控制端逐列輸出訊號、逐行讀取輸入狀態。</li>
+<li>每個交叉點有一顆按鍵，按下時導通列與行。</li>
+<li>控制端依序使每列為高，並偵測行端(C0~C2)是否為高來判斷按鍵。</li>
+<li>在乙級題中：</li>
+<li>R0~R3：由 DECODE24 提供掃描信號（高有效）。</li>
+<li>C0~C2：輸入端，未按時=0，按下導通=1。</li>
+<li>OR3(C0,C1,C2)：任一鍵按下即觸發 LATCH 鎖存資料。</li>
+<li>優點：節省I/O腳位、顯示穩定、可整合顯示與掃描。</li>
+</ul>
+</div></div>
+<div class="slide" id="s6"><div class="slide-header"><div class="slide-num">6</div><div class="slide-title">鍵盤掃描實體接線與順序</div></div><div class="slide-body">
+<ul class="sl">
+<li>掃描順序：147* → 2580 → 369#。</li>
+<li>R0~R3 為列輸出（由 DECODE24 控制，高有效）。</li>
+<li>C0~C2 為行輸入（預設接地，按下時導通=1）。</li>
+<li>OR3(C0,C1,C2)：任一鍵按下即觸發 LATCH4.gate。</li>
+</ul>
+<p style="color:var(--mu);margin-bottom:10px;font-size:.9rem;line-height:1.6;">C0 C1 C2 R0 R1 R2 R3</p>
+</div></div>
+<div class="slide" id="s7"><div class="slide-header"><div class="slide-num">7</div><div class="slide-title">鍵盤掃描信號對應表</div></div><div class="slide-body">
+<p style="color:var(--mu);margin-bottom:14px;font-size:.92rem;">由計數器位元 q[13..10] 產生掃描訊號，對應鍵盤矩陣表：</p>
+<table class="st"><thead><tr><th>q[13]</th><th>q[12]</th><th>q[11]</th><th>q[10]</th><th>掃描列</th><th>對應鍵位</th></tr></thead><tbody>
+<tr><td>0</td><td>0</td><td>0</td><td>0</td><td class="key">R0</td><td style="color:var(--a2);font-weight:700">1 (C0) ／ 2 (C1) ／ 3 (C2)</td></tr>
+<tr><td>0</td><td>1</td><td>0</td><td>1</td><td class="key">R1</td><td style="color:var(--a2);font-weight:700">4 (C0) ／ 5 (C1) ／ 6 (C2)</td></tr>
+<tr><td>1</td><td>0</td><td>1</td><td>0</td><td class="key">R2</td><td style="color:var(--a2);font-weight:700">7 (C0) ／ 8 (C1) ／ 9 (C2)</td></tr>
+<tr><td>1</td><td>1</td><td>1</td><td>1</td><td class="key">R3</td><td style="color:var(--a2);font-weight:700">* (C0) ／ 0 (C1) ／ # (C2)</td></tr>
+</tbody></table>
+</div></div>
+<div class="slide" id="s8"><div class="slide-header"><div class="slide-num">8</div><div class="slide-title">為什麼 q[13..10] 接到 LATCH4</div></div><div class="slide-body">
+<ul class="sl">
+<li>q[13..10] 為計數器高位，變化較慢，適合作為顯示資料來源。</li>
+<li>高位輸出每次組合代表不同4-bit資料（0000~1111）。</li>
+<li>當 OR3 為高時，LATCH4 鎖存該組資料 → 穩定顯示。</li>
+<li>q[13]/q[12] 亦可接至 C2/C1 模擬按鍵信號，自動觸發更新。</li>
+</ul>
+</div></div>
+<div class="slide" id="s9"><div class="slide-header"><div class="slide-num">9</div><div class="slide-title">鍵盤掃描對應與七段顯示</div></div><div class="slide-body">
+<p style="color:var(--mu);margin-bottom:14px;font-size:.92rem;">掃描列 (R0~R3) 與行 (C0~C2) 對應鍵位（矩陣鍵盤）：</p>
+<table class="st"><thead><tr><th>掃描列</th><th>C0</th><th>C1</th><th>C2</th></tr></thead><tbody>
+<tr><td class="key">R0</td><td style="color:var(--a2);font-weight:700">1</td><td style="color:var(--a2);font-weight:700">2</td><td style="color:var(--a2);font-weight:700">3</td></tr>
+<tr><td class="key">R1</td><td style="color:var(--a2);font-weight:700">4</td><td style="color:var(--a2);font-weight:700">5</td><td style="color:var(--a2);font-weight:700">6</td></tr>
+<tr><td class="key">R2</td><td style="color:var(--a2);font-weight:700">7</td><td style="color:var(--a2);font-weight:700">8</td><td style="color:var(--a2);font-weight:700">9</td></tr>
+<tr><td class="key">R3</td><td style="color:var(--a2);font-weight:700">*</td><td style="color:var(--a2);font-weight:700">0</td><td style="color:var(--a2);font-weight:700">#</td></tr>
+</tbody></table>
+<p style="color:var(--mu);margin-top:16px;margin-bottom:8px;font-size:.88rem;">AHDL 鍵值編碼對應（H"X"）：</p>
+<ul class="sl"><li>H"0"→1, H"1"→4, H"2"→7, H"3"→* （第一行）</li><li>H"4"→2, H"5"→5, H"6"→8, H"7"→0 （第二行）</li><li>H"8"→3, H"9"→6, H"A"→9, H"B"→# （第三行）</li></ul>
+</div></div>
+<div class="slide" id="s10"><div class="slide-header"><div class="slide-num">10</div><div class="slide-title">AHDL：7Asegment 程式</div></div><div class="slide-body">
+<div class="cb"><span class="kw">SUBDESIGN</span> 7Asegment
+(
+    i[3..0]        : <span class="kw">INPUT</span>;
+    a,b,c,d,e,f,g  : <span class="kw">OUTPUT</span>;
+)
+<span class="kw">BEGIN</span>
+    <span class="kw">TABLE</span> i[3..0] =&gt; a,b,c,d,e,f,g;
+        <span class="num">H"0"</span> =&gt; 1,0,0,1,1,1,1;  <span class="cmt">-- 按 &quot;1&quot; 顯示</span>
+        <span class="num">H"1"</span> =&gt; 1,0,0,1,1,0,0;  <span class="cmt">-- 按 &quot;4&quot; 顯示</span>
+        <span class="num">H"2"</span> =&gt; 0,0,0,1,1,1,1;  <span class="cmt">-- 按 &quot;7&quot; 顯示</span>
+        <span class="num">H"3"</span> =&gt; 1,1,1,0,0,1,0;  <span class="cmt">-- 按 &quot;*&quot; 顯示</span>
+        <span class="num">H"4"</span> =&gt; 0,0,1,0,0,1,0;  <span class="cmt">-- 按 &quot;2&quot; 顯示</span>
+        <span class="num">H"5"</span> =&gt; 0,1,0,0,1,0,0;  <span class="cmt">-- 按 &quot;5&quot; 顯示</span>
+        <span class="num">H"6"</span> =&gt; 0,0,0,0,0,0,0;  <span class="cmt">-- 按 &quot;8&quot; 顯示</span>
+        <span class="num">H"7"</span> =&gt; 0,0,0,0,0,0,1;  <span class="cmt">-- 按 &quot;0&quot; 顯示</span>
+        <span class="num">H"8"</span> =&gt; 0,0,0,0,1,1,0;  <span class="cmt">-- 按 &quot;3&quot; 顯示</span>
+        <span class="num">H"9"</span> =&gt; 1,1,0,0,0,0,0;  <span class="cmt">-- 按 &quot;6&quot; 顯示</span>
+        <span class="num">H"A"</span> =&gt; 0,0,0,1,1,0,0;  <span class="cmt">-- 按 &quot;9&quot; 顯示</span>
+        <span class="num">H"B"</span> =&gt; 1,1,0,0,1,1,0;  <span class="cmt">-- 按 &quot;#&quot; 顯示</span>
+    <span class="kw"><span class="kw">END</span> <span class="kw">TABLE</span></span>;
+<span class="kw">END</span>;</div>
+</div></div>
+<div class="slide" id="s11"><div class="slide-header"><div class="slide-num">11</div><div class="slide-title">整體運作流程總結</div></div><div class="slide-body">
+<ol class="sl">
+<li>C12 產生時脈（4 MHz）與高位資料來源 q[13..10]。</li>
+<li>q[11..10] 控制 DECODE24，依序掃描 R0 → R1 → R2 → R3。</li>
+<li>鍵盤輸入 C0~C2 回傳按鍵狀態（高有效）。</li>
+<li>任一鍵按下 → OR3=1 → 觸發 LATCH4.gate → 鎖存 q[13..10] 的資料。</li>
+<li>LATCH4 輸出 q[3..0] → 送入 7Asegment 解碼 → 七段顯示器輸出 a~g。</li>
+<li>顯示內容依鍵盤掃描更新，或模擬輸入持續自動變化。</li>
+</ol>
+</div></div>
+</main><footer>楊梅高中 實習處 ｜ 數位電子乙級 CPLD 教學資源 ｜ Altera Quartus II MegaWizard AHDL</footer></body></html>

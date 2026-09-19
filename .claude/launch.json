@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "stjweb",
+      "runtimeExecutable": "C:/Python314/python.exe",
+      "runtimeArgs": ["serve.py"],
+      "port": 18456
+    }
+  ]
+}

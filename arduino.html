@@ -1,0 +1,1566 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>楊梅高中 Arduino 模擬教學平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&family=Fira+Code:wght@400;600&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f0f4f8;
+        }
+
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        /* LED Styles */
+        .led {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #550000; /* Dark Red (Off) */
+            box-shadow: inset 2px 2px 5px rgba(0,0,0,0.5);
+            transition: background-color 0.05s, box-shadow 0.05s; /* Faster transition for PWM */
+        }
+        .led.on {
+            background-color: #ff3333; /* Bright Red (On) */
+            box-shadow: 0 0 10px #ff0000, inset 2px 2px 5px rgba(255,255,255,0.4);
+        }
+
+        /* PCB Board Effect */
+        .pcb-board {
+            background-color: #004d40; /* Dark Green/Blue PCB color */
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border: 4px solid #00332a;
+            border-radius: 10px;
+            box-shadow: 10px 10px 20px rgba(0,0,0,0.3);
+        }
+
+        /* Button Component */
+        .push-button {
+            width: 40px;
+            height: 40px;
+            background-color: #333;
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+        .push-button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 25px;
+            height: 25px;
+            background-color: #111;
+            border-radius: 50%;
+            border: 2px solid #555;
+            transition: transform 0.1s;
+        }
+        .push-button:active::after {
+            transform: translate(-50%, -50%) scale(0.9);
+            background-color: #000;
+        }
+
+        /* Buzzer Component */
+        .buzzer {
+            width: 40px;
+            height: 40px;
+            background-color: #222;
+            border-radius: 50%;
+            border: 4px solid #444;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10; /* Ensure buzzer is above background but notes pop out */
+        }
+        .buzzer::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background-color: #000;
+            border-radius: 50%;
+        }
+        .buzzer.active {
+            animation: vibrate 0.1s infinite;
+        }
+        @keyframes vibrate {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(1px, 1px); }
+            50% { transform: translate(-1px, -1px); }
+            75% { transform: translate(-1px, 1px); }
+            100% { transform: translate(1px, -1px); }
+        }
+
+        /* Musical Note Animation */
+        @keyframes floatNote {
+            0% { 
+                transform: translate(-50%, 0) scale(0.5); 
+                opacity: 0; 
+            }
+            20% { 
+                transform: translate(-50%, -15px) scale(1.2); 
+                opacity: 1; 
+            }
+            100% { 
+                transform: translate(calc(-50% + var(--tx)), -60px) rotate(var(--rot)) scale(0.8); 
+                opacity: 0; 
+            }
+        }
+
+        .note-visual {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            font-size: 24px;
+            font-weight: bold;
+            pointer-events: none;
+            animation: floatNote 1s ease-out forwards;
+            z-index: 20;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .nano-board {
+            background-color: #005f87; /* Blue PCB for Nano */
+        }
+        
+        .connector {
+            background-color: #silver;
+            background: linear-gradient(90deg, #999, #eee, #999);
+        }
+
+        /* Tab Styles */
+        .tab-btn {
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            border-bottom: 2px solid #3b82f6; /* Blue-500 */
+            color: #1d4ed8; /* Blue-700 */
+            font-weight: bold;
+        }
+        
+        /* Slide Styles */
+        .slide-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            border-left: 5px solid #3b82f6;
+        }
+        .slide-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.5rem;
+        }
+        .slide-content {
+            color: #4b5563;
+            line-height: 1.6;
+        }
+        .slide-content ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+        }
+        .highlight-box {
+            background-color: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.9em;
+            margin-top: 10px;
+            white-space: pre-wrap;
+        }
+
+    </style>
+</head>
+<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Left Panel: Code Editor -->
+    <div class="w-full md:w-1/2 flex flex-col border-r border-gray-300 bg-white h-1/2 md:h-full">
+        <div class="p-4 bg-gray-800 text-white flex justify-between items-center shadow-md">
+            <h2 class="text-lg font-bold flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-code"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                程式碼編輯器
+            </h2>
+            <div class="flex items-center space-x-2">
+                <select id="exampleSelector" onchange="loadExample(this.value)" class="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1.5 rounded border border-gray-600 focus:outline-none focus:border-blue-500 transition">
+                    <option value="" disabled selected>選擇範例...</option>
+                    <option value="blink">1. LED 流水燈範例</option>
+                    <option value="star">2. 小星星音樂範例</option>
+                    <option value="canon">3. 卡農音樂範例 (Canon)</option>
+                    <option value="joy">4. 快樂頌 + 隨機閃燈</option>
+                    <option value="elise">5. 給愛麗絲 + 隨機閃燈</option>
+                    <option value="sound_menu">6. 聲音模擬選單</option>
+                    <option value="breathing">7. 6顆 PWM 呼吸流水燈</option>
+                    <option value="castle">8. 天空之城 (Castle in the Sky)</option>
+                    <option value="mario">9. 超級瑪利歐 (Super Mario)</option>
+                    <option value="tetris">10. 俄羅斯方塊 (Tetris)</option>
+                    <option value="flag_song">11. 中華民國國旗歌 (National Banner Song)</option>
+                </select>
+                
+                <button id="runBtn" onclick="runCode()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-1 rounded flex items-center gap-2 transition font-bold shadow text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    執行
+                </button>
+                <button id="stopBtn" onclick="stopCode()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-1 rounded flex items-center gap-2 transition shadow disabled:opacity-50 text-sm" disabled>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+                    停止
+                </button>
+            </div>
+        </div>
+        <textarea id="codeEditor" class="flex-1 p-4 bg-gray-900 text-green-400 code-font text-sm resize-none focus:outline-none" spellcheck="false" placeholder="// 請在此貼上您的 Arduino 程式碼..."></textarea>
+        <div id="console" class="h-32 bg-black text-gray-300 code-font text-xs p-2 overflow-y-auto border-t border-gray-700">
+            <div class="text-yellow-500">系統準備就緒...</div>
+            <div class="text-gray-500">提示：請從上方選單選擇範例，或貼上您的程式碼。</div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Simulation Canvas & PDF -->
+    <div class="w-full md:w-1/2 bg-gray-100 flex flex-col h-1/2 md:h-full overflow-hidden">
+        
+        <!-- Header with Tabs -->
+        <div class="bg-white shadow-sm border-b border-gray-200">
+            <div class="p-4 pb-0">
+                <h1 class="text-xl font-bold text-gray-800">楊梅高中 Arduino 模擬教學平台</h1>
+                <p class="text-sm text-gray-600 mt-1 mb-2">
+                    包含：15 顆 LED (D2-D13, A0-A2)、2 顆按鈕 (A3, A4)、1 顆蜂鳴器 (A5)。
+                </p>
+                <!-- Tabs -->
+                <div class="flex space-x-6 text-sm">
+                    <button id="tab-sim-btn" onclick="switchTab('sim')" class="tab-btn active pb-2 px-1 text-gray-600 hover:text-blue-600">
+                        模擬實作 (Simulation)
+                    </button>
+                    <button id="tab-pdf-btn" onclick="switchTab('pdf')" class="tab-btn pb-2 px-1 text-gray-600 hover:text-blue-600">
+                        教學講義 (Lecture Slides)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation View -->
+        <div id="sim-view" class="flex-1 flex flex-col items-center justify-start p-4 bg-gray-200 overflow-y-auto">
+            <!-- PCB Layout -->
+            <div class="pcb-board p-6 relative w-full max-w-lg mx-auto transform transition hover:scale-[1.01] duration-300">
+                <!-- Board Title -->
+                <div class="absolute top-2 left-0 right-0 text-center pointer-events-none">
+                    <span class="text-white opacity-80 font-bold tracking-widest text-lg">YANG MEI SENIOR HIGH SCHOOL</span>
+                    <div class="text-xs text-yellow-400 opacity-70">ARDUINO TRAINING BOARD</div>
+                </div>
+
+                <!-- Main Arduino Nano Representation -->
+                <div class="nano-board w-40 h-16 mx-auto mt-8 mb-6 rounded shadow-lg flex items-center justify-center border-2 border-blue-900 relative">
+                    <div class="connector absolute left-[-10px] top-4 w-4 h-8 rounded-l border border-gray-500"></div> <!-- USB -->
+                    <span class="text-white text-xs font-bold">Arduino Nano (Simulated)</span>
+                    <div class="absolute -bottom-6 text-xs text-white opacity-50">MCU</div>
+                </div>
+
+                <!-- LED Array -->
+                <div class="bg-black/20 rounded-xl p-4 mb-6">
+                    <div class="text-white text-xs mb-2 text-center opacity-80">LED Output (Active HIGH)</div>
+                    <div class="flex flex-nowrap justify-center gap-1.5 overflow-x-auto" id="ledContainer">
+                        <!-- LEDs will be injected here by JS -->
+                    </div>
+                </div>
+
+                <!-- Bottom Peripherals -->
+                <div class="flex justify-between gap-4">
+                    
+                    <!-- Buttons -->
+                    <div class="bg-black/20 rounded-xl p-4 flex-1">
+                        <div class="text-white text-xs mb-2 text-center opacity-80">Buttons (A3, A4)</div>
+                        <div class="flex justify-center gap-6">
+                            <div class="flex flex-col items-center">
+                                <div class="push-button" id="btn-A3" onmousedown="setBtnState('A3', 0)" onmouseup="setBtnState('A3', 1)" onmouseleave="setBtnState('A3', 1)" ontouchstart="setBtnState('A3', 0)" ontouchend="setBtnState('A3', 1)"></div>
+                                <span class="text-white text-xs mt-1 font-mono">SW1 (A3)</span>
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <div class="push-button" id="btn-A4" onmousedown="setBtnState('A4', 0)" onmouseup="setBtnState('A4', 1)" onmouseleave="setBtnState('A4', 1)" ontouchstart="setBtnState('A4', 0)" ontouchend="setBtnState('A4', 1)"></div>
+                                <span class="text-white text-xs mt-1 font-mono">SW2 (A4)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Buzzer -->
+                    <div class="bg-black/20 rounded-xl p-4 flex-1 relative"> <!-- relative for notes -->
+                        <div class="text-white text-xs mb-2 text-center opacity-80">Buzzer (A5)</div>
+                        <div class="flex flex-col items-center relative" id="buzzer-container">
+                            <div class="buzzer" id="buzzer-A5"></div>
+                            <span class="text-white text-xs mt-1 font-mono z-10">Active High</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screws -->
+                <div class="absolute top-2 left-2 w-3 h-3 rounded-full bg-gray-400 border border-gray-600 shadow-inner"></div>
+                <div class="absolute top-2 right-2 w-3 h-3 rounded-full bg-gray-400 border border-gray-600 shadow-inner"></div>
+                <div class="absolute bottom-2 left-2 w-3 h-3 rounded-full bg-gray-400 border border-gray-600 shadow-inner"></div>
+                <div class="absolute bottom-2 right-2 w-3 h-3 rounded-full bg-gray-400 border border-gray-600 shadow-inner"></div>
+            </div>
+
+            <!-- AI Prompt Helper Section -->
+            <div id="promptBox" class="mt-6 w-full max-w-lg bg-white rounded-lg shadow-md border-l-4 border-purple-500 overflow-hidden">
+                <div class="bg-gray-50 p-3 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-700 flex items-center gap-2 text-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-purple-500"><path d="M12 2a8 8 0 0 1 8 8c0 3.1-1.6 5.7-4 7v3h-8v-3c-2.4-1.3-4-3.9-4-7a8 8 0 0 1 8-8z"/><path d="M9 22h6"/></svg>
+                        AI 生成提示語 (Prompt) 參考
+                    </h3>
+                    <button onclick="copyPrompt()" class="text-xs bg-white border border-gray-300 hover:bg-gray-100 px-2 py-1 rounded text-gray-600 transition flex items-center gap-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                        複製
+                    </button>
+                </div>
+                <div class="p-4 bg-gray-50">
+                    <div id="promptText" class="text-xs text-gray-600 font-mono bg-white p-3 rounded border border-gray-200 select-all whitespace-pre-wrap leading-relaxed">
+                        // 請選擇一個範例以查看對應的提示語...
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-2 text-right">💡 複製這段文字貼給 ChatGPT / Gemini，讓 AI 幫你寫程式！</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PDF / Lecture View (Digitized) -->
+        <div id="pdf-view" class="flex-1 flex flex-col items-center justify-start bg-gray-100 hidden relative h-full overflow-y-auto">
+            <div class="w-full bg-white p-2 border-b border-gray-200 flex justify-between items-center px-4 sticky top-0 z-20">
+                <span class="text-sm text-gray-600 font-bold">講義內容瀏覽 (Digitized Slides)</span>
+                <div>
+                    <input type="file" id="pdfInput" accept="application/pdf" class="hidden" onchange="loadPdfFromInput(this)">
+                    <button onclick="document.getElementById('pdfInput').click()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded text-sm flex items-center gap-2 transition opacity-70 hover:opacity-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                        載入原始 PDF
+                    </button>
+                </div>
+            </div>
+            
+            <div class="w-full relative">
+                <!-- If user loads PDF, iframe shows here -->
+                <iframe id="pdfFrame" class="w-full h-full border-none hidden absolute inset-0 z-10" src=""></iframe>
+                
+                <!-- Default Digitized Content -->
+                <div id="default-slides" class="w-full max-w-3xl mx-auto p-4 space-y-4 pb-20">
+                    
+                    <!-- Cover -->
+                    <div class="slide-card text-center border-l-8 border-blue-600">
+                        <h2 class="text-3xl font-bold mb-6 text-blue-800">均質化 AI 課程活動分享</h2>
+                        <div class="text-xl text-gray-700 font-medium">桃園市楊梅高中 簡樹桐</div>
+                        <div class="text-lg text-gray-500 mt-4">114年10月23日</div>
+                    </div>
+
+                    <!-- Intro -->
+                    <div class="slide-card">
+                        <h3 class="slide-title">Arduino IDE 介紹</h3>
+                        <div class="slide-content">
+                            <p>Arduino IDE (整合開發環境) 是撰寫、編譯與上傳 Arduino 程式的主要工具。</p>
+                            <br>
+                            <strong>特色：</strong>
+                            <ul>
+                                <li>支援多款開發板 (UNO、Nano、Mega、ESP32等)</li>
+                                <li>具備程式語法高亮與自動縮排功能</li>
+                                <li>一鍵編譯與上傳，操作簡單直覺</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Course Content -->
+                    <div class="slide-card">
+                        <h3 class="slide-title">課程內容</h3>
+                        <div class="slide-content">
+                            <ul>
+                                <li>Arduino IDE 開發工具介紹</li>
+                                <li>Arduino Nano 開發板介紹</li>
+                                <li>電路板上的周邊元件介紹 (LED, 按鈕, 蜂鳴器)</li>
+                                <li>使用 AI 聊天機器人 (ChatGPT, Copilot, Gemini) 輔助學習</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Setup -->
+                    <div class="slide-card">
+                        <h3 class="slide-title">開發環境設定重點</h3>
+                        <div class="slide-content">
+                            <p><strong>1. 選擇開發板：</strong></p>
+                            <div class="highlight-box">工具 > 開發板 > Arduino AVR Boards > Arduino Nano</div>
+                            <br>
+                            <p><strong>2. 選擇處理器 (重要！)：</strong></p>
+                            <div class="highlight-box text-red-600 font-bold">工具 > 處理器 > ATmega328P (Old Bootloader)</div>
+                            <p class="text-sm text-gray-500 mt-1">※ 若選錯 Bootloader 會導致無法上傳程式！</p>
+                            <br>
+                            <p><strong>3. 選擇序列埠：</strong></p>
+                            <div class="highlight-box">工具 > 序列埠 > 選擇對應的 COM Port</div>
+                        </div>
+                    </div>
+
+                    <!-- Hardware Map -->
+                    <div class="slide-card">
+                        <h3 class="slide-title">硬體腳位對照表 (Pinout)</h3>
+                        <div class="slide-content">
+                            <table class="w-full text-left border-collapse mt-2">
+                                <thead>
+                                    <tr class="bg-gray-100"><th class="p-2 border">元件</th><th class="p-2 border">腳位 (Pin)</th><th class="p-2 border">備註</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td class="p-2 border">LED (15顆)</td><td class="p-2 border text-blue-600 font-mono">D2 ~ D13, A0 ~ A2</td><td class="p-2 border">高電位 (HIGH) 點亮</td></tr>
+                                    <tr><td class="p-2 border">按鈕開關 (SW1)</td><td class="p-2 border text-blue-600 font-mono">A3</td><td class="p-2 border">按下為 LOW</td></tr>
+                                    <tr><td class="p-2 border">按鈕開關 (SW2)</td><td class="p-2 border text-blue-600 font-mono">A4</td><td class="p-2 border">按下為 LOW</td></tr>
+                                    <tr><td class="p-2 border">蜂鳴器 (Buzzer)</td><td class="p-2 border text-blue-600 font-mono">A5</td><td class="p-2 border">NPN 驅動，高電位發聲</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- AI Prompting Guide -->
+                    <div class="slide-card border-l-8 border-purple-500 bg-purple-50">
+                        <h3 class="slide-title text-purple-800">如何與 AI 機器人對話？ (關鍵參數)</h3>
+                        <div class="slide-content">
+                            <p>每次啟動新的 AI 對話時，請務必提供以下參數，AI 才能寫出正確的程式碼：</p>
+                            <div class="highlight-box bg-white border-purple-200 select-all">【Arduino 專案參數設定】
+- 控制板: Arduino Nano
+- LED: 15顆, 接在 D2~D13、A0~A2, 使用 digitalWrite(pin, HIGH) 點亮
+- 按鈕: 2顆, 分別接在 A3 與 A4, 按下為 LOW (低態)
+- BUZZER: 接在 A5, 使用 NPN 電晶體驅動, HIGH 發聲
+- 其餘腳位未使用, 請勿操作 D0, D1, A6, A7</div>
+                            <p class="text-sm text-gray-500 mt-2 text-right">💡 提示：您可以直接複製上方文字貼給 AI。</p>
+                        </div>
+                    </div>
+
+                    <!-- Student Persona Prompt -->
+                    <div class="slide-card border-l-8 border-green-500 bg-green-50">
+                        <h3 class="slide-title text-green-800">進階：讓 AI 當你的老師</h3>
+                        <div class="slide-content">
+                            <p>若希望 AI 給你更適合的練習題目，可以這樣說：</p>
+                            <div class="highlight-box bg-white border-green-200 select-all">我是一位國中三年級學生，希望透過 AI 學習 Arduino 程式設計。
+請根據上述硬體 (15 LED, 2 Btn, 1 Buzzer) 幫我設計幾個適合我的「有趣主題」，可以學到程式邏輯，也能讓硬體互動起來更生動有趣，謝謝！</div>
+                        </div>
+                    </div>
+
+                    <!-- Workflow -->
+                    <div class="slide-card">
+                        <h3 class="slide-title">學習流程 (SOP)</h3>
+                        <div class="slide-content">
+                            <ol class="list-decimal pl-5 space-y-2">
+                                <li><strong>複製程式碼</strong>：將 AI 提供的程式碼複製 (Ctrl+C)。</li>
+                                <li><strong>貼上程式碼</strong>：在 Arduino IDE 或本模擬器中貼上 (Ctrl+V)。</li>
+                                <li><strong>上傳/執行</strong>：按下上傳 (IDE) 或執行 (模擬器) 按鈕。</li>
+                                <li><strong>觀察結果</strong>：檢查 LED、聲音是否符合預期。</li>
+                                <li><strong>調整修正</strong>：若有問題，將錯誤訊息貼回給 AI，請它修正。</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Hardware State & Configuration ---
+        const pinMap = {
+            '2': 'D2', '3': 'D3', '4': 'D4', '5': 'D5', '6': 'D6', '7': 'D7',
+            '8': 'D8', '9': 'D9', '10': 'D10', '11': 'D11', '12': 'D12', '13': 'D13',
+            'A0': 'A0', 'A1': 'A1', 'A2': 'A2', '14': 'A0', '15': 'A1', '16': 'A2', // Aliases for A0-A2
+            'A3': 'A3', '17': 'A3', // Button 1
+            'A4': 'A4', '18': 'A4', // Button 2
+            'A5': 'A5', '19': 'A5'  // Buzzer
+        };
+
+        // Modified: Reversed the order of pins (A2 -> D2)
+        const ledPins = ['A2', 'A1', 'A0', 'D13', 'D12', 'D11', 'D10', 'D9', 'D8', 'D7', 'D6', 'D5', 'D4', 'D3', 'D2'];
+        const buttonPins = ['A3', 'A4'];
+        const buzzerPin = 'A5';
+
+        // State storage
+        let pins = {}; 
+        let isRunning = false;
+        let stopSignal = false;
+        let audioCtx = null;
+        // Audio engine upgraded to support polyphony
+        let activeOscillators = []; // Array of {osc, gain} objects
+        let gainNode = null;
+
+        // Initialize UI
+        function initBoard() {
+            const container = document.getElementById('ledContainer');
+            ledPins.forEach(pin => {
+                const wrap = document.createElement('div');
+                wrap.className = 'flex flex-col items-center';
+                
+                const led = document.createElement('div');
+                led.id = `led-${pin}`;
+                led.className = 'led';
+                
+                const label = document.createElement('span');
+                label.innerText = pin;
+                label.className = 'text-white text-[10px] mt-1 font-mono opacity-80';
+
+                wrap.appendChild(led);
+                wrap.appendChild(label);
+                container.appendChild(wrap);
+
+                // Initialize pin state
+                pins[pin] = 0; // 0 = LOW
+            });
+
+            // Init buttons (Default HIGH due to pull-up simulation usually, but PDF says "Pressed = LOW", so default is HIGH)
+            pins['A3'] = 1; 
+            pins['A4'] = 1;
+            pins['A5'] = 0;
+        }
+
+        initBoard();
+
+        // --- Core Simulation Functions (Exposed to "User Code") ---
+
+        const HIGH = 1;
+        const LOW = 0;
+        const OUTPUT = 1;
+        const INPUT = 0;
+        const INPUT_PULLUP = 2;
+
+        async function _delay(ms) {
+            if (stopSignal) throw new Error("Stopped");
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function _pinMode(pin, mode) {
+            logToConsole(`pinMode(${pin}, ${mode === 1 ? 'OUTPUT' : 'INPUT'})`);
+        }
+
+        function _digitalWrite(pin, val) {
+            if (stopSignal) throw new Error("Stopped");
+            let p = normalizePin(pin);
+            if (!p) return;
+            pins[p] = val;
+
+            // Visual Update
+            if (ledPins.includes(p)) {
+                const el = document.getElementById(`led-${p}`);
+                if (el) {
+                    // Reset any styles set by analogWrite
+                    el.style.backgroundColor = '';
+                    el.style.boxShadow = '';
+                    
+                    if (val === HIGH || val === true || val === 1) el.classList.add('on');
+                    else el.classList.remove('on');
+                }
+            }
+
+            if (p === buzzerPin) {
+                // If digital write high, play default 1000Hz tone
+                // Digital write implies single tone logic
+                if (val === HIGH) {
+                    stopTone(); // Clear any existing complex sounds
+                    playFreqs([1000]); // Default beep
+                } else {
+                    stopTone();
+                }
+            }
+        }
+
+        function _analogWrite(pin, val) {
+            if (stopSignal) throw new Error("Stopped");
+            let p = normalizePin(pin);
+            if (!p) return;
+            
+            // Clamp value
+            val = Math.max(0, Math.min(255, val));
+            pins[p] = val;
+
+            // Visual Update for PWM LED
+            if (ledPins.includes(p)) {
+                const el = document.getElementById(`led-${p}`);
+                if (el) {
+                    // Remove simple class 'on'
+                    el.classList.remove('on');
+                    
+                    // Interpolate colors for visual effect
+                    // OFF: #550000 (85, 0, 0)
+                    // ON:  #ff3333 (255, 51, 51)
+                    const ratio = val / 255;
+                    const r = Math.floor(85 + (255 - 85) * ratio);
+                    const gb = Math.floor(0 + 51 * ratio);
+                    
+                    el.style.backgroundColor = `rgb(${r}, ${gb}, ${gb})`;
+                    el.style.boxShadow = `0 0 ${10 * ratio}px #ff0000, inset 2px 2px 5px rgba(255,255,255,${0.4 * ratio})`;
+                }
+            }
+        }
+
+        function _digitalRead(pin) {
+            if (stopSignal) throw new Error("Stopped");
+            let p = normalizePin(pin);
+            return pins[p];
+        }
+
+        // Standard single tone
+        function _tone(pin, frequency, duration) {
+            if (stopSignal) throw new Error("Stopped");
+            let p = normalizePin(pin);
+            if (p === buzzerPin) {
+                stopTone(); // Monophonic behavior for standard tone()
+                playFreqs([frequency]);
+                if (duration && duration > 0) {
+                    setTimeout(() => {
+                        if (!stopSignal && isRunning) stopTone();
+                    }, duration);
+                }
+            }
+        }
+
+        // New Chord function
+        function _toneChord(pin, notes, count, duration) {
+            if (stopSignal) throw new Error("Stopped");
+            let p = normalizePin(pin);
+            if (p === buzzerPin) {
+                stopTone(); // Stop previous sound
+                // notes might be a JS array if passed from our transpiled vars
+                // or if passed manually.
+                // If count is provided, we assume notes is an array and use it (or slice it).
+                // But in JS, notes is just the array.
+                
+                if (Array.isArray(notes)) {
+                    playFreqs(notes);
+                } else {
+                    logToConsole("Error: toneChord expects an array of notes.");
+                }
+
+                if (duration && duration > 0) {
+                    setTimeout(() => {
+                        if (!stopSignal && isRunning) stopTone();
+                    }, duration);
+                }
+            }
+        }
+
+        function _noTone(pin) {
+            if (stopSignal) throw new Error("Stopped");
+            let p = normalizePin(pin);
+            if (p === buzzerPin) {
+                stopTone();
+            }
+        }
+
+        // Helper
+        function normalizePin(pin) {
+            let s = String(pin).toUpperCase();
+            if (pinMap[s]) return pinMap[s];
+            return s; 
+        }
+
+        function logToConsole(msg) {
+            const c = document.getElementById('console');
+            const l = document.createElement('div');
+            l.textContent = `> ${msg}`;
+            c.appendChild(l);
+            c.scrollTop = c.scrollHeight;
+        }
+
+        // --- Audio Logic ---
+        function updateBuzzerVisual(active) {
+            const el = document.getElementById(`buzzer-A5`);
+            if (active) {
+                if (!el.classList.contains('active')) el.classList.add('active');
+            } else {
+                if (el.classList.contains('active')) el.classList.remove('active');
+            }
+        }
+
+        function createNoteVisual(freq) {
+            const container = document.getElementById('buzzer-container');
+            const note = document.createElement('div');
+            note.className = 'note-visual';
+            note.innerText = ['♪', '♫', '♬', '♩'][Math.floor(Math.random() * 4)];
+            
+            // Randomize movement
+            const tx = (Math.random() - 0.5) * 40 + 'px';
+            const rot = (Math.random() - 0.5) * 30 + 'deg';
+            
+            note.style.setProperty('--tx', tx);
+            note.style.setProperty('--rot', rot);
+            // Color based on pitch? Random for now.
+            note.style.color = `hsl(${Math.random() * 360}, 100%, 70%)`;
+
+            container.appendChild(note);
+
+            // Cleanup
+            setTimeout(() => {
+                note.remove();
+            }, 1000);
+        }
+
+        // Play multiple frequencies at once
+        function playFreqs(freqs) {
+            updateBuzzerVisual(true);
+            
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            // Spawn visual notes (limit to 3 to avoid explosion)
+            let visualCount = Math.min(freqs.length, 3);
+            for(let i=0; i<visualCount; i++) createNoteVisual();
+
+            const now = audioCtx.currentTime;
+            
+            freqs.forEach(f => {
+                if (!f || f <= 0) return;
+
+                const osc = audioCtx.createOscillator();
+                osc.type = 'square'; // buzzer sound
+                osc.frequency.setValueAtTime(f, now);
+                
+                const gn = audioCtx.createGain();
+                // Lower volume for chords to avoid clipping
+                gn.gain.setValueAtTime(0.1 / Math.max(1, freqs.length), now); 
+                
+                osc.connect(gn);
+                gn.connect(audioCtx.destination);
+                osc.start();
+                
+                activeOscillators.push({osc: osc, gain: gn});
+            });
+        }
+
+        function stopTone() {
+            updateBuzzerVisual(false);
+            activeOscillators.forEach(item => {
+                try {
+                    item.osc.stop();
+                    item.osc.disconnect();
+                    item.gain.disconnect();
+                } catch(e){}
+            });
+            activeOscillators = [];
+        }
+
+        // --- User Interaction ---
+        function setBtnState(pin, state) {
+            pins[pin] = state;
+        }
+
+        // --- Code Transpiler & Runner ---
+        async function runCode() {
+            if (isRunning) return; 
+            
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const code = document.getElementById('codeEditor').value;
+            if (!code.trim()) {
+                alert("請輸入程式碼！");
+                return;
+            }
+
+            document.getElementById('runBtn').disabled = true;
+            document.getElementById('runBtn').classList.add('opacity-50');
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('stopBtn').classList.remove('opacity-50');
+            document.getElementById('exampleSelector').disabled = true;
+            
+            document.getElementById('console').innerHTML = '<div class="text-green-500">編譯中...</div>';
+            
+            try {
+                const jsCode = transpileArduinoToJS(code);
+                logToConsole("編譯成功，開始執行...");
+                
+                isRunning = true;
+                stopSignal = false;
+
+                const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+                // Removed A0-A7 from arguments to avoid conflict with user vars
+                const runFunc = new AsyncFunction(
+                    'delay', 'digitalWrite', 'analogWrite', 'digitalRead', 'pinMode', 'tone', 'toneChord', 'noTone', 'HIGH', 'LOW', 'OUTPUT', 'INPUT', 'INPUT_PULLUP', 'log', 'random', 'max', 'min', 'map', 'abs',
+                    jsCode
+                );
+
+                // Pass Math.random based helper for 'random'
+                const random = (min, max) => {
+                    if (max === undefined) { max = min; min = 0; }
+                    return Math.floor(Math.random() * (max - min)) + min;
+                };
+                
+                const max = Math.max;
+                const min = Math.min;
+                const abs = Math.abs;
+                
+                // Arduino map function: map(value, fromLow, fromHigh, toLow, toHigh)
+                const map = (x, in_min, in_max, out_min, out_max) => {
+                    return Math.floor((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min);
+                };
+
+                await runFunc(
+                    _delay, _digitalWrite, _analogWrite, _digitalRead, _pinMode, _tone, _toneChord, _noTone, HIGH, LOW, OUTPUT, INPUT, INPUT_PULLUP, logToConsole, random, max, min, map, abs
+                );
+
+            } catch (e) {
+                if (e.message === "Stopped") {
+                    logToConsole("程式已停止。");
+                } else {
+                    logToConsole(`錯誤: ${e.message}`);
+                    console.error(e);
+                }
+            } finally {
+                cleanup();
+            }
+        }
+
+        function stopCode() {
+            if (isRunning) {
+                stopSignal = true;
+                logToConsole("正在停止...");
+            }
+        }
+
+        function cleanup() {
+            isRunning = false;
+            stopTone();
+            document.getElementById('runBtn').disabled = false;
+            document.getElementById('runBtn').classList.remove('opacity-50');
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('stopBtn').classList.add('opacity-50');
+            document.getElementById('exampleSelector').disabled = false;
+            
+            document.getElementById(`buzzer-A5`).classList.remove('active');
+        }
+
+        function transpileArduinoToJS(code) {
+            let js = code;
+            const typePattern = /\b(void|int|long|float|double|bool|boolean|byte|char|String)\b/g;
+
+            // Handle #define constants (e.g., #define NOTE_B0 31 -> const NOTE_B0 = 31;)
+            js = js.replace(/#define\s+(\w+)\s+(.*)/g, 'const $1 = $2;');
+
+            // 1. Function Definitions
+            js = js.replace(/\b(void|int|long|float|double|bool|boolean|byte|char|String)\s+(\w+)\s*\(([^)]*)\)\s*\{/g, 
+                (match, retType, funcName, args) => {
+                    const cleanedArgs = args.replace(typePattern, '').trim();
+                    return `async function ${funcName}(${cleanedArgs}) {`;
+                }
+            );
+
+            // Handle sizeof array size calculation idiom
+            js = js.replace(/sizeof\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*\/\s*sizeof\s*\(\s*[a-zA-Z0-9_]+\s*\[\s*0\s*\]\s*\)/g, '$1.length'); 
+            js = js.replace(/sizeof\s*\(\s*([a-zA-Z0-9_]+)\s*\)\s*\/\s*sizeof\s*\(\s*[a-zA-Z0-9_]+\s*\)/g, '$1.length');
+            js = js.replace(/sizeof\s*\(\s*([a-zA-Z0-9_]+)\s*\)/g, '$1.length');
+
+            // Remove 'unsigned' to avoid syntax errors
+            js = js.replace(/\bunsigned\s+/g, '');
+
+            // 2. Variables
+            js = js.replace(/\b(int|long|float|double|bool|boolean|byte|char|String)\s+/g, 'var ');
+            js = js.replace(/\bconst\s+var\s+/g, 'const '); 
+
+            // 3. Arrays
+            // Handles both "var arr[]" and "const arr[]" by removing the brackets
+            js = js.replace(/(var|const)\s+([a-zA-Z0-9_]+)\s*\[[^\]]*\]/g, '$1 $2'); 
+            js = js.replace(/=\s*\{([^}]+)\}/g, '= [$1]');
+
+            // 4. Async Calls
+            js = js.replace(/\bdelay\s*\(/g, 'await delay(');
+            
+            // 5. User functions await injection
+            const userFuncRegex = /(?<!function\s+)(?<!await\s+)\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g;
+            const keywords = new Set(['if', 'for', 'while', 'switch', 'pinMode', 'digitalWrite', 'analogWrite', 'digitalRead', 'log', 'tone', 'toneChord', 'noTone', 'delay', 'setup', 'loop', 'random', 'max', 'min', 'map', 'abs']);
+            
+            js = js.replace(userFuncRegex, (match, funcName) => {
+                if (keywords.has(funcName)) return match;
+                return `await ${funcName}(`;
+            });
+
+            // 6. Serial
+            js = js.replace(/Serial\.println\s*\(/g, 'log(');
+            js = js.replace(/Serial\.print\s*\(/g, 'log(');
+            js = js.replace(/Serial\.begin\s*\(.*?\);/g, ''); 
+
+            // 7. Runner & Pin Definitions
+            const pinDefinitions = "var A0=14, A1=15, A2=16, A3=17, A4=18, A5=19, A6=20, A7=21; ";
+            
+            const mainRunner = `
+                try {
+                    if (typeof setup === 'function') await setup();
+                    if (typeof loop === 'function') {
+                        while(true) {
+                            if (stopSignal) break; 
+                            await loop();
+                            await delay(10); 
+                        }
+                    }
+                } catch (err) {
+                    log("Runtime Error: " + err.message);
+                    throw err;
+                }
+            `;
+            return pinDefinitions + js + mainRunner;
+        }
+
+        const examples = {
+            blink: `// 楊梅高中 15顆 LED 流水燈範例
+int ledPins[15] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, A0, A1, A2};
+int totalLEDs = 15;
+int delayTime = 100; 
+
+void setup() {
+  for (int i = 0; i < totalLEDs; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
+  pinMode(A5, OUTPUT);
+}
+
+void loop() {
+  for (int i = 0; i < totalLEDs; i++) {
+    turnOnSingleLED(i);
+    delay(delayTime);
+  }
+  
+  // 轉向音效
+  tone(A5, 2000, 100); 
+  delay(100);
+
+  for (int i = totalLEDs - 2; i > 0; i--) {
+    turnOnSingleLED(i);
+    delay(delayTime);
+  }
+}
+
+void turnOnSingleLED(int index) {
+  for (int i = 0; i < totalLEDs; i++) {
+    if (i == index) {
+        digitalWrite(ledPins[i], HIGH);
+    } else {
+        digitalWrite(ledPins[i], LOW);
+    }
+  }
+}`,
+            star: `// 小星星 (Twinkle Twinkle Little Star)
+// 使用 A5 蜂鳴器
+int buzzer = A5;
+
+// 音符頻率 (Hz)
+int C4 = 262;
+int D4 = 294;
+int E4 = 330;
+int F4 = 349;
+int G4 = 392;
+int NOTE_A4 = 440; // 改為 NOTE_A4 以避免與腳位 A4 衝突
+int B4 = 494;
+
+void setup() {
+  pinMode(buzzer, OUTPUT);
+}
+
+void loop() {
+  // 1 1 5 5 6 6 5 (一閃一閃亮晶晶)
+  playNote(C4, 500); playNote(C4, 500); 
+  playNote(G4, 500); playNote(G4, 500); 
+  playNote(NOTE_A4, 500); playNote(NOTE_A4, 500); 
+  playNote(G4, 1000);
+  
+  // 4 4 3 3 2 2 1 (滿天都是小星星)
+  playNote(F4, 500); playNote(F4, 500); 
+  playNote(E4, 500); playNote(E4, 500); 
+  playNote(D4, 500); playNote(D4, 500); 
+  playNote(C4, 1000);
+  
+  // 5 5 4 4 3 3 2 (掛在天上放光明)
+  playNote(G4, 500); playNote(G4, 500); 
+  playNote(F4, 500); playNote(F4, 500); 
+  playNote(E4, 500); playNote(E4, 500); 
+  playNote(D4, 1000);
+
+  // 5 5 4 4 3 3 2 (好像許多小眼睛)
+  playNote(G4, 500); playNote(G4, 500); 
+  playNote(F4, 500); playNote(F4, 500); 
+  playNote(E4, 500); playNote(E4, 500); 
+  playNote(D4, 1000);
+  
+  // 重複第一段
+  playNote(C4, 500); playNote(C4, 500); 
+  playNote(G4, 500); playNote(G4, 500); 
+  playNote(NOTE_A4, 500); playNote(NOTE_A4, 500); 
+  playNote(G4, 1000);
+  
+  playNote(F4, 500); playNote(F4, 500); 
+  playNote(E4, 500); playNote(E4, 500); 
+  playNote(D4, 500); playNote(D4, 500); 
+  playNote(C4, 1000);
+  
+  delay(2000);
+}
+
+void playNote(int note, int duration) {
+  tone(buzzer, note);
+  delay(duration);
+  noTone(buzzer);
+  delay(50); // 音符間的短暫間隔
+}`,
+            canon: `// 卡農 (Canon in D) - 完整版
+// 注意：本模擬器將 #define 轉為 int 以相容執行
+int NOTE_B2 = 123;
+int NOTE_E3 = 165;
+int NOTE_G4 = 392;
+int NOTE_C5 = 523;
+int NOTE_E5 = 659;
+int NOTE_B4 = 494;
+int NOTE_D5 = 587;
+int NOTE_C3 = 131;
+int NOTE_E4 = 330;
+int NOTE_A4 = 440;
+int NOTE_G2 = 98;
+int NOTE_A2 = 110;
+int NOTE_C4 = 262;
+int NOTE_F4 = 349;
+int NOTE_E1 = 41;
+int NOTE_D4 = 294;
+int NOTE_B3 = 247;
+int NOTE_F5 = 698;
+int NOTE_G5 = 784;
+int NOTE_A3 = 220;
+
+int buzzer = A5;
+int ledPins[15] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, A0, A1, A2};
+
+int CanonTone[] = {  
+  NOTE_E3, NOTE_G4, NOTE_C5, NOTE_E5, NOTE_B2, NOTE_G4, NOTE_B4, NOTE_D5,      
+  NOTE_C3, NOTE_E4, NOTE_A4, NOTE_C5, NOTE_G2, NOTE_E4, NOTE_G4, NOTE_B4,  
+  NOTE_A2, NOTE_C4, NOTE_F4, NOTE_A4, NOTE_E1, NOTE_C4, NOTE_E4, NOTE_G4,  
+  NOTE_A2, NOTE_D4, NOTE_F4, NOTE_A4, NOTE_B2, NOTE_D4, NOTE_G4, NOTE_B4,  
+  NOTE_E3, NOTE_E5, NOTE_F5, NOTE_G5, NOTE_E5, NOTE_F5, NOTE_G5, NOTE_G4, NOTE_A4, NOTE_B4, NOTE_C5, NOTE_D5, NOTE_E5, NOTE_F5,    
+  NOTE_E5, NOTE_C5, NOTE_D5, NOTE_E5, NOTE_E4, NOTE_F4, NOTE_G4, NOTE_A4, NOTE_G4, NOTE_F4, NOTE_G4, NOTE_F4, NOTE_F4, NOTE_G4,    
+  NOTE_F4, NOTE_A4, NOTE_G4, NOTE_F4, NOTE_E4, NOTE_D4, NOTE_E4, NOTE_D4, NOTE_C4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_G4, NOTE_A4,    
+  NOTE_F4, NOTE_A4, NOTE_G4, NOTE_A4, NOTE_B4, NOTE_C5, NOTE_G4, NOTE_A4, NOTE_B4, NOTE_C5, NOTE_D5, NOTE_E5, NOTE_F5, NOTE_G5,  
+  NOTE_E5, NOTE_C5, NOTE_D5, NOTE_E5, NOTE_D5, NOTE_C5, NOTE_D5, NOTE_B4, NOTE_C5, NOTE_D5, NOTE_E5, NOTE_D5, NOTE_C5, NOTE_B4,  
+  NOTE_C5, NOTE_A4, NOTE_B4, NOTE_C5, NOTE_C4, NOTE_D4, NOTE_E4, NOTE_F4, NOTE_E4, NOTE_D4, NOTE_E4, NOTE_C5, NOTE_B4, NOTE_C5,  
+  NOTE_A4, NOTE_C5, NOTE_B4, NOTE_A4, NOTE_G4, NOTE_F4, NOTE_G4, NOTE_F4, NOTE_E4, NOTE_F4, NOTE_G4, NOTE_A4, NOTE_B4, NOTE_C5,  
+  NOTE_A4, NOTE_C5, NOTE_B4, NOTE_C5, NOTE_B4, NOTE_A4, NOTE_B4, NOTE_C5, NOTE_D5, NOTE_C5, NOTE_B4, NOTE_C5, NOTE_A4, NOTE_B4,  
+  NOTE_C5, 0 
+}; 
+
+int noteDurations[] = {  
+  8, 8, 8, 8, 8, 8, 8, 8,  
+  8, 8, 8, 8, 8, 8, 8, 8,   
+  8, 8, 8, 8, 8, 8, 8, 8,   
+  8, 8, 8, 8, 8, 8, 8, 8,   
+  8,16,16,8,16,16,16,16,16,16,16,16,16, 16,  
+  8,16,16,8,16,16,16,16,16,16,16,16,16, 16,  
+  8,16,16,8,16,16,16,16,16,16,16,16,16, 16,  
+  8,16,16,8,16,16,16,16,16,16,16,16,16, 16,  
+  8,16,16,8,16,16,16,16,16,16,16,16,16, 16,  
+  8,16,16,8,16,16,16,16,16,16,16,16,16, 16,  
+  8,16,16,8,16,16,16,16,16,16,16,16,16, 16,  
+  8,16,16,8,16,16,16,16,16,16,16,16,16, 16,  
+  2, 2
+};
+
+void setup() {
+  pinMode(buzzer, OUTPUT);
+  for (int i = 0; i < 15; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
+}
+
+void loop() {
+  for (int thisNote = 0; thisNote < 146; thisNote++) {
+    int noteDuration = 1000 / noteDurations[thisNote];
+    
+    // 依節奏輪流閃爍 15 顆 LED
+    int ledIndex = thisNote % 15;
+    digitalWrite(ledPins[ledIndex], HIGH);
+
+    if (CanonTone[thisNote] > 0) {
+      tone(buzzer, CanonTone[thisNote], noteDuration);
+    }
+    
+    delay(noteDuration * 1.30);
+    digitalWrite(ledPins[ledIndex], LOW);
+    noTone(buzzer);
+  }
+  delay(5000);
+}
+`,
+            joy: `// 快樂頌 (Ode to Joy) + 隨機閃燈
+int buzzer = A5;
+int ledPins[15] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, A0, A1, A2};
+
+int E4 = 330;
+int F4 = 349;
+int G4 = 392;
+int C4 = 262;
+int D4 = 294;
+
+int melody[] = {
+  E4, E4, F4, G4, G4, F4, E4, D4, C4, C4, D4, E4, E4, D4, D4,
+  E4, E4, F4, G4, G4, F4, E4, D4, C4, C4, D4, E4, D4, C4, C4
+};
+
+int beats[] = {
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 8, 2,
+  4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 8, 2
+};
+
+void setup() {
+  pinMode(buzzer, OUTPUT);
+  for (int i = 0; i < 15; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
+}
+
+void loop() {
+  int size = 30;
+  for (int i = 0; i < size; i++) {
+    int duration = 1200 / beats[i];
+    
+    // 隨機點亮一顆 LED
+    int randLed = random(0, 15);
+    digitalWrite(ledPins[randLed], HIGH);
+    
+    tone(buzzer, melody[i], duration);
+    delay(duration * 1.2);
+    
+    digitalWrite(ledPins[randLed], LOW);
+    noTone(buzzer);
+  }
+  delay(2000);
+}
+`,
+            elise: `// 給愛麗絲 (Für Elise) + 隨機閃燈
+int buzzer = A5;
+int ledPins[15] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, A0, A1, A2};
+
+int E5 = 659;
+int DS5 = 622;
+int B4 = 494;
+int D5 = 587;
+int C5 = 523;
+int NOTE_A4 = 440;
+int C4 = 262;
+int E4 = 330;
+int GS4 = 415;
+
+int melody[] = {
+  E5, DS5, E5, DS5, E5, B4, D5, C5, NOTE_A4,
+  0, C4, E4, NOTE_A4, B4,
+  0, E4, GS4, B4, C5
+};
+
+int beats[] = {
+  8, 8, 8, 8, 8, 8, 8, 8, 4,
+  8, 8, 8, 8, 4,
+  8, 8, 8, 8, 4
+};
+
+void setup() {
+  pinMode(buzzer, OUTPUT);
+  for (int i = 0; i < 15; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
+}
+
+void loop() {
+  int size = 19;
+  for (int i = 0; i < size; i++) {
+    int duration = 1000 / beats[i];
+    if (melody[i] > 0) {
+      int randLed = random(0, 15);
+      digitalWrite(ledPins[randLed], HIGH);
+      
+      tone(buzzer, melody[i], duration);
+      delay(duration * 1.25);
+      
+      digitalWrite(ledPins[randLed], LOW);
+    } else {
+      delay(duration);
+    }
+  }
+  delay(1500);
+}
+`,
+            sound_menu: `// 聲音模擬選單 (按鈕選擇播放不同音效)
+int buzzer = A5;
+int sw1 = A3;
+int sw2 = A4;
+int ledPins[15] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, A0, A1, A2};
+
+void setup() {
+  pinMode(buzzer, OUTPUT);
+  pinMode(sw1, INPUT_PULLUP);
+  pinMode(sw2, INPUT_PULLUP);
+  for(int i = 0; i < 15; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
+}
+
+void loop() {
+  // 偵測 SW1 (A3) 按下
+  if (digitalRead(sw1) == LOW) {
+    // 點亮左側 7 顆 LED
+    for(int i=0; i<7; i++) digitalWrite(ledPins[i], HIGH);
+    
+    // 嗶嗶聲
+    for(int i=0; i<3; i++) {
+      tone(buzzer, 1500, 100);
+      delay(150);
+    }
+    
+    for(int i=0; i<7; i++) digitalWrite(ledPins[i], LOW);
+    delay(300);
+  }
+  
+  // 偵測 SW2 (A4) 按下
+  if (digitalRead(sw2) == LOW) {
+    // 點亮右側 8 顆 LED
+    for(int i=7; i<15; i++) digitalWrite(ledPins[i], HIGH);
+    
+    // 警報音效
+    for (int freq = 500; freq < 1500; freq += 50) {
+      tone(buzzer, freq, 20);
+      delay(20);
+    }
+    for (int freq = 1500; freq > 500; freq -= 50) {
+      tone(buzzer, freq, 20);
+      delay(20);
+    }
+    
+    for(int i=7; i<15; i++) digitalWrite(ledPins[i], LOW);
+    delay(300);
+  }
+}
+`,
+            breathing: `// 6顆 PWM 呼吸流水燈 (使用 analogWrite)
+int pwmPins[6] = {3, 5, 6, 9, 10, 11};
+
+void setup() {
+  for (int i = 0; i < 6; i++) {
+    pinMode(pwmPins[i], OUTPUT);
+  }
+}
+
+void loop() {
+  for (int i = 0; i < 6; i++) {
+    // 漸亮
+    for (int val = 0; val <= 255; val += 15) {
+      analogWrite(pwmPins[i], val);
+      delay(20);
+    }
+    // 漸暗
+    for (int val = 255; val >= 0; val -= 15) {
+      analogWrite(pwmPins[i], val);
+      delay(20);
+    }
+    analogWrite(pwmPins[i], 0); // 確保完全關閉
+    delay(100);
+  }
+}
+`,
+            castle: `// 天空之城 (Castle in the Sky - 久石讓官方五線譜完整對照版)
+// 根據五線譜五線節拍與音高 100% 精準轉寫
+int NOTE_E4 = 330, NOTE_F4 = 349, NOTE_FS4 = 370, NOTE_G4 = 392, NOTE_GS4 = 415;
+int NOTE_A4 = 440, NOTE_B4 = 494, NOTE_C5 = 523, NOTE_D5 = 587, NOTE_E5 = 659, NOTE_F5 = 698, NOTE_G5 = 784;
+
+int buzzer = A5;
+int ledPins[15] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, A0, A1, A2};
+
+// 官方鋼琴譜小節（小節 1 ~ 23）主旋律完整陣列
+int CastleMelody[] = {
+  0, NOTE_A4, NOTE_B4,
+  NOTE_C5, NOTE_B4, NOTE_C5, NOTE_E5,
+  NOTE_B4, NOTE_E4, NOTE_E4,
+  NOTE_A4, NOTE_G4, NOTE_A4, NOTE_C5,
+  NOTE_G4, NOTE_E4, NOTE_E4,
+  NOTE_F4, NOTE_E4, NOTE_F4, NOTE_C5,
+  NOTE_E4, NOTE_C5, NOTE_C5, NOTE_C5,
+  NOTE_B4, NOTE_FS4, NOTE_FS4, NOTE_B4,
+  NOTE_B4, NOTE_A4, NOTE_B4,
+  NOTE_C5, NOTE_B4, NOTE_C5, NOTE_E5,
+  NOTE_B4, NOTE_E4, NOTE_E4,
+  NOTE_A4, NOTE_G4, NOTE_A4, NOTE_C5,
+  NOTE_G4, NOTE_E4, NOTE_E4,
+  NOTE_F4, NOTE_C5, NOTE_B4, NOTE_C5, NOTE_D5, NOTE_C5, NOTE_D5,
+  NOTE_E5, NOTE_G4, NOTE_G4,
+  NOTE_C5, NOTE_B4, NOTE_A4, NOTE_B4, NOTE_GS4, NOTE_A4, 0,
+  NOTE_A4, NOTE_C5, NOTE_D5,
+  NOTE_E5, NOTE_D5, NOTE_E5, NOTE_G5,
+  NOTE_D5, NOTE_C5, NOTE_D5,
+  NOTE_C5, NOTE_B4, NOTE_C5, NOTE_E5,
+  NOTE_B4,
+  NOTE_A4, NOTE_B4, NOTE_C5, NOTE_B4, NOTE_C5, NOTE_E5, NOTE_B4,
+  NOTE_A4
+};
+
+// 官方樂譜節拍長度 (4=4分音符, 8=8分音符, 2=2分音符, 1=全音符)
+int CastleBeats[] = {
+  4, 8, 8,
+  4, 8, 8, 2,
+  2, 8, 8,
+  4, 8, 8, 2,
+  2, 8, 8,
+  4, 8, 8, 2,
+  2, 8, 8, 8,
+  4, 8, 8, 2,
+  2, 8, 8,
+  4, 8, 8, 2,
+  2, 8, 8,
+  4, 8, 8, 2,
+  2, 8, 8,
+  8, 8, 8, 8, 4, 8, 8,
+  4, 8, 2,
+  8, 8, 8, 8, 4, 8, 8,
+  2, 8, 8,
+  4, 8, 8, 2,
+  2, 8, 8,
+  4, 8, 8, 2,
+  2,
+  8, 8, 8, 8, 8, 8, 4,
+  2
+};
+
+void setup() {
+  pinMode(buzzer, OUTPUT);
+  for (int i = 0; i < 15; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
+}
+
+void loop() {
+  int totalNotes = 86;
+  for (int i = 0; i < totalNotes; i++) {
+    // 悠揚慢板 BPM (1700ms 基準，4分音符=425ms，最符合樂譜原曲感情)
+    int noteDuration = 1700 / CastleBeats[i];
+    
+    int ledIndex = 0;
+    if (CastleMelody[i] > 0) {
+      ledIndex = (CastleMelody[i] - 330) / 30;
+      if (ledIndex < 0) ledIndex = 0;
+      if (ledIndex > 14) ledIndex = 14;
+      digitalWrite(ledPins[ledIndex], HIGH);
+      tone(buzzer, CastleMelody[i], noteDuration);
+    }
+    
+    // 圓滑連音 (1.12 倍延遲，乾淨柔和不刺耳)
+    delay(noteDuration * 1.12);
+    
+    if (CastleMelody[i] > 0) {
+      digitalWrite(ledPins[ledIndex], LOW);
+    }
+    noTone(buzzer);
+  }
+  delay(4000); // 樂曲完整播放後停頓 4 秒再循環
+}
+`,
+            mario: `// 超級瑪利歐 (Super Mario Theme)
+int buzzer = A5;
+
+int NOTE_E5 = 659;
+int NOTE_C5 = 523;
+int NOTE_G5 = 784;
+int NOTE_G4 = 392;
+
+int melody[] = {
+  NOTE_E5, NOTE_E5, 0, NOTE_E5, 0, NOTE_C5, NOTE_E5, 0,
+  NOTE_G5, 0, 0, 0, NOTE_G4, 0, 0, 0
+};
+
+int beats[] = {
+  8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 8, 8, 8
+};
+
+void setup() {
+  pinMode(buzzer, OUTPUT);
+}
+
+void loop() {
+  int size = 16;
+  for (int i = 0; i < size; i++) {
+    int duration = 600 / beats[i];
+    if (melody[i] > 0) {
+      tone(buzzer, melody[i], duration);
+    }
+    delay(duration * 1.1);
+    noTone(buzzer);
+  }
+  delay(2000);
+}
+`,
+            tetris: `// 俄羅斯方塊 (Tetris Theme)
+int buzzer = A5;
+
+int NOTE_E5 = 659;
+int NOTE_B4 = 494;
+int NOTE_C5 = 523;
+int NOTE_D5 = 587;
+int NOTE_A4 = 440;
+
+int melody[] = {
+  NOTE_E5, NOTE_B4, NOTE_C5, NOTE_D5, NOTE_C5, NOTE_B4, NOTE_A4,
+  NOTE_A4, NOTE_C5, NOTE_E5, NOTE_D5, NOTE_C5, NOTE_B4
+};
+
+int beats[] = {
+  4, 8, 8, 4, 8, 8, 4,
+  8, 8, 4, 8, 8, 2
+};
+
+void setup() {
+  pinMode(buzzer, OUTPUT);
+}
+
+void loop() {
+  int size = 13;
+  for (int i = 0; i < size; i++) {
+    int duration = 800 / beats[i];
+    tone(buzzer, melody[i], duration);
+    delay(duration * 1.2);
+    noTone(buzzer);
+  }
+  delay(2000);
+}
+`,
+            flag_song: `// 中華民國國旗歌 (National Banner Song of ROC)
+// 根據單行主旋律官方樂譜【C 大調 莊嚴行板】100% 精準對照轉寫 (山川壯麗... 滿地紅)
+int NOTE_C4 = 262, NOTE_D4 = 294, NOTE_E4 = 330, NOTE_F4 = 349, NOTE_G4 = 392, NOTE_A4 = 440, NOTE_B4 = 494;
+int NOTE_C5 = 523, NOTE_D5 = 587, NOTE_E5 = 659, NOTE_F5 = 698, NOTE_G5 = 784, NOTE_A5 = 880;
+
+int buzzer = A5;
+int ledPins[15] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, A0, A1, A2};
+
+// C 大調主旋律音符陣列 (117 個音符)
+int FlagMelody[] = {
+  392, 523, 587, 659, 784, 784, 698, 659, 587, 523, 587, 659, 784, 659, 587,
+  523, 587, 523, 587, 659, 523, 659, 587, 659, 698, 659, 587, 523, 659, 587,
+  659, 698, 784, 880, 784, 880, 784, 587, 659, 698, 659, 698, 784, 587, 262,
+  523, 587, 659, 659, 659, 698, 784, 698, 659, 587, 659, 698, 659, 784, 659,
+  587, 523, 587, 659, 698, 784, 880, 698, 392, 523, 587, 659, 698, 659, 587,
+  659, 659, 587, 523, 587, 523, 523, 587, 659, 698, 784, 880, 784, 659, 587,
+  659, 698, 659, 523, 587, 659, 698, 659, 587, 659, 659, 587, 523, 587, 523,
+  523, 587, 659, 698, 784, 880, 784, 659, 587, 659, 698, 262
+};
+
+// 拍子長短對照 (4=4分音符, 8=8分音符, 16=16分音符, 2=2分音符, 1=全音符)
+int FlagBeats[] = {
+  4, 16, 16, 4, 4, 2, 16, 16, 8, 4, 4, 4, 4, 16, 16,
+  8, 4, 16, 16, 8, 2, 4, 16, 16, 8, 4, 4, 4, 4, 16,
+  16, 8, 4, 4, 4, 4, 4, 16, 16, 8, 16, 16, 8, 4, 2,
+  3, 8, 4, 4, 4, 4, 16, 16, 8, 16, 16, 8, 2, 4, 4,
+  4, 2, 8, 8, 8, 8, 4, 4, 2, 3, 8, 16, 16, 8, 4,
+  2, 4, 16, 16, 8, 2, 8, 8, 8, 8, 8, 8, 4, 4, 16,
+  16, 8, 2, 3, 8, 16, 16, 8, 4, 2, 4, 16, 16, 8, 2,
+  8, 8, 8, 8, 8, 8, 4, 4, 16, 16, 8, 1
+};
+
+void setup() {
+  pinMode(buzzer, OUTPUT);
+  for (int i = 0; i < 15; i++) {
+    pinMode(ledPins[i], OUTPUT);
+  }
+}
+
+void loop() {
+  int totalNotes = 117;
+  for (int i = 0; i < totalNotes; i++) {
+    // C 大調莊嚴行板速度 (1850ms 基準，4分音符=462ms，雄壯沉穩)
+    int noteDuration = 1850 / FlagBeats[i];
+    
+    int ledIndex = 0;
+    if (FlagMelody[i] > 0) {
+      ledIndex = (FlagMelody[i] - 262) / 45;
+      if (ledIndex < 0) ledIndex = 0;
+      if (ledIndex > 14) ledIndex = 14;
+      digitalWrite(ledPins[ledIndex], HIGH);
+      tone(buzzer, FlagMelody[i], noteDuration);
+    }
+    
+    // 莊嚴行板連音 (1.14 倍延遲時間)
+    delay(noteDuration * 1.14);
+    
+    if (FlagMelody[i] > 0) {
+      digitalWrite(ledPins[ledIndex], LOW);
+    }
+    noTone(buzzer);
+  }
+  delay(4000); // 樂曲演奏完畢後停頓 4 秒再循環
+}
+`
+        };
+
+        function loadExample(val) {
+            if (examples[val]) {
+                document.getElementById('codeEditor').value = examples[val];
+                updatePromptHelp(val);
+                logToConsole(`已載入範例：${val}`);
+            }
+        }
+
+        function updatePromptHelp(val) {
+            const promptTexts = {
+                blink: `【Arduino 專案參數設定】\n- 控制板: Arduino Nano\n- LED: 15顆, 接在 D2~D13、A0~A2\n\n請寫一個 LED 流水燈程式，從 D2 依序亮到 A2，每次只亮一顆，間隔 100ms。亮到底之後，蜂鳴器 (A5) 響一聲 2000Hz 100ms 音效，然後再倒回去跑流水燈。`,
+                star: `【Arduino 專案參數設定】\n- 控制板: Arduino Nano\n- BUZZER: 接在 A5, NPN驅動, HIGH發聲\n\n請幫我寫一個 Arduino 程式，使用蜂鳴器 (A5) 播放「小星星」歌曲。`,
+                canon: `【Arduino 專案參數設定】\n- 控制板: Arduino Nano\n- BUZZER: 接在 A5\n- LED: 15顆, 接在 D2~D13、A0~A2\n\n請幫我寫一個卡農 (Canon) 的音樂播放程式，並且在播音的同時，讓 15 顆 LED 輪流閃爍配合節奏。`,
+                joy: `【Arduino 專案參數設定】\n- 控制板: Arduino Nano\n- BUZZER: 接在 A5\n- LED: 15顆, 接在 D2~D13、A0~A2\n\n請幫我寫一個播放「快樂頌」的 Arduino 程式，並在播歌時隨機閃爍 15 顆 LED。`,
+                elise: `【Arduino 專案參數設定】\n- 控制板: Arduino Nano\n- BUZZER: 接在 A5\n- LED: 15顆, 接在 D2~D13、A0~A2\n\n請幫我寫一個播放「給愛麗絲」的 Arduino 程式，並在播歌時隨機點亮 LED。`,
+                sound_menu: `【Arduino 專案參數設定】\n- 控制板: Arduino Nano\n- LED: 15顆, 接在 D2~D13、A0~A2\n- 按鈕: SW1(A3), SW2(A4)\n- BUZZER: 接在 A5\n\n請寫一個按鈕選單程式。當 SW1 按下時，點亮左邊 7 顆 LED 並播放 3 聲短嗶聲；當 SW2 按下時，點亮右邊 8 顆 LED 並播放警報音效。`,
+                breathing: `【Arduino 專案參數設定】\n- 控制板: Arduino Nano\n- LED: 15顆，其中 D3, D5, D6, D9, D10, D11 支援 PWM 輸出\n\n請寫一個 PWM 呼吸流水燈程式，讓這 6 顆 LED 輪流漸亮、漸暗，形成呼吸燈效果。`,
+                castle: `【Arduino 專案參數設定】\n- 控制板: Arduino Nano\n- BUZZER: A5\n\n請寫一個 Arduino 程式，使用 A5 蜂鳴器播放天空之城的主題曲。`,
+                mario: `【Arduino 專案參數設定】\n- 控制板: Arduino Nano\n- BUZZER: A5\n\n請寫一個 Arduino 程式，使用 A5 蜂鳴器播放超級瑪利歐的主題曲。`,
+                tetris: `【Arduino 專案參數設定】\n- 控制板: Arduino Nano\n- BUZZER: A5\n\n請寫一個 Arduino 程式，使用 A5 蜂鳴器播放俄羅斯方塊的主題曲。`
+            };
+            document.getElementById('promptText').innerText = promptTexts[val] || '// 請選擇一個範例以查看對應的提示語...';
+        }
+
+        function copyPrompt() {
+            const text = document.getElementById('promptText').innerText;
+            if (text.startsWith('//')) return;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('已複製提示語到剪貼簿！');
+            }).catch(err => {
+                const el = document.getElementById('promptText');
+                const range = document.createRange();
+                range.selectNodeContents(el);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                document.execCommand('copy');
+                alert('已複製提示語！');
+            });
+        }
+
+        function switchTab(tab) {
+            document.getElementById('tab-sim-btn').classList.remove('active');
+            document.getElementById('tab-pdf-btn').classList.remove('active');
+            document.getElementById('sim-view').classList.add('hidden');
+            document.getElementById('pdf-view').classList.add('hidden');
+
+            if (tab === 'sim') {
+                document.getElementById('tab-sim-btn').classList.add('active');
+                document.getElementById('sim-view').classList.remove('hidden');
+            } else if (tab === 'pdf') {
+                document.getElementById('tab-pdf-btn').classList.add('active');
+                document.getElementById('pdf-view').classList.remove('hidden');
+            }
+        }
+
+        function loadPdfFromInput(input) {
+            const file = input.files[0];
+            if (file && file.type === 'application/pdf') {
+                const url = URL.createObjectURL(file);
+                const frame = document.getElementById('pdfFrame');
+                frame.src = url;
+                frame.classList.remove('hidden');
+                logToConsole('已成功載入 PDF 講義！');
+            }
+        }
+    </script>
+</body>
+</html>

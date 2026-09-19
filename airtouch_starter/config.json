@@ -1,0 +1,415 @@
+{
+  "model_path": "models/hand_landmarker.task",
+  "camera": 0,
+  "camera_width": 640,
+  "camera_height": 480,
+  "mirror": true,
+  "min_detection_confidence": 0.6,
+  "min_tracking_confidence": 0.5,
+  "min_palm_ratio": 0.1,
+  "straight_deg": 40,
+  "thumb_straight_deg": 35,
+  "thumb_out_ratio": 0.5,
+  "direction_tolerance_deg": 40,
+  "v_min_spread_deg": 10,
+  "smooth_frames": 5,
+  "cooldown_sec": 0.6,
+  "lock_gesture": "fist",
+  "lock_hold_sec": 1.5,
+  "start_locked": false,
+  "default_profile": "youtube",
+  "auto_switch_profile": true,
+  "profile_check_sec": 0.5,
+  "meeting_profiles": [
+    "teams",
+    "zoom",
+    "meet"
+  ],
+  "profiles": {
+    "powerpoint": {
+      "name": "PowerPoint 簡報",
+      "window": [
+        "PowerPoint"
+      ],
+      "keys": {
+        "next_page": [
+          "right"
+        ],
+        "prev_page": [
+          "left"
+        ],
+        "first_page": [
+          "home"
+        ],
+        "last_page": [
+          "end"
+        ],
+        "black_screen": [
+          "b"
+        ],
+        "white_screen": [
+          "w"
+        ],
+        "start_show": [
+          "f5"
+        ],
+        "start_here": [
+          "shift",
+          "f5"
+        ],
+        "end_show": [
+          "esc"
+        ],
+        "laser": [
+          "ctrl",
+          "l"
+        ],
+        "pen": [
+          "ctrl",
+          "p"
+        ],
+        "arrow_pointer": [
+          "ctrl",
+          "a"
+        ],
+        "erase_ink": [
+          "e"
+        ]
+      },
+      "goto": "powerpoint",
+      "gestures": {
+        "point_right": {
+          "action": "next_page",
+          "hold_sec": 0.35,
+          "repeat_sec": 1.2
+        },
+        "point_left": {
+          "action": "prev_page",
+          "hold_sec": 0.35,
+          "repeat_sec": 1.2
+        },
+        "open_palm": {
+          "action": "black_screen",
+          "hold_sec": 0.8
+        },
+        "v_sign": {
+          "action": "laser",
+          "hold_sec": 0.8
+        },
+        "thumb_up": {
+          "action": "volume_up",
+          "hold_sec": 0.3,
+          "repeat_sec": 0.25,
+          "arg": 1
+        },
+        "thumb_down": {
+          "action": "volume_down",
+          "hold_sec": 0.3,
+          "repeat_sec": 0.25,
+          "arg": 1
+        }
+      }
+    },
+    "teams": {
+      "name": "Microsoft Teams",
+      "window": [
+        "Microsoft Teams"
+      ],
+      "keys": {
+        "mic_toggle": [
+          "ctrl",
+          "shift",
+          "m"
+        ],
+        "camera_toggle": [
+          "ctrl",
+          "shift",
+          "o"
+        ],
+        "raise_hand": [
+          "ctrl",
+          "shift",
+          "k"
+        ]
+      },
+      "voice_map": {
+        "mute": "mic_toggle"
+      },
+      "gestures": {
+        "open_palm": {
+          "action": "mic_toggle",
+          "hold_sec": 1.0
+        },
+        "v_sign": {
+          "action": "camera_toggle",
+          "hold_sec": 1.0
+        },
+        "point_right": {
+          "action": "raise_hand",
+          "hold_sec": 1.2
+        },
+        "thumb_up": {
+          "action": "volume_up",
+          "hold_sec": 0.3,
+          "repeat_sec": 0.25,
+          "arg": 1
+        },
+        "thumb_down": {
+          "action": "volume_down",
+          "hold_sec": 0.3,
+          "repeat_sec": 0.25,
+          "arg": 1
+        }
+      }
+    },
+    "zoom": {
+      "name": "Zoom",
+      "window": [
+        "Zoom Meeting",
+        "Zoom 會議",
+        "Zoom Workplace"
+      ],
+      "keys": {
+        "mic_toggle": [
+          "alt",
+          "a"
+        ],
+        "camera_toggle": [
+          "alt",
+          "v"
+        ],
+        "raise_hand": [
+          "alt",
+          "y"
+        ]
+      },
+      "voice_map": {
+        "mute": "mic_toggle"
+      },
+      "gestures": {
+        "open_palm": {
+          "action": "mic_toggle",
+          "hold_sec": 1.0
+        },
+        "v_sign": {
+          "action": "camera_toggle",
+          "hold_sec": 1.0
+        },
+        "point_right": {
+          "action": "raise_hand",
+          "hold_sec": 1.2
+        },
+        "thumb_up": {
+          "action": "volume_up",
+          "hold_sec": 0.3,
+          "repeat_sec": 0.25,
+          "arg": 1
+        },
+        "thumb_down": {
+          "action": "volume_down",
+          "hold_sec": 0.3,
+          "repeat_sec": 0.25,
+          "arg": 1
+        }
+      }
+    },
+    "youtube": {
+      "name": "YouTube",
+      "window": [
+        "YouTube"
+      ],
+      "keys": {
+        "play_pause": [
+          "k"
+        ],
+        "fullscreen": [
+          "f"
+        ],
+        "captions": [
+          "c"
+        ],
+        "video_mute": [
+          "m"
+        ],
+        "next_video": [
+          "shift",
+          "n"
+        ],
+        "prev_video": [
+          "shift",
+          "p"
+        ],
+        "speed_up": [
+          "shift",
+          "."
+        ],
+        "speed_down": [
+          "shift",
+          ","
+        ],
+        "close_video": [
+          "ctrl",
+          "w"
+        ]
+      },
+      "seek": true,
+      "skip_ad": true,
+      "gestures": {
+        "open_palm": {
+          "action": "play_pause",
+          "hold_sec": 0.5
+        },
+        "point_right": {
+          "action": "seek_forward",
+          "hold_sec": 0.35,
+          "repeat_sec": 1.0,
+          "arg": 10
+        },
+        "point_left": {
+          "action": "seek_back",
+          "hold_sec": 0.35,
+          "repeat_sec": 1.0,
+          "arg": 10
+        },
+        "thumb_up": {
+          "action": "volume_up",
+          "hold_sec": 0.3,
+          "repeat_sec": 0.25,
+          "arg": 1
+        },
+        "thumb_down": {
+          "action": "volume_down",
+          "hold_sec": 0.3,
+          "repeat_sec": 0.25,
+          "arg": 1
+        },
+        "v_sign": {
+          "action": "skip_ad",
+          "hold_sec": 0.6
+        }
+      }
+    },
+    "meet": {
+      "name": "Google Meet",
+      "window": [
+        "Meet - ",
+        "Google Meet"
+      ],
+      "keys": {
+        "mic_toggle": [
+          "ctrl",
+          "d"
+        ],
+        "camera_toggle": [
+          "ctrl",
+          "e"
+        ],
+        "raise_hand": [
+          "ctrl",
+          "alt",
+          "h"
+        ]
+      },
+      "voice_map": {
+        "mute": "mic_toggle"
+      },
+      "gestures": {
+        "open_palm": {
+          "action": "mic_toggle",
+          "hold_sec": 1.0
+        },
+        "v_sign": {
+          "action": "camera_toggle",
+          "hold_sec": 1.0
+        },
+        "point_right": {
+          "action": "raise_hand",
+          "hold_sec": 1.2
+        },
+        "thumb_up": {
+          "action": "volume_up",
+          "hold_sec": 0.3,
+          "repeat_sec": 0.25,
+          "arg": 1
+        },
+        "thumb_down": {
+          "action": "volume_down",
+          "hold_sec": 0.3,
+          "repeat_sec": 0.25,
+          "arg": 1
+        }
+      }
+    },
+    "pdf": {
+      "name": "PDF 閱讀",
+      "window": [
+        ".pdf",
+        "Adobe Acrobat",
+        "Acrobat Reader"
+      ],
+      "keys": {
+        "next_page": [
+          "pagedown"
+        ],
+        "prev_page": [
+          "pageup"
+        ],
+        "first_page": [
+          "home"
+        ],
+        "last_page": [
+          "end"
+        ],
+        "zoom_in": [
+          "ctrl",
+          "="
+        ],
+        "zoom_out": [
+          "ctrl",
+          "-"
+        ],
+        "fit_page": [
+          "ctrl",
+          "0"
+        ]
+      },
+      "gestures": {
+        "point_right": {
+          "action": "next_page",
+          "hold_sec": 0.35,
+          "repeat_sec": 0.8
+        },
+        "point_left": {
+          "action": "prev_page",
+          "hold_sec": 0.35,
+          "repeat_sec": 0.8
+        },
+        "thumb_up": {
+          "action": "zoom_in",
+          "hold_sec": 0.4,
+          "repeat_sec": 0.6
+        },
+        "thumb_down": {
+          "action": "zoom_out",
+          "hold_sec": 0.4,
+          "repeat_sec": 0.6
+        },
+        "open_palm": {
+          "action": "fit_page",
+          "hold_sec": 0.8
+        }
+      }
+    }
+  },
+  "voice_language": "zh-TW",
+  "voice_wake_word": "",
+  "voice_threshold_ratio": 3.0,
+  "voice_min_rms": 300,
+  "voice_end_silence_sec": 0.8,
+  "voice_max_sec": 6,
+  "youtube_title_keyword": "YouTube",
+  "youtube_home": "https://www.youtube.com",
+  "skip_match_threshold": 0.8,
+  "beep": true,
+  "window_topmost": true
+}

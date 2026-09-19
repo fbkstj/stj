@@ -1,0 +1,21 @@
+{
+  "camera": 0,
+  "camera_width": 640,
+  "camera_height": 480,
+  "model": "yolo11n.pt",
+  "confidence": 0.4,
+  "imgsz": 480,
+  "detect_interval_sec": 0.3,
+  "serial_port": "auto",
+  "baud": 115200,
+  "warn_mm": 1600,
+  "near_mm": 800,
+  "approach_classes": ["person", "bicycle", "motorcycle", "car", "bus", "truck", "dog"],
+  "approach_ratio": 1.4,
+  "approach_window_sec": 1.0,
+  "repeat_cooldown_sec": 4,
+  "voice": true,
+  "speech_rate": 200,
+  "show_window": false,
+  "log_dir": "logs"
+}

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>楊梅高中 資訊科・電子科 課程地圖 | Premium (112學年)</title>
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+<style type="text/css">
+:root {
+    --bg-page: #f8fafc;
+    --bg-card: #ffffff;
+    --border: #e2e8f0;
+    --text-main: #0f172a;
+    --text-soft: #475569;
+    --line: #cbd5e1;
+    --head: #0d9488;
+    --head-soft: #ccfbf1;
+    --head-ink: #115e59;
+    
+    /* Domain HSL Colors */
+    --vision-bg: HSL(14, 85%, 93%);
+    --vision-ink: HSL(14, 85%, 28%);
+    --profile-bg: HSL(142, 50%, 93%);
+    --profile-ink: HSL(142, 70%, 22%);
+    --sem-bg: HSL(199, 80%, 93%);
+    --sem-ink: HSL(199, 85%, 25%);
+    --pro-bg: HSL(14, 85%, 95%);
+    --pro-ink: HSL(14, 80%, 32%);
+    --lab-bg: HSL(42, 85%, 94%);
+    --lab-ink: HSL(42, 80%, 28%);
+    --grp-bg: HSL(200, 80%, 94%);
+    --grp-ink: HSL(200, 85%, 28%);
+    --flex-bg: HSL(271, 75%, 95%);
+    --flex-ink: HSL(271, 75%, 30%);
+    --need-bg: HSL(14, 80%, 93%);
+    --need-ink: HSL(14, 85%, 28%);
+    
+    --goal-bg: #f1f5f9;
+    --goal-ink: #1e293b;
+    --abil-bg: #fafaf9;
+    --abil-ink: #292524;
+    
+    --shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06);
+    --font-family: "Outfit", "Noto Sans TC", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-page: #0b0f19;
+        --bg-card: #151d30;
+        --border: #24304f;
+        --text-main: #f8fafc;
+        --text-soft: #94a3b8;
+        --line: #1e293b;
+        --head: #14b8a6;
+        --head-soft: #112b32;
+        --head-ink: #4dd0e1;
+        
+        --vision-bg: rgba(244, 185, 164, 0.1);
+        --vision-ink: #f2b8ab;
+        --profile-bg: rgba(168, 216, 185, 0.1);
+        --profile-ink: #a8d8b9;
+        --sem-bg: rgba(191, 227, 238, 0.1);
+        --sem-ink: #bfe3ee;
+        --pro-bg: rgba(246, 201, 192, 0.08);
+        --pro-ink: #ffab91;
+        --lab-bg: rgba(247, 227, 168, 0.08);
+        --lab-ink: #ffe082;
+        --grp-bg: rgba(207, 230, 245, 0.08);
+        --grp-ink: #90caf9;
+        --flex-bg: rgba(239, 230, 247, 0.08);
+        --flex-ink: #ce93d8;
+        --need-bg: rgba(244, 185, 164, 0.08);
+        --need-ink: #ffab91;
+        
+        --goal-bg: #101625;
+        --goal-ink: #cbd5e1;
+        --abil-bg: #121827;
+        --abil-ink: #cbd5e1;
+        
+        --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    }
+}
+
+.cmap {
+    font-family: var(--font-family);
+    background: var(--bg-page);
+    color: var(--text-main);
+    padding: 24px;
+    box-sizing: border-box;
+    min-height: 100vh;
+}
+
+.cmap * {
+    box-sizing: border-box;
+}
+
+.cmap .a4 {
+    width: 1160px;
+    max-width: 100%;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px 28px;
+    box-shadow: var(--shadow);
+    position: relative;
+}
+
+/* Header Layout */
+.cmap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+    padding-bottom: 16px;
+}
+
+.cmap h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: var(--head);
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+}
+
+.cmap h1 small {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-soft);
+    letter-spacing: 0.25em;
+    margin-top: 4px;
+}
+
+/* Interactive Switcher */
+.switcher {
+    display: flex;
+    background-color: var(--bg-page);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 4px;
+    gap: 4px;
+}
+
+.switcher-btn {
+    border: none;
+    background: none;
+    color: var(--text-soft);
+    padding: 6px 16px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border-radius: 99px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.switcher-btn:hover {
+    color: var(--text-main);
+}
+
+.switcher-btn.active {
+    background-color: var(--head);
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);
+}
+
+/* Banners */
+.banners-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.cmap .banner {
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.88rem;
+    padding: 10px 16px;
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    line-height: 1.4;
+}
+
+.cmap .banner.vision {
+    background: var(--vision-bg);
+    color: var(--vision-ink);
+    border-color: rgba(242, 184, 171, 0.2);
+}
+
+.cmap .banner.profile {
+    background: var(--profile-bg);
+    color: var(--profile-ink);
+    border-color: rgba(168, 216, 185, 0.2);
+}
+
+/* Table grid */
+.cmap table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 3px;
+    table-layout: fixed;
+}
+
+.cmap th, .cmap td {
+    padding: 8px 8px;
+    vertical-align: top;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    line-height: 1.5;
+    transition: opacity 0.3s ease, filter 0.3s ease, transform 0.2s ease;
+}
+
+.cmap thead th {
+    background: var(--sem-bg);
+    color: var(--sem-ink);
+    font-weight: 800;
+    text-align: center;
+    font-size: 1.05rem;
+    padding: 10px 4px;
+    border: 1px solid rgba(191, 227, 238, 0.15);
+}
+
+.cmap thead th.cath {
+    background: var(--head);
+    color: #fff;
+    border: none;
+}
+
+.cmap .cat {
+    background: var(--head-soft);
+    color: var(--head-ink);
+    font-weight: 800;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 1.05rem;
+    letter-spacing: 0.12em;
+    border: 1px solid rgba(13, 148, 136, 0.1);
+}
+
+.cmap .sub {
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+    color: var(--text-soft);
+    font-weight: 700;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 0.95rem;
+}
+
+.cmap .sub.pro {
+    background: var(--pro-bg);
+    border-color: rgba(246, 201, 192, 0.15);
+    color: var(--pro-ink);
+}
+
+.cmap .sub.lab {
+    background: var(--lab-bg);
+    border-color: rgba(247, 227, 168, 0.15);
+    color: var(--lab-ink);
+}
+
+.cmap td.cell {
+    background: var(--bg-page);
+    border: 1px solid var(--border);
+}
+
+.cmap td.cell.empty {
+    background: transparent;
+    border: 1px dashed var(--border);
+    opacity: 0.4;
+}
+
+/* Chip Styling */
+.cmap .chip {
+    display: block;
+    border-radius: 8px;
+    padding: 4px 8px;
+    margin: 0 0 5px;
+    font-weight: 700;
+    font-size: 0.84rem;
+    border: 1px solid transparent;
+    transition: all 0.25s ease;
+}
+
+.cmap .chip:last-child {
+    margin-bottom: 0;
+}
+
+.cmap .chip.pro {
+    background: var(--pro-bg);
+    color: var(--pro-ink);
+    border-color: rgba(246, 201, 192, 0.2);
+}
+
+.cmap .chip.lab {
+    background: var(--lab-bg);
+    color: var(--lab-ink);
+    border-color: rgba(247, 227, 168, 0.2);
+}
+
+.cmap .chip.grp {
+    background: var(--grp-bg);
+    color: var(--grp-ink);
+    border-color: rgba(207, 230, 245, 0.2);
+}
+
+.cmap .chip.flex {
+    background: var(--flex-bg);
+    color: var(--flex-ink);
+    border-color: rgba(239, 230, 247, 0.2);
+}
+
+.cmap .chip small {
+    display: block;
+    font-weight: 600;
+    font-size: 0.68rem;
+    opacity: 0.8;
+    margin-top: 1px;
+}
+
+.cmap .pick {
+    display: block;
+    text-align: center;
+    font-size: 0.84rem;
+    font-weight: 800;
+    color: #fff;
+    background: var(--head);
+    border-radius: 6px;
+    padding: 2px 6px;
+    margin-bottom: 4px;
+    box-shadow: 0 2px 4px rgba(13, 148, 136, 0.15);
+}
+
+/* Domain dimming state */
+.cmap .chip.dimmed {
+    opacity: 0.15;
+    filter: grayscale(80%) blur(0.5px);
+}
+
+.cmap .chip.highlighted {
+    transform: scale(1.03);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    border-color: currentColor;
+}
+
+/* Bottom Cards */
+.cmap .bottom3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.2fr;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.cmap .side {
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    border: 1px solid var(--border);
+    background-color: var(--bg-page);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.01);
+}
+
+.cmap .bh {
+    text-align: center;
+    font-weight: 800;
+    font-size: 0.88rem;
+    border-radius: 8px;
+    padding: 5px 12px;
+    margin: 0 0 10px;
+    color: #fff;
+}
+
+.cmap .bh.needh { background: #e07a5f; }
+.cmap .bh.goalh { background: var(--head); }
+.cmap .bh.abilh { background: #d97706; }
+
+.cmap .side b {
+    display: block;
+    margin: 8px 0 4px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.cmap .side ol {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.cmap .side ol li {
+    margin: 0 0 4px;
+}
+
+@media (max-width: 900px) {
+    .cmap .a4 { padding: 16px 14px; }
+    .cmap .bottom3 { grid-template-columns: 1fr; }
+    .banners-row { grid-template-columns: 1fr; }
+}
+
+@media print {
+    @page { size: A4 landscape; margin: 6mm; }
+    body { margin: 0; background: #fff; }
+    .cmap { padding: 0; background: #fff; }
+    .cmap .a4 { width: 100%; border: none; box-shadow: none; padding: 0; }
+    .switcher { display: none; }
+    .cmap .chip.dimmed { opacity: 1 !important; filter: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="cmap">
+<div class="a4">
+  <div class="cmap-header">
+    <h1>桃園市立楊梅高中　資訊科・電子科 課程地圖<br />（112學年入學）<small>CURRICULUM MAP</small></h1>
+    <div style="display: flex; gap: 8px; flex-direction: column; align-items: flex-end;">
+      <!-- Dept Switcher -->
+      <div class="switcher" id="deptSwitcher">
+          <button class="switcher-btn active" data-value="all" onclick="filterDept('all')">全部科別</button>
+          <button class="switcher-btn" data-value="elec" onclick="filterDept('elec')">電子科</button>
+          <button class="switcher-btn" data-value="info" onclick="filterDept('info')">資訊科</button>
+      </div>
+      <!-- Domain Switcher -->
+      <div class="switcher" id="domainSwitcher">
+          <button class="switcher-btn active" data-value="all" onclick="filterDomain('all')">全部領域</button>
+          <button class="switcher-btn" data-value="chip" onclick="filterDomain('chip')">晶片設計領域</button>
+          <button class="switcher-btn" data-value="micro" onclick="filterDomain('micro')">微電腦應用領域</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="banners-row">
+    <div class="banner vision">學校願景：培育梅高學子，具備「創意教育、適性學習、專業發展」的世界公民</div>
+    <div class="banner profile">學生圖像：國際視野、團隊溝通、問題解決、美感鑑賞、品格涵養</div>
+  </div>
+
+  <table>
+    <colgroup>
+      <col style="width:42px" /><col style="width:38px" />
+      <col /><col /><col /><col /><col /><col />
+    </colgroup>
+    <thead>
+      <tr>
+        <th class="cath" colspan="2">課程類別</th>
+        <th>一上</th><th>一下</th><th>二上</th><th>二下</th><th>三上</th><th>三下</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="cat" rowspan="2">部定必修</td>
+        <td class="sub pro">專業科目</td>
+        <td class="cell"><span class="chip pro" data-domain="common">基本電學(3)</span></td>
+        <td class="cell"><span class="chip pro" data-domain="common">基本電學(3)</span></td>
+        <td class="cell"><span class="chip pro" data-domain="common">電子學(3)</span><span class="chip pro" data-domain="common">數位邏輯設計(3)</span></td>
+        <td class="cell"><span class="chip pro" data-domain="common">電子學(3)</span><span class="chip pro" data-domain="common">微處理機(3)</span></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+      </tr>
+      <tr>
+        <td class="sub lab">實習科目</td>
+        <td class="cell"><span class="chip lab" data-domain="common">程式設計實習(3)</span><span class="chip lab" data-domain="common">基本電學實習(3)</span></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="chip lab" data-domain="common">電子學實習(3)</span><span class="chip lab" data-domain="chip">可程式邏輯設計實習(3)<small>晶片設計領域</small></span><span class="chip lab" data-domain="micro">行動裝置應用實習(3)<small>微電腦應用領域</small></span></td>
+        <td class="cell"><span class="chip lab" data-domain="common">電子學實習(3)</span><span class="chip lab" data-domain="chip">單晶片微處理機實習(3)<small>晶片設計領域</small></span></td>
+        <td class="cell"><span class="chip lab" data-domain="micro">介面電路控制實習(3)<small>微電腦應用領域</small></span></td>
+        <td class="cell"><span class="chip lab" data-domain="micro">微電腦應用實習(3)<small>微電腦應用領域</small></span></td>
+      </tr>
+      <tr>
+        <td class="cat" rowspan="2">校訂必修</td>
+        <td class="sub pro">專業科目</td>
+        <td class="cell"><span class="chip pro" data-domain="common">基礎電路學(2)</span></td>
+        <td class="cell"><span class="chip pro" data-domain="common">基礎電子學(2)</span></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+      </tr>
+      <tr>
+        <td class="sub lab">實習科目</td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="chip lab" data-domain="common">創意創作實作(4)</span></td>
+        <td class="cell"><span class="chip lab" data-domain="common">專題實作(4)</span></td>
+      </tr>
+      <tr class="row-info">
+        <td class="cat" rowspan="2">資訊科<br />校訂選修</td>
+        <td class="sub pro">專業科目</td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="chip pro" data-domain="common">電子電路(2)</span><span class="chip pro" data-domain="common">微電腦結構(2)</span><span class="chip pro" data-domain="common">電路學(2)</span></td>
+        <td class="cell"><span class="chip pro" data-domain="common">電子電路(2)</span><span class="chip pro" data-domain="common">微電腦結構(2)</span><span class="chip pro" data-domain="common">電路學(2)</span></td>
+      </tr>
+      <tr class="row-info">
+        <td class="sub lab">實習科目</td>
+        <td class="cell"><span class="chip lab" data-domain="common">基礎電子學實習(3)</span></td>
+        <td class="cell"><span class="chip lab" data-domain="common">程式設計進階實習(3)</span></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="pick">同科跨班・AG4選1</span><span class="chip lab" data-domain="common">串列埠控制實習(3)</span><span class="chip lab" data-domain="common">串列埠應用實習(3)</span><span class="chip lab" data-domain="common">電腦繪圖控制實習(3)</span><span class="chip lab" data-domain="common">電腦繪圖應用實習(3)</span></td>
+        <td class="cell">
+          <span class="pick">同科跨班・AE4選1</span>
+          <span class="chip lab" data-domain="common">物聯網控制實習(3)</span>
+          <span class="chip lab" data-domain="common">物聯網應用實習(3)</span>
+          <span class="chip lab" data-domain="common">數位電路控制實習(3)</span>
+          <span class="chip lab" data-domain="common">數位電路應用實習(3)</span>
+        </td>
+        <td class="cell">
+          <span class="pick">同科跨班・AF4選1</span>
+          <span class="chip lab" data-domain="common">嵌入式系統控制實習(3)</span>
+          <span class="chip lab" data-domain="common">嵌入式系統應用實習(3)</span>
+          <span class="chip lab" data-domain="common">感測器控制實習(3)</span>
+          <span class="chip lab" data-domain="common">感測器應用實習(3)</span>
+        </td>
+      </tr>
+      <tr class="row-elec">
+        <td class="cat" rowspan="2">電子科<br />校訂選修</td>
+        <td class="sub pro">專業科目</td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="chip pro" data-domain="common">電子電路(2)</span><span class="chip pro" data-domain="common">微電腦結構(2)</span><span class="chip pro" data-domain="common">電路學(2)</span></td>
+        <td class="cell"><span class="chip pro" data-domain="common">電子電路(2)</span><span class="chip pro" data-domain="common">微電腦結構(2)</span><span class="chip pro" data-domain="common">電路學(2)</span></td>
+      </tr>
+      <tr class="row-elec">
+        <td class="sub lab">實習科目</td>
+        <td class="cell"><span class="chip lab" data-domain="common">基礎電子學實習(3)</span></td>
+        <td class="cell"><span class="chip lab" data-domain="common">基礎電子學實習(3)</span></td>
+        <td class="cell empty"></td>
+        <td class="cell"><span class="pick">同科單班・AB2選1</span><span class="chip lab" data-domain="common">電腦繪圖實習(3)</span><span class="chip lab" data-domain="common">數位系統設計實習(3)</span></td>
+        <td class="cell">
+          <span class="pick">同科單班・AD2選1</span>
+          <span class="chip lab" data-domain="common">感測器實習(3)</span>
+          <span class="chip lab" data-domain="common">數位電路應用實習(3)</span>
+        </td>
+        <td class="cell">
+          <span class="pick">同科單班・AC2選1</span>
+          <span class="chip lab" data-domain="common">電子電路實習(3)</span>
+          <span class="chip lab" data-domain="common">嵌入式晶片控制實習(3)</span>
+        </td>
+      </tr>
+      <tr>
+        <td class="cat grp" colspan="2">團體活動</td>
+        <td class="cell"><span class="chip grp" data-domain="common">班級活動(1)</span><span class="chip grp" data-domain="common">社團活動與週會(1)</span></td>
+        <td class="cell"><span class="chip grp" data-domain="common">班級活動(1)</span><span class="chip grp" data-domain="common">社團活動與週會(1)</span></td>
+        <td class="cell"><span class="chip grp" data-domain="common">班級活動(1)</span><span class="chip grp" data-domain="common">社團活動與週會(1)</span></td>
+        <td class="cell"><span class="chip grp" data-domain="common">班級活動(1)</span><span class="chip grp" data-domain="common">社團活動與週會(1)</span></td>
+        <td class="cell"><span class="chip grp" data-domain="common">班級活動(1)</span><span class="chip grp" data-domain="common">社團活動與週會(1)</span></td>
+        <td class="cell"><span class="chip grp" data-domain="common">班級活動(1)</span><span class="chip grp" data-domain="common">社團活動與週會(1)</span></td>
+      </tr>
+      <tr>
+        <td class="cat flex" colspan="2">彈性學習</td>
+        <td class="cell"><span class="chip flex" data-domain="common">自主學習</span><span class="chip flex" data-domain="common">充實(增廣)課程</span><span class="chip flex" data-domain="common">補強課程</span><span class="chip flex" data-domain="common">學校特色活動</span></td>
+        <td class="cell"><span class="chip flex" data-domain="common">自主學習</span><span class="chip flex" data-domain="common">充實(增廣)課程</span><span class="chip flex" data-domain="common">補強課程</span><span class="chip flex" data-domain="common">學校特色活動</span></td>
+        <td class="cell"><span class="chip flex" data-domain="common">自主學習</span><span class="chip flex" data-domain="common">充實(增廣)課程</span><span class="chip flex" data-domain="common">補強課程</span><span class="chip flex" data-domain="common">學校特色活動</span></td>
+        <td class="cell"><span class="chip flex" data-domain="common">自主學習</span><span class="chip flex" data-domain="common">充實(增廣)課程</span><span class="chip flex" data-domain="common">補強課程</span><span class="chip flex" data-domain="common">學校特色活動</span><span class="chip flex" data-domain="common">選手培訓</span></td>
+        <td class="cell"><span class="chip flex" data-domain="common">自主學習</span><span class="chip flex" data-domain="common">充實(增廣)課程</span><span class="chip flex" data-domain="common">補強課程</span><span class="chip flex" data-domain="common">學校特色活動</span><span class="chip flex" data-domain="common">選手培訓</span></td>
+        <td class="cell"><span class="chip flex" data-domain="common">自主學習</span><span class="chip flex" data-domain="common">充實(增廣)課程</span><span class="chip flex" data-domain="common">補強課程</span><span class="chip flex" data-domain="common">學校特色活動</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="bottom3">
+    <div class="side need">
+      <div class="bh needh">產業需求</div>
+      <b>晶片設計技能領域：</b>
+      <ol><li>數位IC設計助理人員</li><li>韌體設計助理人員</li></ol>
+      <b>微電腦應用技能領域：</b>
+      <ol start="3"><li>產品開發助理人員</li><li>通訊產業維修人員</li><li>電路板設計與製造助理人員</li></ol>
+    </div>
+    <div class="side goal">
+      <div class="bh goalh">科教育目標</div>
+      <ol>
+        <li>培養具有良好專業素養及職業道德與適應未來社會變遷之人才</li>
+        <li>培養電子產業基礎核心能力之人才</li>
+        <li>培養晶片設計與數位設計之人才</li>
+        <li>培養電路設計與製造之人才</li>
+        <li>培養終身學習、創新思考與自己實現能力</li>
+      </ol>
+    </div>
+    <div class="side abil">
+      <div class="bh abilh">科專業能力</div>
+      <ol>
+        <li>具備問題解決與終身學習的能力</li>
+        <li>具備電子專業素養與應用資訊科技的能力</li>
+        <li>具備世界公民與科技美學之素養</li>
+        <li>具備電學相關領域與數位電路之基礎理論與應用之能力</li>
+        <li>具備使用基本工具、電子儀表器與相關儀器之能力</li>
+        <li>具備查閱專業手冊與基礎電子控制相關電路圖識別之能力</li>
+        <li>具備電路修護、檢測與微電腦控制應用能力</li>
+        <li>具備晶片設計、數位電路設計與相關軟體使用之能力</li>
+        <li>具備電路繪圖、設計及製作與相關軟體使用之能力</li>
+        <li>具備電子專業領域創新思考與繼續精進之能力</li>
+      </ol>
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+let currentDept = 'all';
+let currentDomain = 'all';
+
+function filterDept(dept) {
+    currentDept = dept;
+    const buttons = document.querySelectorAll('#deptSwitcher .switcher-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-value') === dept) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+    applyFilters();
+}
+
+function filterDomain(domain) {
+    currentDomain = domain;
+    const buttons = document.querySelectorAll('#domainSwitcher .switcher-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-value') === domain) btn.classList.add('active');
+        else btn.classList.remove('active');
+    });
+    applyFilters();
+}
+
+function applyFilters() {
+    // 1. Filter rows by department
+    const infoRows = document.querySelectorAll('.row-info');
+    const elecRows = document.querySelectorAll('.row-elec');
+    
+    infoRows.forEach(row => {
+        if (currentDept === 'all' || currentDept === 'info') {
+            row.style.display = 'table-row';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    elecRows.forEach(row => {
+        if (currentDept === 'all' || currentDept === 'elec') {
+            row.style.display = 'table-row';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // 2. Filter chips by domain
+    const chips = document.querySelectorAll('.chip');
+    chips.forEach(chip => {
+        const chipDomain = chip.getAttribute('data-domain');
+        chip.classList.remove('dimmed', 'highlighted');
+        
+        if (currentDomain === 'all') {
+            return;
+        }
+        
+        if (chipDomain === 'common') {
+            return;
+        }
+        
+        if (chipDomain === currentDomain) {
+            chip.classList.add('highlighted');
+        } else {
+            chip.classList.add('dimmed');
+        }
+    });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,2293 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>丙級工業電子術科 互動教學模擬系統 (02800-100302)</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --bg-main: #0f172a;
+      --panel-bg: #1e293b;
+      --card-bg: #334155;
+      --accent-blue: #38bdf8;
+      --accent-green: #4ade80;
+      --accent-yellow: #facc15;
+      --accent-red: #f87171;
+      --accent-purple: #c084fc;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #475569;
+
+      --dc-color: #ef4444;
+      --reg-color: #10b981;
+      --ac-color: #8b5cf6;
+      --wire-color: #cbd5e1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 16px;
+      line-height: 1.35;
+    }
+
+    /* Subscript styling */
+    sub {
+      font-size: 0.75em;
+      line-height: 0;
+      position: relative;
+      vertical-align: baseline;
+      bottom: -0.25em;
+    }
+
+    /* Top Navigation Header */
+    header.app-header {
+      background: #090d16;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.65rem 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.75rem;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-title i {
+      font-size: 1.8rem;
+      color: var(--accent-yellow);
+    }
+
+    .brand-title h1 {
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .brand-title span {
+      font-size: 0.85rem;
+      color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.12);
+      padding: 0.2rem 0.65rem;
+      border-radius: 0.35rem;
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      font-weight: 500;
+    }
+
+    .header-tabs {
+      display: flex;
+      flex-direction: row !important;
+      flex-wrap: nowrap !important;
+      gap: 0.5rem;
+      background: var(--panel-bg);
+      padding: 0.25rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-color);
+      overflow-x: auto !important;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: transparent;
+      border: none;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      display: flex;
+      flex-direction: row !important;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s ease;
+      white-space: nowrap !important;
+      flex-shrink: 0 !important;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-blue);
+      color: #0f172a;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+    }
+
+    .tab-btn:hover:not(.active) {
+      color: var(--text-main);
+      background: rgba(255,255,255,0.08);
+    }
+
+    @media (max-width: 900px) {
+      header.app-header {
+        padding: 0.5rem 0.8rem;
+      }
+      .brand-title h1 {
+        font-size: 1.1rem;
+      }
+      .header-tabs {
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding: 0.3rem;
+      }
+      .tab-btn {
+        flex-shrink: 0;
+        padding: 0.4rem 0.7rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    /* Main Container */
+    main.app-body {
+      flex: 1;
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 1rem;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    /* Preset Selection Bar (12 Groups) */
+    .preset-bar {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .preset-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      color: var(--accent-yellow);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      line-height: 1.2;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 0.5rem;
+    }
+
+    @media (max-width: 1200px) {
+      .preset-grid { grid-template-columns: repeat(6, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .preset-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    .preset-btn {
+      padding: 0.5rem 0.3rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      background: var(--card-bg);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+      border-radius: 0.4rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.2);
+    }
+
+    .preset-btn.active {
+      background: var(--accent-yellow);
+      color: #0f172a;
+      border-color: var(--accent-yellow);
+      font-weight: 900;
+      box-shadow: 0 0 8px rgba(250, 204, 21, 0.4);
+    }
+
+    /* Main Grid Layout for Tab 1 */
+    .view-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 1100px) {
+      .view-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Info Sidebar */
+    .sidebar-panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      max-height: 860px;
+      overflow-y: auto;
+    }
+
+    .panel-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      padding: 0.85rem;
+    }
+
+    .panel-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--accent-blue);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      line-height: 1.25;
+    }
+
+    .spec-list {
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+    .spec-list span.val {
+      font-family: 'Fira Code', monospace;
+      color: var(--accent-green);
+      font-weight: 700;
+      font-size: 1.08rem;
+    }
+
+    /* 2-Column Aligned Grid for Resistor Specs with '=' */
+    .spec-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.35rem 0.85rem;
+      font-size: 1rem;
+      line-height: 1.35;
+    }
+
+    .spec-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .spec-lbl {
+      font-weight: 700;
+      min-width: 56px;
+      display: inline-block;
+      color: var(--text-main);
+      font-size: 1.05rem;
+    }
+
+    /* Collapsible Item Answer Card */
+    .item-answer-card {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      padding: 0.65rem;
+      margin-bottom: 0.45rem;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Math Formula Steps Box Styling (Compact line-height 1.4) */
+    .math-step-box {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 0.4rem;
+      padding: 0.65rem;
+      margin-top: 0.45rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      color: #cbd5e1;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .math-step-box strong { color: var(--accent-yellow); }
+    .math-step-box .highlight-val { color: var(--accent-green); font-weight: bold; }
+    .math-step-box .highlight-formula { color: var(--accent-blue); }
+
+    /* Circuit Board Container */
+    .circuit-container {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    svg.circuit-svg {
+      width: 100%;
+      max-width: 1100px;
+      height: auto;
+      user-select: none;
+    }
+
+    /* SVG Base Diagram Styling */
+    .circuit-svg text { font-family: 'Fira Code', 'Noto Sans TC', sans-serif; }
+    .section-box { fill-opacity: 0.03; stroke-dasharray: 6 4; stroke-width: 2px; }
+    .section-dc { stroke: #ef4444; fill: #ef4444; }
+    .section-reg { stroke: #10b981; fill: #10b981; }
+    .section-ac { stroke: #8b5cf6; fill: #8b5cf6; }
+    .section-title { font-size: 16px; font-weight: 700; text-anchor: middle; }
+
+    .wire { stroke: #cbd5e1; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+    .resistor-line { stroke: #f472b6; stroke-width: 2.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+    .socket-box { stroke: #cbd5e1; stroke-width: 1.8; stroke-dasharray: 4 3; fill: rgba(30, 41, 59, 0.7); }
+
+    .test-point-polygon { fill: #0f172a; stroke: #38bdf8; stroke-width: 1.8; cursor: pointer; transition: all 0.2s; }
+    .test-point-polygon:hover { fill: #38bdf8; stroke: #fff; }
+    .tp-label { font-size: 14px; font-weight: 700; fill: #f472b6; text-anchor: middle; dominant-baseline: central; cursor: pointer; }
+
+    .ic-block { fill: #713f12; stroke: #f59e0b; stroke-width: 2; rx: 4; }
+    .ic-label { font-size: 13px; font-weight: 700; fill: #f8fafc; }
+    .diode-symbol { fill: #ec4899; stroke: #ec4899; stroke-width: 2; }
+    .switch-lever { stroke: #2563eb; stroke-width: 3; stroke-linecap: round; cursor: pointer; }
+
+    /* Interactive Probes Overlay for Tab 2 */
+    .instrument-grid {
+      display: grid;
+      grid-template-columns: 1fr 450px;
+      gap: 1rem;
+    }
+    @media (max-width: 1100px) {
+      .instrument-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Digital Multimeter Screen */
+    .dmm-card {
+      background: #090d16;
+      border: 2px solid #334155;
+      border-radius: 0.75rem;
+      padding: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    }
+
+    .dmm-screen {
+      background: #111827;
+      border: 2px solid #1f2937;
+      border-radius: 0.5rem;
+      padding: 0.85rem;
+      font-family: 'Fira Code', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      position: relative;
+    }
+
+    .dmm-readout {
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: #38bdf8;
+      text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+      line-height: 1;
+    }
+
+    .dmm-unit {
+      font-size: 1rem;
+      color: var(--accent-yellow);
+      font-weight: 700;
+      margin-top: 0.2rem;
+    }
+
+    .dmm-controls {
+      display: flex;
+      justify-content: space-around;
+      gap: 0.5rem;
+    }
+
+    .dmm-mode-btn {
+      padding: 0.45rem 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: #1e293b;
+      color: var(--text-muted);
+      border: 1px solid #475569;
+      border-radius: 0.3rem;
+      cursor: pointer;
+    }
+    .dmm-mode-btn.active {
+      background: var(--accent-blue);
+      color: #0f172a;
+      border-color: var(--accent-blue);
+    }
+
+    /* Oscilloscope Screen */
+    .scope-card {
+      background: #090d16;
+      border: 2px solid #334155;
+      border-radius: 0.75rem;
+      padding: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    canvas.scope-canvas {
+      width: 100%;
+      height: 240px;
+      background: #040d1a;
+      border: 1px solid #1e293b;
+      border-radius: 0.5rem;
+    }
+
+    .scope-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .scope-setting {
+      background: #1e293b;
+      padding: 0.4rem 0.6rem;
+      border-radius: 0.3rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Worksheet Table Style for Tab 3 */
+    .worksheet-card {
+      background: var(--panel-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .ws-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+    .ws-table th, .ws-table td {
+      border: 1px solid var(--border-color);
+      padding: 0.5rem 0.75rem;
+      text-align: center;
+      line-height: 1.3;
+    }
+    .ws-table th {
+      background: var(--card-bg);
+      color: var(--accent-yellow);
+      font-weight: 700;
+      font-size: 0.98rem;
+    }
+    .ws-table input {
+      width: 95px;
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #4ade80;
+      padding: 0.3rem 0.5rem;
+      border-radius: 0.3rem;
+      font-family: 'Fira Code', monospace;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.98rem;
+    }
+
+    .badge-pass { background: rgba(74, 222, 128, 0.2); color: #4ade80; border: 1px solid #4ade80; padding: 2px 7px; border-radius: 3px; font-weight: bold; }
+    .badge-fail { background: rgba(248, 113, 113, 0.2); color: #f87171; border: 1px solid #f87171; padding: 2px 7px; border-radius: 3px; font-weight: bold; }
+
+    .action-btn {
+      padding: 0.55rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      border-radius: 0.4rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-submit { background: var(--accent-green); color: #0f172a; }
+    .btn-submit:hover { background: #22c55e; }
+    .btn-reset { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); }
+    .btn-step { padding: 0.3rem 0.6rem; font-size: 0.82rem; background: rgba(56, 189, 248, 0.18); color: var(--accent-blue); border: 1px solid var(--accent-blue); border-radius: 4px; cursor: pointer; transition: all 0.2s; font-weight: 600; }
+    .btn-step:hover { background: var(--accent-blue); color: #0f172a; }
+
+    /* Modal for detailed math steps (Compact line-height 1.4) */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 500;
+    }
+    .modal-card {
+      background: var(--panel-bg);
+      border: 1.5px solid var(--border-color);
+      border-radius: 0.75rem;
+      padding: 1.35rem;
+      max-width: 680px;
+    }
+    
+    /* Pure Official Answer Sheet Print styling for Group X (Web Header & Preset-Bar Removed) */
+    @page {
+      size: A4 portrait;
+      margin: 8mm;
+    }
+    
+    @media print {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+        font-family: 'Noto Sans TC', sans-serif !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      
+      /* Delete/Hide web header, tabs, 1-12 group preset bar, and web action buttons */
+      header.app-header, .preset-bar, .print-page-1-header-bar, .modal-overlay, .action-btn, .header-tabs, .tab-btn, .sidebar-panel, .page-badge-tag {
+        display: none !important;
+      }
+      
+      main.app-body {
+        display: block !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+      }
+      
+      .tab-content {
+        display: none !important;
+      }
+      
+      #tab-worksheet {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      
+      .worksheet-card {
+        display: block !important;
+        background: #fff !important;
+        color: #000 !important;
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+      }
+      
+      /* Pure Official Group X Answer Sheet (Clean Single A4 Page) */
+      .print-full-page-2-wrapper {
+        display: flex !important; /* Use flex layout to vertically stretch items! */
+        flex-direction: column !important;
+        justify-content: space-between !important; /* Distribute items evenly on A4 page */
+        background: #fff !important;
+        color: #000 !important;
+        border: 2px solid #000 !important;
+        padding: 12mm 10mm !important; /* Generous print margins */
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        height: 272mm !important; /* Sized to occupy the full printable height of A4 portrait */
+      }
+
+      /* Inner containers styling for clean printable format */
+      .print-full-page-2-wrapper > div {
+        padding: 0.6rem 0.8rem !important;
+        border-radius: 0.35rem !important;
+        border: 1px solid #000 !important;
+        margin-bottom: 0 !important;
+      }
+
+      /* Force pure white background and black text on all inner elements and blocks during print */
+      .print-full-page-2-wrapper div,
+      .print-full-page-2-wrapper p,
+      .print-full-page-2-wrapper h3,
+      .print-full-page-2-wrapper span,
+      .print-full-page-2-wrapper strong,
+      .print-full-page-2-wrapper input {
+        background: #fff !important;
+        background-color: #fff !important;
+        color: #000 !important;
+        border-color: #000 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .official-info-box {
+        background: #fff !important;
+        border: 1.5px solid #000 !important;
+        color: #000 !important;
+        margin-bottom: 0 !important; /* Managed by flex space-between */
+        display: flex !important;
+        justify-content: space-between !important;
+        padding: 0.4rem 0.6rem !important;
+        font-size: 0.95rem !important;
+      }
+      
+      .official-info-box input {
+        border: none !important;
+        border-bottom: 1px solid #000 !important;
+        color: #000 !important;
+        background: transparent !important;
+        font-size: 0.95rem !important;
+      }
+      
+      .ws-table {
+        border: 1.5px solid #000 !important;
+        color: #000 !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 0 !important; /* Managed by flex space-between */
+      }
+      
+      .ws-table th, .ws-table td {
+        border: 1px solid #000 !important;
+        background: #fff !important;
+        color: #000 !important;
+        font-size: 0.95rem !important;
+        padding: 0.5rem 0.6rem !important; /* Increased padding for spacious table layout */
+      }
+      
+      .ws-table input {
+        border: none !important;
+        border-bottom: 1px solid #000 !important;
+        color: #000 !important;
+        background: transparent !important;
+        text-align: center !important;
+        font-weight: bold !important;
+        font-size: 0.95rem !important;
+      }
+    }
+
+      .official-info-box {
+        background: #fff !important;
+        border: 1.5px solid #000 !important;
+        color: #000 !important;
+        margin-bottom: 0.7rem !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        padding: 0.5rem !important;
+      }
+      
+      .official-info-box input {
+        border: none !important;
+        border-bottom: 1px solid #000 !important;
+        color: #000 !important;
+        background: transparent !important;
+      }
+      
+      .ws-table {
+        border: 1.5px solid #000 !important;
+        color: #000 !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 0.7rem !important;
+      }
+      
+      .ws-table th, .ws-table td {
+        border: 1px solid #000 !important;
+        background: #fff !important;
+        color: #000 !important;
+        font-size: 1rem !important;
+        padding: 0.4rem 0.5rem !important;
+      }
+      
+      .ws-table input {
+        border: none !important;
+        border-bottom: 1px solid #000 !important;
+        color: #000 !important;
+        background: transparent !important;
+        text-align: center !important;
+        font-weight: bold !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="brand-title">
+      <i class="fa-solid fa-microchip"></i>
+      <div>
+        <h1>丙級工業電子術科 互動教學系統</h1>
+        <span>試題二 (02800-100302)：儀表線路與信號測量</span>
+      </div>
+    </div>
+    <div class="header-tabs">
+      <button class="tab-btn active" onclick="switchTab('tab-circuit')">
+        <i class="fa-solid fa-diagram-project"></i> 電路與題組切換
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-instruments')">
+        <i class="fa-solid fa-gauge-high"></i> 虛擬萬用表 & 示波器
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-worksheet')">
+        <i class="fa-solid fa-file-pen"></i> 檢定紀錄單與評分
+      </button>
+      <button class="tab-btn" onclick="switchTab('tab-faults')">
+        <i class="fa-solid fa-triangle-exclamation"></i> 故障診斷模擬
+      </button>
+      <a href="https://owinform.wdasec.gov.tw/owInform/DLowFile/028003B15.pdf?16" target="_blank" class="tab-btn" style="text-decoration:none; background:rgba(239,68,68,0.15); color:var(--accent-red); margin-left:0.5rem; border: 1px solid rgba(239,68,68,0.35);">
+        <i class="fa-solid fa-file-pdf"></i> 術科試題下載
+      </a>
+      <a href="index.html" target="_top" class="tab-btn" style="text-decoration:none; background:rgba(255,255,255,0.08); color:var(--accent-yellow); margin-left:0.5rem;">
+        <i class="fa-solid fa-house"></i> 返回首頁
+      </a>
+    </div>
+  </header>
+
+  <main class="app-body">
+
+    <!-- 12 Preset Test Groups Selector Bar -->
+    <div class="preset-bar">
+      <div class="preset-title">
+        <i class="fa-solid fa-list-ol"></i>
+        <span>選擇官方試題組 (1 ~ 12 題組) :</span>
+      </div>
+      <div class="preset-grid" id="presetBtnGrid">
+        <!-- Buttons generated dynamically by JS -->
+      </div>
+    </div>
+
+    <!-- TAB 1: CIRCUIT & PRESETS -->
+    <div id="tab-circuit" class="tab-content active">
+      <div class="view-grid">
+        <!-- Left Sidebar: Current Group Info & Collapsible Calculations -->
+        <div class="sidebar-panel">
+          <div class="panel-card">
+            <h3><i class="fa-solid fa-circle-info"></i> 目前題組：<span id="groupLabel" style="color:var(--accent-yellow);">題組 1</span></h3>
+            <div class="spec-list" id="groupSpecList">
+              <!-- Spec details populated by JS with '＝' and enlarged font -->
+            </div>
+          </div>
+
+          <!-- Fixed Point VGH Filter Derivation Box -->
+          <div class="panel-card" style="border-left: 4px solid var(--accent-green);">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h3 style="margin-bottom:0;"><i class="fa-solid fa-bolt" style="color:var(--accent-green);"></i> 整流濾波 V<sub>GH</sub> 計算過程</h3>
+              <span style="font-family:'Fira Code', monospace; font-size:1.15rem; font-weight:bold; color:var(--accent-green);">20.51 V</span>
+            </div>
+            <button class="btn-step" style="margin-top:0.45rem; width:100%; text-align:center;" onclick="toggleSidebarStep('VGH')">
+              <i class="fa-solid fa-chevron-down" id="arrow_VGH"></i> <span id="btn_text_VGH">觀看 V<sub>GH</sub> 詳細推導步驟</span>
+            </button>
+            <div id="step_box_VGH" class="math-step-box" style="display:none;">
+              1. 交流輸入有效值: V<sub>AD</sub> = <span class="highlight-formula">15.0 Vrms</span><br>
+              2. 交流輸入峰值 V<sub>m</sub> = 15.0 × √2 = <span class="highlight-formula">21.21 V</span><br>
+              3. 二極體 D<sub>1</sub> 導通壓降 V<sub>D</sub> = <span class="highlight-formula">0.70 V</span><br>
+              4. 電容 C<sub>1</sub> 充至峰值 V<sub>GH</sub> = V<sub>m</sub> - V<sub>D</sub><br>
+              5. 最終理論值: V<sub>GH</sub> = 21.21V - 0.70V = <span class="highlight-val">20.51 V</span>
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+              <h3 style="margin-bottom:0;"><i class="fa-solid fa-calculator" style="color:var(--accent-yellow);"></i> 4 大項目 理論答案與推導</h3>
+              <button class="btn-step" onclick="toggleAllSteps()" id="toggleAllBtn">全部展開</button>
+            </div>
+            <div id="stepDerivationList">
+              <!-- Collapsible math cards rendered by JS -->
+            </div>
+          </div>
+
+          <div class="panel-card">
+            <h3><i class="fa-solid fa-wave-square"></i> 示波器輸入設定</h3>
+            <div class="spec-list" id="scopeSpecList">
+              <!-- Scope specs populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Full SVG Circuit Canvas (From circuit_diagram.html Base) -->
+        <div class="circuit-container">
+          <svg class="circuit-svg" viewBox="0 0 1050 620" id="circuitSvg">
+            <!-- Dynamic SVG content generated from circuit_diagram.html base -->
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: VIRTUAL INSTRUMENTS (DMM & OSCILLOSCOPE) -->
+    <div id="tab-instruments" class="tab-content">
+      <div class="instrument-grid">
+        <!-- Left: Full Base Circuit with Interactive Probe Clickable Testpoints -->
+        <div class="circuit-container">
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:0.4rem;">
+            <h3 style="font-size:1.05rem; color:var(--accent-blue);">
+              <i class="fa-solid fa-vial"></i> 點擊電路圖中的測試點放置探棒：
+            </h3>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <span style="font-size:0.88rem; color:var(--text-muted);">目前設定探棒：</span>
+              <button id="btnProbeModeA" onclick="setProbeTarget('A')" class="action-btn" style="padding:0.25rem 0.65rem; font-size:0.85rem; background:#ef4444; color:#fff; border:none;">
+                <i class="fa-solid fa-location-dot"></i> 紅探棒 (+)
+              </button>
+              <button id="btnProbeModeB" onclick="setProbeTarget('B')" class="action-btn" style="padding:0.25rem 0.65rem; font-size:0.85rem; background:#334155; color:var(--text-muted); border:none;">
+                <i class="fa-solid fa-location-dot"></i> 黑探棒 (-)
+              </button>
+            </div>
+          </div>
+          <div style="display:flex; gap:1.5rem; margin-bottom:0.4rem; align-self:flex-start; font-size:0.95rem; background:#090d16; padding:0.4rem 0.85rem; border-radius:0.4rem; width:100%;">
+            <span><i class="fa-solid fa-location-dot" style="color:#ef4444;"></i> 紅探棒(+): <strong id="probeAText" style="color:#ef4444;">測試點 J</strong></span>
+            <span><i class="fa-solid fa-location-dot" style="color:#38bdf8;"></i> 黑探棒(-): <strong id="probeBText" style="color:#38bdf8;">測試點 H (GND)</strong></span>
+            <span style="margin-left:auto; color:var(--accent-yellow);"><i class="fa-solid fa-bolt"></i> 目前探棒間壓差: <strong id="probeDiffText">V_JH</strong></span>
+          </div>
+          <svg class="circuit-svg" viewBox="0 0 1050 620" id="circuitSvgProbe">
+            <!-- Dynamic SVG content for probe tab -->
+          </svg>
+        </div>
+
+        <!-- Right: Digital Multimeter & Scope Panels -->
+        <div style="display:flex; flex-direction:column; gap:1rem;">
+          <!-- Digital Multimeter Card -->
+          <div class="dmm-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; font-size:1rem; color:var(--accent-yellow);"><i class="fa-solid fa-calculator"></i> 虛擬數位萬用電表 (DMM)</span>
+              <span style="font-size:0.8rem; color:var(--text-muted);">AUTO RANGING</span>
+            </div>
+            <div class="dmm-screen">
+              <div class="dmm-readout" id="dmmValue">0.00</div>
+              <div class="dmm-unit" id="dmmUnit">DC V</div>
+            </div>
+            <div class="dmm-controls">
+              <button class="dmm-mode-btn active" id="btnDCV" onclick="setDMMMode('DCV')">DC V (直流電壓)</button>
+              <button class="dmm-mode-btn" id="btnACV" onclick="setDMMMode('ACV')">AC V (交流電壓)</button>
+              <button class="dmm-mode-btn" id="btnDCA" onclick="setDMMMode('DCA')">DC mA (直流電流)</button>
+            </div>
+          </div>
+
+          <!-- Oscilloscope Card -->
+          <div class="scope-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; font-size:1rem; color:var(--accent-green);"><i class="fa-solid fa-chart-line"></i> 虛擬雙聲道示波器 (Oscilloscope)</span>
+              <span style="font-size:0.8rem; color:var(--accent-green);"><i class="fa-solid fa-circle" style="font-size:0.55rem;"></i> RUNNING</span>
+            </div>
+            <canvas class="scope-canvas" id="scopeCanvas" width="400" height="240"></canvas>
+            <div class="scope-controls">
+              <div class="scope-setting">
+                <span>CH1 (信號輸入+):</span>
+                <span id="scopeCH1Text" style="color:#38bdf8; font-weight:bold;">5.0 Vp-p (1kHz)</span>
+              </div>
+              <div class="scope-setting">
+                <span>CH2 (測試點):</span>
+                <span id="scopeCH2Text" style="color:#f472b6; font-weight:bold;">量測中...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: OFFICIAL ANSWER SHEET - 1 & GRADING ENGINE -->
+    <div id="tab-worksheet" class="tab-content">
+      <div class="worksheet-card" id="officialAnswerSheet">
+        <!-- Official Header Bar for Web View (Acts as bottom of Page 1 in PDF output) -->
+        <div class="print-page-1-header-bar" style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--border-color); padding-bottom:0.75rem; margin-bottom:1rem;">
+          <div>
+            <h2 style="font-size:1.25rem; color:var(--accent-yellow); display:flex; align-items:center; gap:0.5rem;">
+              <i class="fa-solid fa-file-contract"></i> （六）儀表操作與訊號量測答案卷 - 1 (官方樣式復刻版)
+            </h2>
+            <p style="font-size:0.88rem; color:var(--text-muted); margin-top:0.25rem;">完全比照勞動部丙級工業電子術科試題 02800-100302 答案卷排版與評分規範</p>
+          </div>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="action-btn btn-submit" onclick="gradeWorksheet()"><i class="fa-solid fa-check-double"></i> 提交自動評分</button>
+            <button class="action-btn btn-reset" onclick="fillCalculatedAnswers()"><i class="fa-solid fa-wand-magic-sparkles"></i> 自動填入解答</button>
+            <button class="action-btn" style="background:#0284c7; color:#fff;" onclick="printOfficialSheet()"><i class="fa-solid fa-print"></i> 列印官方答案卷 (純淨 A4 考卷)</button>
+          </div>
+        </div>
+
+        <!-- ==================== PURE GROUP X OFFICIAL ANSWER SHEET ==================== -->
+        <div class="print-full-page-2-wrapper" style="display:flex; flex-direction:column; gap:0.85rem; border:1px dashed var(--border-color); padding:1.2rem; border-radius:0.5rem; position:relative; margin-top:1rem;">
+          <span class="page-badge-tag" style="position:absolute; top:-12px; right:15px; background:var(--accent-blue); color:#0f172a; padding:0.1rem 0.6rem; border-radius:0.3rem; font-size:0.8rem; font-weight:bold;">題組答案卷區塊 (列印/PDF時僅呈現此處題組X考卷)</span>
+          
+          <!-- Official Candidate Info Header -->
+          <div class="official-info-box" style="display:grid; grid-template-columns: 0.95fr 0.95fr 1.1fr; gap:0.5rem; background:#090d16; padding:0.85rem; border-radius:0.5rem; border:1px solid var(--border-color); font-size:0.95rem; align-items:center;">
+            <div style="white-space:nowrap;"><strong>姓名：</strong> <input type="text" style="background:var(--panel-bg); color:#fff; border:1px solid var(--border-color); padding:0.25rem 0.4rem; border-radius:0.3rem; width:55%;" value="應檢人" placeholder="請輸入姓名"></div>
+            <div style="white-space:nowrap;"><strong>術科測試編號：</strong> <input type="text" style="background:var(--panel-bg); color:#fff; border:1px solid var(--border-color); padding:0.25rem 0.4rem; border-radius:0.3rem; width:55%;" value="02800-100302" placeholder="請輸入編號"></div>
+            <div style="white-space:nowrap; text-align:right;"><strong>測試日期：</strong> <span style="color:var(--accent-blue); font-weight:bold;">2026 年 07 月 27 日</span></div>
+          </div>
+
+          <!-- 1. Test Group Specified Conditions -->
+          <div style="background:var(--card-bg); padding:0.85rem; border-radius:0.5rem; border:1px solid var(--border-color);">
+            <h3 style="font-size:1.02rem; color:var(--accent-yellow); margin-bottom:0.4rem;">
+              1. 測試題組指定條件 (<strong id="wsGroupTitle" style="color:var(--accent-blue);">題組 1</strong>)：
+            </h3>
+            <div style="font-size:0.95rem; line-height:1.6;" id="officialSpecLine">
+              量測用電路板：<br>
+              R<sub>L1</sub>=<span id="ws_RL1" style="color:var(--accent-green); font-weight:bold;">1kΩ</span> , 
+              R<sub>L2</sub>=<span id="ws_RL2" style="color:var(--accent-green); font-weight:bold;">5.1kΩ</span> , 
+              R<sub>L3</sub>=<span id="ws_RL3" style="color:var(--accent-green); font-weight:bold;">220Ω</span> , 
+              R<sub>L4</sub>=<span id="ws_RL4" style="color:var(--accent-green); font-weight:bold;">8.2kΩ</span> , 
+              R<sub>L5</sub>=<span id="ws_RL5" style="color:var(--accent-green); font-weight:bold;">0Ω</span> ; <br>
+              R<sub>7</sub>=<span id="ws_R7" style="color:var(--accent-green); font-weight:bold;">100Ω</span> , 
+              R<sub>8</sub>=<span id="ws_R8" style="color:var(--accent-green); font-weight:bold;">1.5kΩ</span> , 
+              R<sub>11</sub>=<span id="ws_R11" style="color:var(--accent-green); font-weight:bold;">47kΩ</span> 。
+            </div>
+          </div>
+
+          <!-- 2. Candidate Measurement Records (1) Unscored fixed points -->
+          <div style="background:var(--card-bg); padding:0.85rem; border-radius:0.5rem; border:1px solid var(--border-color);">
+            <h3 style="font-size:1.02rem; color:var(--accent-blue); margin-bottom:0.4rem;">
+              2. 應檢人量測記錄：
+            </h3>
+            <p style="font-size:0.92rem; margin-bottom:0.4rem;">
+              (1) V<sub>AD</sub> = <input type="number" step="0.01" id="input_VAD" value="15.00" style="width:80px; text-align:center;"> (Vrms) , 
+              V<sub>GH</sub> = <input type="number" step="0.01" id="input_VGH" value="20.51" style="width:80px; text-align:center;"> (V) , 
+              V<sub>IH</sub> = <input type="number" step="0.01" id="input_VIH" value="12.00" style="width:80px; text-align:center;"> (V) 
+              <span style="color:var(--text-muted); font-size:0.85rem; margin-left:0.5rem;">（本項測量值不列入評分）</span>
+            </p>
+            <p style="font-size:0.95rem; font-weight:bold; color:var(--accent-yellow); margin-top:0.6rem;">
+              (2) 應檢人自行量測記錄 (6 大指定項目)：
+            </p>
+          </div>
+
+          <!-- Table 1: AC Section -->
+          <table class="ws-table" style="margin-top:0.2rem;">
+            <thead>
+              <tr>
+                <th width="12%">類別</th>
+                <th width="8%">項次</th>
+                <th width="35%">計 算 值 (理論計算)</th>
+                <th width="35%">量 測 值 (實測填答)</th>
+                <th width="10%">評分結果</th>
+              </tr>
+            </thead>
+            <tbody id="wsAcFormatBody">
+              <!-- Dynamic AC 2 Rows populated by JS -->
+            </tbody>
+          </table>
+
+          <!-- Table 2: DC Section -->
+          <table class="ws-table" style="margin-top:0.2rem;">
+            <thead>
+              <tr>
+                <th width="12%">類別</th>
+                <th width="8%">項次</th>
+                <th width="35%">計 算 值 (理論計算)</th>
+                <th width="35%">量 測 值 (實測填答)</th>
+                <th width="10%">評分結果</th>
+              </tr>
+            </thead>
+            <tbody id="wsDcFormatBody">
+              <!-- Dynamic DC 4 Rows populated by JS -->
+            </tbody>
+          </table>
+
+          <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.45; background:#090d16; padding:0.65rem; border-radius:0.4rem; border:1px solid var(--border-color);">
+            <p>例如：V<sub>JK</sub> = <strong>-8.1</strong> V , I<sub>1</sub> = <strong>10.2</strong> mA</p>
+            <p>備註：計算值為理論值，電壓以 AC15V 及 DC12V 為準，量測值以三用電表實際量測為準（誤差 ≤ ±10% 以內判定合格）。</p>
+          </div>
+
+          <!-- Score Result Modal / Box -->
+          <div id="scoreResultBox" style="display:none; background:#090d16; border:2px solid var(--accent-blue); padding:1rem; border-radius:0.5rem;">
+            <h3 id="scoreText" style="font-size:1.15rem; margin-bottom:0.4rem;">評分結果</h3>
+            <div id="scoreDetailList" style="font-size:0.92rem; line-height:1.5;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 4: FAULT DIAGNOSIS CHALLENGE -->
+    <div id="tab-faults" class="tab-content">
+      <div class="worksheet-card">
+        <h2 style="font-size:1.15rem; color:var(--accent-red);"><i class="fa-solid fa-bug"></i> 丙級術科 故障模擬與診斷挑戰 (Troubleshooting Challenge)</h2>
+        <p style="font-size:0.88rem; color:var(--text-muted);">點擊下方「隨機產生故障」，系統將會在電路中注入模擬故障（開路、短路、損壞）。請切換至虛擬電表量測電壓並推斷問題所在！</p>
+        
+        <div style="display:flex; gap:1rem; margin-top:0.4rem;">
+          <button class="action-btn" style="background:var(--accent-red); color:#fff;" onclick="generateRandomFault()"><i class="fa-solid fa-shuffle"></i> 隨機注入故障電路</button>
+          <button class="action-btn btn-reset" onclick="clearFault()"><i class="fa-solid fa-wrench"></i> 恢復正常電路</button>
+        </div>
+
+        <div style="background:#090d16; padding:1rem; border-radius:0.5rem; border:1px solid var(--border-color); margin-top:0.85rem;">
+          <h3 style="font-size:1rem; color:var(--accent-yellow); margin-bottom:0.5rem;">故障診斷答題區：</h3>
+          <div style="display:flex; flex-direction:column; gap:0.6rem; font-size:0.95rem;">
+            <label><input type="radio" name="faultOption" value="NONE" checked> 電路正常無故障 (Normal)</label>
+            <label><input type="radio" name="faultOption" value="R9_OPEN"> 電阻 R<sub>9</sub> (2.2kΩ) 虛焊開路 (Open Circuit)</label>
+            <label><input type="radio" name="faultOption" value="U1_FAIL"> 7812 穩壓 IC 損壞無輸出 (0V Output)</label>
+            <label><input type="radio" name="faultOption" value="D1_OPEN"> 二極體 D<sub>1</sub> 燒毀斷路 (D<sub>1</sub> Open)</label>
+            <label><input type="radio" name="faultOption" value="RL3_OPEN"> 插座 R<sub>L3</sub> 拔除開路 (R<sub>L3</sub> Open)</label>
+          </div>
+          <button class="action-btn btn-submit" style="margin-top:0.85rem;" onclick="checkFaultDiagnosis()"><i class="fa-solid fa-paper-plane"></i> 送出診斷答案</button>
+          <div id="faultFeedback" style="margin-top:0.65rem; font-weight:bold; font-size:1rem;"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Step-by-Step Calculation Modal -->
+  <div class="modal-overlay" id="stepModal">
+    <div class="modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.85rem;">
+        <h3 id="modalTitle" style="color:var(--accent-yellow); font-size:1.2rem;"><i class="fa-solid fa-calculator"></i> 詳細計算推導過程</h3>
+        <button onclick="closeModal()" style="background:transparent; border:none; color:var(--text-muted); font-size:1.3rem; cursor:pointer;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="modalBody" style="font-family:'Fira Code', monospace; font-size:0.95rem; line-height:1.45; color:#cbd5e1;">
+        <!-- Dynamic math steps content -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Helper function to format subscript for Rxx, Vxx, Ixx
+    function formatSub(str) {
+      if (!str) return '';
+      return str
+        .replace(/RL([1-5])/g, 'R<sub>L$1</sub>')
+        .replace(/R(\d+)/g, 'R<sub>$1</sub>')
+        .replace(/V([A-Z]{2})/g, 'V<sub>$1</sub>')
+        .replace(/I(\d+)/g, 'I<sub>$1</sub>')
+        .replace(/R_b(\d+)/g, 'R<sub>b$1</sub>')
+        .replace(/V_CC/g, 'V<sub>CC</sub>')
+        .replace(/V_AD/g, 'V<sub>AD</sub>')
+        .replace(/V_GH/g, 'V<sub>GH</sub>')
+        .replace(/V_IH/g, 'V<sub>IH</sub>');
+    }
+
+    // Database of the 12 official test groups from Taiwan Skill Test Booklet 02800-100302
+    const testGroups = {
+      1: {
+        RL1: 1000, RL2: 5100, RL3: 220, RL4: 8200, RL5: 0, R7: 100, R8: 1500, R11: 47000,
+        items: ['VBD', 'VEF', 'VJH', 'VLK', 'I1', 'I2'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '正弦波', freq: '1kHz', amp: '5Vp-p', testPoint: 'VJH' }
+      },
+      2: {
+        RL1: 5100, RL2: 2000, RL3: 100, RL4: 1500, RL5: 22000, R7: 330, R8: 6800, R11: 0,
+        items: ['VBC', 'VED', 'VJK', 'VJM', 'I2', 'I3'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '方波', freq: '5kHz', amp: '2Vp-p', testPoint: 'VNH' }
+      },
+      3: {
+        RL1: 10000, RL2: 10000, RL3: 330, RL4: 8200, RL5: 10000, R7: 470, R8: 6800, R11: 22000,
+        items: ['VAE', 'VEC', 'VIJ', 'VJL', 'I1', 'I3'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '三角波', freq: '20kHz', amp: '10Vp-p', testPoint: 'VMH' }
+      },
+      4: {
+        RL1: 2000, RL2: 20000, RL3: 680, RL4: 6800, RL5: 22000, R7: 220, R8: 4700, R11: 47000,
+        items: ['VAC', 'VFD', 'VKH', 'VMK', 'I1', 'I2'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '方波', freq: '1kHz', amp: '5Vp-p', testPoint: 'VOH' }
+      },
+      5: {
+        RL1: 20000, RL2: 1000, RL3: 470, RL4: 4700, RL5: 47000, R7: 680, R8: 8200, R11: 0,
+        items: ['VBC', 'VAF', 'VLO', 'VIM', 'I1', 'I3'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '三角波', freq: '5kHz', amp: '15Vp-p', testPoint: 'VMH' }
+      },
+      6: {
+        RL1: 33000, RL2: 10000, RL3: 'OPEN', RL4: 0, RL5: 10000, R7: 680, R8: 4700, R11: 22000,
+        items: ['VBF', 'VED', 'VJK', 'VJL', 'I2', 'I3'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '正弦波', freq: '5kHz', amp: '10Vp-p', testPoint: 'VOH' }
+      },
+      7: {
+        RL1: 10000, RL2: 51000, RL3: 470, RL4: 4700, RL5: 'OPEN', R7: 470, R8: 4700, R11: 47000,
+        items: ['VBD', 'VBF', 'VJM', 'VLH', 'I1', 'I2'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '正弦波', freq: '20kHz', amp: '2Vp-p', testPoint: 'VLH' }
+      },
+      8: {
+        RL1: 82000, RL2: 33000, RL3: 330, RL4: 'OPEN', RL5: 22000, R7: 220, R8: 6800, R11: 10000,
+        items: ['VBC', 'VED', 'VKH', 'VJN', 'I1', 'I3'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '方波', freq: '10kHz', amp: '10Vp-p', testPoint: 'VJH' }
+      },
+      9: {
+        RL1: 5100, RL2: 20000, RL3: 220, RL4: 1500, RL5: 10000, R7: 100, R8: 1500, R11: 0,
+        items: ['VAB', 'VEC', 'VNO', 'VJM', 'I2', 'I3'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '三角波', freq: '5kHz', amp: '5Vp-p', testPoint: 'VNH' }
+      },
+      10: {
+        RL1: 1000, RL2: 20000, RL3: 100, RL4: 4700, RL5: 10000, R7: 470, R8: 6800, R11: 82000,
+        items: ['VBD', 'VED', 'VIK', 'VKO', 'I1', 'I2'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '正弦波', freq: '10kHz', amp: '15Vp-p', testPoint: 'VOH' }
+      },
+      11: {
+        RL1: 100000, RL2: 0, RL3: 680, RL4: 6800, RL5: 82000, R7: 330, R8: 6800, R11: 47000,
+        items: ['VBC', 'VFB', 'VML', 'VJO', 'I1', 'I3'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '方波', freq: '10kHz', amp: '2Vp-p', testPoint: 'VLH' }
+      },
+      12: {
+        RL1: 0, RL2: 100000, RL3: 470, RL4: 8200, RL5: 47000, R7: 220, R8: 8200, R11: 10000,
+        items: ['VDB', 'VCE', 'VON', 'VNK', 'I2', 'I3'],
+        itemTypes: ['交流電壓1 (AC Vrms)', '交流電壓2 (AC Vrms)', '直流電壓1 (DC V)', '直流電壓2 (DC V)', '直流電流1 (DC mA)', '直流電流2 (DC mA)'],
+        scope: { wave: '三角波', freq: '20kHz', amp: '15Vp-p', testPoint: 'VKH' }
+      }
+    };
+
+    // State Variables
+    let currentGroupId = 1;
+    let probeA = 'J';
+    let probeB = 'H';
+    let dmmMode = 'DCV';
+    let activeFault = 'NONE';
+    let allStepsExpanded = false;
+
+    // Fixed Circuit Constants
+    const R1 = 10000, R2 = 1000, R3 = 5100, R4 = 10000, R5 = 10000, R6 = 150, R9 = 2200, R10 = 10000;
+    const VacIn = 15.0; // Vrms
+    const VdcIn = 12.0; // Volts from 7812
+
+    // Initialize App
+    window.addEventListener('DOMContentLoaded', () => {
+      initPresetButtons();
+      loadGroup(1);
+      renderScopeCanvas();
+    });
+
+    function initPresetButtons() {
+      const grid = document.getElementById('presetBtnGrid');
+      grid.innerHTML = '';
+      for (let i = 1; i <= 12; i++) {
+        const btn = document.createElement('button');
+        btn.className = `preset-btn ${i === 1 ? 'active' : ''}`;
+        btn.textContent = `題組 ${i}`;
+        btn.onclick = () => loadGroup(i);
+        btn.id = `presetBtn_${i}`;
+        grid.appendChild(btn);
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      if (event && event.currentTarget && event.currentTarget.classList) {
+        event.currentTarget.classList.add('active');
+      }
+      document.getElementById(tabId).classList.add('active');
+
+      if (tabId === 'tab-instruments') {
+        renderFullBaseCircuitSVG('circuitSvgProbe', true);
+        updateDMMReadout();
+      }
+    }
+
+    function printOfficialSheet() {
+      // Switch tab to worksheet automatically before opening print dialog
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      document.getElementById('tab-worksheet').classList.add('active');
+      
+      setTimeout(() => {
+        window.print();
+      }, 150);
+    }
+
+    function loadGroup(groupId) {
+      currentGroupId = groupId;
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`presetBtn_${groupId}`).classList.add('active');
+
+      const g = testGroups[groupId];
+      document.getElementById('groupLabel').textContent = `題組 ${groupId}`;
+      document.getElementById('wsGroupTitle').textContent = `題組 ${groupId}`;
+
+      // Update Official Answer Sheet 1 Spec Values
+      if (document.getElementById('ws_RL1')) document.getElementById('ws_RL1').textContent = formatR(g.RL1);
+      if (document.getElementById('ws_RL2')) document.getElementById('ws_RL2').textContent = formatR(g.RL2);
+      if (document.getElementById('ws_RL3')) document.getElementById('ws_RL3').textContent = formatR(g.RL3);
+      if (document.getElementById('ws_RL4')) document.getElementById('ws_RL4').textContent = formatR(g.RL4);
+      if (document.getElementById('ws_RL5')) document.getElementById('ws_RL5').textContent = formatR(g.RL5);
+      if (document.getElementById('ws_R7')) document.getElementById('ws_R7').textContent = formatR(g.R7);
+      if (document.getElementById('ws_R8')) document.getElementById('ws_R8').textContent = formatR(g.R8);
+      if (document.getElementById('ws_R11')) document.getElementById('ws_R11').textContent = formatR(g.R11);
+
+      // Update Spec List with '＝' and Aligned 2-Column Grid
+      document.getElementById('groupSpecList').innerHTML = `
+        <div class="spec-grid">
+          <div class="spec-item"><span class="spec-lbl">${formatSub('RL1')}＝</span> <span class="val">${formatR(g.RL1)}</span></div>
+          <div class="spec-item"><span class="spec-lbl">${formatSub('RL2')}＝</span> <span class="val">${formatR(g.RL2)}</span></div>
+          <div class="spec-item"><span class="spec-lbl">${formatSub('RL3')}＝</span> <span class="val">${formatR(g.RL3)}</span></div>
+          <div class="spec-item"><span class="spec-lbl">${formatSub('R7')}＝</span> <span class="val">${formatR(g.R7)}</span></div>
+          <div class="spec-item"><span class="spec-lbl">${formatSub('RL4')}＝</span> <span class="val">${formatR(g.RL4)}</span></div>
+          <div class="spec-item"><span class="spec-lbl">${formatSub('R8')}＝</span> <span class="val">${formatR(g.R8)}</span></div>
+          <div class="spec-item"><span class="spec-lbl">${formatSub('RL5')}＝</span> <span class="val">${formatR(g.RL5)}</span></div>
+          <div class="spec-item"><span class="spec-lbl">${formatSub('R11')}＝</span> <span class="val">${formatR(g.R11)}</span></div>
+        </div>
+      `;
+
+      // Render Step Derivation List in Left Sidebar
+      renderSidebarDerivationList();
+
+      // Update Scope Spec List
+      document.getElementById('scopeSpecList').innerHTML = `
+        <p><strong>波形型態:</strong> <span class="val">${g.scope.wave}</span></p>
+        <p><strong>頻率 / 振幅:</strong> <span class="val">${g.scope.freq} / ${g.scope.amp}</span></p>
+        <p><strong>CH2 量測點:</strong> <span class="val">測試點 ${g.scope.testPoint}</span></p>
+      `;
+
+      renderFullBaseCircuitSVG('circuitSvg', false);
+      updateWorksheetDynamicTable();
+    }
+
+    function formatR(val) {
+      if (val === 'OPEN') return '開路';
+      if (val >= 1000) return `${val/1000}kΩ`;
+      return `${val}Ω`;
+    }
+
+    // Circuit Mathematics Engine
+    function calculateNodeVoltageDC(node) {
+      if (activeFault === 'U1_FAIL') return 0.0;
+      const g = testGroups[currentGroupId];
+
+      // Branch 3 (R6, RL3, R7) -> Nodes I, J, K
+      let RL3 = g.RL3 === 'OPEN' ? 1e9 : g.RL3;
+      if (activeFault === 'RL3_OPEN') RL3 = 1e9;
+      const Rb3 = R6 + RL3 + g.R7;
+      const I1 = 12.0 / Rb3;
+
+      // Branch 2 (R8, R9, RL4) -> Nodes L, M
+      let R9_eff = (activeFault === 'R9_OPEN') ? 1e9 : R9;
+      let RL4 = g.RL4 === 'OPEN' ? 1e9 : g.RL4;
+      const Rb2 = g.R8 + R9_eff + RL4;
+      const I2 = 12.0 / Rb2;
+
+      // Branch 1 (RL5, R10, R11) -> Nodes N, O
+      let RL5 = g.RL5 === 'OPEN' ? 1e9 : g.RL5;
+      const Rb1 = RL5 + R10 + g.R11;
+      const I3 = 12.0 / Rb1;
+
+      switch(node) {
+        case 'I': return 12.0;
+        case 'J': return 12.0 - I1 * R6;
+        case 'K': return I1 * g.R7;
+        case 'L': return 12.0 - I2 * g.R8;
+        case 'M': return I2 * RL4;
+        case 'N': return 12.0 - I3 * RL5;
+        case 'O': return I3 * g.R11;
+        case 'G': return 20.51; // Filtered DC input to 7812 (Peak 21.21V - Diode VD 0.7V = 20.51V)
+        case 'H': return 0.0;
+        default: return 0.0;
+      }
+    }
+
+    function calculateNodeVoltageAC(node) {
+      if (activeFault === 'D1_OPEN') return 0.0;
+      const g = testGroups[currentGroupId];
+
+      // AC Branch 1 (RL2, R3, R4) -> Nodes A, E, F
+      const Rac1 = g.RL2 + R3 + R4;
+      // AC Branch 2 (R1, RL1, R2) -> Nodes B, C
+      const Rac2 = R1 + g.RL1 + R2;
+
+      switch(node) {
+        case 'A': return VacIn;
+        case 'E': return VacIn * (R3 + R4) / Rac1;
+        case 'F': return VacIn * R4 / Rac1;
+        case 'B': return VacIn * (g.RL1 + R2) / Rac2;
+        case 'C': return VacIn * R2 / Rac2;
+        case 'D': return 0.0;
+        default: return 0.0;
+      }
+    }
+
+    function calculateItemValue(item) {
+      const g = testGroups[currentGroupId];
+      
+      // Check currents
+      if (item === 'I1') {
+        let RL3 = g.RL3 === 'OPEN' ? 1e9 : g.RL3;
+        if (activeFault === 'RL3_OPEN') RL3 = 1e9;
+        return (12.0 / (R6 + RL3 + g.R7)) * 1000; // mA
+      }
+      if (item === 'I2') {
+        let R9_eff = (activeFault === 'R9_OPEN') ? 1e9 : R9;
+        let RL4 = g.RL4 === 'OPEN' ? 1e9 : g.RL4;
+        return (12.0 / (g.R8 + R9_eff + RL4)) * 1000; // mA
+      }
+      if (item === 'I3') {
+        let RL5 = g.RL5 === 'OPEN' ? 1e9 : g.RL5;
+        return (12.0 / (RL5 + R10 + g.R11)) * 1000; // mA
+      }
+
+      // Check Voltages V_XY = V_X - V_Y
+      if (item.length === 3 && item.startsWith('V')) {
+        const n1 = item[1];
+        const n2 = item[2];
+
+        const isAC = ['A','B','C','D','E','F'].includes(n1) || ['A','B','C','D','E','F'].includes(n2);
+        if (isAC) {
+          const v1 = calculateNodeVoltageAC(n1);
+          const v2 = calculateNodeVoltageAC(n2);
+          return Math.abs(v1 - v2);
+        } else {
+          const v1 = calculateNodeVoltageDC(n1);
+          const v2 = calculateNodeVoltageDC(n2);
+          return Math.abs(v1 - v2);
+        }
+      }
+      return 0.0;
+    }
+
+    // Generate Collapsible Answer & Math Steps Box (Compact line-height 1.4)
+    function generateCollapsibleItemHTML(item, idx) {
+      const g = testGroups[currentGroupId];
+      const val = calculateItemValue(item);
+      const unit = g.itemTypes[idx].includes('mA') ? 'mA' : (g.itemTypes[idx].includes('AC') ? 'Vrms' : 'V');
+      
+      let stepContent = '';
+      if (item === 'I1') {
+        const RL3_val = g.RL3 === 'OPEN' ? '開路(∞)' : `${g.RL3}Ω`;
+        const Rb3 = R6 + (g.RL3 === 'OPEN' ? 1e9 : g.RL3) + g.R7;
+        stepContent = `
+          1. 支路元件: ${formatSub('R6')}(150Ω) + ${formatSub('RL3')}(${RL3_val}) + ${formatSub('R7')}(${g.R7}Ω)<br>
+          2. 總支路電阻 ${formatSub('R_b3')} = 150 + ${g.RL3 === 'OPEN' ? '∞' : g.RL3} + ${g.R7} = <span class="highlight-val">${g.RL3==='OPEN'?'∞':Rb3} Ω</span><br>
+          3. 歐姆定律: ${formatSub('I1')} = ${formatSub('V_CC')} / ${formatSub('R_b3')} = 12.0V / ${g.RL3==='OPEN'?'∞':Rb3+'Ω'}<br>
+          4. 最終理論值: ${formatSub('I1')} = <span class="highlight-val">${val.toFixed(2)} mA</span>
+        `;
+      } else if (item === 'I2') {
+        const RL4_val = g.RL4 === 'OPEN' ? '開路(∞)' : `${g.RL4}Ω`;
+        const Rb2 = g.R8 + R9 + (g.RL4 === 'OPEN' ? 1e9 : g.RL4);
+        stepContent = `
+          1. 支路元件: ${formatSub('R8')}(${g.R8}Ω) + ${formatSub('R9')}(2.2kΩ) + ${formatSub('RL4')}(${RL4_val})<br>
+          2. 總支路電阻 ${formatSub('R_b2')} = ${g.R8} + 2200 + ${g.RL4 === 'OPEN' ? '∞' : g.RL4} = <span class="highlight-val">${g.RL4==='OPEN'?'∞':Rb2} Ω</span><br>
+          3. 歐姆定律: ${formatSub('I2')} = ${formatSub('V_CC')} / ${formatSub('R_b2')} = 12.0V / ${g.RL4==='OPEN'?'∞':Rb2+'Ω'}<br>
+          4. 最終理論值: ${formatSub('I2')} = <span class="highlight-val">${val.toFixed(2)} mA</span>
+        `;
+      } else if (item === 'I3') {
+        const RL5_val = g.RL5 === 'OPEN' ? '開路(∞)' : `${g.RL5}Ω`;
+        const Rb1 = (g.RL5 === 'OPEN' ? 1e9 : g.RL5) + R10 + g.R11;
+        stepContent = `
+          1. 支路元件: ${formatSub('RL5')}(${RL5_val}) + ${formatSub('R10')}(10kΩ) + ${formatSub('R11')}(${g.R11}Ω)<br>
+          2. 總支路電阻 ${formatSub('R_b1')} = ${g.RL5==='OPEN'?'∞':g.RL5} + 10000 + ${g.R11} = <span class="highlight-val">${g.RL5==='OPEN'?'∞':Rb1} Ω</span><br>
+          3. 歐姆定律: ${formatSub('I3')} = ${formatSub('V_CC')} / ${formatSub('R_b1')} = 12.0V / ${g.RL5==='OPEN'?'∞':Rb1+'Ω'}<br>
+          4. 最終理論值: ${formatSub('I3')} = <span class="highlight-val">${val.toFixed(2)} mA</span>
+        `;
+      } else if (item.startsWith('V')) {
+        const n1 = item[1];
+        const n2 = item[2];
+        const isAC = ['A','B','C','D','E','F'].includes(n1) || ['A','B','C','D','E','F'].includes(n2);
+        
+        if (isAC) {
+          const v1 = calculateNodeVoltageAC(n1);
+          const v2 = calculateNodeVoltageAC(n2);
+          stepContent = `
+            1. 電源輸入 ${formatSub('V_AD')} = 15.0 Vrms<br>
+            2. 節點 ${n1} 電壓: V<sub>${n1}</sub> = <span class="highlight-formula">${v1.toFixed(2)} Vrms</span><br>
+            3. 節點 ${n2} 電壓: V<sub>${n2}</sub> = <span class="highlight-formula">${v2.toFixed(2)} Vrms</span><br>
+            4. 跨壓公式: ${formatSub(item)} = |V<sub>${n1}</sub> - V<sub>${n2}</sub>| = |${v1.toFixed(2)} - ${v2.toFixed(2)}|<br>
+            5. 最終理論值: ${formatSub(item)} = <span class="highlight-val">${val.toFixed(2)} Vrms</span>
+          `;
+        } else {
+          const v1 = calculateNodeVoltageDC(n1);
+          const v2 = calculateNodeVoltageDC(n2);
+          stepContent = `
+            1. 電源輸入 ${formatSub('V_CC')} (V<sub>I</sub>) = 12.0 V<br>
+            2. 節點 ${n1} 電壓: V<sub>${n1}</sub> = <span class="highlight-formula">${v1.toFixed(2)} V</span><br>
+            3. 節點 ${n2} 電壓: V<sub>${n2}</sub> = <span class="highlight-formula">${v2.toFixed(2)} V</span><br>
+            4. 壓差公式: ${formatSub(item)} = |V<sub>${n1}</sub> - V<sub>${n2}</sub>| = |${v1.toFixed(2)} - ${v2.toFixed(2)}|<br>
+            5. 最終理論值: ${formatSub(item)} = <span class="highlight-val">${val.toFixed(2)} V</span>
+          `;
+        }
+      }
+
+      return `
+        <div class="item-answer-card">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <span style="font-weight:bold; font-size:1.02rem; color:var(--text-main);">${idx+1}. ${formatSub(item)}</span>
+              <span style="font-size:0.8rem; color:var(--text-muted); margin-left:0.3rem;">(${g.itemTypes[idx]})</span>
+            </div>
+            <div style="font-family:'Fira Code', monospace; font-size:1.15rem; font-weight:bold; color:var(--accent-green);">
+              ${val.toFixed(2)} <span style="font-size:0.85rem;">${unit}</span>
+            </div>
+          </div>
+          <button class="btn-step" style="margin-top:0.4rem; width:100%; text-align:center;" onclick="toggleSidebarStep(${idx})">
+            <i class="fa-solid fa-chevron-down" id="arrow_${idx}"></i> <span id="btn_text_${idx}">觀看計算過程</span>
+          </button>
+          <div id="step_box_${idx}" class="math-step-box" style="display:none;">
+            ${stepContent}
+          </div>
+        </div>
+      `;
+    }
+
+    function toggleSidebarStep(key) {
+      const box = document.getElementById(`step_box_${key}`);
+      const btnText = document.getElementById(`btn_text_${key}`);
+      const arrow = document.getElementById(`arrow_${key}`);
+
+      if (box.style.display === 'none') {
+        box.style.display = 'block';
+        btnText.textContent = '隱藏計算過程';
+        arrow.className = 'fa-solid fa-chevron-up';
+      } else {
+        box.style.display = 'none';
+        btnText.textContent = '觀看計算過程';
+        arrow.className = 'fa-solid fa-chevron-down';
+      }
+    }
+
+    function toggleAllSteps() {
+      allStepsExpanded = !allStepsExpanded;
+      const g = testGroups[currentGroupId];
+      const toggleBtn = document.getElementById('toggleAllBtn');
+
+      g.items.forEach((item, idx) => {
+        const box = document.getElementById(`step_box_${idx}`);
+        const btnText = document.getElementById(`btn_text_${idx}`);
+        const arrow = document.getElementById(`arrow_${idx}`);
+
+        if (box) {
+          box.style.display = allStepsExpanded ? 'block' : 'none';
+          if (btnText) btnText.textContent = allStepsExpanded ? '隱藏計算過程' : '觀看計算過程';
+          if (arrow) arrow.className = allStepsExpanded ? 'fa-solid fa-chevron-up' : 'fa-solid fa-chevron-down';
+        }
+      });
+
+      toggleBtn.textContent = allStepsExpanded ? '全部收合' : '全部展開';
+    }
+
+    function renderSidebarDerivationList() {
+      const g = testGroups[currentGroupId];
+      const container = document.getElementById('stepDerivationList');
+      container.innerHTML = g.items.map((item, idx) => generateCollapsibleItemHTML(item, idx)).join('');
+      allStepsExpanded = false;
+      const toggleBtn = document.getElementById('toggleAllBtn');
+      if (toggleBtn) toggleBtn.textContent = '全部展開';
+    }
+
+    // Comprehensive Universal Solver for Modals (Supports Single Nodes L, M, N, O, J, K... and All Items)
+    function showModalStep(item) {
+      const g = testGroups[currentGroupId];
+      document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-calculator"></i> 題組 ${currentGroupId} - 測試點 ${formatSub(item)} 詳細推導過程`;
+      const modalBody = document.getElementById('modalBody');
+
+      // 1. Single Node Clicked on Circuit SVG Diagram (e.g. 'L', 'M', 'N', 'O', 'J', 'K', etc.)
+      if (item.length === 1) {
+        const node = item;
+        const isAC = ['A','B','C','D','E','F'].includes(node);
+
+        if (isAC) {
+          const vNode = calculateNodeVoltageAC(node);
+          let explanation = '';
+          if (node === 'A') explanation = `交流電源總輸入端，等於規格輸入有效值 15.00 Vrms。`;
+          if (node === 'D') explanation = `交流電路參考地端 (GND)，電壓為 0.00 Vrms。`;
+          if (node === 'B') {
+            const Rac2 = R1 + g.RL1 + R2;
+            explanation = `
+              屬交流第 2 分壓支路 (R<sub>1</sub>-R<sub>L1</sub>-R<sub>2</sub>)：<br>
+              1. 總支路電阻 R<sub>AC2</sub> = 10k + ${formatR(g.RL1)} + 1k = ${Rac2} Ω<br>
+              2. 節點 B 到地電壓 V<sub>B</sub> = V<sub>AD</sub> × (R<sub>L1</sub> + R<sub>2</sub>) / R<sub>AC2</sub><br>
+              3. V<sub>B</sub> = 15.0V × (${g.RL1} + 1000) / ${Rac2} = <span class="highlight-val">${vNode.toFixed(2)} Vrms</span>
+            `;
+          }
+          if (node === 'C') {
+            const Rac2 = R1 + g.RL1 + R2;
+            explanation = `
+              屬交流第 2 分壓支路 (R<sub>1</sub>-R<sub>L1</sub>-R<sub>2</sub>)：<br>
+              1. 總支路電阻 R<sub>AC2</sub> = 10k + ${formatR(g.RL1)} + 1k = ${Rac2} Ω<br>
+              2. 節點 C 到地電壓 V<sub>C</sub> = V<sub>AD</sub> × R<sub>2</sub> / R<sub>AC2</sub><br>
+              3. V<sub>C</sub> = 15.0V × 1000 / ${Rac2} = <span class="highlight-val">${vNode.toFixed(2)} Vrms</span>
+            `;
+          }
+          if (node === 'E') {
+            const Rac1 = g.RL2 + R3 + R4;
+            explanation = `
+              屬交流第 1 分壓支路 (R<sub>L2</sub>-R<sub>3</sub>-R<sub>4</sub>)：<br>
+              1. 總支路電阻 R<sub>AC1</sub> = ${formatR(g.RL2)} + 5.1k + 10k = ${Rac1} Ω<br>
+              2. 節點 E 到地電壓 V<sub>E</sub> = V<sub>AD</sub> × (R<sub>3</sub> + R<sub>4</sub>) / R<sub>AC1</sub><br>
+              3. V<sub>E</sub> = 15.0V × (5100 + 10000) / ${Rac1} = <span class="highlight-val">${vNode.toFixed(2)} Vrms</span>
+            `;
+          }
+          if (node === 'F') {
+            const Rac1 = g.RL2 + R3 + R4;
+            explanation = `
+              屬交流第 1 分壓支路 (R<sub>L2</sub>-R<sub>3</sub>-R<sub>4</sub>)：<br>
+              1. 總支路電阻 R<sub>AC1</sub> = ${formatR(g.RL2)} + 5.1k + 10k = ${Rac1} Ω<br>
+              2. 節點 F 到地電壓 V<sub>F</sub> = V<sub>AD</sub> × R<sub>4</sub> / R<sub>AC1</sub><br>
+              3. V<sub>F</sub> = 15.0V × 10000 / ${Rac1} = <span class="highlight-val">${vNode.toFixed(2)} Vrms</span>
+            `;
+          }
+          modalBody.innerHTML = `
+            <strong>測試點 ${node} 對地交流電壓 (V<sub>${node}D</sub>)：</strong><br><br>
+            ${explanation}<br>
+            <strong>最終對地理論電壓 V<sub>${node}</sub> = <span class="highlight-val">${vNode.toFixed(2)} Vrms</span></strong>
+          `;
+        } else {
+          // DC Node (L, M, N, O, J, K, I, G, H)
+          const vNode = calculateNodeVoltageDC(node);
+          let explanation = '';
+
+          if (node === 'H') explanation = `直流電路參考接地端 (GND)，相對電壓為 0.00 V。`;
+          if (node === 'G') explanation = `整流濾波未穩壓端：V<sub>GH</sub> = 21.21V (峰值) - 0.70V (D1壓降) = 20.51 V。`;
+          if (node === 'I') explanation = `7812 穩壓晶片輸出端：固定提供 +12.00 V 直流穩壓。`;
+          
+          if (node === 'J') {
+            const I1 = calculateItemValue('I1');
+            explanation = `
+              屬直流第 3 支路 (R<sub>6</sub>-R<sub>L3</sub>-R<sub>7</sub>)：<br>
+              1. 支路電流 I<sub>1</sub> = <span class="highlight-formula">${I1.toFixed(2)} mA</span><br>
+              2. V<sub>J</sub> = V<sub>CC</sub> - (I<sub>1</sub> × R<sub>6</sub>)<br>
+              3. V<sub>J</sub> = 12.0V - (${(I1/1000).toFixed(4)}A × 150Ω) = <span class="highlight-val">${vNode.toFixed(2)} V</span>
+            `;
+          }
+          if (node === 'K') {
+            const I1 = calculateItemValue('I1');
+            explanation = `
+              屬直流第 3 支路 (R<sub>6</sub>-R<sub>L3</sub>-R<sub>7</sub>)：<br>
+              1. 支路電流 I<sub>1</sub> = <span class="highlight-formula">${I1.toFixed(2)} mA</span><br>
+              2. V<sub>K</sub> = I<sub>1</sub> × R<sub>7</sub><br>
+              3. V<sub>K</sub> = ${(I1/1000).toFixed(4)}A × ${g.R7}Ω = <span class="highlight-val">${vNode.toFixed(2)} V</span>
+            `;
+          }
+          if (node === 'L') {
+            const I2 = calculateItemValue('I2');
+            explanation = `
+              屬直流第 2 支路 (R<sub>8</sub>-R<sub>9</sub>-R<sub>L4</sub>)：<br>
+              1. 支路電流 I<sub>2</sub> = <span class="highlight-formula">${I2.toFixed(2)} mA</span><br>
+              2. 壓降計算: V<sub>L</sub> = V<sub>CC</sub> - (I<sub>2</sub> × R<sub>8</sub>)<br>
+              3. V<sub>L</sub> = 12.0V - (${(I2/1000).toFixed(5)}A × ${g.R8}Ω) = <span class="highlight-val">${vNode.toFixed(2)} V</span>
+            `;
+          }
+          if (node === 'M') {
+            const I2 = calculateItemValue('I2');
+            const RL4_val = g.RL4 === 'OPEN' ? 0 : g.RL4;
+            explanation = `
+              屬直流第 2 支路 (R<sub>8</sub>-R<sub>9</sub>-R<sub>L4</sub>)：<br>
+              1. 支路電流 I<sub>2</sub> = <span class="highlight-formula">${I2.toFixed(2)} mA</span><br>
+              2. 壓降計算: V<sub>M</sub> = I<sub>2</sub> × R<sub>L4</sub><br>
+              3. V<sub>M</sub> = ${(I2/1000).toFixed(5)}A × ${g.RL4==='OPEN'?'∞':RL4_val}Ω = <span class="highlight-val">${vNode.toFixed(2)} V</span>
+            `;
+          }
+          if (node === 'N') {
+            const I3 = calculateItemValue('I3');
+            const RL5_val = g.RL5 === 'OPEN' ? 0 : g.RL5;
+            explanation = `
+              屬直流第 1 支路 (R<sub>L5</sub>-R<sub>10</sub>-R<sub>11</sub>)：<br>
+              1. 支路電流 I<sub>3</sub> = <span class="highlight-formula">${I3.toFixed(2)} mA</span><br>
+              2. V<sub>N</sub> = V<sub>CC</sub> - (I<sub>3</sub> × R<sub>L5</sub>)<br>
+              3. V<sub>N</sub> = 12.0V - (${(I3/1000).toFixed(5)}A × ${g.RL5==='OPEN'?'∞':RL5_val}Ω) = <span class="highlight-val">${vNode.toFixed(2)} V</span>
+            `;
+          }
+          if (node === 'O') {
+            const I3 = calculateItemValue('I3');
+            explanation = `
+              屬直流第 1 支路 (R<sub>L5</sub>-R<sub>10</sub>-R<sub>11</sub>)：<br>
+              1. 支路電流 I<sub>3</sub> = <span class="highlight-formula">${I3.toFixed(2)} mA</span><br>
+              2. V<sub>O</sub> = I<sub>3</sub> × R<sub>11</sub><br>
+              3. V<sub>O</sub> = ${(I3/1000).toFixed(5)}A × ${g.R11}Ω = <span class="highlight-val">${vNode.toFixed(2)} V</span>
+            `;
+          }
+
+          modalBody.innerHTML = `
+            <strong>測試點 ${node} 對地直流電壓 (V<sub>${node}H</sub>)：</strong><br><br>
+            ${explanation}<br>
+            <strong>最終對地理論電壓 V<sub>${node}</sub> = <span class="highlight-val">${vNode.toFixed(2)} V</span></strong>
+          `;
+        }
+      } else if (item === 'VGH') {
+        modalBody.innerHTML = `
+          <strong>測試點 V<sub>GH</sub> (節點 G 到地 H) 電壓計算推導：</strong><br><br>
+          1. 交流輸入有效值: V<sub>AD</sub> = <span class="highlight-formula">15.0 Vrms</span><br>
+          2. 交流輸入峰值 V<sub>m</sub>: V<sub>AD</sub> × √2 = 15.0 × 1.414 = <span class="highlight-formula">21.21 V</span><br>
+          3. 二極體 D<sub>1</sub> (1N4002) 順向壓降 V<sub>D</sub>: <span class="highlight-formula">0.70 V</span><br>
+          4. 電容 C<sub>1</sub> (470μF) 充至半波整流峰值 V<sub>GH</sub>:<br>
+             V<sub>GH</sub> = V<sub>m</sub> - V<sub>D</sub> = 21.21V - 0.70V = <span class="highlight-val">20.51 V</span><br><br>
+          <em>(註：丙級評分標準規定誤差在 ±10% 範圍內，即 18.46V ~ 22.56V 均合格)</em>
+        `;
+      } else if (item === 'VIH') {
+        modalBody.innerHTML = `
+          <strong>測試點 V<sub>IH</sub> (節點 I 到地 H) 電壓計算推導：</strong><br><br>
+          1. 輸入側電壓 V<sub>GH</sub> = 20.51 V (來自整流濾波電路)<br>
+          2. 經過 U<sub>1</sub> (7812) 三端子固定穩壓器 IC<br>
+          3. 穩壓輸出端 V<sub>OUT</sub> (節點 I): <span class="highlight-val">12.00 V (DC)</span>
+        `;
+      } else if (item === 'VAD') {
+        modalBody.innerHTML = `
+          <strong>測試點 V<sub>AD</sub> (節點 A 到地 D) 電壓計算推導：</strong><br><br>
+          1. 交流變壓器/信號源輸入有效值 V<sub>AD</sub> = <span class="highlight-val">15.00 Vrms (AC)</span>
+        `;
+      } else {
+        // 2-Letter Item or Current Item (e.g. VBD, VEF, VJH, I1, I2, I3)
+        const idx = g.items.indexOf(item);
+        const itemIndex = idx >= 0 ? idx : 0;
+        const dummyDiv = document.createElement('div');
+        dummyDiv.innerHTML = generateCollapsibleItemHTML(item, itemIndex);
+        const innerBox = dummyDiv.querySelector('.math-step-box');
+        modalBody.innerHTML = innerBox ? innerBox.innerHTML : '';
+      }
+
+      document.getElementById('stepModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('stepModal').style.display = 'none';
+    }
+
+    // RENDER THE FULL HIGH-PRECISION BASE SVG DIAGRAM FROM circuit_diagram.html
+    function renderFullBaseCircuitSVG(elementId, isProbeTab) {
+      const svg = document.getElementById(elementId);
+      const g = testGroups[currentGroupId];
+
+      svg.innerHTML = `
+        <defs>
+          <marker id="arrow-green" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+          </marker>
+        </defs>
+
+        <!-- ==================== BOUNDING BOXES ==================== -->
+        <g id="box-dc">
+          <rect class="section-box section-dc" x="30" y="65" width="310" height="520" rx="6" />
+          <text class="section-title" x="185" y="45" fill="#ef4444">直流分壓電路</text>
+        </g>
+        <g id="box-reg">
+          <rect class="section-box section-reg" x="375" y="65" width="365" height="520" rx="6" />
+          <text class="section-title" x="557" y="45" fill="#10b981">整流濾波穩壓電路</text>
+        </g>
+        <g id="box-ac">
+          <rect class="section-box section-ac" x="770" y="65" width="250" height="520" rx="6" />
+          <text class="section-title" x="895" y="45" fill="#8b5cf6">交流分壓電路</text>
+        </g>
+
+        <!-- ==================== WIRES / BUS LINES ==================== -->
+        <line class="wire" x1="85" y1="530" x2="945" y2="530" />
+        <line class="wire" x1="85" y1="135" x2="295" y2="135" />
+
+        <line class="wire" x1="85" y1="135" x2="85" y2="165" />
+        <line class="wire" x1="85" y1="245" x2="85" y2="305" />
+        <line class="wire" x1="85" y1="345" x2="85" y2="430" />
+        <line class="wire" x1="85" y1="470" x2="85" y2="530" />
+
+        <line class="wire" x1="190" y1="135" x2="190" y2="175" />
+        <line class="wire" x1="190" y1="215" x2="190" y2="305" />
+        <line class="wire" x1="190" y1="345" x2="190" y2="445" />
+        <line class="wire" x1="190" y1="525" x2="190" y2="530" />
+
+        <line class="wire" x1="295" y1="135" x2="295" y2="175" />
+        <line class="wire" x1="295" y1="215" x2="295" y2="315" />
+        <line class="wire" x1="295" y1="395" x2="295" y2="455" />
+        <line class="wire" x1="295" y1="495" x2="295" y2="530" />
+
+        <!-- Current Arrows (Green) -->
+        <line x1="60" y1="140" x2="60" y2="170" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)" />
+        <text x="45" y="155" fill="#10b981" font-size="15" font-weight="bold">I<tspan font-size="10" dy="3">3</tspan></text>
+
+        <line x1="165" y1="140" x2="165" y2="170" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)" />
+        <text x="150" y="155" fill="#10b981" font-size="15" font-weight="bold">I<tspan font-size="10" dy="3">2</tspan></text>
+
+        <line x1="270" y1="140" x2="270" y2="170" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)" />
+        <text x="255" y="155" fill="#10b981" font-size="15" font-weight="bold">I<tspan font-size="10" dy="3">1</tspan></text>
+
+        <!-- Dynamic Components in DC Section -->
+        <!-- RL5 Socket -->
+        <g transform="translate(85, 205)">
+          <rect class="socket-box" x="-22" y="-40" width="44" height="80" rx="3" />
+          <path class="wire" stroke-dasharray="3 2" d="M 0 -25 L 0 -15 L -8 -10 L 8 -5 L -8 0 L 8 5 L -8 10 L 0 15 L 0 25" />
+          <text x="0" y="-28" font-size="11" fill="#cbd5e1" text-anchor="middle">⊕</text>
+          <text x="0" y="34" font-size="11" fill="#cbd5e1" text-anchor="middle">⊖</text>
+          <text x="30" y="-5" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">L5</tspan></text>
+          <text x="30" y="15" font-size="13" font-weight="bold" fill="#4ade80">${formatR(g.RL5)}</text>
+        </g>
+
+        <!-- R10 -->
+        <g transform="translate(85, 325)">
+          <path class="resistor-line" d="M 0 -20 L 0 -15 L -8 -11 L 8 -7 L -8 -3 L 8 1 L -8 5 L 8 9 L -8 13 L 0 16 L 0 20" />
+          <text x="18" y="-2" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">10</tspan></text>
+          <text x="18" y="16" font-size="13" font-weight="bold" fill="#cbd5e1">10kΩ</text>
+        </g>
+
+        <!-- R11 -->
+        <g transform="translate(85, 450)">
+          <path class="resistor-line" d="M 0 -20 L 0 -15 L -8 -11 L 8 -7 L -8 -3 L 8 1 L -8 5 L 8 9 L -8 13 L 0 16 L 0 20" />
+          <text x="18" y="-2" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">11</tspan></text>
+          <text x="18" y="16" font-size="13" font-weight="bold" fill="#4ade80">${formatR(g.R11)}</text>
+        </g>
+
+        <!-- R8 -->
+        <g transform="translate(190, 195)">
+          <path class="resistor-line" d="M 0 -20 L 0 -15 L -8 -11 L 8 -7 L -8 -3 L 8 1 L -8 5 L 8 9 L -8 13 L 0 16 L 0 20" />
+          <text x="18" y="-2" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">8</tspan></text>
+          <text x="18" y="16" font-size="13" font-weight="bold" fill="#4ade80">${formatR(g.R8)}</text>
+        </g>
+
+        <!-- R9 -->
+        <g transform="translate(190, 325)">
+          <path class="resistor-line" d="M 0 -20 L 0 -15 L -8 -11 L 8 -7 L -8 -3 L 8 1 L -8 5 L 8 9 L -8 13 L 0 16 L 0 20" />
+          <text x="18" y="-2" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">9</tspan></text>
+          <text x="18" y="16" font-size="13" font-weight="bold" fill="#cbd5e1">2.2kΩ</text>
+        </g>
+
+        <!-- RL4 Socket -->
+        <g transform="translate(190, 485)">
+          <rect class="socket-box" x="-22" y="-40" width="44" height="80" rx="3" />
+          <path class="wire" stroke-dasharray="3 2" d="M 0 -25 L 0 -15 L -8 -10 L 8 -5 L -8 0 L 8 5 L -8 10 L 0 15 L 0 25" />
+          <text x="0" y="-28" font-size="11" fill="#cbd5e1" text-anchor="middle">⊕</text>
+          <text x="0" y="34" font-size="11" fill="#cbd5e1" text-anchor="middle">⊖</text>
+          <text x="30" y="-5" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">L4</tspan></text>
+          <text x="30" y="15" font-size="13" font-weight="bold" fill="#4ade80">${formatR(g.RL4)}</text>
+        </g>
+
+        <!-- R6 -->
+        <g transform="translate(295, 195)">
+          <path class="resistor-line" d="M 0 -20 L 0 -15 L -8 -11 L 8 -7 L -8 -3 L 8 1 L -8 5 L 8 9 L -8 13 L 0 16 L 0 20" />
+          <text x="18" y="-2" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">6</tspan></text>
+          <text x="18" y="16" font-size="13" font-weight="bold" fill="#cbd5e1">150Ω</text>
+        </g>
+
+        <!-- RL3 Socket -->
+        <g transform="translate(295, 355)">
+          <rect class="socket-box" x="-22" y="-40" width="44" height="80" rx="3" />
+          <path class="wire" stroke-dasharray="3 2" d="M 0 -25 L 0 -15 L -8 -10 L 8 -5 L -8 0 L 8 5 L -8 10 L 0 15 L 0 25" />
+          <text x="0" y="-28" font-size="11" fill="#cbd5e1" text-anchor="middle">⊕</text>
+          <text x="0" y="34" font-size="11" fill="#cbd5e1" text-anchor="middle">⊖</text>
+          <text x="30" y="-5" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">L3</tspan></text>
+          <text x="30" y="15" font-size="13" font-weight="bold" fill="#4ade80">${formatR(g.RL3)}</text>
+        </g>
+
+        <!-- R7 -->
+        <g transform="translate(295, 475)">
+          <path class="resistor-line" d="M 0 -20 L 0 -15 L -8 -11 L 8 -7 L -8 -3 L 8 1 L -8 5 L 8 9 L -8 13 L 0 16 L 0 20" />
+          <text x="18" y="-2" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">7</tspan></text>
+          <text x="18" y="16" font-size="13" font-weight="bold" fill="#4ade80">${formatR(g.R7)}</text>
+        </g>
+
+        <!-- Signal Input - Label -->
+        <g transform="translate(295, 530)">
+          <line class="wire" x1="0" y1="0" x2="0" y2="20" />
+          <polygon class="test-point-polygon" points="0,40 -12,22 -12,15 12,15 12,22" />
+          <text x="0" y="-12" font-size="14" font-weight="bold" fill="#ef4444" text-anchor="middle">信號輸入-</text>
+        </g>
+
+        <!-- Switch SW2 -->
+        <g transform="translate(325, 135)">
+          <circle cx="0" cy="0" r="4" fill="#2563eb" />
+          <circle cx="35" cy="-25" r="4" fill="#2563eb" />
+          <circle cx="35" cy="0" r="4" fill="#2563eb" />
+          <text x="45" y="-25" font-size="14" font-weight="bold" fill="#ef4444">信號輸入+</text>
+          <text x="0" y="-15" font-size="13" font-weight="bold" fill="#f8fafc">SW2</text>
+          <line class="switch-lever" x1="0" y1="0" x2="33" y2="-23" />
+        </g>
+
+        <line class="wire" x1="360" y1="135" x2="415" y2="135" />
+        <line class="wire" x1="415" y1="135" x2="685" y2="135" />
+
+        <!-- C2 -->
+        <g transform="translate(415, 330)">
+          <line class="wire" x1="0" y1="-195" x2="0" y2="-25" />
+          <line x1="-15" y1="-25" x2="15" y2="-25" stroke="#0284c7" stroke-width="3" />
+          <path d="M -15 -10 Q 0 -18 15 -10" fill="none" stroke="#0284c7" stroke-width="3" />
+          <line class="wire" x1="0" y1="-10" x2="0" y2="200" />
+          <text x="-20" y="-30" font-size="15" font-weight="bold" fill="#0284c7">+</text>
+          <text x="-20" y="0" font-size="15" font-weight="bold" fill="#0284c7">-</text>
+          <text x="20" y="-10" font-size="13" font-weight="bold" fill="#0284c7">C<tspan font-size="9" dy="2">2</tspan></text>
+          <text x="20" y="10" font-size="12" font-weight="bold" fill="#0284c7">220uF/25V</text>
+        </g>
+
+        <!-- U1 7812 IC -->
+        <g transform="translate(485, 135)">
+          <rect class="ic-block" x="-40" y="-20" width="100" height="70" />
+          <text x="10" y="-28" class="ic-label" text-anchor="middle">U<tspan font-size="9" dy="2">1</tspan> 7812</text>
+          <text x="-28" y="5" font-size="12" font-weight="bold" fill="#f8fafc">V<tspan font-size="9" dy="3">OUT</tspan></text>
+          <text x="-34" y="20" font-size="11" fill="#f8fafc">3</text>
+          <text x="48" y="5" font-size="12" font-weight="bold" fill="#f8fafc" text-anchor="end">V<tspan font-size="9" dy="3">IN</tspan></text>
+          <text x="54" y="20" font-size="11" fill="#f8fafc" text-anchor="end">1</text>
+          <text x="10" y="42" font-size="12" font-weight="bold" fill="#f8fafc" text-anchor="middle">GND</text>
+          <text x="10" y="62" font-size="11" fill="#f8fafc" text-anchor="middle">2</text>
+          <line class="wire" x1="10" y1="50" x2="10" y2="395" />
+        </g>
+
+        <!-- R5 -->
+        <g transform="translate(585, 330)">
+          <line class="wire" x1="0" y1="-195" x2="0" y2="-30" />
+          <path class="resistor-line" d="M 0 -30 L 0 -25 L -8 -20 L 8 -13 L -8 -6 L 8 1 L -8 8 L 8 15 L -8 22 L 0 27 L 0 30" />
+          <line class="wire" x1="0" y1="30" x2="0" y2="200" />
+          <text x="18" y="-5" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">5</tspan></text>
+          <text x="18" y="15" font-size="12" font-weight="bold" fill="#cbd5e1">10k/2W</text>
+        </g>
+
+        <!-- C1 -->
+        <g transform="translate(685, 330)">
+          <line class="wire" x1="0" y1="-195" x2="0" y2="-25" />
+          <line x1="-15" y1="-25" x2="15" y2="-25" stroke="#0284c7" stroke-width="3" />
+          <path d="M -15 -10 Q 0 -18 15 -10" fill="none" stroke="#0284c7" stroke-width="3" />
+          <line class="wire" x1="0" y1="-10" x2="0" y2="200" />
+          <text x="20" y="-30" font-size="15" font-weight="bold" fill="#0284c7">+</text>
+          <text x="20" y="0" font-size="15" font-weight="bold" fill="#0284c7">-</text>
+          <text x="25" y="-10" font-size="13" font-weight="bold" fill="#0284c7">C<tspan font-size="9" dy="2">1</tspan></text>
+          <text x="25" y="10" font-size="12" font-weight="bold" fill="#0284c7">470uF/35V</text>
+        </g>
+
+        <!-- Diode D1 -->
+        <g transform="translate(725, 135)">
+          <line class="wire" x1="-40" y1="0" x2="-15" y2="0" />
+          <polygon points="-15,0 10,-12 10,12" class="diode-symbol" />
+          <line x1="-15" y1="-13" x2="-15" y2="13" stroke="#ec4899" stroke-width="3" />
+          <line class="wire" x1="10" y1="0" x2="70" y2="0" />
+          <text x="-5" y="-20" font-size="13" font-weight="bold" fill="#f8fafc" text-anchor="middle">D<tspan font-size="9" dy="2">1</tspan> _1N4002</text>
+        </g>
+
+        <!-- AC Section Branches -->
+        <line class="wire" x1="795" y1="135" x2="945" y2="135" />
+
+        <line class="wire" x1="795" y1="135" x2="795" y2="165" />
+        <line class="wire" x1="795" y1="245" x2="795" y2="305" />
+        <line class="wire" x1="795" y1="345" x2="795" y2="430" />
+        <line class="wire" x1="795" y1="470" x2="795" y2="530" />
+
+        <line class="wire" x1="870" y1="135" x2="870" y2="175" />
+        <line class="wire" x1="870" y1="215" x2="870" y2="315" />
+        <line class="wire" x1="870" y1="395" x2="870" y2="455" />
+        <line class="wire" x1="870" y1="495" x2="870" y2="530" />
+
+        <!-- RL2 Socket -->
+        <g transform="translate(795, 205)">
+          <rect class="socket-box" x="-22" y="-40" width="44" height="80" rx="3" />
+          <path class="wire" stroke-dasharray="3 2" d="M 0 -25 L 0 -15 L -8 -10 L 8 -5 L -8 0 L 8 5 L -8 10 L 0 15 L 0 25" />
+          <text x="0" y="-28" font-size="11" fill="#cbd5e1" text-anchor="middle">⊕</text>
+          <text x="0" y="34" font-size="11" fill="#cbd5e1" text-anchor="middle">⊖</text>
+          <text x="30" y="-5" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">L2</tspan></text>
+          <text x="30" y="15" font-size="13" font-weight="bold" fill="#4ade80">${formatR(g.RL2)}</text>
+        </g>
+
+        <!-- R3 -->
+        <g transform="translate(795, 325)">
+          <path class="resistor-line" d="M 0 -20 L 0 -15 L -8 -11 L 8 -7 L -8 -3 L 8 1 L -8 5 L 8 9 L -8 13 L 0 16 L 0 20" />
+          <text x="18" y="-2" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">3</tspan></text>
+          <text x="18" y="16" font-size="12" font-weight="bold" fill="#cbd5e1">5.1kΩ</text>
+        </g>
+
+        <!-- R4 -->
+        <g transform="translate(795, 450)">
+          <path class="resistor-line" d="M 0 -20 L 0 -15 L -8 -11 L 8 -7 L -8 -3 L 8 1 L -8 5 L 8 9 L -8 13 L 0 16 L 0 20" />
+          <text x="18" y="-2" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">4</tspan></text>
+          <text x="18" y="16" font-size="12" font-weight="bold" fill="#cbd5e1">10kΩ</text>
+        </g>
+
+        <!-- R1 -->
+        <g transform="translate(870, 195)">
+          <path class="resistor-line" d="M 0 -20 L 0 -15 L -8 -11 L 8 -7 L -8 -3 L 8 1 L -8 5 L 8 9 L -8 13 L 0 16 L 0 20" />
+          <text x="18" y="-2" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">1</tspan></text>
+          <text x="18" y="16" font-size="12" font-weight="bold" fill="#cbd5e1">10kΩ</text>
+        </g>
+
+        <!-- RL1 Socket -->
+        <g transform="translate(870, 355)">
+          <rect class="socket-box" x="-22" y="-40" width="44" height="80" rx="3" />
+          <path class="wire" stroke-dasharray="3 2" d="M 0 -25 L 0 -15 L -8 -10 L 8 -5 L -8 0 L 8 5 L -8 10 L 0 15 L 0 25" />
+          <text x="0" y="-28" font-size="11" fill="#cbd5e1" text-anchor="middle">⊕</text>
+          <text x="0" y="34" font-size="11" fill="#cbd5e1" text-anchor="middle">⊖</text>
+          <text x="30" y="-5" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">L1</tspan></text>
+          <text x="30" y="15" font-size="13" font-weight="bold" fill="#4ade80">${formatR(g.RL1)}</text>
+        </g>
+
+        <!-- R2 -->
+        <g transform="translate(870, 475)">
+          <path class="resistor-line" d="M 0 -20 L 0 -15 L -8 -11 L 8 -7 L -8 -3 L 8 1 L -8 5 L 8 9 L -8 13 L 0 16 L 0 20" />
+          <text x="18" y="-2" font-size="13" font-weight="bold" fill="#f8fafc">R<tspan font-size="9" dy="2">2</tspan></text>
+          <text x="18" y="16" font-size="12" font-weight="bold" fill="#cbd5e1">1kΩ</text>
+        </g>
+
+        <!-- Vertical Connector 1 2 3 -->
+        <g transform="translate(945, 305)">
+          <line class="wire" x1="0" y1="-170" x2="0" y2="225" />
+          <rect x="-12" y="-50" width="24" height="100" fill="#fef08a" stroke="#d97706" stroke-width="2" rx="3" />
+          <text x="0" y="-30" font-size="14" font-weight="bold" fill="#713f12" text-anchor="middle">1</text>
+          <text x="0" y="0" font-size="14" font-weight="bold" fill="#713f12" text-anchor="middle">2</text>
+          <text x="0" y="30" font-size="14" font-weight="bold" fill="#713f12" text-anchor="middle">3</text>
+        </g>
+
+        <!-- Junction Connection Dots -->
+        <circle cx="85" cy="135" r="4" fill="#cbd5e1" />
+        <circle cx="190" cy="135" r="4" fill="#cbd5e1" />
+        <circle cx="295" cy="135" r="4" fill="#cbd5e1" />
+        <circle cx="85" cy="530" r="4" fill="#cbd5e1" />
+        <circle cx="190" cy="530" r="4" fill="#cbd5e1" />
+        <circle cx="295" cy="530" r="4" fill="#cbd5e1" />
+
+        <circle cx="415" cy="135" r="4" fill="#cbd5e1" />
+        <circle cx="415" cy="530" r="4" fill="#cbd5e1" />
+        <circle cx="585" cy="135" r="4" fill="#cbd5e1" />
+        <circle cx="585" cy="530" r="4" fill="#cbd5e1" />
+        <circle cx="685" cy="135" r="4" fill="#cbd5e1" />
+        <circle cx="685" cy="530" r="4" fill="#cbd5e1" />
+
+        <circle cx="795" cy="135" r="4" fill="#cbd5e1" />
+        <circle cx="795" cy="530" r="4" fill="#cbd5e1" />
+        <circle cx="870" cy="135" r="4" fill="#cbd5e1" />
+        <circle cx="870" cy="530" r="4" fill="#cbd5e1" />
+        <circle cx="945" cy="135" r="4" fill="#cbd5e1" />
+        <circle cx="945" cy="530" r="4" fill="#cbd5e1" />
+
+        <!-- ==================== TESTPOINTS A ~ O, G, H, I ==================== -->
+        ${renderFullTP('I', 295, 135, 'top', isProbeTab)}
+        ${renderFullTP('N', 85, 275, 'right', isProbeTab)}
+        ${renderFullTP('O', 85, 395, 'right', isProbeTab)}
+        ${renderFullTP('L', 190, 260, 'right', isProbeTab)}
+        ${renderFullTP('M', 190, 395, 'right', isProbeTab)}
+        ${renderFullTP('J', 295, 260, 'right', isProbeTab)}
+        ${renderFullTP('K', 295, 410, 'right', isProbeTab)}
+        ${renderFullTP('G', 585, 135, 'top', isProbeTab)}
+        ${renderFullTP('H', 585, 530, 'bottom', isProbeTab)}
+        ${renderFullTP('A', 870, 135, 'top', isProbeTab)}
+        ${renderFullTP('E', 795, 260, 'right', isProbeTab)}
+        ${renderFullTP('F', 795, 395, 'right', isProbeTab)}
+        ${renderFullTP('B', 870, 245, 'right', isProbeTab)}
+        ${renderFullTP('C', 870, 410, 'right', isProbeTab)}
+        ${renderFullTP('D', 870, 530, 'bottom', isProbeTab)}
+      `;
+    }
+
+    function renderFullTP(name, x, y, dir, isProbeTab) {
+      const isA = probeA === name;
+      const isB = probeB === name;
+      const strokeColor = isA ? '#ef4444' : (isB ? '#38bdf8' : '#38bdf8');
+      const fillColor = isA ? 'rgba(239, 68, 68, 0.3)' : (isB ? 'rgba(56, 189, 248, 0.3)' : '#0f172a');
+      const clickHandler = isProbeTab ? `selectProbeNode('${name}')` : `showModalStep('${name}')`;
+
+      let lineHtml = '';
+      let polygonPoints = '';
+      let labelDx = 29, labelDy = 1;
+
+      if (dir === 'top') {
+        lineHtml = `<line class="wire" x1="0" y1="0" x2="0" y2="-20" />`;
+        polygonPoints = `0,-40 -12,-22 -12,-15 12,-15 12,-22`;
+        labelDx = 0; labelDy = -26;
+      } else if (dir === 'bottom') {
+        lineHtml = `<line class="wire" x1="0" y1="0" x2="0" y2="20" />`;
+        polygonPoints = `0,40 -12,22 -12,15 12,15 12,22`;
+        labelDx = 0; labelDy = 25;
+      } else {
+        lineHtml = `<line class="wire" x1="0" y1="0" x2="25" y2="0" />`;
+        polygonPoints = `45,0 27,-12 20,-12 20,12 27,12`;
+        labelDx = 29; labelDy = 1;
+      }
+
+      return `
+        <g transform="translate(${x}, ${y})" onclick="${clickHandler}">
+          ${lineHtml}
+          <polygon class="test-point-polygon" points="${polygonPoints}" fill="${fillColor}" stroke="${strokeColor}" stroke-width="${isA || isB ? 3 : 1.8}" />
+          <text x="${labelDx}" y="${labelDy}" class="tp-label">${name}</text>
+        </g>
+      `;
+    }
+
+    let activeProbeTarget = 'A';
+
+    function setProbeTarget(target) {
+      activeProbeTarget = target;
+      document.getElementById('btnProbeModeA').style.background = target === 'A' ? '#ef4444' : '#334155';
+      document.getElementById('btnProbeModeA').style.color = target === 'A' ? '#fff' : 'var(--text-muted)';
+      document.getElementById('btnProbeModeB').style.background = target === 'B' ? '#38bdf8' : '#334155';
+      document.getElementById('btnProbeModeB').style.color = target === 'B' ? '#0f172a' : 'var(--text-muted)';
+    }
+
+    function selectProbeNode(node) {
+      if (activeProbeTarget === 'A') {
+        probeA = node;
+      } else {
+        probeB = node;
+      }
+      document.getElementById('probeAText').textContent = probeA ? `測試點 ${probeA}` : '未選擇 (懸空)';
+      document.getElementById('probeBText').textContent = probeB ? `測試點 ${probeB}` : '接地點 (H)';
+      document.getElementById('probeDiffText').textContent = (probeA && probeB) ? `V_${probeA}${probeB}` : '-';
+
+      renderFullBaseCircuitSVG('circuitSvgProbe', true);
+      updateDMMReadout();
+      renderScopeCanvas();
+    }
+
+    function setDMMMode(mode) {
+      dmmMode = mode;
+      document.querySelectorAll('.dmm-mode-btn').forEach(b => b.classList.remove('active'));
+      document.getElementById(`btn${mode}`).classList.add('active');
+      updateDMMReadout();
+    }
+
+    function updateDMMReadout() {
+      const readout = document.getElementById('dmmValue');
+      const unit = document.getElementById('dmmUnit');
+
+      if (!probeA) {
+        readout.textContent = 'O.L';
+        unit.textContent = dmmMode;
+        return;
+      }
+
+      const pB = probeB || 'H';
+
+      if (dmmMode === 'DCV') {
+        const vA = calculateNodeVoltageDC(probeA);
+        const vB = calculateNodeVoltageDC(pB);
+        readout.textContent = Math.abs(vA - vB).toFixed(2);
+        unit.textContent = 'DC V';
+      } else if (dmmMode === 'ACV') {
+        const vA = calculateNodeVoltageAC(probeA);
+        const vB = calculateNodeVoltageAC(pB);
+        readout.textContent = Math.abs(vA - vB).toFixed(2);
+        unit.textContent = 'AC V (rms)';
+      } else if (dmmMode === 'DCA') {
+        readout.textContent = calculateItemValue('I1').toFixed(1);
+        unit.textContent = 'DC mA';
+      }
+    }
+
+    function renderScopeCanvas() {
+      const canvas = document.getElementById('scopeCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Grid lines
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+
+      const g = testGroups[currentGroupId];
+      document.getElementById('scopeCH1Text').textContent = `${g.scope.amp} (${g.scope.freq})`;
+      document.getElementById('scopeCH2Text').textContent = `點 ${g.scope.testPoint} (${g.scope.wave})`;
+
+      // Draw CH1 Wave (Blue) - Sine
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let x = 0; x < canvas.width; x++) {
+        const y = 80 + Math.sin(x * 0.05) * 30;
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // Draw CH2 Wave (Pink) - Dynamic Waveform rendering
+      ctx.strokeStyle = '#f472b6';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      
+      const ampVal = parseFloat(g.scope.amp) || 5;
+      const scale = ampVal * 3;
+
+      for (let x = 0; x < canvas.width; x++) {
+        let y = 160;
+        if (g.scope.wave === '正弦波') {
+          y = 160 + Math.sin(x * 0.05) * Math.min(scale, 40);
+        } else if (g.scope.wave === '方波') {
+          const cycle = (x % 80) / 80;
+          y = 160 + (cycle < 0.5 ? -Math.min(scale, 35) : Math.min(scale, 35));
+        } else {
+          // Triangle wave
+          const cycle = (x % 80) / 80;
+          const tri = cycle < 0.5 ? (cycle * 4 - 1) : (3 - cycle * 4);
+          y = 160 + tri * Math.min(scale, 35);
+        }
+        if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    // Worksheet & Grading Engine (Separated Page 1 & Page 2)
+    function updateWorksheetDynamicTable() {
+      const g = testGroups[currentGroupId];
+      const acBody = document.getElementById('wsAcFormatBody');
+      const dcBody = document.getElementById('wsDcFormatBody');
+
+      if (acBody) {
+        const acRows = [
+          { category: '交流部分', categorySpan: 2, itemNum: 1, item: g.items[0], unit: 'V' },
+          { category: '', categorySpan: 0, itemNum: 2, item: g.items[1], unit: 'V' }
+        ];
+
+        acBody.innerHTML = acRows.map((r, idx) => {
+          const val = calculateItemValue(r.item);
+          const prefix = 'V';
+          const subText = r.item.replace(/^V/, '');
+          let catTd = r.categorySpan > 0 ? `<td rowspan="${r.categorySpan}" style="vertical-align:middle; font-weight:bold; background:rgba(255,255,255,0.03);">${r.category}</td>` : '';
+
+          return `
+            <tr>
+              ${catTd}
+              <td style="text-align:center; font-weight:bold;">${r.itemNum}</td>
+              <td style="font-family:'Fira Code', monospace; font-size:1.02rem;">
+                ${prefix}<sub>${subText}</sub> ＝ <strong>${val.toFixed(2)}</strong> ${r.unit}
+              </td>
+              <td style="font-family:'Fira Code', monospace; font-size:1.02rem;">
+                ${prefix}<sub>${subText}</sub> ＝ <input type="number" step="0.01" id="input_${r.item}" value="${val.toFixed(2)}" style="width:100px; padding:0.2rem 0.4rem; font-size:1.02rem; text-align:center; font-weight:bold; color:var(--accent-green);"> ${r.unit}
+              </td>
+              <td id="res_${r.item}" style="text-align:center;">-</td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      if (dcBody) {
+        const dcRows = [
+          { category: '直流部分', categorySpan: 4, itemNum: 1, item: g.items[2], unit: 'V' },
+          { category: '', categorySpan: 0, itemNum: 2, item: g.items[3], unit: 'V' },
+          { category: '', categorySpan: 0, itemNum: 3, item: g.items[4], unit: 'mA' },
+          { category: '', categorySpan: 0, itemNum: 4, item: g.items[5], unit: 'mA' }
+        ];
+
+        dcBody.innerHTML = dcRows.map((r, idx) => {
+          const val = calculateItemValue(r.item);
+          const prefix = r.item.startsWith('I') ? 'I' : 'V';
+          const subText = r.item.replace(/^[VI]/, '');
+          let catTd = r.categorySpan > 0 ? `<td rowspan="${r.categorySpan}" style="vertical-align:middle; font-weight:bold; background:rgba(255,255,255,0.03);">${r.category}</td>` : '';
+
+          return `
+            <tr>
+              ${catTd}
+              <td style="text-align:center; font-weight:bold;">${r.itemNum}</td>
+              <td style="font-family:'Fira Code', monospace; font-size:1.02rem;">
+                ${prefix}<sub>${subText}</sub> ＝ <strong>${val.toFixed(2)}</strong> ${r.unit}
+              </td>
+              <td style="font-family:'Fira Code', monospace; font-size:1.02rem;">
+                ${prefix}<sub>${subText}</sub> ＝ <input type="number" step="0.01" id="input_${r.item}" value="${val.toFixed(2)}" style="width:100px; padding:0.2rem 0.4rem; font-size:1.02rem; text-align:center; font-weight:bold; color:var(--accent-green);"> ${r.unit}
+              </td>
+              <td id="res_${r.item}" style="text-align:center;">-</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    function fillCalculatedAnswers() {
+      const g = testGroups[currentGroupId];
+      g.items.forEach(item => {
+        const val = calculateItemValue(item);
+        const input = document.getElementById(`input_${item}`);
+        if (input) input.value = val.toFixed(2);
+      });
+    }
+
+    function gradeWorksheet() {
+      const g = testGroups[currentGroupId];
+      let passCount = 0;
+      let totalItems = 3 + g.items.length;
+      let detailsHtml = '';
+
+      // Grade Fixed Points
+      const fixedCheck = [
+        { id: 'VAD', target: 15.00 },
+        { id: 'VGH', target: 20.51 },
+        { id: 'VIH', target: 12.00 }
+      ];
+
+      fixedCheck.forEach(item => {
+        const userVal = parseFloat(document.getElementById(`input_${item.id}`).value) || 0;
+        const err = Math.abs(userVal - item.target) / item.target;
+        const tdRes = document.getElementById(`res_${item.id}`);
+
+        if (err <= 0.10) {
+          passCount++;
+          tdRes.innerHTML = '<span class="badge-pass">合格 (≤10%)</span>';
+        } else {
+          tdRes.innerHTML = '<span class="badge-fail">不合格 (>10%)</span>';
+          detailsHtml += `<p>❌ 項目 ${formatSub(item.id)} 填答 ${userVal}，標準為 ${item.target}V (誤差 ${(err*100).toFixed(1)}%)</p>`;
+        }
+      });
+
+      // Grade Dynamic Items
+      g.items.forEach(item => {
+        const target = calculateItemValue(item);
+        const userVal = parseFloat(document.getElementById(`input_${item}`).value) || 0;
+        const err = target === 0 ? Math.abs(userVal) : Math.abs(userVal - target) / target;
+        const tdRes = document.getElementById(`res_${item}`);
+
+        if (err <= 0.10) {
+          passCount++;
+          tdRes.innerHTML = '<span class="badge-pass">合格 (≤10%)</span>';
+        } else {
+          tdRes.innerHTML = '<span class="badge-fail">不合格 (>10%)</span>';
+          detailsHtml += `<p>❌ 項目 ${formatSub(item)} 填答 ${userVal}，精確值為 ${target.toFixed(2)} (誤差 ${(err*100).toFixed(1)}%)</p>`;
+        }
+      });
+
+      const score = Math.round((passCount / totalItems) * 100);
+      const scoreBox = document.getElementById('scoreResultBox');
+      const scoreText = document.getElementById('scoreText');
+      const scoreDetail = document.getElementById('scoreDetailList');
+
+      scoreBox.style.display = 'block';
+      if (score >= 60) {
+        scoreText.innerHTML = `<span style="color:#4ade80;">🎉 評分結果：及格 (${score} 分)</span> - 通過丙級術科實作測試！`;
+      } else {
+        scoreText.innerHTML = `<span style="color:#f87171;">⚠️ 評分結果：不及格 (${score} 分)</span> - 需高於 60 分才能及格。`;
+      }
+      scoreDetail.innerHTML = detailsHtml || '<p style="color:#4ade80;">✅ 所有測量與計算項目均精確符合標準答案與 10% 誤差規範！</p>';
+    }
+
+    // Fault Diagnosis Challenge
+    function generateRandomFault() {
+      const faults = ['R9_OPEN', 'U1_FAIL', 'D1_OPEN', 'RL3_OPEN'];
+      activeFault = faults[Math.floor(Math.random() * faults.length)];
+      document.getElementById('faultFeedback').innerHTML = `<span style="color:var(--accent-yellow);"><i class="fa-solid fa-triangle-exclamation"></i> 已成功注入隱藏故障！請切換至虛擬電表量測電壓並找出問題。</span>`;
+      updateDMMReadout();
+    }
+
+    function clearFault() {
+      activeFault = 'NONE';
+      document.getElementById('faultFeedback').innerHTML = `<span style="color:var(--accent-green);"><i class="fa-solid fa-check"></i> 電路已恢復正常無故障狀態。</span>`;
+      updateDMMReadout();
+    }
+
+    function checkFaultDiagnosis() {
+      const selected = document.querySelector('input[name="faultOption"]:checked').value;
+      const feedback = document.getElementById('faultFeedback');
+
+      if (selected === activeFault) {
+        feedback.innerHTML = `<span style="color:#4ade80; font-size:1.1rem;"><i class="fa-solid fa-circle-check"></i> 診斷正確！您成功找出故障原因 (${selected})！</span>`;
+      } else {
+        feedback.innerHTML = `<span style="color:#f87171;"><i class="fa-solid fa-circle-xmark"></i> 診斷錯誤！目前實際故障並非該選項，請再次量測各點電壓與電流。</span>`;
+      }
+    }
+  </script>
+</body>
+</html>

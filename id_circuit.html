@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學號顯示電路設計器 (Student ID Circuit Designer Pro)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+        
+        /* Custom Scrollbar for Light Theme */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Light Proteus CAD Grid background */
+        .proteus-grid {
+            background-color: #f8fafc;
+            background-image: 
+                linear-gradient(rgba(203, 213, 225, 0.6) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(203, 213, 225, 0.6) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border: 2px solid #cbd5e1;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Crisp Light Card Styling */
+        .light-panel {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
+        }
+
+        /* Circuit Wire Interactive Styles */
+        .circuit-wire {
+            transition: stroke 0.2s ease, stroke-width 0.2s ease;
+            cursor: pointer;
+        }
+        .circuit-wire:hover {
+            stroke-width: 5px !important;
+            filter: drop-shadow(0 0 4px currentColor);
+        }
+
+        /* Hardware LED Display Housing (Dark Slot for LED High Contrast) */
+        .hw-led-casing {
+            background: #0f172a;
+            border: 3px solid #334155;
+            border-radius: 12px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+        .hw-digit-slot {
+            background: #090d16;
+            border: 2px solid #1e293b;
+            border-radius: 8px;
+            box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9);
+        }
+        .hw-digit-slot-active {
+            border-color: var(--accent-color, #16a34a);
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9), 0 0 16px var(--led-glow, rgba(22, 163, 74, 0.8));
+        }
+
+        /* Original Hardware Green & Hardware Blue LED Theme Palette */
+        .theme-emerald {
+            --led-on-1: #9cf83c;
+            --led-on-2: #72e718;
+            --led-on-3: #53ca0a;
+            --led-stroke: #8af829;
+            --led-glow: rgba(118, 245, 34, 0.85);
+            --led-off-fill: #162417;
+            --led-off-stroke: #0d170e;
+            --accent-color: #76f522;
+        }
+        .theme-blue {
+            --led-on-1: #60a5fa;
+            --led-on-2: #2563eb;
+            --led-on-3: #1d4ed8;
+            --led-stroke: #93c5fd;
+            --led-glow: rgba(37, 99, 235, 0.85);
+            --led-off-fill: #0f172a;
+            --led-off-stroke: #1e293b;
+            --accent-color: #3b82f6;
+        }
+        .theme-amber {
+            --led-on-1: #fde047;
+            --led-on-2: #eab308;
+            --led-on-3: #ca8a04;
+            --led-stroke: #fef08a;
+            --led-glow: rgba(234, 179, 8, 0.85);
+            --led-off-fill: #261f14;
+            --led-off-stroke: #17130b;
+            --accent-color: #eab308;
+        }
+        .theme-red-orange {
+            --led-on-1: #ff5733;
+            --led-on-2: #e34d26;
+            --led-on-3: #c0392b;
+            --led-stroke: #ff7654;
+            --led-glow: rgba(227, 77, 38, 0.75);
+            --led-off-fill: #151f28;
+            --led-off-stroke: #0d151c;
+            --accent-color: #e34d26;
+        }
+        .theme-cyan {
+            --led-on-1: #38edf8;
+            --led-on-2: #10c5e7;
+            --led-on-3: #089bba;
+            --led-stroke: #5df3f8;
+            --led-glow: rgba(16, 197, 231, 0.85);
+            --led-off-fill: #13232c;
+            --led-off-stroke: #0b171f;
+            --accent-color: #10c5e7;
+        }
+        .theme-violet {
+            --led-on-1: #e879f9;
+            --led-on-2: #c084fc;
+            --led-on-3: #9333ea;
+            --led-stroke: #f0abfc;
+            --led-glow: rgba(192, 132, 252, 0.85);
+            --led-off-fill: #231628;
+            --led-off-stroke: #160d1b;
+            --accent-color: #c084fc;
+        }
+
+        .hw-segment-on {
+            fill: url(#led-grad);
+            stroke: var(--led-stroke);
+            stroke-width: 0.5px;
+            filter: drop-shadow(0px 0px 4px var(--led-glow));
+            transition: fill 0.15s ease, filter 0.15s ease, stroke 0.15s ease;
+        }
+        .hw-segment-off {
+            fill: var(--led-off-fill);
+            stroke: var(--led-off-stroke);
+            stroke-width: 0.5px;
+            opacity: 0.95;
+            transition: fill 0.15s ease, stroke 0.15s ease;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col font-sans antialiased theme-emerald selection:bg-emerald-600 selection:text-white text-base sm:text-lg">
+
+    <!-- GLOBAL SVG DEFINITIONS FOR LED GRADIENT -->
+    <svg width="0" height="0" class="absolute">
+        <defs>
+            <linearGradient id="led-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="var(--led-on-1)" />
+                <stop offset="50%" stop-color="var(--led-on-2)" />
+                <stop offset="100%" stop-color="var(--led-on-3)" />
+            </linearGradient>
+        </defs>
+    </svg>
+
+    <!-- TOP LIGHT HEADER BAR -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm py-1.5">
+        <div class="max-w-[1700px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+            
+            <!-- Left Branding -->
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-2xl shadow-md shadow-emerald-600/20">
+                    ⚙
+                </div>
+                <div>
+                    <div class="flex items-center gap-2.5">
+                        <h1 class="font-black text-xl sm:text-2xl text-slate-900 tracking-wide">學號顯示電路 互動教學系統</h1>
+                        <span class="px-2.5 py-1 rounded text-xs sm:text-sm font-mono font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">明亮白底版</span>
+                    </div>
+                    <p class="text-sm text-slate-500 font-mono font-medium">Quine-McCluskey K-Map Solver & ANSI Logic Schematic Engine</p>
+                </div>
+            </div>
+
+            <!-- Top Action Nav Buttons -->
+            <div class="flex items-center gap-3 flex-wrap">
+                <button onclick="openModal('truthTableModal')" class="px-4 py-2 rounded-xl text-sm sm:text-base font-extrabold bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-300 transition flex items-center gap-2 shadow-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+                    全七段真值表
+                </button>
+
+                <button onclick="openModal('exportModal')" class="px-4 py-2 rounded-xl text-sm sm:text-base font-extrabold bg-slate-200 text-slate-800 hover:bg-slate-300 border border-slate-300 transition flex items-center gap-2 shadow-sm">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 18 8 18"/></svg>
+                    Verilog / LaTeX
+                </button>
+
+                <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-300">
+                    <span class="text-sm font-extrabold text-slate-600">模式:</span>
+                    <button id="modeToggle" class="px-3.5 py-1.5 rounded-lg text-sm font-black transition-all shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white">
+                        共陽極 (CA)
+                    </button>
+                </div>
+
+                <a href="index.html" target="_top" class="px-4 py-2 rounded-xl text-sm sm:text-base font-extrabold bg-emerald-600 text-white hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-sm">
+                    <span>🏠 返回首頁</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- STEP / PRESET SELECTION BAR -->
+    <div class="bg-slate-200/80 border-b border-slate-300 py-3 px-4 sm:px-6">
+        <div class="max-w-[1700px] mx-auto flex items-center gap-4 overflow-x-auto">
+            <span class="text-sm sm:text-base font-extrabold text-emerald-800 flex items-center gap-1.5 shrink-0 font-mono">
+                <span class="text-emerald-600 text-lg">≡</span> 選擇學號 Step 狀態 (數字點亮):
+            </span>
+            <div id="stepTabBar" class="flex items-center gap-2 shrink-0 overflow-x-auto py-1">
+                <!-- Injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD MASTER-DETAIL 2-COLUMN LAYOUT -->
+    <main class="flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 flex flex-col lg:flex-row gap-6">
+
+        <!-- LEFT SIDEBAR COLUMN -->
+        <aside class="w-full lg:w-[380px] xl:w-[410px] flex-none flex flex-col gap-6">
+            
+            <!-- Parameter Input Card -->
+            <div class="light-panel rounded-2xl p-5 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm sm:text-base font-extrabold text-emerald-700 uppercase tracking-wider font-mono flex items-center gap-2">
+                        <span>⚙</span> 七段顯示器 LED 主題主題
+                    </h2>
+                    <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-300">
+                        <button onclick="setTheme('emerald')" class="w-5 h-5 rounded-full bg-emerald-500 hover:scale-110 transition shadow-sm" title="綠光 LED (預設/共陽極)"></button>
+                        <button onclick="setTheme('blue')" class="w-5 h-5 rounded-full bg-blue-600 hover:scale-110 transition shadow-sm" title="藍光 LED (共陰極)"></button>
+                        <button onclick="setTheme('red-orange')" class="w-5 h-5 rounded-full bg-orange-600 hover:scale-110 transition shadow-sm" title="紅光 LED"></button>
+                        <button onclick="setTheme('amber')" class="w-5 h-5 rounded-full bg-amber-500 hover:scale-110 transition shadow-sm" title="黃光 LED"></button>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2.5">
+                    <input type="text" id="studentId" value="315001" maxlength="14" 
+                        class="w-full text-2xl font-mono font-extrabold tracking-widest px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none uppercase text-emerald-700"
+                        placeholder="學號..."
+                    >
+                    <select id="presetSelect" class="bg-slate-50 border border-slate-300 text-sm font-bold text-slate-800 rounded-xl px-3 py-3.5 outline-none hover:bg-slate-100">
+                        <option value="">快速範例...</option>
+                        <option value="315001" selected>預設: 315001</option>
+                        <option value="40953001">40953001</option>
+                        <option value="11250123">11250123</option>
+                        <option value="01234567">01234567</option>
+                        <option value="89ABCDEF">89ABCDEF</option>
+                    </select>
+                </div>
+
+                <!-- Playback Buttons -->
+                <div class="flex items-center gap-2 pt-1">
+                    <button id="stepPrevBtn" class="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition active:scale-95 shadow-sm" title="上一步">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
+                    </button>
+                    <button id="playBtn" class="flex-1 bg-emerald-600 text-white py-3 rounded-xl hover:bg-emerald-700 flex justify-center items-center gap-2 transition font-black text-base shadow-md shadow-emerald-600/20">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        開始模擬
+                    </button>
+                    <button id="stepNextBtn" class="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition active:scale-95" title="下一步">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+                    </button>
+                    <button id="resetBtn" class="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition active:scale-95" title="重置">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Single Digit Focused Display Card -->
+            <div class="light-panel rounded-2xl p-5 flex flex-col justify-between items-center relative overflow-hidden">
+                <div class="w-full flex items-center justify-between border-b border-slate-200 pb-3 mb-3">
+                    <div>
+                        <div class="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">當前 Step 狀態</div>
+                        <div class="flex items-baseline gap-2.5 mt-1">
+                            <span id="currentState" class="text-3xl font-extrabold text-emerald-700 font-mono">0</span>
+                            <span class="text-sm font-mono text-slate-600 font-bold">(2進位: <span id="currentBin" class="text-emerald-800 font-extrabold">0000</span>)</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">顯示字元</div>
+                        <div id="currentChar" class="text-4xl font-black text-emerald-700 font-mono">3</div>
+                    </div>
+                </div>
+
+                <div class="w-full flex items-center justify-center py-2">
+                    <div class="hw-led-casing p-5 flex items-center justify-center">
+                        <div class="hw-digit-slot px-6 py-5 flex items-center justify-center" id="singleDigitBay">
+                            <svg id="sevenSegSvg" width="165" height="245" viewBox="0 0 100 150">
+                                <!-- Injected by JS -->
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7-Segment Boolean Equations Sidebar List -->
+            <div class="light-panel rounded-2xl p-5 flex flex-col flex-1">
+                <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-3">
+                    <h3 class="text-sm sm:text-base font-extrabold text-sky-700 uppercase tracking-wider font-mono flex items-center gap-2">
+                        <span>📋</span> 全七段布林方程式
+                    </h3>
+                    <span class="text-xs text-slate-500 font-mono font-bold">點擊切換 K-Map</span>
+                </div>
+
+                <div id="equationList" class="space-y-2.5 overflow-y-auto max-h-[420px] pr-1">
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- RIGHT MAIN CONTENT COLUMN -->
+        <div class="flex-1 min-w-0 flex flex-col gap-6">
+            
+            <!-- Multi-Digit Display Panel Card -->
+            <div class="light-panel rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 id="multiDigitModuleTitle" class="text-sm sm:text-base font-extrabold text-emerald-700 uppercase tracking-wider font-mono flex items-center gap-2.5">
+                        <span class="w-3.5 h-3.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                        7-Segment 顯示面板 (Hardware LED Display Module)
+                    </h2>
+                    <span class="text-xs sm:text-sm text-slate-500 font-mono font-bold">點擊卡片跳轉 Step</span>
+                </div>
+
+                <div class="hw-led-casing p-5 overflow-x-auto">
+                    <div id="multiDigitModule" class="flex items-center justify-center gap-4 min-w-max">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main K-Map Analysis & Simplification Card -->
+            <div class="light-panel rounded-2xl p-5 sm:p-6 flex flex-col gap-5">
+                
+                <!-- Segment Selector Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+                    <div class="flex items-center gap-3.5">
+                        <span class="w-11 h-11 rounded-xl bg-emerald-100 border border-emerald-300 font-mono font-black text-2xl text-emerald-800 flex items-center justify-center shadow-sm" id="currentSegTitle">
+                            a
+                        </span>
+                        <div>
+                            <h2 class="text-base sm:text-xl font-black text-slate-900 flex items-center gap-2">
+                                段邏輯與卡諾圖化簡 (K-Map Analysis)
+                            </h2>
+                            <p class="text-xs sm:text-sm text-slate-500 font-mono font-medium">Quine-McCluskey Essential Prime Implicants</p>
+                        </div>
+                    </div>
+
+                    <!-- Segment Pills Buttons -->
+                    <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-300" id="segButtons">
+                        <!-- Injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Boolean Equation Banner Bar (Dark Banner for Overbar High Contrast) -->
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col gap-2.5 shadow-md">
+                    <span class="text-base sm:text-xl font-black text-amber-400 uppercase tracking-wider font-mono">
+                        最簡布林代數表示式 (BOOLEAN OVERBAR EXPRESSION):
+                    </span>
+                    <div id="mainEquation" class="font-mono text-3xl sm:text-4xl text-white font-black tracking-wider flex items-center gap-2 overflow-x-auto whitespace-nowrap py-1.5"></div>
+                </div>
+
+                <!-- K-Map Graphic Container (Textbook Outer ABC Variable Layout) -->
+                <div class="bg-white rounded-xl border border-slate-300 p-6 flex flex-col items-center justify-center relative min-h-[300px] shadow-sm">
+                    
+                    <div id="kmapGraphicBay" class="w-full flex justify-center py-2">
+                        <!-- Injected by JS with Corner Box & Outer ABC Variable Bars -->
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="mt-4 text-xs font-mono text-slate-700 font-bold flex gap-5 flex-wrap justify-center">
+                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 bg-red-500/30 border border-red-500 rounded-sm"></span> 當前 Step</span>
+                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 border border-emerald-600 rounded-sm bg-emerald-500/20"></span> 圈選 (PI Group)</span>
+                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 border border-emerald-600 rounded-sm border-dashed"></span> 環繞相鄰</span>
+                    </div>
+                </div>
+
+                <!-- Simplification Steps Box -->
+                <div class="bg-slate-50 rounded-xl p-4 sm:p-5 border border-slate-200 space-y-3">
+                    <h3 class="font-extrabold text-emerald-800 text-sm sm:text-base flex items-center gap-2 border-b border-slate-200 pb-2.5">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        卡諾圖圈選詳解 (Simplification Steps):
+                    </h3>
+                    <ul id="simplificationSteps" class="space-y-2.5 text-base sm:text-lg text-slate-800 font-mono font-bold leading-relaxed">
+                        <!-- Injected by JS -->
+                    </ul>
+                </div>
+
+            </div>
+
+            <!-- Proteus Standard ANSI Schematic Canvas Card -->
+            <div class="light-panel rounded-2xl p-5 sm:p-6 flex flex-col">
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4 mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-sky-100 border border-sky-300 flex items-center justify-center text-sky-700 font-extrabold text-xl">
+                            ⚡
+                        </div>
+                        <div>
+                            <h3 class="text-base sm:text-lg font-black text-slate-900">ANSI 標準邏輯電路圖 (Logic Gate Schematic Canvas)</h3>
+                            <p class="text-xs sm:text-sm text-slate-500 font-mono font-medium">Standard ANSI Logic Gate Symbols (NOT, AND, OR) with Compact Symmetrical Pins</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <div class="hidden sm:flex items-center gap-3 text-xs sm:text-sm font-mono pr-3 border-r border-slate-200 font-bold">
+                            <span class="flex items-center gap-1.5 text-red-600"><span class="w-3 h-3 rounded-full bg-red-600"></span> High (1)</span>
+                            <span class="flex items-center gap-1.5 text-sky-600"><span class="w-3 h-3 rounded-full bg-sky-600"></span> Low (0)</span>
+                        </div>
+
+                        <div class="flex items-center bg-slate-100 rounded-xl p-1.5 border border-slate-300">
+                            <button onclick="changeZoom(-0.1)" class="p-1.5 text-slate-700 hover:text-black transition font-bold" title="縮小">-</button>
+                            <span id="zoomVal" class="text-xs sm:text-sm font-mono px-2 text-emerald-700 font-extrabold">100%</span>
+                            <button onclick="changeZoom(0.1)" class="p-1.5 text-slate-700 hover:text-black transition font-bold" title="放大">+</button>
+                            <button onclick="resetZoom()" class="p-1.5 text-slate-700 hover:text-black transition border-l border-slate-300 ml-1 font-bold" title="重置">⟲</button>
+                        </div>
+
+                        <button onclick="exportSchematicSVG()" class="px-4 py-2 rounded-xl text-xs sm:text-sm bg-emerald-600 text-white font-black hover:bg-emerald-700 transition shadow-sm">
+                            下載 SVG 電路圖
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SCHEMATIC CANVAS CONTAINER -->
+                <div id="circuitCanvasContainer" class="w-full overflow-x-auto proteus-grid rounded-xl border border-slate-300 p-4 min-h-[460px]">
+                    <div id="circuitTransformGroup" class="transition-transform duration-100 origin-top-left w-full min-w-[850px] flex justify-center">
+                        <div id="circuitContainer" class="w-full max-w-[1000px] flex justify-center"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-200 bg-white py-4 px-6 text-center text-xs sm:text-sm text-slate-500 font-mono font-medium">
+        Student ID Circuit Designer Pro &copy; 2026 | Standard ANSI Logic Gate Schematic Engine
+    </footer>
+
+    <!-- MODAL 1: TRUTH TABLE MODAL -->
+    <div id="truthTableModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-300 rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="text-base sm:text-lg font-extrabold text-emerald-800 flex items-center gap-2">
+                    <span>📊</span> 全七段顯示器真值表 (Full 7-Segment Truth Table)
+                </h3>
+                <button onclick="closeModal('truthTableModal')" class="text-slate-500 hover:text-black p-1.5 text-lg font-bold">✕</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+                <table class="w-full text-left border-collapse text-sm sm:text-base font-mono">
+                    <thead>
+                        <tr class="border-b border-slate-300 bg-slate-100 text-slate-800 uppercase font-extrabold">
+                            <th class="p-3">State</th>
+                            <th class="p-3">Input (Binary)</th>
+                            <th class="p-3 text-emerald-700">Char</th>
+                            <th class="p-3 text-center">a</th>
+                            <th class="p-3 text-center">b</th>
+                            <th class="p-3 text-center">c</th>
+                            <th class="p-3 text-center">d</th>
+                            <th class="p-3 text-center">e</th>
+                            <th class="p-3 text-center">f</th>
+                            <th class="p-3 text-center">g</th>
+                        </tr>
+                    </thead>
+                    <tbody id="truthTableBody" class="divide-y divide-slate-200">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: EXPORT MODAL -->
+    <div id="exportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-300 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h3 class="text-base sm:text-lg font-extrabold text-emerald-800 flex items-center gap-2">
+                    <span>💻</span> 邏輯導出的 Verilog 與 LaTeX 程式碼
+                </h3>
+                <button onclick="closeModal('exportModal')" class="text-slate-500 hover:text-black p-1.5 text-lg font-bold">✕</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 space-y-5">
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-sm font-bold text-slate-800 font-mono">Verilog HDL Hardware Module</span>
+                        <button onclick="copyText('verilogCode')" class="text-xs font-mono text-emerald-700 font-bold hover:underline">複製 Verilog</button>
+                    </div>
+                    <textarea id="verilogCode" readonly class="w-full h-44 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono text-sm text-lime-400 outline-none resize-none"></textarea>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1.5">
+                        <span class="text-sm font-bold text-slate-800 font-mono">LaTeX Math Equations</span>
+                        <button onclick="copyText('latexCode')" class="text-xs font-mono text-sky-700 font-bold hover:underline">複製 LaTeX</button>
+                    </div>
+                    <textarea id="latexCode" readonly class="w-full h-32 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono text-sm text-cyan-400 outline-none resize-none"></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- JAVASCRIPT LOGIC ENGINE -->
+    <script>
+        // --- CONSTANTS & DATA STRUCTURES ---
+        const SEGMENTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+        const SEGMENT_PATTERNS = {
+            '0': [1, 1, 1, 1, 1, 1, 0], '1': [0, 1, 1, 0, 0, 0, 0], '2': [1, 1, 0, 1, 1, 0, 1],
+            '3': [1, 1, 1, 1, 0, 0, 1], '4': [0, 1, 1, 0, 0, 1, 1], '5': [1, 0, 1, 1, 0, 1, 1],
+            '6': [1, 0, 1, 1, 1, 1, 1], '7': [1, 1, 1, 0, 0, 0, 0], '8': [1, 1, 1, 1, 1, 1, 1],
+            '9': [1, 1, 1, 1, 0, 1, 1], 'A': [1, 1, 1, 0, 1, 1, 1], 'B': [0, 0, 1, 1, 1, 1, 1],
+            'C': [1, 0, 0, 1, 1, 1, 0], 'D': [0, 1, 1, 1, 1, 0, 1], 'E': [1, 0, 0, 1, 1, 1, 1],
+            'F': [1, 0, 0, 0, 1, 1, 1], '-': [0, 0, 0, 0, 0, 0, 1], 'OFF': [0, 0, 0, 0, 0, 0, 0]
+        };
+
+        const GROUP_COLORS = [
+            { stroke: '#16a34a', fill: 'rgba(22, 163, 74, 0.2)' },
+            { stroke: '#0284c7', fill: 'rgba(2, 132, 199, 0.2)' },
+            { stroke: '#9333ea', fill: 'rgba(147, 51, 234, 0.2)' },
+            { stroke: '#d97706', fill: 'rgba(217, 119, 6, 0.2)' },
+            { stroke: '#db2777', fill: 'rgba(219, 39, 119, 0.2)' }
+        ];
+
+        // Flat Vector 7-Segment Polygon Geometry
+        const VECTOR_POLYGONS = [
+            "21,10 79,10 71,20 29,20",             // a (top horizontal)
+            "81,14 81,69 71,61 71,24",             // b (top-right vertical)
+            "81,77 81,132 71,122 71,85",            // c (bottom-right vertical)
+            "29,126 71,126 79,136 21,136",          // d (bottom horizontal)
+            "19,77 29,85 29,122 19,132",            // e (bottom-left vertical)
+            "19,14 29,24 29,61 19,69",              // f (top-left vertical)
+            "21,73 28,67 72,67 79,73 72,79 28,79"  // g (middle horizontal)
+        ];
+
+        // --- STATE ---
+        let state = {
+            studentId: "315001",
+            isPlaying: false,
+            currentStep: 0,
+            selectedSegment: 0,
+            isCommonAnode: true,
+            speed: 800,
+            timerId: null,
+            zoom: 1.0,
+            theme: 'emerald'
+        };
+
+        // --- HELPERS ---
+        const toBin = (v, n) => v.toString(2).padStart(n, '0');
+        const getGrayCodes = (n) => {
+            if (n <= 0) return [''];
+            if (n === 1) return ['0', '1'];
+            const prev = getGrayCodes(n - 1);
+            return [...prev.map(s => '0' + s), ...prev.reverse().map(s => '1' + s)];
+        };
+        const countSetBits = (n) => n.toString(2).split('0').join('').length;
+
+        // GRAPHICAL BOOLEAN OVERBAR HELPERS (HIGH-CONTRAST DARK TEXT FOR LIGHT BG)
+        function renderTermWithOverbarHTML(t, isDarkBg = false) {
+            if (t.termStr === "1") {
+                return `<span class="font-black font-mono ${isDarkBg ? 'text-white' : 'text-slate-950'} text-xl sm:text-2xl">1</span>`;
+            }
+            return t.literals.map(l => {
+                if (l.invert) {
+                    const cls = isDarkBg 
+                        ? 'border-t-2 border-lime-400 text-lime-400 font-black' 
+                        : 'border-t-2 border-emerald-700 text-emerald-800 font-black';
+                    return `<span class="inline-block ${cls} px-0.5 leading-none font-mono text-xl sm:text-2xl" title="NOT ${l.char}">${l.char}</span>`;
+                } else {
+                    const cls = isDarkBg ? 'text-white font-black' : 'text-slate-950 font-black';
+                    return `<span class="inline-block ${cls} px-0.5 leading-none font-mono text-xl sm:text-2xl">${l.char}</span>`;
+                }
+            }).join('');
+        }
+
+        function renderExprWithOverbarsHTML(terms, isDarkBg = false) {
+            if (!terms || terms.length === 0) {
+                return `<span class="font-bold font-mono ${isDarkBg ? 'text-slate-400' : 'text-slate-500'} text-xl sm:text-2xl">0</span>`;
+            }
+            const plusCls = isDarkBg ? 'text-lime-400 font-black' : 'text-emerald-700 font-black';
+            return terms.map(t => renderTermWithOverbarHTML(t, isDarkBg)).join(` <span class="${plusCls} px-1 font-mono text-xl sm:text-2xl">+</span> `);
+        }
+
+        // --- QUINE-MCCLUSKEY ALGORITHM ---
+        function solveKMap(targetIndices, dontCares, numVars) {
+            const gridLen = Math.pow(2, numVars);
+            if (targetIndices.length === 0) return [];
+            if (targetIndices.length + dontCares.length === gridLen) {
+                return [{ id: 0, mask: 0, value: 0, termStr: "1", covered: [...targetIndices, ...dontCares], literals: [], color: GROUP_COLORS[0] }];
+            }
+
+            let allGroups = [];
+            for (let sizeExp = numVars; sizeExp >= 0; sizeExp--) {
+                const numEliminated = sizeExp;
+                for (let mask = 0; mask < gridLen; mask++) {
+                    if (countSetBits(mask) !== numVars - numEliminated) continue;
+                    
+                    const fixedPositions = [];
+                    for(let b=0; b<numVars; b++) if((mask>>b)&1) fixedPositions.push(b);
+                    const maxVal = 1 << fixedPositions.length;
+
+                    for(let v=0; v<maxVal; v++) {
+                        let pattern = 0;
+                        for(let i=0; i<fixedPositions.length; i++) if((v>>i)&1) pattern |= (1 << fixedPositions[i]);
+
+                        const groupIndices = [];
+                        const varyingPositions = [];
+                        for(let b=0; b<numVars; b++) if(!((mask>>b)&1)) varyingPositions.push(b);
+                        const maxVary = 1 << varyingPositions.length;
+                        
+                        let isValid = true;
+                        for(let k=0; k<maxVary; k++) {
+                            let idx = pattern;
+                            for(let i=0; i<varyingPositions.length; i++) if((k>>i)&1) idx |= (1 << varyingPositions[i]);
+                            if (!targetIndices.includes(idx) && !dontCares.includes(idx)) { isValid = false; break; }
+                            groupIndices.push(idx);
+                        }
+
+                        if (isValid && groupIndices.some(idx => targetIndices.includes(idx))) {
+                            const literals = [];
+                            for(let b=0; b<numVars; b++) {
+                                if ((mask >> b) & 1) {
+                                    const valBit = (pattern >> b) & 1;
+                                    const char = String.fromCharCode(65 + b); 
+                                    literals.push({ char, invert: valBit === 0 });
+                                }
+                            }
+                            literals.sort((a,b) => b.char.localeCompare(a.char));
+                            const termStr = literals.map(l => l.char + (l.invert ? "'" : "")).join("");
+                            allGroups.push({ mask, value: pattern, termStr: termStr===""?"1":termStr, covered: groupIndices, literals });
+                        }
+                    }
+                }
+            }
+
+            const isSubset = (sub, sup) => sub.every(val => sup.includes(val));
+            let primeImplicants = allGroups.filter((g, i) => {
+                return !allGroups.some((other, j) => i !== j && other.covered.length > g.covered.length && isSubset(g.covered, other.covered));
+            });
+
+            const finalTerms = [];
+            const coveredMinterms = new Set();
+            let colorIdx = 0;
+
+            const mintermToPIs = new Map();
+            targetIndices.forEach(m => mintermToPIs.set(m, []));
+            primeImplicants.forEach((pi, idx) => {
+                pi.covered.forEach(m => {
+                    if (targetIndices.includes(m)) mintermToPIs.get(m).push(idx);
+                });
+            });
+
+            const epiIndices = new Set();
+            mintermToPIs.forEach((list, m) => {
+                if (list.length === 1) epiIndices.add(list[0]);
+            });
+
+            epiIndices.forEach(idx => {
+                const g = primeImplicants[idx];
+                finalTerms.push({ ...g, id: colorIdx++, color: GROUP_COLORS[colorIdx % GROUP_COLORS.length] });
+                g.covered.forEach(m => { if (targetIndices.includes(m)) coveredMinterms.add(m); });
+            });
+
+            let remainingPIs = primeImplicants.map((pi, idx) => ({ pi, idx })).filter(item => !epiIndices.has(item.idx));
+            
+            while(coveredMinterms.size < targetIndices.length) {
+                let bestPI = null;
+                let maxUncovered = -1;
+                let bestIdx = -1;
+
+                remainingPIs.forEach((item, rIdx) => {
+                    let count = 0;
+                    item.pi.covered.forEach(m => {
+                        if (targetIndices.includes(m) && !coveredMinterms.has(m)) count++;
+                    });
+                    if (count > maxUncovered) {
+                        maxUncovered = count;
+                        bestPI = item.pi;
+                        bestIdx = rIdx;
+                    }
+                });
+
+                if (!bestPI || maxUncovered <= 0) break;
+                
+                finalTerms.push({ ...bestPI, id: colorIdx++, color: GROUP_COLORS[colorIdx % GROUP_COLORS.length] });
+                bestPI.covered.forEach(m => { if (targetIndices.includes(m)) coveredMinterms.add(m); });
+                remainingPIs.splice(bestIdx, 1);
+            }
+
+            return finalTerms;
+        }
+
+        // --- HARDWARE 7-SEGMENT SVG BUILDER ---
+        function buildHardwareDigitSvgInner(pattern, selectedSegIdx = -1, isInteractive = true, scale = 1) {
+            let svgContent = `<g transform="skewX(-10) scale(${scale})" transform-origin="center">`;
+            
+            VECTOR_POLYGONS.forEach((pointsStr, i) => {
+                const isOn = pattern[i] === 1;
+                const isSelected = selectedSegIdx === i;
+                const cls = isOn ? 'hw-segment-on' : 'hw-segment-off';
+                
+                const selStroke = isSelected ? 'stroke="#ffffff" stroke-width="2.5px"' : '';
+                const clickAttr = isInteractive ? `onclick="selectSegment(${i})"` : '';
+
+                svgContent += `<g ${clickAttr} class="${isInteractive ? 'cursor-pointer' : ''}">
+                    <polygon points="${pointsStr}" class="${cls}" ${selStroke} />
+                    <title>Segment ${SEGMENTS[i]} (${isOn ? 'ON' : 'OFF'})</title>
+                </g>`;
+            });
+
+            const dpOn = pattern.dp === 1;
+            svgContent += `<circle cx="91" cy="132" r="4.5" class="${dpOn ? 'hw-segment-on' : 'hw-segment-off'}" />`;
+            svgContent += `</g>`;
+
+            return svgContent;
+        }
+
+        // --- RENDER TOP STEP TAB BAR ---
+        function renderStepTabBar() {
+            const container = document.getElementById('stepTabBar');
+            const chars = state.studentId.split('');
+            chars.push('-');
+
+            let html = '';
+            chars.forEach((c, idx) => {
+                const isCurr = idx === state.currentStep;
+                const tabCls = isCurr 
+                    ? 'bg-emerald-600 text-white font-black border-emerald-500 shadow-md shadow-emerald-600/20 scale-105' 
+                    : 'bg-white text-slate-800 hover:bg-slate-100 border-slate-300 font-bold';
+
+                html += `<button onclick="setStep(${idx})" class="px-4 py-2 rounded-xl text-sm sm:text-base font-mono transition-all border ${tabCls} flex items-center gap-2">
+                    <span>#${idx}:</span>
+                    <span class="font-black text-base sm:text-lg">${c}</span>
+                </button>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // --- RENDER MULTI-DIGIT MODULE PANEL ---
+        function renderMultiDigitHardwareModule() {
+            const container = document.getElementById('multiDigitModule');
+            const chars = state.studentId.split('');
+            chars.push('-');
+
+            let html = '';
+            chars.forEach((c, idx) => {
+                const isCurr = idx === state.currentStep;
+                const pattern = (idx < chars.length - 1) 
+                    ? (SEGMENT_PATTERNS[c.toUpperCase()] || SEGMENT_PATTERNS['-'])
+                    : SEGMENT_PATTERNS['OFF'];
+
+                const slotClass = isCurr ? 'hw-digit-slot hw-digit-slot-active' : 'hw-digit-slot';
+                const innerSvg = buildHardwareDigitSvgInner(pattern, -1, false, 0.75);
+
+                const activePingColor = (state.theme === 'blue') ? 'bg-blue-400' : 'bg-lime-400';
+                const activeTextColor = (state.theme === 'blue') ? 'text-blue-400 font-extrabold' : 'text-lime-400 font-extrabold';
+
+                html += `<div onclick="setStep(${idx})" class="${slotClass} p-3.5 flex flex-col items-center cursor-pointer transition-all duration-200 hover:scale-105">
+                    <div class="text-xs font-mono font-bold text-slate-400 mb-1 flex items-center gap-1">
+                        <span>#${idx}</span>
+                        ${isCurr ? `<span class="w-2 h-2 rounded-full ${activePingColor} animate-ping"></span>` : ''}
+                    </div>
+                    <svg width="75" height="115" viewBox="0 0 100 150">
+                        ${innerSvg}
+                    </svg>
+                    <div class="mt-1 font-mono font-bold text-sm ${isCurr ? activeTextColor : 'text-slate-400'}">${c}</div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // --- RENDER SINGLE FOCUSED 7-SEGMENT DISPLAY ---
+        function renderSevenSegment() {
+            const svg = document.getElementById('sevenSegSvg');
+            const seqChar = (state.currentStep < state.studentId.length) ? state.studentId[state.currentStep] : 'OFF';
+            const pattern = SEGMENT_PATTERNS[seqChar.toUpperCase()] || SEGMENT_PATTERNS['OFF'];
+
+            svg.innerHTML = buildHardwareDigitSvgInner(pattern, state.selectedSegment, true, 1.15);
+            document.getElementById('currentChar').innerText = seqChar;
+        }
+
+        // --- MAIN INTERFACE RENDER ---
+        function renderInterface() {
+            renderStepTabBar();
+            renderMultiDigitHardwareModule();
+            
+            // Mode Button
+            const modeBtn = document.getElementById('modeToggle');
+            modeBtn.innerText = state.isCommonAnode ? "共陽極 (CA)" : "共陰極 (CC)";
+            modeBtn.className = `px-3.5 py-1.5 rounded-lg text-sm font-black transition-all shadow-sm ${state.isCommonAnode ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`;
+
+            // Play Button
+            const playBtn = document.getElementById('playBtn');
+            playBtn.innerHTML = state.isPlaying 
+                ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> 暫停`
+                : `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 開始模擬`;
+            playBtn.className = `flex-1 py-3 rounded-xl flex justify-center items-center gap-2 transition font-black text-base shadow-md ${state.isPlaying ? 'bg-emerald-700 hover:bg-emerald-800 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`;
+
+            const numVars = Math.max(3, Math.ceil(Math.log2(state.studentId.length + 2)));
+            document.getElementById('currentState').innerText = state.currentStep;
+            document.getElementById('currentBin').innerText = toBin(state.currentStep, numVars);
+
+            // Dynamic Hardware Panel Title
+            const titleEl = document.getElementById('multiDigitModuleTitle');
+            if (titleEl) {
+                const themeTitle = (state.theme === 'blue') ? 'Blue LED Module (藍光 - 共陰極 CC)' : 'Green LED Module (綠光 - 共陽極 CA)';
+                titleEl.innerHTML = `<span class="w-3.5 h-3.5 rounded-full ${state.theme === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'} animate-pulse"></span>
+                7-Segment 顯示面板 (${themeTitle})`;
+            }
+
+            // Segment Button Selector Pills (LOWERCASE a b c d e f g)
+            const btnHtml = SEGMENTS.map((s, i) => 
+                `<button onclick="selectSegment(${i})" class="w-9 h-9 rounded-lg font-mono font-black text-lg transition-all ${state.selectedSegment === i ? 'bg-emerald-600 text-white font-black scale-105 shadow-sm' : 'text-slate-700 hover:bg-slate-200'}">${s}</button>`
+            ).join('');
+            document.getElementById('segButtons').innerHTML = btnHtml;
+
+            calculateAndRenderLogic();
+        }
+
+        // --- CALCULATE LOGIC & RENDER K-MAP / CIRCUIT ---
+        function calculateAndRenderLogic() {
+            const numVars = Math.max(3, Math.ceil(Math.log2(state.studentId.length + 2)));
+            const maxCount = Math.pow(2, numVars);
+            const sequence = state.studentId.split('').map(c => SEGMENT_PATTERNS[c.toUpperCase()] || SEGMENT_PATTERNS['-']);
+            sequence.push(SEGMENT_PATTERNS['OFF']);
+
+            const results = SEGMENTS.map((_, segIdx) => {
+                const minterms = [];
+                const dontCares = [];
+                for (let i = 0; i < maxCount; i++) {
+                    if (i < sequence.length) {
+                        const isOn = sequence[i][segIdx] === 1;
+                        if (state.isCommonAnode ? !isOn : isOn) minterms.push(i);
+                    } else {
+                        dontCares.push(i);
+                    }
+                }
+                const terms = solveKMap(minterms, dontCares, numVars);
+                return { terms, expr: terms.length===0?"0":terms.map(t=>t.termStr).join(' + '), minterms, dontCares };
+            });
+
+            // 7-Segment Boolean Equations Sidebar List (Dark Text for High Contrast on Light BG)
+            const listHtml = SEGMENTS.map((s, i) => {
+                const isSel = state.selectedSegment === i;
+                return `<div onclick="selectSegment(${i})" class="p-3.5 rounded-xl cursor-pointer border transition-all ${isSel ? 'bg-emerald-50 border-emerald-500 shadow-md ring-2 ring-emerald-500/30' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}">
+                    <div class="flex items-center justify-between gap-2.5 overflow-x-auto whitespace-nowrap">
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span class="w-8 h-8 rounded-lg font-mono font-black text-lg sm:text-xl flex items-center justify-center ${isSel ? 'bg-emerald-600 text-white font-black' : 'bg-slate-200 text-slate-800'}">${s}</span>
+                            <span class="font-mono text-lg sm:text-xl font-black ${isSel ? 'text-emerald-800' : 'text-slate-800'}">${s} =</span>
+                        </div>
+                        <div class="text-lg sm:text-xl font-mono text-slate-950 font-extrabold whitespace-nowrap overflow-x-auto flex items-center gap-1">
+                            ${renderExprWithOverbarsHTML(results[i].terms, false)}
+                        </div>
+                        ${isSel ? '<span class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-ping shrink-0 ml-auto"></span>' : ''}
+                    </div>
+                </div>`;
+            }).join('');
+            document.getElementById('equationList').innerHTML = listHtml;
+
+            const currentRes = results[state.selectedSegment];
+            document.getElementById('currentSegTitle').innerText = SEGMENTS[state.selectedSegment];
+            
+            // Render Main Equation with OVERBAR notation (Dark Banner, isDarkBg = true)
+            document.getElementById('mainEquation').innerHTML = `<span class="font-black text-lime-400 text-3xl sm:text-4xl">${SEGMENTS[state.selectedSegment]}</span> <span class="text-slate-400 font-black px-2 text-3xl sm:text-4xl">=</span> ${renderExprWithOverbarsHTML(currentRes.terms, true)}`;
+
+            // Render Steps with OVERBAR notation (Light BG, isDarkBg = false)
+            const stepsHtml = currentRes.terms.map(t => {
+                const fixed = t.literals.map(l => l.invert ? `<span class="inline-block border-t-2 border-emerald-700 font-black text-emerald-800 text-lg sm:text-2xl">${l.char}</span>=0` : `${l.char}=1`).join(', ');
+                return `<li class="pl-1 text-slate-800 font-bold text-base sm:text-lg leading-relaxed"><span class="font-mono font-black text-xl sm:text-2xl text-emerald-700 mr-2">${renderTermWithOverbarHTML(t, false)}:</span> 圈選了 <strong class="text-slate-950 font-black">${t.covered.length}</strong> 個格子。保留固定變數 <strong class="text-emerald-800 font-mono">${fixed || '無'}</strong>。</li>`;
+            }).join('');
+            document.getElementById('simplificationSteps').innerHTML = stepsHtml || '<li class="text-slate-500 italic font-mono text-base">無邏輯項 (常數 0 Output)</li>';
+
+            // Safe Rendering to prevent one failure from blocking schematic
+            try {
+                renderKMap(currentRes, numVars);
+            } catch (errKMap) {
+                console.error("renderKMap Error:", errKMap);
+            }
+
+            try {
+                renderCircuit(currentRes.terms, numVars, state.selectedSegment);
+            } catch (errCircuit) {
+                console.error("renderCircuit Error:", errCircuit);
+            }
+
+            updateModalsData(results, numVars);
+        }
+
+        // --- RENDER TEXTBOOK K-MAP (WITH CORNER BOX & OUTER ABC VARIABLE BARS) ---
+        function renderKMap(result, numVars) {
+            const rows = numVars === 4 ? 4 : 2;
+            const cols = 4;
+            const rBits = Math.log2(rows);
+            const rowCodes = getGrayCodes(rBits);
+            const colCodes = getGrayCodes(Math.log2(cols));
+
+            const rowChars = [];
+            for (let b = numVars - 1; b >= numVars - rBits; b--) rowChars.push(String.fromCharCode(65 + b));
+            const colChars = [];
+            for (let b = numVars - rBits - 1; b >= 0; b--) colChars.push(String.fromCharCode(65 + b));
+
+            const rowVarStr = rowChars.join('');
+            const colVarStr = colChars.join('');
+
+            const kmapGraphicBay = document.getElementById('kmapGraphicBay');
+            if (!kmapGraphicBay) return;
+
+            let html = `<div class="flex flex-col items-center select-none font-mono">`;
+            
+            // 1. Top Outer Variable Indicator Bar (B & A span bars)
+            html += `<div class="flex ml-24 mb-1">`;
+            html += `<div class="w-14"></div>`; // spacer above col 00
+            html += `<div class="text-center text-xs font-black text-amber-800 bg-amber-100 border-b-2 border-amber-500 py-0.5 rounded-t font-mono mx-0.5" style="width: 114px;">${colChars[0] || 'B'}</div>`; // B=1 (cols 01 & 11)
+            html += `<div class="text-center text-xs font-black text-emerald-800 bg-emerald-100 border-b-2 border-emerald-500 py-0.5 rounded-t font-mono mx-0.5" style="width: 114px;">${colChars[1] || 'A'}</div>`; // A=1 (cols 11 & 10)
+            html += `</div>`;
+
+            // 2. Main Wrapper: Left Outer Bar + Corner Title/Header + Grid Body
+            html += `<div class="flex items-start">`;
+            
+            // Left Outer Variable Indicator Bar (C span bar)
+            html += `<div class="flex flex-col justify-end mr-1.5 pt-11" style="height: ${rows * 58 + 48}px;">`;
+            if (numVars === 3) {
+                html += `<div class="h-14"></div>`; // row 0 (C=0)
+                html += `<div class="h-14 flex items-center justify-center text-xs font-black text-sky-800 bg-sky-100 border-r-2 border-sky-500 px-1 rounded-l font-mono" style="height: 56px;">${rowChars[0] || 'C'}</div>`; // row 1 (C=1)
+            } else {
+                html += `<div class="h-14"></div>`; // row 00
+                html += `<div class="flex items-center justify-center text-xs font-black text-purple-800 bg-purple-100 border-r-2 border-purple-500 px-1 rounded-l font-mono mb-0.5" style="height: 114px;">${rowChars[1] || 'D'}</div>`; // D=1
+                html += `<div class="flex items-center justify-center text-xs font-black text-sky-800 bg-sky-100 border-r-2 border-sky-500 px-1 rounded-l font-mono" style="height: 114px;">${rowChars[0] || 'C'}</div>`; // C=1
+            }
+            html += `</div>`;
+
+            // Corner Box + Binary Headers + Grid Body
+            html += `<div class="flex flex-col">`;
+            
+            // Top Row: Corner Box + Binary Column Headers
+            html += `<div class="flex mb-1.5">`;
+            html += `<div class="w-16 h-10 bg-slate-900 text-amber-400 font-extrabold text-xs sm:text-sm flex items-center justify-center rounded-lg shadow-sm border border-slate-800 mr-2 shrink-0 font-mono tracking-wider">
+                ${rowVarStr} \\ ${colVarStr}
+            </div>`;
+            colCodes.forEach(c => {
+                html += `<div class="w-14 h-10 flex items-center justify-center text-base sm:text-lg font-extrabold font-mono text-slate-900 bg-slate-200 rounded-lg mx-0.5 border border-slate-300 shadow-sm">${c}</div>`;
+            });
+            html += `</div>`;
+
+            // Grid Row: Row Binary Headers + Grid Element
+            html += `<div class="flex">`;
+            html += `<div class="flex flex-col mr-2">`;
+            rowCodes.forEach(r => {
+                html += `<div class="w-16 h-14 flex items-center justify-center text-base sm:text-lg font-extrabold font-mono text-slate-900 bg-slate-200 rounded-lg my-0.5 border border-slate-300 shadow-sm" style="height: 56px;">${r}</div>`;
+            });
+            html += `</div>`;
+
+            // K-Map Grid Canvas
+            html += `<div id="kmapGrid" class="grid border-2 border-slate-400 bg-slate-50 relative rounded-xl overflow-hidden shadow-sm" style="grid-template-columns: repeat(${cols}, 1fr);">`;
+            
+            const gridData = new Array(Math.pow(2, numVars)).fill(0);
+            result.minterms.forEach(m => gridData[m] = 1);
+            result.dontCares.forEach(d => gridData[d] = 2);
+
+            html += `<svg id="kmapSvgs" class="absolute top-0 left-0 w-full h-full pointer-events-none z-10"></svg>`; 
+            
+            for(let r=0; r<rows; r++) {
+                for(let c=0; c<cols; c++) {
+                    const rBin = rowCodes[r];
+                    const cBin = colCodes[c];
+                    const idx = parseInt(rBin + cBin, 2);
+                    const val = gridData[idx];
+                    const isCurr = idx === state.currentStep;
+                    
+                    let txtCls = val===1 ? 'font-black text-slate-950 text-2xl' : val===2 ? 'text-emerald-700 font-black text-2xl' : 'text-slate-400';
+                    let txt = val===2 ? 'X' : val;
+                    
+                    html += `<div class="w-14 h-14 flex items-center justify-center font-mono border border-slate-300 relative z-0 hover:bg-slate-200/60 transition">
+                        <span class="${txtCls}">${txt}</span>
+                        ${isCurr ? '<div class="absolute inset-0 border-2 border-red-600 bg-red-600/20 pointer-events-none z-20 animate-pulse"></div>' : ''}
+                    </div>`;
+                }
+            }
+
+            html += `</div></div></div></div></div>`;
+            kmapGraphicBay.innerHTML = html;
+
+            // Draw SVG Prime Implicants Rectangles
+            const CELL_SIZE = 56;
+            const gridEl = document.getElementById('kmapGrid');
+            const svgEl = gridEl ? gridEl.querySelector('svg') : null;
+            if (!svgEl) return;
+
+            let svgContent = '';
+
+            const axisSegments = (positions, size) => {
+                if (!positions || positions.length === 0) return [];
+                if (positions.length === size) return [{ start: 0, len: size }];
+                const sorted = [...positions].sort((a, b) => a - b);
+                let contig = true;
+                for (let i = 1; i < sorted.length; i++) {
+                    if (sorted[i] !== sorted[i - 1] + 1) { contig = false; break; }
+                }
+                if (contig) return [{ start: sorted[0], len: sorted.length }];
+                
+                const present = new Array(size).fill(false);
+                positions.forEach(p => present[p] = true);
+                const missing = [];
+                for (let i = 0; i < size; i++) if (!present[i]) missing.push(i);
+                if (missing.length === 0) return [{ start: 0, len: size }];
+
+                const start = (missing[missing.length - 1] + 1) % size;
+                const end = (missing[0] - 1 + size) % size;
+                if (start <= end) return [{ start, len: end - start + 1 }];
+                return [{ start, len: size - start }, { start: 0, len: end + 1 }];
+            };
+
+            result.terms.forEach((t, tIdx) => {
+                const fixedRow = {};
+                const fixedCol = {};
+                t.literals.forEach(l => {
+                    const val = l.invert ? '0' : '1';
+                    if (rowChars.includes(l.char)) fixedRow[l.char] = val;
+                    else fixedCol[l.char] = val;
+                });
+                const rowPositions = rowCodes.map((code, idx) => idx).filter(idx => {
+                    const code = rowCodes[idx];
+                    return Object.keys(fixedRow).every(ch => code[rowChars.indexOf(ch)] === fixedRow[ch]);
+                });
+                const colPositions = colCodes.map((code, idx) => idx).filter(idx => {
+                    const code = colCodes[idx];
+                    return Object.keys(fixedCol).every(ch => code[colCodes.indexOf(ch)] === fixedCol[ch]);
+                });
+
+                const rowSegs = axisSegments(rowPositions, rows);
+                const colSegs = axisSegments(colPositions, cols);
+                const wraps = rowSegs.length > 1 || colSegs.length > 1;
+                const inset = 3 + tIdx * 2;
+                const shrink = 6 + tIdx * 4;
+
+                rowSegs.forEach(rs => {
+                    colSegs.forEach(cs => {
+                        const x = cs.start * CELL_SIZE + inset;
+                        const y = rs.start * CELL_SIZE + inset;
+                        const w = cs.len * CELL_SIZE - shrink;
+                        const h = rs.len * CELL_SIZE - shrink;
+                        svgContent += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${t.color.fill}" stroke="${t.color.stroke}" stroke-width="2.5" ${wraps ? 'stroke-dasharray="5,3"' : ''} />`;
+                    });
+                });
+            });
+            svgEl.innerHTML = svgContent;
+        }
+
+        const getLogicColor = (val) => val === 1 ? '#dc2626' : '#0284c7';
+
+        // --- RENDER STANDARD ANSI LOGIC GATE SCHEMATIC CIRCUIT (COMPACT OR SPACING) ---
+        function renderCircuit(terms, numVars, segIdx) {
+            const container = document.getElementById('circuitContainer');
+            if (!container) return;
+
+            const width = 1000;
+            const height = Math.max(480, 100 + terms.length * 95);
+            const inputs = numVars === 4 ? ['D','C','B','A'] : ['C','B','A'];
+            const railSpace = 48; 
+            const gateX = 120 + (numVars * 2 * railSpace) + 40; 
+            const segName = SEGMENTS[segIdx];
+
+            const varsVal = {};
+            inputs.forEach((char, i) => {
+                const bitShift = (numVars - 1) - i;
+                varsVal[char] = (state.currentStep >> bitShift) & 1;
+            });
+            
+            let svg = `<svg id="schematicSvg" width="1000" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg" style="max-width:100%; height:auto; display:block;">`;
+            
+            // 1. Render Input Signal Bus Rails & ANSI NOT Gates
+            inputs.forEach((char, i) => {
+                const x = 60 + i * 2 * railSpace;
+                const v = varsVal[char];
+                const vInv = v ^ 1;
+                
+                // Input Variable Label
+                svg += `<text x="${x}" y="25" text-anchor="middle" font-weight="bold" fill="#0284c7" font-family="Arial" font-size="18">${char}</text>`;
+                svg += `<line class="circuit-wire" x1="${x}" y1="35" x2="${x}" y2="${height-30}" stroke="${getLogicColor(v)}" stroke-width="2.5" />`;
+                
+                // ANSI NOT Gate (Triangle + Output Bubble)
+                const nx = x + 15;
+                const ny = 55;
+                svg += `<polygon points="${nx},${ny-14} ${nx+24},${ny} ${nx},${ny+14}" fill="#ffffff" stroke="#1e293b" stroke-width="2" />`;
+                svg += `<circle cx="${nx+27}" cy="${ny}" r="3.5" fill="#ffffff" stroke="#1e293b" stroke-width="2" />`;
+                
+                // Connection from Input Rail to NOT Gate
+                svg += `<line class="circuit-wire" x1="${x}" y1="${ny}" x2="${nx}" y2="${ny}" stroke="${getLogicColor(v)}" stroke-width="2.5" />`; 
+                svg += `<circle cx="${x}" cy="${ny}" r="3.5" fill="${getLogicColor(v)}" />`; 
+                
+                // Inverted Output Wire (NOT Rail)
+                const notRailX = x + railSpace;
+                svg += `<line class="circuit-wire" x1="${nx+31.5}" y1="${ny}" x2="${notRailX}" y2="${ny}" stroke="${getLogicColor(vInv)}" stroke-width="2.5" />`; 
+                svg += `<line class="circuit-wire" x1="${notRailX}" y1="${ny}" x2="${notRailX}" y2="${height-30}" stroke="${getLogicColor(vInv)}" stroke-width="2.5" />`; 
+                
+                // NOT Variable Label
+                svg += `<text x="${notRailX}" y="25" text-anchor="middle" font-weight="bold" fill="#d97706" font-family="Fira Code, monospace" font-size="14">${char}'</text>`;
+            });
+
+            // Output Terminal Helper
+            const drawOutputTerminal = (outX, outY, stateVal, exprText) => {
+                let outSvg = '';
+                outSvg += `<line class="circuit-wire" x1="${outX}" y1="${outY}" x2="${width-130}" y2="${outY}" stroke="${getLogicColor(stateVal)}" stroke-width="3" />`;
+                outSvg += `<circle cx="${outX}" cy="${outY}" r="4" fill="${getLogicColor(stateVal)}" />`;
+                
+                if (exprText) {
+                    outSvg += `<text x="${width-200}" y="${outY-10}" text-anchor="middle" font-family="Fira Code, monospace" font-weight="bold" font-size="14" fill="#16a34a">${segName} = ${exprText}</text>`;
+                }
+
+                outSvg += `<rect x="${width-130}" y="${outY-18}" width="105" height="36" rx="8" fill="#ffffff" stroke="${getLogicColor(stateVal)}" stroke-width="2.5" />`;
+                outSvg += `<text x="${width-78}" y="${outY+5}" text-anchor="middle" font-family="Fira Code, monospace" font-weight="900" font-size="18" fill="#16a34a">${segName} (Out)</text>`;
+                return outSvg;
+            };
+
+            if (terms.length === 0) {
+                const outY = height / 2;
+                svg += `<line class="circuit-wire" x1="60" y1="${outY}" x2="${width-130}" y2="${outY}" stroke="${getLogicColor(0)}" stroke-width="2.5" stroke-dasharray="6,4" />`;
+                svg += `<text x="${width/2}" y="${outY-12}" text-anchor="middle" fill="#0284c7" font-weight="bold" font-family="Fira Code, monospace" font-size="16">LOGIC 0 (GND)</text>`;
+                svg += drawOutputTerminal(width-200, outY, 0, "0");
+            } else if (terms.length === 1 && terms[0].termStr === "1") {
+                const outY = height / 2;
+                svg += `<line class="circuit-wire" x1="60" y1="${outY}" x2="${width-130}" y2="${outY}" stroke="${getLogicColor(1)}" stroke-width="2.5" />`;
+                svg += `<text x="${width/2}" y="${outY-12}" text-anchor="middle" fill="#dc2626" font-weight="bold" font-family="Fira Code, monospace" font-size="16">LOGIC 1 (VCC)</text>`;
+                svg += drawOutputTerminal(width-200, outY, 1, "1");
+            } else {
+                let orInputY = [];
+                let orInputStates = [];
+                
+                // 2. Render ANSI AND Gates for Product Terms (Symmetrical Input Pins)
+                terms.forEach((t, i) => {
+                    const y = 140 + i * 90;
+                    
+                    if (t.literals.length === 1) {
+                        const lit = t.literals[0];
+                        const inputIdx = inputs.indexOf(lit.char);
+                        const railX = 60 + (inputIdx >= 0 ? inputIdx : 0) * 2 * railSpace + (lit.invert ? railSpace : 0);
+                        const sigVal = lit.invert ? (varsVal[lit.char] ^ 1) : varsVal[lit.char];
+                        
+                        orInputStates.push(sigVal);
+                        orInputY.push(y);
+                        
+                        svg += `<circle cx="${railX}" cy="${y}" r="3.5" fill="${getLogicColor(sigVal)}" />`;
+                        svg += `<line class="circuit-wire" x1="${railX}" y1="${y}" x2="${gateX + 42}" y2="${y}" stroke="${getLogicColor(sigVal)}" stroke-width="2.5" />`;
+                        
+                        const litLabelStr = lit.char + (lit.invert ? "'" : "");
+                        svg += `<text x="${gateX + 10}" y="${y - 8}" text-anchor="middle" font-family="Fira Code, monospace" font-weight="bold" font-size="14" fill="#d97706">${litLabelStr}</text>`;
+                        
+                    } else {
+                        let andOutput = 1;
+                        t.literals.forEach(lit => {
+                            const bit = lit.invert ? (varsVal[lit.char] ^ 1) : varsVal[lit.char];
+                            andOutput &= bit;
+                        });
+                        
+                        orInputStates.push(andOutput);
+                        orInputY.push(y);
+                        
+                        // SYMMETRICAL PIN POSITIONING FORMULA
+                        const numLits = t.literals.length;
+                        const totalSpan = numLits <= 1 ? 0 : Math.min(26, (numLits - 1) * 24);
+                        const startPinY = y - (totalSpan / 2);
+
+                        t.literals.forEach((lit, litIdx) => {
+                            const inputIdx = inputs.indexOf(lit.char);
+                            const railX = 60 + (inputIdx >= 0 ? inputIdx : 0) * 2 * railSpace + (lit.invert ? railSpace : 0);
+                            const pinY = numLits <= 1 ? y : startPinY + (litIdx * (totalSpan / (numLits - 1)));
+                            const sigVal = lit.invert ? (varsVal[lit.char] ^ 1) : varsVal[lit.char];
+                            
+                            svg += `<circle cx="${railX}" cy="${pinY}" r="3.5" fill="${getLogicColor(sigVal)}" />`;
+                            svg += `<line class="circuit-wire" x1="${railX}" y1="${pinY}" x2="${gateX}" y2="${pinY}" stroke="${getLogicColor(sigVal)}" stroke-width="2.5" />`;
+                            svg += `<circle cx="${gateX}" cy="${pinY}" r="2" fill="${getLogicColor(sigVal)}" />`;
+                        });
+                        
+                        // Standard ANSI AND Gate Symbol
+                        svg += `<path d="M ${gateX} ${y-22} L ${gateX+20} ${y-22} C ${gateX+42} ${y-22} ${gateX+42} ${y+22} ${gateX+20} ${y+22} L ${gateX} ${y+22} Z" fill="#ffffff" stroke="#1e293b" stroke-width="2.2" />`;
+                        svg += `<text x="${gateX+20}" y="${y+38}" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="12" fill="#16a34a">AND</text>`;
+                        
+                        // Term Label over output wire
+                        const termLabelStr = t.literals.map(l => l.char + (l.invert ? "'" : "")).join('');
+                        svg += `<text x="${gateX + 60}" y="${y - 8}" text-anchor="middle" font-family="Fira Code, monospace" font-weight="bold" font-size="13" fill="#d97706">${termLabelStr}</text>`;
+                        
+                        svg += `<circle cx="${gateX+42}" cy="${y}" r="3.5" fill="${getLogicColor(andOutput)}" />`;
+                    }
+                });
+
+                let finalOutputState = 0;
+                orInputStates.forEach(s => finalOutputState |= s);
+                const fullExprText = terms.map(t => t.literals.map(l => l.char + (l.invert ? "'" : "")).join('') || "1").join(' + ');
+
+                // 3. Render ANSI OR Gate for Sum of Products (COMPACT INNER-ARC INPUT PIN SPACING)
+                if (terms.length > 1) {
+                    const orX = width - 270;
+                    const orY = height / 2 + 10; 
+                    
+                    const n = orInputY.length;
+                    const maxOrSpan = 30; 
+                    const pinSpread = n <= 1 ? 0 : Math.min(15, maxOrSpan / (n - 1));
+                    
+                    orInputY.forEach((y, i) => {
+                        const andOutX = gateX + 42;
+                        const targetY = n <= 1 ? orY : (orY - (pinSpread * (n - 1) / 2) + (i * pinSpread));
+                        
+                        // Reverse Column Indexing: X_col for term i is assigned in REVERSE order
+                        const colX = andOutX + 40 + ((n - 1 - i) * 22);
+                        const sigVal = orInputStates[i];
+                        
+                        // Segment 1: Horizontal wire from AND output to dedicated vertical column
+                        svg += `<line class="circuit-wire" x1="${andOutX}" y1="${y}" x2="${colX}" y2="${y}" stroke="${getLogicColor(sigVal)}" stroke-width="2.5" />`;
+                        
+                        // Segment 2: Vertical wire along dedicated column to OR input Y
+                        svg += `<line class="circuit-wire" x1="${colX}" y1="${y}" x2="${colX}" y2="${targetY}" stroke="${getLogicColor(sigVal)}" stroke-width="2.5" />`;
+                        
+                        // Segment 3: Horizontal wire from dedicated column into OR gate pin
+                        svg += `<line class="circuit-wire" x1="${colX}" y1="${targetY}" x2="${orX}" y2="${targetY}" stroke="${getLogicColor(sigVal)}" stroke-width="2.5" />`;
+                        svg += `<circle cx="${orX}" cy="${targetY}" r="3" fill="${getLogicColor(sigVal)}" />`;
+                    });
+
+                    // Standard ANSI OR Gate Symbol
+                    svg += `<path d="M ${orX} ${orY-25} C ${orX+12} ${orY-15} ${orX+12} ${orY+15} ${orX} ${orY+25} C ${orX+25} ${orY+25} ${orX+48} ${orY+12} ${orX+58} ${orY} C ${orX+48} ${orY-12} ${orX+25} ${orY-25} ${orX} ${orY-25} Z" fill="#ffffff" stroke="#1e293b" stroke-width="2.2" />`;
+                    svg += `<text x="${orX+28}" y="${orY+40}" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="12" fill="#16a34a">OR</text>`;
+                    
+                    // Output Terminal
+                    svg += drawOutputTerminal(orX + 58, orY, finalOutputState, fullExprText);
+                    
+                } else if (terms.length === 1) {
+                     const y = orInputY[0];
+                     const sigVal = orInputStates[0];
+                     const startX = (terms[0].literals.length === 1) ? (60 + (inputs.indexOf(terms[0].literals[0].char) >= 0 ? inputs.indexOf(terms[0].literals[0].char) : 0) * 2 * railSpace + (terms[0].literals[0].invert ? railSpace : 0)) : (gateX + 42);
+                     
+                     svg += drawOutputTerminal(startX, y, sigVal, fullExprText);
+                }
+            }
+
+            svg += `</svg>`;
+            container.innerHTML = svg;
+        }
+
+        // --- UPDATE MODALS DATA ---
+        function updateModalsData(results, numVars) {
+            const maxCount = Math.pow(2, numVars);
+            const sequence = state.studentId.split('').map(c => SEGMENT_PATTERNS[c.toUpperCase()] || SEGMENT_PATTERNS['-']);
+            sequence.push(SEGMENT_PATTERNS['OFF']);
+
+            let tbodyHtml = '';
+            for (let i = 0; i < maxCount; i++) {
+                const bin = toBin(i, numVars);
+                const char = (i < state.studentId.length) ? state.studentId[i] : (i === state.studentId.length ? '-' : 'OFF');
+                const pat = i < sequence.length ? sequence[i] : SEGMENT_PATTERNS['OFF'];
+                
+                tbodyHtml += `<tr class="${i === state.currentStep ? 'bg-emerald-100 text-slate-900 font-bold' : 'hover:bg-slate-100 text-slate-800'}">
+                    <td class="p-3 font-mono text-base">${i}</td>
+                    <td class="p-3 font-mono text-slate-800 font-bold text-base">${bin}</td>
+                    <td class="p-3 font-mono text-emerald-700 font-extrabold text-lg">${char}</td>
+                    ${pat.map(v => `<td class="p-3 text-center font-mono text-base ${v===1 ? 'text-emerald-700 font-bold' : 'text-slate-400'}">${v}</td>`).join('')}
+                </tr>`;
+            }
+            document.getElementById('truthTableBody').innerHTML = tbodyHtml;
+
+            let verilog = `// Verilog HDL Module for Student ID Display (${state.studentId})\n`;
+            verilog += `module student_id_decoder (\n`;
+            verilog += `    input  wire [${numVars-1}:0] in,\n`;
+            verilog += `    output wire [6:0] seg // {a,b,c,d,e,f,g}\n`;
+            verilog += `);\n\n`;
+
+            SEGMENTS.forEach((s, idx) => {
+                const exprStr = results[idx].terms.map(t => {
+                    if (t.termStr === "1") return "1'b1";
+                    return t.literals.map(l => l.invert ? `~in[${inputsToBitIndex(l.char, numVars)}]` : `in[${inputsToBitIndex(l.char, numVars)}]`).join(" & ");
+                }).join(" | ") || "1'b0";
+
+                verilog += `    assign seg[${6-idx}] = ${state.isCommonAnode ? '~(' + exprStr + ')' : exprStr};\n`;
+            });
+            verilog += `\nendmodule\n`;
+            document.getElementById('verilogCode').value = verilog;
+
+            let latex = `% Boolean Logic LaTeX Formulas (Overbar Notation)\n`;
+            SEGMENTS.forEach((s, idx) => {
+                const expr = results[idx].terms.map(t => {
+                    if (t.termStr === "1") return "1";
+                    return t.literals.map(l => l.invert ? `\\bar{${l.char}}` : l.char).join("");
+                }).join(" + ") || "0";
+                latex += `${s} = ${expr} \\\\\n`;
+            });
+            document.getElementById('latexCode').value = latex;
+        }
+
+        function inputsToBitIndex(char, numVars) {
+            const inputs = numVars === 4 ? ['D','C','B','A'] : ['C','B','A'];
+            const idx = inputs.indexOf(char);
+            return (numVars - 1) - idx;
+        }
+
+        // --- EVENT HANDLERS & INTERACTIONS ---
+        window.selectSegment = (idx) => {
+            state.selectedSegment = idx;
+            renderInterface();
+            renderSevenSegment();
+        };
+
+        window.setStep = (step) => {
+            state.currentStep = step;
+            renderInterface();
+            renderSevenSegment();
+        };
+
+        window.setTheme = (themeName) => {
+            state.theme = themeName;
+            document.body.className = document.body.className.replace(/theme-\w+/g, '') + ` theme-${themeName}`;
+            renderSevenSegment();
+            renderMultiDigitHardwareModule();
+        };
+
+        window.changeZoom = (delta) => {
+            state.zoom = Math.max(0.6, Math.min(2.0, state.zoom + delta));
+            document.getElementById('zoomVal').innerText = `${Math.round(state.zoom * 100)}%`;
+            document.getElementById('circuitTransformGroup').style.transform = `scale(${state.zoom})`;
+        };
+        window.resetZoom = () => {
+            state.zoom = 1.0;
+            document.getElementById('zoomVal').innerText = '100%';
+            document.getElementById('circuitTransformGroup').style.transform = `scale(1)`;
+        };
+
+        window.exportSchematicSVG = () => {
+            const svgEl = document.getElementById('schematicSvg');
+            if (!svgEl) return;
+            const svgData = new XMLSerializer().serializeToString(svgEl);
+            const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `student_id_schematic_${state.studentId}_seg_${SEGMENTS[state.selectedSegment]}.svg`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        };
+
+        openModal = (id) => document.getElementById(id).classList.remove('hidden');
+        closeModal = (id) => document.getElementById(id).classList.add('hidden');
+        copyText = (id) => {
+            const el = document.getElementById(id);
+            el.select();
+            navigator.clipboard.writeText(el.value);
+            alert("已成功複製至剪貼簿！");
+        };
+
+        document.getElementById('studentId').addEventListener('input', (e) => {
+            let val = e.target.value.toUpperCase().replace(/[^0-9A-F\-]/g, '');
+            state.studentId = val;
+            state.currentStep = 0;
+            renderInterface();
+            renderSevenSegment();
+        });
+
+        document.getElementById('presetSelect').addEventListener('change', (e) => {
+            if (!e.target.value) return;
+            state.studentId = e.target.value;
+            state.currentStep = 0;
+            document.getElementById('studentId').value = state.studentId;
+            renderInterface();
+            renderSevenSegment();
+        });
+
+        function startPlayback() {
+            state.timerId = setInterval(() => {
+                const len = state.studentId.length + 1; 
+                state.currentStep = (state.currentStep + 1) % len;
+                renderInterface(); 
+                renderSevenSegment(); 
+            }, state.speed);
+        }
+
+        document.getElementById('playBtn').addEventListener('click', () => {
+            state.isPlaying = !state.isPlaying;
+            if (state.isPlaying) {
+                startPlayback();
+            } else {
+                clearInterval(state.timerId);
+            }
+            renderInterface();
+        });
+
+        document.getElementById('stepPrevBtn').addEventListener('click', () => {
+            state.isPlaying = false;
+            clearInterval(state.timerId);
+            const len = state.studentId.length + 1;
+            state.currentStep = (state.currentStep - 1 + len) % len;
+            renderInterface();
+            renderSevenSegment();
+        });
+
+        document.getElementById('stepNextBtn').addEventListener('click', () => {
+            state.isPlaying = false;
+            clearInterval(state.timerId);
+            const len = state.studentId.length + 1;
+            state.currentStep = (state.currentStep + 1) % len;
+            renderInterface();
+            renderSevenSegment();
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            state.isPlaying = false;
+            clearInterval(state.timerId);
+            state.currentStep = 0;
+            renderInterface();
+            renderSevenSegment();
+        });
+
+        document.getElementById('modeToggle').addEventListener('click', () => {
+            state.isCommonAnode = !state.isCommonAnode;
+            if (!state.isCommonAnode) {
+                // Switch to Blue LED for Common Cathode mode
+                setTheme('blue');
+            } else {
+                // Switch to Green LED for Common Anode mode
+                setTheme('emerald');
+            }
+            renderInterface();
+        });
+
+        // INIT
+        renderSevenSegment();
+        renderInterface();
+
+    </script>
+</body>
+</html>

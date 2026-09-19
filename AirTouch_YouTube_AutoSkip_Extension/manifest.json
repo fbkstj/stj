@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "AirTouch 0秒自動略過YouTube廣告",
+  "version": "2.0",
+  "description": "配合 AirTouch 專題系統：全天候 0 毫秒秒按 YouTube「略過」按鈕，長廣告自動 16 倍速靜音飆過！",
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

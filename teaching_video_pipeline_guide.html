@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 課程影片自動化剪輯與發布 - 完整實戰教學指南</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #0f172a;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #334155;
+            --heading-color: #0f172a;
+            --border-color: #e2e8f0;
+            --code-bg: #1e293b;
+            --code-color: #f8fafc;
+            --accent-green: #10b981;
+            --accent-amber: #d97706;
+            --accent-rose: #e11d48;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft JhengHei", sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 專案雙向連動控制列 */
+        .project-nav-bar {
+            background-color: #0f172a;
+            color: #f8fafc;
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            border-bottom: 1px solid #334155;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .project-nav-title {
+            font-weight: 700;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .project-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            text-decoration: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .nav-btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .nav-btn.primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .nav-btn.success {
+            background-color: #059669;
+            color: white;
+            border-color: #059669;
+        }
+
+        .nav-btn.success:hover {
+            background-color: #047857;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        header h1 {
+            margin: 0 0 1rem 0;
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #60a5fa;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #94a3b8;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        nav.toc {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        nav.toc h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            color: var(--heading-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        nav.toc ul {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 0;
+        }
+
+        nav.toc a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        nav.toc a:hover {
+            color: var(--primary-dark);
+            text-decoration: underline;
+        }
+
+        section.card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        h2.section-title {
+            font-size: 1.5rem;
+            color: var(--heading-color);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 0.75rem;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            color: #1e293b;
+            margin-top: 1.5rem;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            border-radius: 9999px;
+            color: white;
+            background-color: var(--primary-color);
+        }
+
+        .badge.warning { background-color: var(--accent-amber); color: #ffffff; }
+        .badge.danger { background-color: var(--accent-rose); }
+        .badge.success { background-color: var(--accent-green); }
+
+        .callout {
+            border-left: 4px solid var(--primary-color);
+            background-color: #eff6ff;
+            padding: 1rem 1.25rem;
+            border-radius: 0 8px 8px 0;
+            margin: 1.25rem 0;
+        }
+
+        .callout.warning {
+            border-left-color: var(--accent-amber);
+            background-color: #fffbeb;
+        }
+
+        .callout.danger {
+            border-left-color: var(--accent-rose);
+            background-color: #fff1f2;
+        }
+
+        .callout-title {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        pre {
+            background-color: var(--code-bg);
+            color: var(--code-color);
+            padding: 1.25rem;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-family: "Fira Code", Consolas, Monaco, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        code {
+            font-family: "Fira Code", Consolas, Monaco, monospace;
+            background-color: #f1f5f9;
+            color: #0f172a;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        pre code {
+            background-color: transparent;
+            color: inherit;
+            padding: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 700;
+            color: var(--heading-color);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 3rem;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .step-box {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.25rem;
+        }
+
+        .step-number {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 頂部雙向專案切換與快捷連動列 -->
+<div class="project-nav-bar">
+    <div class="project-nav-title">
+        🔗 專案連動導覽面板
+    </div>
+    <div class="project-nav-links">
+        <a href="teaching_video_pipeline_master_pack.zip" download class="nav-btn success">
+            📦 下載大滿貫技能包 ZIP
+        </a>
+    </div>
+</div>
+
+<header>
+    <h1>🎬 AI 課程影片自動化剪輯與發布教學指南</h1>
+    <p>從長空白偵測、Whisper 語音辨識與專有名詞、單行字幕重組、片頭與 FFmpeg 壓製，到 YouTube API 上傳、CC 字幕、播放清單與跨電腦移植的完整實戰紀錄</p>
+</header>
+
+<div class="container">
+
+    <div class="callout">
+        <div class="callout-title">📝 本頁已修訂（115-09-18）</div>
+        <p>依實際測試修正：字幕停留時間造成重疊、片頭秒數與燒字幕的時間對齊、Whisper 防幻覺參數、OAuth「永久有效」的誤解、YouTube API 未稽核專案影片會被鎖成私人等。技能包同步改版：課程資料改寫在 <code>config.json</code>，並附自我測試（字幕規則 21 項、端到端 11 項）。</p>
+    </div>
+
+    <!-- 目錄區 -->
+    <nav class="toc">
+        <h2>📑 本教學目錄 (Table of Contents)</h2>
+        <ul>
+            <li><a href="#sec-overview">1. 工作流全景圖與架構概述</a></li>
+            <li><a href="#sec-phase1">2. 第一階段：原始檔整理與設定檔</a></li>
+            <li><a href="#sec-phase2">3. 第二階段：長空白偵測（先報告、再裁切）</a></li>
+            <li><a href="#sec-phase3">4. 第三階段：Whisper 語音辨識、防幻覺與專有名詞</a></li>
+            <li><a href="#sec-phase4">5. 第四階段：單行字幕重組規則與樣式</a></li>
+            <li><a href="#sec-phase5">6. 第五階段：片頭合成與 FFmpeg 壓製</a></li>
+            <li><a href="#sec-phase6">7. 第六階段：YouTube API 上傳、CC 字幕與播放清單</a></li>
+            <li><a href="#sec-oauth">8. 【核心專題】OAuth 7 天失效與重新授權</a></li>
+            <li><a href="#sec-summary">9. 核心避坑總結與最佳實踐 CheckList</a></li>
+            <li><a href="#sec-migrate">10. 【跨電腦移植】在另一台電腦上安裝與使用本技能</a></li>
+        </ul>
+    </nav>
+
+    <!-- 1. 工作流架構 -->
+    <section id="sec-overview" class="card">
+        <h2 class="section-title">1. 工作流全景圖與架構概述</h2>
+        <p>把數小時的課堂錄影，透過 Python 腳本與 AI 語音辨識，轉成有片頭、繁體中文字幕、並整理成 YouTube 播放清單的線上課程。每個階段都是獨立的腳本，可以只重做其中一段（例如改了字幕規則，只要重跑字幕與壓製）。</p>
+
+        <div class="grid-2">
+            <div class="step-box">
+                <div class="step-number">01</div>
+                <h4>長空白偵測（選用）</h4>
+                <p>只抓 8 秒以上的空白並列出時間點，<strong>人工確認後</strong>才裁切；裁切一律重新編碼並固定 30 fps。<code>trim_silence.py</code></p>
+            </div>
+            <div class="step-box">
+                <div class="step-number">02</div>
+                <h4>語音辨識與繁體化</h4>
+                <p>Faster-Whisper＋VAD、逐字時間戳、關閉「延續前文」防跳針；專有名詞用 hotwords；OpenCC 轉台灣繁體。<code>transcribe.py</code></p>
+            </div>
+            <div class="step-box">
+                <div class="step-number">03</div>
+                <h4>單行字幕重組</h4>
+                <p>依逐字時間在標點與停頓處斷句：每行最多 20 字、停留時間跟著講話、絕不重疊。<code>subtitles.py</code></p>
+            </div>
+            <div class="step-box">
+                <div class="step-number">04</div>
+                <h4>片頭、壓製與發布</h4>
+                <p>1080p 片頭圖卡＋4 秒片頭、統一規格後壓製；YouTube 上傳、CC 字幕、播放清單。<code>render.py</code>、<code>upload.py</code></p>
+            </div>
+        </div>
+        <pre><code>python run_pipeline.py --episodes 1     # 第一次先做一集（到壓製完成，不上傳）
+python upload.py --dry-run              # 先看要上傳什麼
+python upload.py                        # 確認後才上傳</code></pre>
+    </section>
+
+    <!-- 2. 原始檔整理 -->
+    <section id="sec-phase1" class="card">
+        <h2 class="section-title">2. 第一階段：原始檔整理與設定檔</h2>
+        <p>良好的檔案結構是自動化順利運作的基石。課程相關的資料（檔名、標題、日期、術語）全部寫在 <code>config.json</code>，換一門課只要換設定檔，不用改程式。</p>
+
+        <h3>資料夾結構建議</h3>
+        <pre><code>d:\影片編輯\115-09-07-AI課程\
+├── 第01節課_45分鐘分段_000000至004500.mp4
+├── 第02節課_45分鐘分段_004500至013000.mp4
+├── ...
+└── output/
+    ├── trimmed/           # 裁切後的影片（有做才會有）
+    ├── transcriptions/    # 語音辨識結果（含逐字時間）
+    ├── subtitles/         # epXX.srt（給 CC）與 epXX.ass（燒字幕用）
+    ├── covers/            # 1080p 片頭圖卡與 4 秒片頭
+    ├── final_videos/      # 成品影片
+    ├── logs/              # 每一次 ffmpeg 的完整紀錄
+    └── uploads.json       # 已上傳的影片 ID（中斷後再跑不會重傳）</code></pre>
+
+        <h3>config.json 重點欄位</h3>
+        <pre><code>"episodes": [ {"file": "第01節課_….mp4", "title": "【115-09-07 AI課程】第 01 節課：…"} ],
+"whisper":  {"model": "large-v3-turbo", "initial_prompt": "這是台灣高職 AI 應用與實務課堂教學。",
+             "hotwords": "AI Python ChatGPT Prompt LLM ESP32 Arduino 物聯網 PCB"},
+"subtitles":{"max_chars": 20, "min_duration": 1.2, "max_duration": 6.0, "max_cps": 8,
+             "replacements": {"序列布": "序列埠"}},
+"render":   {"subtitle_mode": "cc"}</code></pre>
+
+        <div class="callout">
+            <div class="callout-title">💡 命名關鍵技巧</div>
+            <p>使用有明確集數序號（如 <code>第01節課</code>、<code>ep01</code>）的檔名，排序與對照都不會錯；檔名可以有中文，但避免 <code>'</code> 等特殊符號。</p>
+        </div>
+    </section>
+
+    <!-- 3. 無聲裁切 -->
+    <section id="sec-phase2" class="card">
+        <h2 class="section-title">3. 第二階段：長空白偵測（先報告、再裁切）</h2>
+        <p>課堂影片裡「沒有聲音」不等於「沒有內容」：老師可能正在寫板書、示範操作，學生在實作。所以不要把每一段安靜都剪掉，只處理很長的空白（例如忘記停錄、下課時間），而且要先看過再剪。</p>
+
+        <h3>FFmpeg silencedetect 參數</h3>
+        <pre><code>ffmpeg -i input.mp4 -af silencedetect=noise=-35dB:d=8 -f null -</code></pre>
+        <table>
+            <thead>
+                <tr>
+                    <th>參數</th>
+                    <th>建議設定</th>
+                    <th>說明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>noise</code></td>
+                    <td><code>-35dB</code>（教室有冷氣風扇聲可試 <code>-30dB</code>）</td>
+                    <td>低於這個音量算安靜。門檻設太高，連小聲講話都會被當成空白。</td>
+                </tr>
+                <tr>
+                    <td><code>d</code> (duration)</td>
+                    <td><code>8</code> 秒以上</td>
+                    <td>安靜超過這個秒數才列出來。1.5～2 秒的短停頓是正常講話節奏，交給語音辨識的 VAD 處理即可，不要剪。</td>
+                </tr>
+                <tr>
+                    <td>保留邊界</td>
+                    <td>前後各 <code>0.5</code> 秒</td>
+                    <td>空白頭尾各留一點，接起來才不突兀。</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="callout danger">
+            <div class="callout-title">⚠️ 裁切一定要重新編碼，並固定影格率</div>
+            <p>用 <code>-c copy</code> 在非關鍵影格的位置切，會造成聲音與畫面不同步；沒有鎖定影格率（<code>fps=30</code>），多次重新編碼後畫面會慢慢落後聲音。技能包的 <code>trim_silence.py --apply</code> 用 <code>select</code>／<code>aselect</code> 一次裁切並重新編碼成固定 30 fps。</p>
+        </div>
+        <pre><code>python trim_silence.py                        # 只列出每集的長空白時間點（不改檔案）
+python trim_silence.py --episodes 3 --apply   # 看過確定後才裁切</code></pre>
+    </section>
+
+    <!-- 4. Whisper 語音辨識與詞庫注入 -->
+    <section id="sec-phase3" class="card">
+        <h2 class="section-title">4. 第三階段：Whisper 語音辨識、防幻覺與專有名詞</h2>
+        <p>為了提升台灣高職電機電子群課程專有名詞的辨識率，同時避免 Whisper 常見的「跳針」幻覺，這個階段有三件事要做對：<strong>防幻覺參數</strong>、<strong>專有名詞放對地方</strong>、<strong>一定要有逐字時間</strong>。</p>
+
+        <div class="callout danger">
+            <div class="callout-title">⚠️ 重大陷阱：重複幻覺（跳針）</div>
+            <p>Whisper 預設會把「上一段的結果」當成下一段的提示（<code>condition_on_previous_text=True</code>）。一旦某段認錯或遇到安靜、低音量的片段，錯誤就會一路延續，變成同一句話重複幾十次，或把提示詞本身當成字幕吐出來。<strong>關掉它是最有效的一招</strong>；把 <code>initial_prompt</code> 縮短也有幫助。<code>compute_type</code> 用 int8 或 float16 只影響速度與記憶體，和幻覺無關。</p>
+        </div>
+
+        <div class="callout">
+            <div class="callout-title">🎯 專有名詞：hotwords 與同音字表</div>
+            <ul>
+                <li><strong>initial_prompt</strong> 只放一句情境，例如「這是台灣高職 AI 應用與實務課堂教學。」</li>
+                <li><strong>hotwords</strong> 放專有名詞：<code>Python</code>、<code>ChatGPT</code>、<code>LLM</code>、<code>ESP32</code>、<code>Arduino</code>、<code>PCB</code>、<code>物聯網</code>、<code>微控制器</code>…（faster-whisper 1.0 以上支援）</li>
+                <li><strong>同音字表</strong>（config 的 <code>replacements</code>）修正仍然認錯的詞，例如 <code>序列布 → 序列埠</code>。</li>
+            </ul>
+        </div>
+
+        <h3>模型怎麼選</h3>
+        <table>
+            <thead><tr><th>情況</th><th>建議模型</th><th>說明</th></tr></thead>
+            <tbody>
+                <tr><td>有 NVIDIA 顯示卡</td><td><code>large-v3-turbo</code></td><td>中文準確度明顯比 medium 好，速度也快</td></tr>
+                <tr><td>只有 CPU</td><td><code>medium</code></td><td>45 分鐘課程約需數十分鐘；<code>small</code> 較快但錯字較多</td></tr>
+                <tr><td>第一次調參數</td><td>先剪 30 秒片段測試</td><td>確認有字、有逐字時間、沒跳針，再跑整集</td></tr>
+            </tbody>
+        </table>
+
+        <h3>建議的辨識設定</h3>
+        <pre><code>from faster_whisper import WhisperModel
+import opencc
+
+model = WhisperModel("large-v3-turbo", device="cuda", compute_type="float16")   # 只有 CPU：("medium", device="cpu", compute_type="int8")
+converter = opencc.OpenCC("s2twp")   # 轉台灣繁體＋台灣慣用詞；只想轉字不改詞可用 "s2tw"
+
+segments, info = model.transcribe(
+    "video_path.mp4",
+    language="zh",
+    beam_size=5,
+    initial_prompt="這是台灣高職 AI 應用與實務課堂教學。",      # 短短一句就好
+    hotwords="AI Python ChatGPT Prompt LLM ESP32 Arduino 物聯網 PCB",
+    condition_on_previous_text=False,     # 防跳針：錯一段不會一路錯下去
+    word_timestamps=True,                 # 逐字時間：字幕才能精準斷句（沒開就只能用猜的）
+    vad_filter=True,                      # 先濾掉沒講話的部分
+    vad_parameters=dict(min_silence_duration_ms=1000, speech_pad_ms=400),
+    hallucination_silence_threshold=2.0,  # 長停頓附近的可疑片段直接跳過
+    compression_ratio_threshold=2.4,      # 文字重複度太高（像在跳針）就重試或丟棄
+    no_speech_threshold=0.6,
+)
+for s in segments:
+    text = converter.convert(s.text.strip())
+    words = [(w.start, w.end, converter.convert(w.word)) for w in s.words]</code></pre>
+    </section>
+
+    <!-- 5. 字幕規則 -->
+    <section id="sec-phase4" class="card">
+        <h2 class="section-title">5. 第四階段：單行字幕重組規則與樣式</h2>
+        <p>語音辨識常輸出 3～5 個字的碎句，直接當字幕會快速閃爍；但硬把每行拉長到固定秒數，又會和下一句重疊、在畫面上疊成兩行。正確做法是用<strong>逐字時間</strong>重新組句，並讓停留時間跟著講話走。</p>
+
+        <div class="grid-2">
+            <div class="step-box">
+                <span class="badge success">原則 1</span>
+                <h4>永遠單行、不超寬</h4>
+                <p>每行最多約 20 個中文字（英數字母算半個字寬）。ASS 加 <code>WrapStyle: 2</code>，播放器才不會自動折行。串流平台的中文字幕規範多在每行 16 字左右；有簡報的教學影片放寬到 20 字仍好讀。</p>
+            </div>
+            <div class="step-box">
+                <span class="badge success">原則 2</span>
+                <h4>斷在標點與停頓</h4>
+                <p>停頓超過 0.8 秒一定斷開；被字數逼著斷行時，往回找標點或最長的停頓，不要把「輸出」切成「…的輸」「出結果」。</p>
+            </div>
+            <div class="step-box">
+                <span class="badge success">原則 3</span>
+                <h4>停留時間跟著講話走</h4>
+                <p>最少 1.2 秒、最多 6 秒；講太快（每秒超過 8 字）就稍微延長，讓人讀得完。<strong>延長時絕不能蓋到下一句</strong>，否則兩行會同時出現。</p>
+            </div>
+            <div class="step-box">
+                <span class="badge success">原則 4</span>
+                <h4>高對比、乾淨</h4>
+                <p>微軟正黑體、白字、深色外框（Outline 3、Shadow 2）；句尾的逗號句號去掉、句中改成空白；中英文之間留一個空白（「用 Python 寫」）。</p>
+            </div>
+        </div>
+
+        <div class="callout danger">
+            <div class="callout-title">⚠️ 片頭秒數只能加一次</div>
+            <p>成品前面接了 4 秒片頭，字幕時間就要往後 4 秒。技能包的做法：<code>epXX.srt</code> 已加 4 秒（對齊成品，上傳 CC 用）；<code>epXX.ass</code> 不加，在接片頭<strong>之前</strong>燒進原始影片。兩邊都加或都沒加，字幕就會整條差 4 秒。</p>
+        </div>
+
+        <h3>ASS 字幕樣式配置</h3>
+        <pre><code>[Script Info]
+PlayResX: 1920
+PlayResY: 1080
+WrapStyle: 2
+ScaledBorderAndShadow: yes
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Microsoft JhengHei,46,&amp;H00FFFFFF,&amp;H000000FF,&amp;H00181818,&amp;H80000000,-1,0,0,0,100,100,0,0,1,3,2,2,40,40,65,1</code></pre>
+    </section>
+
+    <!-- 6. FFmpeg 自動化壓製 -->
+    <section id="sec-phase5" class="card">
+        <h2 class="section-title">6. 第五階段：片頭合成與 FFmpeg 壓製</h2>
+        <p>用 Pillow 繪製 1080p 片頭圖卡（課程名稱、上課日期、學校），做成 4 秒片頭，再和課程影片接起來壓製。接之前一定要把兩段的規格統一，否則 <code>concat</code> 會失敗或造成聲音畫面漸漸不同步。</p>
+
+        <h3>片頭：圖片＋靜音音軌</h3>
+        <pre><code>ffmpeg -y -loop 1 -framerate 30 -i cover.png \
+  -f lavfi -i anullsrc=channel_layout=stereo:sample_rate=48000 \
+  -t 4 -vf setsar=1 -c:v libx264 -pix_fmt yuv420p -r 30 \
+  -c:a aac -ar 48000 -ac 2 intro_4s.mp4</code></pre>
+        <p>用圖片做的片頭本身沒有聲音，<code>concat</code> 需要每一段都有聲音軌，所以要補一條靜音音軌（<code>anullsrc</code>）。</p>
+
+        <h3>接片頭＋（選擇性）燒字幕＋壓製</h3>
+        <pre><code>ffmpeg -y -i intro_4s.mp4 -i lecture_main.mp4 -filter_complex \
+  "[0:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30[v0]; \
+   [1:v]scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=30,ass=ep01.ass[v1]; \
+   [0:a]aresample=48000,aformat=channel_layouts=stereo[a0]; \
+   [1:a]aresample=48000,aformat=channel_layouts=stereo[a1]; \
+   [v0][a0][v1][a1]concat=n=2:v=1:a=1[outv][outa]" \
+  -map "[outv]" -map "[outa]" \
+  -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -r 30 \
+  -c:a aac -b:a 192k -ar 48000 -ac 2 -movflags +faststart \
+  final_output.mp4</code></pre>
+        <ul>
+            <li><strong>字幕燒在課程影片 <code>[1:v]</code> 上、接片頭之前</strong>：ASS 的時間就不用加片頭秒數。不燒字幕（上傳 CC）時，把 <code>,ass=ep01.ass</code> 拿掉。</li>
+            <li><strong><code>setsar=1</code>、<code>fps=30</code>、<code>aresample=48000</code></strong>：兩段規格一致，concat 才穩定。</li>
+            <li><strong><code>-preset medium</code></strong>：<code>ultrafast</code> 同樣畫質檔案大很多，只適合預覽；最終版用 medium（有時間可用 slow）。</li>
+            <li><strong><code>-movflags +faststart</code>、<code>yuv420p</code></strong>：網頁、手機、LINE 都能直接播。</li>
+            <li><strong>字幕路徑不用手動轉義</strong>：在字幕資料夾裡執行 ffmpeg，<code>ass=ep01.ass</code> 只寫檔名，就不會遇到 Windows 磁碟機冒號、反斜線要轉義的問題。</li>
+            <li><strong>不要把 ffmpeg 的錯誤訊息丟掉</strong>：技能包把每次指令與錯誤存到 <code>output/logs/</code>，並檢查成品長度＝片頭＋正片。</li>
+        </ul>
+    </section>
+
+    <!-- 7. YouTube API 自動化發布 -->
+    <section id="sec-phase6" class="card">
+        <h2 class="section-title">7. 第六階段：YouTube API 上傳、CC 字幕與播放清單</h2>
+        <p>透過 YouTube Data API 上傳影片、掛上繁體中文 CC 字幕、建立播放清單。技能包的 <code>upload.py</code> 每傳完一支就記錄在 <code>output/uploads.json</code>，中斷或配額用完，隔天再跑會接著傳，不會重複。</p>
+
+        <div class="callout danger">
+            <div class="callout-title">⚠️ 未通過稽核的 API 專案：影片會被鎖成「私人」</div>
+            <p>YouTube 規定：2020 年 7 月 28 日之後建立、且未通過 YouTube API 稽核的專案，用 API 上傳的影片一律限制為私人。設定成不公開或公開都不會生效。解法是申請 API 稽核（YouTube API Services Audit），或上傳後到 YouTube 工作室手動確認。<code>upload.py</code> 上傳後會檢查實際的隱私狀態並提醒。</p>
+        </div>
+
+        <div class="grid-2">
+            <div class="step-box">
+                <span class="badge primary">字幕二選一</span>
+                <h4>CC 字幕 或 燒進畫面</h4>
+                <p>同時燒字幕又上傳 CC，觀眾打開 CC 會看到兩份。建議上傳 CC（<code>subtitle_mode: "cc"</code>）：可以開關、可以被搜尋，對需要的人也更友善；要燒進畫面就不要再上傳 CC。</p>
+            </div>
+            <div class="step-box">
+                <span class="badge warning">配額</span>
+                <h4>每天預設 10,000 單位</h4>
+                <p>上傳影片是最耗配額的操作，一天通常只能傳個位數支；字幕、播放清單也會消耗（實際數字以官方配額表為準）。出現 <code>quotaExceeded</code> 隔天再跑即可。</p>
+            </div>
+            <div class="step-box">
+                <span class="badge success">可續傳＋重試</span>
+                <h4>大檔案不怕斷線</h4>
+                <p>用 <code>MediaFileUpload(resumable=True)</code> 分段上傳；遇到 500/502/503/504 或網路中斷，等 2、4、8… 秒從斷點續傳。</p>
+            </div>
+            <div class="step-box">
+                <span class="badge success">播放清單</span>
+                <h4>加入失敗就重試</h4>
+                <p>剛上傳的影片有時要幾秒後才查得到，加入播放清單會回報找不到影片。做法是失敗時等待後重試，並且不指定 <code>position</code>，依集數順序加入。</p>
+            </div>
+        </div>
+        <pre><code>python upload.py --dry-run     # 先列出要上傳的內容，不連線
+python upload.py               # 確認後上傳</code></pre>
+    </section>
+
+    <!-- 8. OAuth -->
+    <section id="sec-oauth" class="card">
+        <h2 class="section-title">8. 【核心專題】OAuth 7 天失效與重新授權</h2>
+
+        <div class="callout danger">
+            <div class="callout-title">🚨 經典踩坑：為什麼 Refresh Token 在 7 天後突然失效？</div>
+            <p>Google Cloud 專案的 <strong>OAuth 同意畫面</strong>如果還在「<strong>測試中（Testing）</strong>」，發出的 refresh token 7 天後一定失效，執行 API 會出現 <code>invalid_grant: Token has been expired or revoked</code>。</p>
+        </div>
+
+        <h3>💡 三個對策，各自解決不同的問題</h3>
+
+        <div class="step-box" style="margin-bottom: 1.5rem;">
+            <span class="badge success">對策 A（根本解決 7 天問題）</span>
+            <h4>把 OAuth 同意畫面改成「正式發布（In production）」</h4>
+            <p>登入 <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a> → 選擇專案 → OAuth 同意畫面 → 發布狀態從 <code>Testing</code> 改為 <strong><code>In production</code></strong>，然後重新授權一次。</p>
+            <p><em>注意：個人自用可以不送 Google 審查，但授權時會看到「Google 尚未驗證這個應用程式」，按「進階 → 前往」即可，且最多 100 位使用者。正式發布後 refresh token 沒有 7 天限制，但不是永久：自己撤銷授權、超過 6 個月沒使用、同一帳號對同一個用戶端授權太多次（舊的會被作廢），都會讓它失效，屆時重新授權即可。</em></p>
+        </div>
+
+        <div class="step-box" style="margin-bottom: 1.5rem;">
+            <span class="badge primary">對策 B（日常自動續期）</span>
+            <h4>程式自動換新的 access token</h4>
+            <p>access token 大約 1 小時就過期，程式用 refresh token 自動換新的即可。<strong>這只能處理 access token 過期，救不了 refresh token 本身被撤銷</strong>（例如 Testing 的 7 天到期），那時 <code>refresh()</code> 一樣會出現 <code>invalid_grant</code>，要改用對策 A＋重新授權。</p>
+            <pre><code>from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
+from google.auth.exceptions import RefreshError
+
+creds = Credentials.from_authorized_user_file("yt_token.json", SCOPES)
+if not creds.valid:
+    try:
+        creds.refresh(Request())                       # 換新的 access token
+    except RefreshError:
+        raise SystemExit("授權已失效：請執行 python youtube_auth.py 重新授權")
+    with open("yt_token.json", "w", encoding="utf-8") as f:
+        f.write(creds.to_json())</code></pre>
+        </div>
+
+        <div class="step-box">
+            <span class="badge warning">對策 C（重新授權）</span>
+            <h4>重新產生 yt_token.json</h4>
+            <p>一般情況用 <code>run_local_server</code> 最簡單，會自動開瀏覽器、授權完自動存檔。瀏覽器開不起來時才用手動貼上的方式，而且<strong>產生網址和換 token 必須用同一個 flow 物件</strong>（新版會加上 PKCE 驗證碼，換成另一個物件就對不上）。</p>
+            <pre><code>from google_auth_oauthlib.flow import InstalledAppFlow
+
+flow = InstalledAppFlow.from_client_secrets_file("client_secrets.json", SCOPES)
+
+# 一般情況：自動開瀏覽器
+creds = flow.run_local_server(port=0, prompt="consent", access_type="offline")
+
+# 瀏覽器開不起來時（同一個 flow 物件）：
+# flow.redirect_uri = "http://127.0.0.1:8080/"
+# url, _ = flow.authorization_url(prompt="consent", access_type="offline")
+# print(url); code = input("貼上網址列中的 code：")
+# flow.fetch_token(code=code); creds = flow.credentials
+
+with open("yt_token.json", "w", encoding="utf-8") as f:
+    f.write(creds.to_json())</code></pre>
+            <p>技能包的 <code>python youtube_auth.py</code>（或 <code>--manual</code>）就是這個流程，也接受直接貼上整串網址。</p>
+        </div>
+    </section>
+
+    <!-- 9. 避坑總結 CheckList -->
+    <section id="sec-summary" class="card">
+        <h2 class="section-title">9. 核心避坑總結與最佳實踐 CheckList</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>步驟階段</th>
+                    <th>常見問題 / 踩坑點</th>
+                    <th>最佳實踐解決方案</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>空白裁切</strong></td>
+                    <td>把寫板書、示範操作的安靜片段也剪掉；<code>-c copy</code> 切完聲音畫面不同步</td>
+                    <td>只抓 8 秒以上的空白、先看報告再剪；裁切一律重新編碼並固定 30 fps。</td>
+                </tr>
+                <tr>
+                    <td><strong>語音辨識</strong></td>
+                    <td>字幕跳針、重複同一句、把提示詞當字幕</td>
+                    <td><code>condition_on_previous_text=False</code>＋VAD＋<code>hallucination_silence_threshold</code>；initial_prompt 只放一句。</td>
+                </tr>
+                <tr>
+                    <td><strong>專有名詞</strong></td>
+                    <td>英文縮寫、電機電子術語被認成同音字</td>
+                    <td>術語放 <code>hotwords</code>；仍認錯的用同音字表修正；有顯示卡改用 large-v3-turbo。</td>
+                </tr>
+                <tr>
+                    <td><strong>字幕時間</strong></td>
+                    <td>硬拉到固定秒數，和下一句重疊，畫面變兩行</td>
+                    <td>停留時間跟著講話（1.2～6 秒、每秒 ≤ 8 字），延長時不超過下一句開始時間。</td>
+                </tr>
+                <tr>
+                    <td><strong>字幕排版</strong></td>
+                    <td>長句被從中間切開、播放器自動折行</td>
+                    <td>用逐字時間在標點與停頓處斷；每行 ≤ 20 字；ASS 加 <code>WrapStyle: 2</code>；MarginV 65。</td>
+                </tr>
+                <tr>
+                    <td><strong>片頭對齊</strong></td>
+                    <td>接了 4 秒片頭，字幕整條早 4 秒（或晚 8 秒）</td>
+                    <td>SRT 加片頭秒數給 CC；ASS 不加，接片頭之前燒進原始影片。</td>
+                </tr>
+                <tr>
+                    <td><strong>影片壓製</strong></td>
+                    <td>concat 失敗或聲音漸漸不同步；檔案太大；錯誤被隱藏</td>
+                    <td>統一 <code>setsar=1</code>、<code>fps=30</code>、48 kHz；片頭補靜音音軌；<code>preset medium</code>＋<code>faststart</code>；保留 ffmpeg 紀錄。</td>
+                </tr>
+                <tr>
+                    <td><strong>字幕路徑</strong></td>
+                    <td>Windows 路徑的冒號、反斜線讓 ass 濾鏡讀不到檔</td>
+                    <td>在字幕資料夾裡執行 ffmpeg，濾鏡只寫檔名。</td>
+                </tr>
+                <tr>
+                    <td><strong>OAuth 認證</strong></td>
+                    <td>7 天後 invalid_grant</td>
+                    <td>同意畫面改成正式發布並重新授權；程式的自動續期只處理 access token。</td>
+                </tr>
+                <tr>
+                    <td><strong>上傳</strong></td>
+                    <td>影片被鎖成私人；配額用完；斷線重傳</td>
+                    <td>申請 API 稽核；記錄已上傳 ID 可接續；可續傳上傳＋自動重試。</td>
+                </tr>
+                <tr>
+                    <td><strong>字幕重複</strong></td>
+                    <td>燒了字幕又上傳 CC，開 CC 看到兩份</td>
+                    <td>二選一，建議上傳 CC。</td>
+                </tr>
+                <tr>
+                    <td><strong>播放清單</strong></td>
+                    <td>加入項目回報找不到影片</td>
+                    <td>失敗後等待重試、不指定 <code>position</code>。</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- 10. 跨電腦移植 -->
+    <section id="sec-migrate" class="card">
+        <h2 class="section-title">10. 【跨電腦移植】在另一台電腦上安裝與使用本技能</h2>
+        <p>換一台全新的 Windows 電腦時，依照以下 4 個步驟設定：</p>
+
+        <div class="step-box" style="margin-bottom: 1.25rem;">
+            <span class="badge success">步驟 1</span>
+            <h4>安裝 Python 與 FFmpeg</h4>
+            <ul>
+                <li><strong>Python 3.10+</strong>：安裝時勾選 <code>Add python.exe to PATH</code>。</li>
+                <li><strong>FFmpeg</strong>：<code>winget install Gyan.FFmpeg</code>，裝完<strong>重開終端機</strong>，確認 <code>ffmpeg -version</code> 有反應。</li>
+            </ul>
+        </div>
+
+        <div class="step-box" style="margin-bottom: 1.25rem;">
+            <span class="badge primary">步驟 2</span>
+            <h4>解壓技能包、安裝套件、先跑測試</h4>
+            <pre><code>pip install -r requirements.txt
+python tests/test_subtitles.py      # 字幕規則：通過 21 項
+python tests/smoke_test.py          # 端到端：自己產生假影片跑完整流程，OK 11</code></pre>
+            <p>第一次語音辨識會自動下載模型（medium 約 1.5 GB、large-v3-turbo 約 1.6 GB），請在網路穩定時進行。</p>
+        </div>
+
+        <div class="step-box" style="margin-bottom: 1.25rem;">
+            <span class="badge warning">步驟 3</span>
+            <h4>設定檔與授權</h4>
+            <ul>
+                <li>複製 <code>config.example.json</code> 為 <code>config.json</code>，填好影片資料夾、集數與標題、術語。</li>
+                <li>要上傳 YouTube：把自己的 <code>client_secrets.json</code> 放進資料夾，執行 <code>python youtube_auth.py</code> 產生 <code>yt_token.json</code>。建議在新電腦重新授權，不要到處複製 token 檔；這兩個檔案等於密碼，不可放進壓縮檔、GitHub 或報告。</li>
+            </ul>
+        </div>
+
+        <div class="step-box">
+            <span class="badge success">步驟 4</span>
+            <h4>處理影片 → 檢查 → 上傳</h4>
+            <p>雙擊 <code>1_處理影片.bat</code>（或 <code>python run_pipeline.py</code>）：<strong>長空白報告 → 語音辨識 → 單行字幕 → 片頭 → 壓製</strong>。看過成品與字幕後，雙擊 <code>2_上傳YouTube.bat</code>：先列出要上傳的內容，輸入 y 才會上傳並建立播放清單。</p>
+        </div>
+    </section>
+
+</div>
+
+<footer>
+    <p>AI 課程自動化剪輯與發布全流程指南 | 桃園市立楊梅高級中等學校 實習處 製作發行</p>
+</footer>
+
+</body>
+</html>

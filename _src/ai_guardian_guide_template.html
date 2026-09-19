@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【專題實作】AI 守望：公共場所 AI 監控通報｜學生實作手冊</title>
+<meta name="description" content="高中職專題實作手冊：用網路攝影機與 YOLO 影像辨識，做出「發現危險、確認、通報」的公共場所監控系統。七個關卡：攝影機、找出人、手持危險物品判斷、防誤報、截圖存證與取消窗口、LINE 推播、多路監控牆，附程式包、調參實驗、評量規準與法規倫理說明。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --paper:#f4f6f5; --sheet:#ffffff; --ink:#15211d; --muted:#56655f; --line:#d5ddd9;
+  --accent:#0d5f6e; --accent-soft:#e1eff1; --code-bg:#0f1c1f; --code-ink:#dbe7e4;
+  --high:#b42318; --high-soft:#fdecea; --mid:#9a5207; --mid-soft:#fdf1e3; --low:#3b6b45; --low-soft:#e8f2ea;
+  --serif:"Noto Serif TC","PMingLiU",serif; --sans:"Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --mono:"JetBrains Mono",Consolas,"Microsoft JhengHei",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0e1513; --sheet:#141d1b; --ink:#e3ebe8; --muted:#9aaba5; --line:#2a3834;
+    --accent:#5cc3d3; --accent-soft:#16303a; --code-bg:#0a1113; --code-ink:#d3e1de;
+    --high:#f2877d; --high-soft:#3a1714; --mid:#f0b067; --mid-soft:#352311; --low:#8fc79a; --low-soft:#16291a;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0e1513; --sheet:#141d1b; --ink:#e3ebe8; --muted:#9aaba5; --line:#2a3834;
+  --accent:#5cc3d3; --accent-soft:#16303a; --code-bg:#0a1113; --code-ink:#d3e1de;
+  --high:#f2877d; --high-soft:#3a1714; --mid:#f0b067; --mid-soft:#352311; --low:#8fc79a; --low-soft:#16291a;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.75;padding-inline:16px;padding-block:0 64px}
+.wrap{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:220px minmax(0,1fr);gap:40px;align-items:start}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);padding-top:32px;font-size:14px}
+nav.toc b{display:block;font-size:12px;letter-spacing:.12em;color:var(--muted);margin-bottom:8px}
+nav.toc a{display:block;color:var(--ink);text-decoration:none;padding:4px 10px;border-left:2px solid var(--line)}
+nav.toc a:hover,nav.toc a:focus-visible{border-left-color:var(--accent);color:var(--accent);outline:none}
+nav.toc .lv{color:var(--muted);font-family:var(--mono);font-size:12px;margin-right:6px}
+main{min-width:0}
+header.cover{padding:40px 0 28px;border-bottom:3px solid var(--ink);margin-bottom:8px}
+.rec{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;color:var(--high);letter-spacing:.08em}
+.rec i{width:10px;height:10px;border-radius:50%;background:var(--high);animation:blink 1.4s infinite}
+@keyframes blink{50%{opacity:.25}}
+@media (prefers-reduced-motion:reduce){.rec i{animation:none}}
+h1{font-family:var(--serif);font-weight:900;font-size:clamp(34px,6vw,56px);line-height:1.15;margin:10px 0 12px;text-wrap:balance}
+.lede{font-size:18px;color:var(--muted);max-width:40em;margin:0}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-top:24px}
+.meta div{background:var(--sheet);padding:10px 14px}
+.meta small{display:block;font-size:12px;color:var(--muted);letter-spacing:.06em}
+.meta span{font-weight:700}
+section{padding-top:44px}
+h2{font-family:var(--serif);font-size:28px;line-height:1.3;margin:0 0 14px;text-wrap:balance;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h2 .tag{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--sheet);background:var(--accent);padding:2px 8px;letter-spacing:.06em}
+h3{font-size:17px;margin:22px 0 8px;color:var(--accent)}
+p{margin:0 0 12px;max-width:44em}
+ul,ol{margin:0 0 12px;padding-left:1.4em;max-width:44em}
+li{margin:3px 0}
+code{font-family:var(--mono);font-size:.88em;background:var(--accent-soft);padding:1px 5px;border-radius:3px}
+pre{background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);font-size:13.5px;line-height:1.6;padding:14px 16px;overflow-x:auto;margin:8px 0 14px;border-radius:4px}
+pre code{background:none;padding:0;font-size:inherit}
+details{margin:8px 0 14px;border:1px solid var(--line);background:var(--sheet)}
+details summary{cursor:pointer;padding:8px 14px;font-weight:700;font-size:14px}
+details summary:focus-visible{outline:2px solid var(--accent)}
+details pre{margin:0;border-radius:0}
+.box{background:var(--sheet);border:1px solid var(--line);padding:16px 18px;margin:14px 0}
+.warn{background:var(--high-soft);border:1px solid var(--high);padding:14px 18px;margin:14px 0}
+.warn strong{color:var(--high)}
+.goal{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;background:var(--sheet);border:1px solid var(--line);padding:14px 18px;margin:0 0 12px}
+.goal dt{font-weight:700;color:var(--muted);font-size:14px}
+.goal dd{margin:0}
+.check{list-style:none;padding:0}
+.check li{display:flex;gap:10px;align-items:flex-start}
+.check input{width:18px;height:18px;margin-top:5px;accent-color:var(--accent);flex:none}
+.challenge{border-left:4px solid var(--mid);background:var(--mid-soft);padding:10px 16px;margin:14px 0}
+.challenge b{color:var(--mid)}
+.tbl{overflow-x:auto;margin:10px 0 16px}
+.tbl:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+table{border-collapse:collapse;width:100%;font-size:14.5px;background:var(--sheet)}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft);font-weight:700}
+td.num{font-variant-numeric:tabular-nums}
+.lvl{display:inline-block;font-size:12.5px;font-weight:700;padding:1px 8px;border-radius:10px;white-space:nowrap}
+.lvl.h{background:var(--high-soft);color:var(--high)} .lvl.m{background:var(--mid-soft);color:var(--mid)} .lvl.l{background:var(--low-soft);color:var(--low)}
+.blank td{height:34px}
+figure{margin:12px 0 18px}
+figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:13px;color:var(--muted);margin-top:6px}
+.dia text{font-family:var(--sans);fill:var(--ink)}
+.dia .node{fill:var(--sheet);stroke:var(--ink);stroke-width:1.5}
+.dia .hot{fill:var(--high-soft);stroke:var(--high);stroke-width:1.5}
+.dia .edge{stroke:var(--muted);stroke-width:1.6;fill:none}
+.dia .sub{fill:var(--muted);font-size:12px}
+.dia .arrow{fill:var(--muted)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.nw{white-space:nowrap}
+.meta div:last-child:nth-child(odd){grid-column:1/-1}
+@media (min-width:821px){.meta div:last-child:nth-child(odd){grid-column:auto}}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.dl{display:inline-block;font-weight:700;font-size:15px;background:var(--accent);color:var(--sheet);padding:7px 16px;text-decoration:none;border:1px solid var(--accent)}
+.dl:hover{filter:brightness(1.1)}
+.dl:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.prompt{position:relative;margin:8px 0 14px}
+.prompt pre{margin:0;padding-top:40px;white-space:pre-wrap}
+.copy{position:absolute;top:8px;right:8px;font:inherit;font-size:13px;border:1px solid var(--code-ink);background:var(--code-bg);color:var(--code-ink);padding:2px 10px;cursor:pointer}
+.copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+footer a{color:var(--accent)}
+.printbtn{font:inherit;font-size:14px;border:1px solid var(--ink);background:var(--sheet);color:var(--ink);padding:6px 14px;cursor:pointer}
+.printbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+footer{margin-top:48px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+@media (max-width:820px){
+  .wrap{grid-template-columns:minmax(0,1fr);gap:0}
+  nav.toc{position:static;padding-top:16px}
+  nav.toc .list{display:flex;flex-wrap:wrap;gap:4px}
+  nav.toc a{border:1px solid var(--line);padding:2px 8px}
+  nav.toc a.sub{display:none}
+  .tbl table{min-width:600px}
+}
+@media print{
+  :root{--paper:#fff;--sheet:#fff;--code-bg:#f3f5f4;--code-ink:#111}
+  body{font-size:11.5pt;padding:0}
+  nav.toc,.printbtn,.actions,.copy,video,.calc{display:none}
+  .wrap{display:block}
+  section.page{break-before:page}
+  pre,table,.goal,.box,.warn,figure{break-inside:avoid}
+  details{border:none}
+  details:not([open]) > *:not(summary){display:block}
+  details summary{padding:0 0 4px}
+  .rec i{animation:none}
+}
+.lede b{color:var(--ink)}
+video{width:100%;height:auto;display:block;background:#000;margin:8px 0}
+figure img{width:100%;height:auto;display:block;border:1px solid var(--line)}
+.phase{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:10px 0 14px}
+.phase ol{margin:6px 0 0}
+.flow{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 14px;padding:0;list-style:none}
+.flow li{background:var(--sheet);border:1px solid var(--line);border-left:4px solid var(--accent);padding:6px 12px;margin:0}
+.flow b{display:block;font-size:13px;color:var(--accent)}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;align-items:end}
+.calc label{display:block;font-size:14px;font-weight:700}
+.calc input{width:100%;font:inherit;padding:4px 8px;border:1px solid var(--muted);background:var(--sheet);color:var(--ink)}
+.calc input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.calc output{display:block;font-weight:700;font-size:18px;margin-top:10px}
+nav.toc .grp{display:block;margin-top:10px;font-size:12px;color:var(--muted);letter-spacing:.08em}
+h2 .tag.lv{background:var(--mid)}
+td code,th code{white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<nav class="toc" aria-label="目錄">
+  <b>目錄</b>
+  <div class="list">
+    <a href="#overview"><span class="lv">01</span>專題概要</a>
+    <a href="#arch"><span class="lv">02</span>配置與架構</a>
+    <a href="#design"><span class="lv">03</span>功能設計</a>
+    <a href="#hardware"><span class="lv">04</span>器材清單</a>
+    <a href="#wiring"><span class="lv">05</span>警示盒接線</a>
+    <a href="#setup"><span class="lv">06</span>軟體與安裝</a>
+    <a href="#record"><span class="lv">07</span>演練錄影</a>
+    <a href="#weeks"><span class="lv">08</span>12 週製作流程</a>
+    <a href="#logic"><span class="lv">09</span>運作原理</a>
+    <a href="#levels"><span class="lv">10</span>程式學習關卡</a>
+    <a class="sub" href="#l1"><span class="lv">L1</span>攝影機畫面</a>
+    <a class="sub" href="#l2"><span class="lv">L2</span>找出人</a>
+    <a class="sub" href="#l3"><span class="lv">L3</span>手持危險物品</a>
+    <a class="sub" href="#l4"><span class="lv">L4</span>防誤報</a>
+    <a class="sub" href="#l5"><span class="lv">L5</span>通報流程</a>
+    <a class="sub" href="#l6"><span class="lv">L6</span>LINE 推播</a>
+    <a class="sub" href="#l7"><span class="lv">L7</span>多路監控牆</a>
+    <a href="#pack"><span class="lv">11</span>程式包使用說明</a>
+    <a href="#ai"><span class="lv">12</span>AI 助手提示語</a>
+    <a href="#test"><span class="lv">13</span>測試與驗證</a>
+    <a href="#ethics"><span class="lv">14</span>安全、隱私與倫理</a>
+    <a href="#debug"><span class="lv">15</span>常見問題</a>
+    <a href="#more"><span class="lv">16</span>延伸挑戰</a>
+    <a href="#report"><span class="lv">17</span>書面報告與評分</a>
+    <a href="#teacher">教師備註</a>
+  </div>
+</nav>
+
+<main>
+<header class="cover">
+  <div class="rec"><i></i>REC · 專題製作・學生實作手冊</div>
+  <h1><span class="nw">AI 守望：</span><span class="nw">公共場所</span> <span class="nw">AI 監控通報</span></h1>
+  <p class="lede">用網路攝影機加上 AI 影像辨識，做出一套「<b>發現危險 → 確認 → 通報</b>」的監控系統：判斷有人手持危險物品、倒地、人群奔逃或異常聚集，給保全 5 秒按鈕取消誤報，再用 LINE 通報；現場警示盒用燈號、蜂鳴器與中文 TFT 顯示狀態。</p>
+  <div class="meta">
+    <div><small>難度</small><span>進階 ★★（評估與硬體 ★★★）</span></div>
+    <div><small>建議人數</small><span>3～4 人</span></div>
+    <div><small>時程</small><span>約 12～16 週</span></div>
+    <div><small>核心技術</small><span>YOLOv8 ＋ 規則判斷 ＋ LINE ＋ ESP32</span></div>
+    <div><small>預算</small><span>約 1,700～7,000 元（不含筆電）</span></div>
+  </div>
+  <div class="actions">
+    <a class="dl" href="ai_guardian_starter_pack.zip" download="ai_guardian_starter_pack.zip">⬇ 下載程式包（ZIP）</a>
+    <button class="printbtn" type="button" id="printBtn">列印／存成 PDF</button>
+  </div>
+</header>
+
+<section id="overview">
+  <h2><span class="tag">01</span>專題概要</h2>
+  <h3>背景與定位</h3>
+  <p>2025 年 12 月，台北車站與捷運中山站發生隨機攻擊事件。這類事件中，<b>發現得早、通報得快</b>是減少傷亡的關鍵，但保全不可能同時盯著每一個監視畫面。市面上已有商用的 AI 監控系統；這個專題的重點不是做出能上線的產品，而是弄懂「AI 怎麼從畫面判斷危險」「怎麼避免一直誤報」，並<b>用自己錄的演練影片與數據證明方法的效果和限制</b>。</p>
+  <h3>專題目標</h3>
+  <ol>
+    <li>用 YOLO 找出畫面中的人與危險物品（刀、球棒；上課用剪刀代替），判斷物品是不是「拿在手上」。</li>
+    <li>判斷四種事件：持械、人群奔逃（高風險）、人員倒地（中風險）、異常聚集（低風險），每種都要<b>持續一段時間</b>才成立。</li>
+    <li>分級通報：高風險先在現場警報並倒數 5 秒，保全可以按鈕取消誤報；沒人取消才發 LINE。每筆事件都截圖、寫入紀錄。</li>
+    <li>錄製演練影片並標記正確答案，計算<b>偵測率、平均反應秒數、每 10 分鐘誤報次數</b>，用參數實驗找出取捨。</li>
+    <li>用 ESP32 做成現場警示盒：三色燈、蜂鳴器、中文 TFT、保全取消鈕，斷線時要看得出來。</li>
+  </ol>
+  <div class="warn">
+    <p><strong>安全規定</strong>：演練「手持危險物品」一律使用<b>剪刀或道具</b>（刀尖朝下、不揮動），禁止攜帶真刀進教室；倒地要在軟墊上，奔跑要在空曠處、有老師在場。</p>
+    <p><strong>法律規定</strong>：只能連線自己的或已取得授權的攝影機。未經同意連線別人的攝影機，觸犯《刑法》第 358 條妨害電腦使用罪。拍攝他人畫面要遵守《個人資料保護法》：取得同意、設置錄影告示、只用在安全用途、定期刪除。</p>
+    <p style="margin:0"><strong>做不到的事</strong>：手機上的「國家級警報」屬於細胞廣播（CBS），只有政府機關能發送，民間系統不能串接。本系統改用 LINE 通知保全與管理人員；它只能<b>輔助</b>判斷，不能取代保全、警察或 110。</p>
+  </div>
+</section>
+
+<section id="arch">
+  <h2><span class="tag">02</span>配置與架構</h2>
+  <h3>動作要求示意影片（117 秒，有聲音）</h3>
+  <p>先看這支影片，了解每種情境下系統應該怎麼反應：左邊是監視畫面與偵測框，右上是現場警示盒（TFT、三色燈、蜂鳴器、取消鈕），右下是手機 LINE 與事件紀錄。人物動作是事先安排的模擬動畫，<b>判斷規則、通報流程與警示盒畫面都和程式包相同</b>。</p>
+  <video controls preload="metadata" poster="ai_guardian_scenario_poster.jpg" aria-describedby="scenarioText">
+    <source src="ai_guardian_scenario.mp4" type="video/mp4">
+    你的瀏覽器無法播放影片，請<a href="ai_guardian_scenario.mp4">下載影片</a>觀看。
+  </video>
+  <p style="font-size:13px;color:var(--muted)">字幕已燒錄在畫面下方；影片也可以用 <code>13_make_scenario_video.bat</code> 重新產生。</p>
+  <details id="scenarioText"><summary>影片文字稿（每個時間點的畫面與聲音）</summary>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>時間</th><th>情境與畫面</th><th>警示盒、LINE 與聲音</th></tr>
+    <tr><td>0:04</td><td>情境 0：平常的穿堂，只有人走動</td><td>綠燈恆亮；TFT「監控中／畫面正常」</td></tr>
+    <tr><td>0:12</td><td>情境 1：有人拿起剪刀，紅色「持械確認」進度條 0.6 秒跑滿</td><td>紅燈快閃、連續嗶聲；TFT「警報／疑似持械」，倒數 5 秒</td></tr>
+    <tr><td>0:17</td><td>倒數結束，沒有人取消</td><td>LINE 收到「緊急通報」提示音；TFT「已通報」，紅燈恆亮、每 2 秒短嗶</td></tr>
+    <tr><td>0:26</td><td>情境 2：剪刀放在桌上，有人從桌旁走過，人框碰到剪刀被誤判</td><td>0:30 開始警報倒數</td></tr>
+    <tr><td>0:32</td><td>保全看畫面確認沒事，按下取消鈕</td><td>按鍵嗶一聲；TFT「已取消／已標記為誤報」，綠燈快閃；不發 LINE</td></tr>
+    <tr><td>0:38</td><td>情境 3：剪刀只在鏡頭前晃一下、零星誤判</td><td>進度條沒跑滿，不警示</td></tr>
+    <tr><td>0:51</td><td>情境 4：有人倒地超過 3 秒</td><td>黃燈；TFT「注意／人員倒地」；直接發 LINE「監控通報」，不倒數</td></tr>
+    <tr><td>0:58</td><td>情境 5：蹲下綁鞋帶 1.5 秒</td><td>不到 3 秒，不警示</td></tr>
+    <tr><td>1:07</td><td>情境 6：兩組各 3 人快速跑過</td><td>TFT「警報／人群奔逃」倒數 5 秒；1:12 發出 LINE 緊急通報</td></tr>
+    <tr><td>1:22</td><td>情境 8：16 人聚在一起超過 5 秒</td><td>黃燈、TFT「注意／異常聚集」；只寫入紀錄，不發 LINE</td></tr>
+    <tr><td>1:27</td><td>情境 10：剪刀離鏡頭遠，信心度只有 0.27</td><td>低於門檻 0.35，漏報（說明調參的取捨）</td></tr>
+    <tr><td>1:37</td><td>情境 11：手機被認成刀子，信心度 0.28</td><td>預設門檻下不警示；門檻調到 0.25 就會變成誤報</td></tr>
+    <tr><td>1:46</td><td>情境 12：警示盒的 USB 線被拔掉</td><td>1.5 秒後綠燈每 2 秒閃一下、TFT「未連線／請檢查電腦連線」</td></tr>
+    <tr><td>1:51</td><td>重點整理</td><td>規則摘要與安全提醒</td></tr>
+  </table></div>
+  </details>
+
+  <h3>分兩個階段做</h3>
+  <div class="phase">
+    <div class="box"><b>第一階段：演練影片分析（主要成果）</b>
+      <ol><li>寫演練腳本、取得同意</li><li>在教室或穿堂錄影</li><li>標記每件事的開始與結束</li><li>程式分析、算出偵測率與誤報</li><li>調整參數、改良規則</li></ol></div>
+    <div class="box"><b>第二階段：即時系統與警示盒（展示用）</b>
+      <ol><li>多路監控牆（攝影機或影片）</li><li>ESP32 警示盒：燈號、蜂鳴器、TFT</li><li>保全取消鈕</li><li>LINE 官方帳號通報</li><li>整合演練、量反應時間</li></ol></div>
+  </div>
+  <div class="box"><b>為什麼先分析錄好的影片？</b>
+    <p style="margin:6px 0 0">現場演練每次都不一樣，沒辦法公平比較。錄好的影片可以反覆分析，改一個參數就能在同一批影片上比較成績；而且 YOLO 的偵測結果會存成紀錄檔，改門檻時只要「重播」規則，一秒就算完。</p></div>
+
+  <h3>系統流程</h3>
+  <figure>
+    <svg class="dia" viewBox="0 0 860 250" role="img" aria-label="系統流程：攝影機、AI 辨識、規則判斷、取消窗口、通報">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="arrow" d="M0,0 L10,5 L0,10 z"/></marker></defs>
+      <rect class="node" x="10" y="70" width="130" height="70" rx="4"/>
+      <text x="75" y="100" text-anchor="middle" font-weight="700">攝影機</text>
+      <text class="sub" x="75" y="122" text-anchor="middle">USB／RTSP／影片</text>
+      <rect class="node" x="180" y="70" width="140" height="70" rx="4"/>
+      <text x="250" y="100" text-anchor="middle" font-weight="700">YOLO 辨識</text>
+      <text class="sub" x="250" y="122" text-anchor="middle">人、刀、剪刀、球棒</text>
+      <rect class="node" x="360" y="70" width="140" height="70" rx="4"/>
+      <text x="430" y="100" text-anchor="middle" font-weight="700">規則判斷</text>
+      <text class="sub" x="430" y="122" text-anchor="middle">手持？持續多久？</text>
+      <rect class="hot" x="540" y="70" width="140" height="70" rx="4"/>
+      <text x="610" y="100" text-anchor="middle" font-weight="700">5 秒取消窗口</text>
+      <text class="sub" x="610" y="122" text-anchor="middle">警示盒倒數＋取消鈕</text>
+      <rect class="node" x="720" y="20" width="130" height="60" rx="4"/>
+      <text x="785" y="47" text-anchor="middle" font-weight="700">LINE 通報</text>
+      <text class="sub" x="785" y="67" text-anchor="middle">沒人取消</text>
+      <rect class="node" x="720" y="130" width="130" height="60" rx="4"/>
+      <text x="785" y="157" text-anchor="middle" font-weight="700">記為誤報</text>
+      <text class="sub" x="785" y="177" text-anchor="middle">保全按取消鈕</text>
+      <path class="edge" d="M140,105 H176" marker-end="url(#ah)"/>
+      <path class="edge" d="M320,105 H356" marker-end="url(#ah)"/>
+      <path class="edge" d="M500,105 H536" marker-end="url(#ah)"/>
+      <path class="edge" d="M680,95 C700,95 700,50 716,50" marker-end="url(#ah)"/>
+      <path class="edge" d="M680,115 C700,115 700,160 716,160" marker-end="url(#ah)"/>
+      <rect class="node" x="360" y="190" width="320" height="44" rx="4"/>
+      <text x="520" y="217" text-anchor="middle">每筆事件都截圖，並寫入 events.csv 存證</text>
+      <path class="edge" d="M610,140 V186" marker-end="url(#ah)"/>
+    </svg>
+    <figcaption>圖 1　即時系統的流程。演練影片分析時，YOLO 的結果先存成偵測紀錄，再重播同一套規則。</figcaption>
+  </figure>
+
+  <h3>現場配置（演練場地俯視）</h3>
+  <figure>
+    <svg class="dia" viewBox="0 0 860 300" role="img" aria-label="演練場地俯視圖：鏡頭在牆角高處斜向下，拍攝 3 到 6 公尺範圍；警示盒與筆電在保全桌">
+      <rect class="node" x="20" y="20" width="560" height="260" rx="2"/>
+      <text x="300" y="44" text-anchor="middle" font-weight="700">教室或穿堂（演練區）</text>
+      <path d="M40,260 L300,70 L560,260 Z" fill="var(--accent-soft)" stroke="var(--accent)" stroke-dasharray="6 4"/>
+      <text x="300" y="200" text-anchor="middle">鏡頭拍攝範圍（距離 3～6 公尺）</text>
+      <rect class="hot" x="270" y="262" width="60" height="16" rx="2"/>
+      <text class="sub" x="300" y="296" text-anchor="middle">USB 鏡頭：高 2～2.5 公尺、斜向下 20～30°</text>
+      <rect class="node" x="380" y="120" width="70" height="30" rx="2"/>
+      <text class="sub" x="415" y="140" text-anchor="middle">桌子</text>
+      <circle cx="200" cy="140" r="12" fill="var(--low-soft)" stroke="var(--low)"/>
+      <circle cx="240" cy="170" r="12" fill="var(--low-soft)" stroke="var(--low)"/>
+      <circle cx="330" cy="120" r="12" fill="var(--high-soft)" stroke="var(--high)"/>
+      <text class="sub" x="330" y="104" text-anchor="middle">持剪刀演練</text>
+      <rect class="node" x="80" y="210" width="90" height="30" rx="2"/>
+      <text class="sub" x="125" y="230" text-anchor="middle">軟墊（倒地）</text>
+      <rect class="node" x="620" y="60" width="220" height="200" rx="4"/>
+      <text x="730" y="86" text-anchor="middle" font-weight="700">保全桌（演練區外）</text>
+      <rect class="node" x="640" y="100" width="100" height="60" rx="2"/>
+      <text class="sub" x="690" y="134" text-anchor="middle">筆電：監控牆</text>
+      <rect class="hot" x="755" y="100" width="70" height="60" rx="2"/>
+      <text class="sub" x="790" y="126" text-anchor="middle">警示盒</text>
+      <text class="sub" x="790" y="144" text-anchor="middle">取消鈕</text>
+      <text class="sub" x="730" y="190" text-anchor="middle">手機：LINE 官方帳號</text>
+      <text class="sub" x="730" y="230" text-anchor="middle">USB 線連到筆電</text>
+      <path class="edge" d="M330,262 C450,250 560,190 636,140" marker-end="url(#ah)"/>
+    </svg>
+    <figcaption>圖 2　鏡頭高一點、斜向下拍，人比較不會互相遮住；保全桌在演練區外，扮演保全的同學只看監控牆與警示盒判斷要不要取消。</figcaption>
+  </figure>
+</section>
+
+<section id="design" class="page">
+  <h2><span class="tag">03</span>功能設計</h2>
+  <p>動手寫程式或接線之前，先把「系統要做到什麼、怎麼算做到」寫清楚。下面是程式包已經實作的設計，報告中的「研究方法」可以直接引用；改良時也要回來更新這份規格。</p>
+  <h3>3.1 功能清單與驗收標準</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>編號</th><th>功能</th><th>說明</th><th>對應程式</th><th>驗收標準</th></tr>
+    <tr><td>F1</td><td>影像輸入</td><td>USB 攝影機、RTSP 網路攝影機、公開快照、影片、圖片；每個來源一條背景執行緒，斷線自動重連</td><td><code>sources.py</code></td><td>兩路同時顯示；拔掉一台，那一格顯示「訊號中斷」，另一格照常</td></tr>
+    <tr><td>F2</td><td>人與物品辨識</td><td>YOLOv8n 找出人、刀、球棒、剪刀（練習用）；先用 0.2 收集，規則再篩選</td><td><code>threat_rules.py</code>、<code>monitor.py</code></td><td>1.5 公尺內張開的剪刀能被框出</td></tr>
+    <tr><td>F3</td><td>手持判斷</td><td>物品框和「往外擴大 15% 的人框」重疊才算拿在手上；物品信心度要達 <code>WEAPON_CONF</code>（0.35）</td><td><code>ThreatAnalyzer</code></td><td>遠處桌上的剪刀不觸發；拿在手上會觸發</td></tr>
+    <tr><td>F4</td><td>持續確認</td><td>訊號要持續 <code>WEAPON_SUSTAIN_SEC</code>（0.6 秒）才成立；短暫漏抓 0.8 秒內不歸零</td><td><code>SustainedFlag</code></td><td>剪刀晃過 0.3 秒不觸發</td></tr>
+    <tr><td>F5</td><td>人員倒地</td><td>人框寬度超過高度的 1.25 倍，持續 3 秒</td><td><code>ThreatAnalyzer</code></td><td>綁鞋帶 1.5 秒不觸發；躺 3 秒觸發</td></tr>
+    <tr><td>F6</td><td>人群奔逃</td><td>3 人以上每秒移動超過 0.6 個畫面高，持續 1 秒</td><td><code>_running_count</code></td><td>3 人快步走不觸發；3 人奔跑觸發</td></tr>
+    <tr><td>F7</td><td>異常聚集</td><td>人數達 15 人，持續 5 秒</td><td><code>ThreatAnalyzer</code></td><td>14 人不觸發</td></tr>
+    <tr><td>F8</td><td>分級通報</td><td>高風險：警報並倒數 5 秒，沒取消才發 LINE；中風險：直接發 LINE；低風險：只記錄</td><td><code>alerter.py</code></td><td>規則測試「通報流程」全部通過</td></tr>
+    <tr><td>F9</td><td>冷卻時間</td><td>同一台攝影機的同一種事件，60 秒內只通報一次</td><td><code>alerter.py</code></td><td>拿著剪刀不放，只收到一則 LINE</td></tr>
+    <tr><td>F10</td><td>存證紀錄</td><td>每筆事件截圖（依日期分資料夾）並寫入 <code>events.csv</code>（Excel 開啟不亂碼）</td><td><code>alerter.py</code></td><td>紀錄有時間、攝影機、事件、等級、處置、截圖檔名</td></tr>
+    <tr><td>F11</td><td>LINE 推播</td><td>Messaging API 廣播；每次開獨立行程、http.client、最多重試 3 次；金鑰只讀環境變數</td><td><code>line_worker.py</code></td><td>手機收到訊息；沒設金鑰時只提示、不當掉</td></tr>
+    <tr><td>F12</td><td>監控牆</td><td>多路畫面、人數、物品信心度、事件名稱、高風險紅框閃爍、倒數提示</td><td><code>monitor.py</code></td><td>旁人看畫面就知道哪一路、發生什麼事</td></tr>
+    <tr><td>F13</td><td>現場警示盒</td><td>ESP32 三色燈、蜂鳴器、1.8 吋 TFT 中文：監控中、注意、警報倒數、已通報、已取消</td><td><code>alarm_link.py</code>、<code>esp32_guard_alarm.ino</code></td><td>五種狀態的燈號、聲音、畫面都能分辨</td></tr>
+    <tr><td>F14</td><td>保全取消鈕</td><td>倒數中按下 → 所有待送的高風險通報標記為誤報，不發 LINE</td><td><code>esp32_guard_alarm.ino</code>、<code>monitor.py</code></td><td>紀錄出現「保全取消(誤報)」；手機沒收到</td></tr>
+    <tr><td>F15</td><td>失效提示</td><td>警示盒超過 1.5 秒沒收到電腦訊號 → 未連線</td><td><code>esp32_guard_alarm.ino</code></td><td>拔 USB 或關程式後，綠燈慢閃、TFT「未連線」</td></tr>
+    <tr><td>F16</td><td>偵測紀錄與重播</td><td>影片的 YOLO 結果存成 <code>_dets.csv</code>；改門檻時只重播規則</td><td><code>analyze_video.py</code>、<code>evaluate.py</code></td><td>第二次評估同一支影片不必重跑 YOLO</td></tr>
+    <tr><td>F17</td><td>正確答案標記</td><td>播放影片，事件開始、結束各按一次數字鍵；可暫停、逐格、取消</td><td><code>label_events.py</code></td><td>答案存在影片旁邊；覆蓋前自動備份 .bak</td></tr>
+    <tr><td>F18</td><td>成效評估</td><td>偵測率、平均與最慢反應秒數、誤報、重複警示、每 10 分鐘誤報，分事件種類統計</td><td><code>evaluate.py</code>、<code>batch_eval.py</code></td><td>練習資料：6 件偵測到 5 件、誤報 1 次、平均反應 2.18 秒</td></tr>
+    <tr><td>F19</td><td>參數實驗</td><td><code>--set</code> 暫時改門檻、<code>--sweep</code> 一次比較多個值，不修改程式檔</td><td><code>batch_eval.py</code></td><td>打錯設定名稱會停止並列出可用名稱</td></tr>
+    <tr><td>F20</td><td>隱私保護</td><td>標註影片與截圖把人框整個打馬賽克，危險物品保持清楚</td><td><code>analyze_video.py</code></td><td><code>output/</code> 裡認不出是誰</td></tr>
+  </table></div>
+
+  <h3>3.2 非功能需求</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>項目</th><th>目標</th><th>怎麼量</th></tr>
+    <tr><td>處理速度</td><td>即時監控每路每秒至少 5 張；兩路以上時由組員訂目標</td><td>監控牆順不順、分析結束印出的「每秒幾張」</td></tr>
+    <tr><td>反應時間</td><td>持械從拿起到警示盒亮紅燈，由組員訂目標（例如 1.5 秒內）</td><td>手機慢動作錄影數影格</td></tr>
+    <tr><td>偵測率</td><td>由組員訂目標，例如「演練事件 80% 以上」</td><td><code>10_batch_evaluate.bat</code> 成績表</td></tr>
+    <tr><td>誤報</td><td>由組員訂目標，例如「每 10 分鐘不超過 1 次」；誤報太多，保全會不再理會警報</td><td>成績表的「每10分鐘誤報」</td></tr>
+    <tr><td>失效安全</td><td>系統沒在運作時一定看得出來</td><td>拔攝影機、拔警示盒、關程式</td></tr>
+    <tr><td>人在迴路中</td><td>高風險通報前一定給人確認的機會</td><td>取消鈕測試</td></tr>
+    <tr><td>隱私</td><td>對外影像都已打馬賽克；原始影片不上傳；截圖定期刪除</td><td>發表前逐張檢查</td></tr>
+  </table></div>
+
+  <h3>3.3 通報狀態（警示盒顯示什麼）</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>狀態</th><th>什麼時候</th><th>燈號與蜂鳴器</th><th>TFT</th></tr>
+    <tr><td>監控中</td><td>沒有事件</td><td>綠燈恆亮</td><td>綠底「監控中」、畫面正常</td></tr>
+    <tr><td>注意</td><td>中、低風險事件（倒地、聚集）還在，或結束後 3 秒內</td><td>黃燈恆亮，不響</td><td>黃底「注意」、事件名稱、請留意監控畫面</td></tr>
+    <tr><td>警報倒數</td><td>高風險事件（持械、奔逃）進入 5 秒取消窗口</td><td>紅燈快閃、蜂鳴器 0.1 秒響停</td><td>紅底「警報」、事件名稱、大數字倒數、按鈕可取消誤報</td></tr>
+    <tr><td>已通報</td><td>倒數結束、LINE 已發出後 10 秒內</td><td>紅燈恆亮、每 2 秒短嗶</td><td>紅底「已通報」、已發送 LINE 通報</td></tr>
+    <tr><td>已取消</td><td>保全按取消鈕後 3 秒內</td><td>綠燈快閃</td><td>藍底「已取消」、已標記為誤報</td></tr>
+    <tr><td>未連線</td><td>1.5 秒沒收到電腦訊號</td><td>綠燈每 2 秒閃一下</td><td>灰底「未連線」、請檢查電腦連線</td></tr>
+  </table></div>
+  <p>同時有好幾種狀態時，優先順序是：警報倒數 ＞ 已通報 ＞ 已取消 ＞ 注意 ＞ 監控中。顏色、文字、聲音一起變化，色弱或吵雜環境也能分辨。</p>
+  <figure>
+    <img src="ai_guardian_tft_preview.png" alt="警示盒 TFT 的六種畫面：綠底監控中、黃底注意人員倒地、紅底警報疑似持械與倒數 4 秒、紅底已通報、藍底已取消、灰底未連線" width="2032" height="300" loading="lazy">
+    <figcaption>圖 3　TFT 畫面（160×128，依韌體版面模擬）。中文是事先轉好的點陣圖，倒數數字用內建字型。</figcaption>
+  </figure>
+
+  <h3>3.4 介面規格</h3>
+  <p><b>序列通訊（115200 bps，每行以換行結尾）</b></p>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>方向</th><th>內容</th><th>意義</th></tr>
+    <tr><td>電腦 → ESP32</td><td><code>S2W4</code></td><td>每 0.2 秒一次：S＋狀態（0 監控中／1 注意／2 警報倒數／3 已通報／4 已取消）＋事件（W 持械、R 奔逃、F 倒地、C 聚集、N 無）＋倒數秒數（0～9）</td></tr>
+    <tr><td>ESP32 → 電腦</td><td><code>I,ready</code></td><td>開機完成</td></tr>
+    <tr><td>ESP32 → 電腦</td><td><code>K</code></td><td>保全按下取消鈕</td></tr>
+  </table></div>
+  <p><b>正確答案</b> <code>影片名_truth.csv</code>：<code>kind</code>（持械、倒地、奔逃、聚集）、<code>start</code>、<code>end</code>（秒）、<code>note</code>。</p>
+  <p><b>偵測紀錄</b> <code>影片名_dets.csv</code>：<code>t</code>（秒）、<code>frame_h</code>、<code>frame_w</code>、<code>cls</code>（0 人、43 刀、34 球棒、76 剪刀；什麼都沒找到時為 −1）、<code>conf</code>、<code>x1,y1,x2,y2</code>。</p>
+  <p><b>警示片段</b> <code>logs/影片名_events.csv</code>：<code>start</code>、<code>end</code>、<code>kind</code>、<code>level</code>、<code>detail</code>。同一種警示中斷超過 1 秒才算結束。</p>
+  <p><b>事件紀錄</b> <code>system/events/events.csv</code>：時間、攝影機、事件、等級、說明、處置（LINE通報／二級通報(LINE)／保全取消(誤報)／僅記錄）、截圖。</p>
+
+  <h3>3.5 例外處理</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>狀況</th><th>系統反應</th></tr>
+    <tr><td>攝影機打不開或中途斷線</td><td>那一格顯示「訊號中斷」，3 秒後自動重連；其他來源照常</td></tr>
+    <tr><td>沒裝 pyserial 或找不到 ESP32</td><td>提示原因，不使用警示盒，監控牆照常（可用鍵盤 C 取消）</td></tr>
+    <tr><td>序列埠中途斷線</td><td>提示寫入失敗；警示盒 1.5 秒後顯示未連線</td></tr>
+    <tr><td>沒有設定 LINE 金鑰、網路卡住</td><td>提示設定方式；推播在獨立行程中重試 3 次，不會卡住畫面</td></tr>
+    <tr><td>程式結束</td><td>把倒數中的事件處理完，送出「監控中」後關閉</td></tr>
+    <tr><td>答案檔不存在、是空的或事件名稱打錯</td><td><code>evaluate.py</code> 說明要先標記，或列出可以用的名稱</td></tr>
+    <tr><td>資料夾裡的影片沒有答案檔</td><td><code>batch_eval.py</code> 列出並跳過，不中斷</td></tr>
+    <tr><td><code>--set</code> 打錯設定名稱</td><td>停止並列出所有可調整的門檻，避免實驗白跑</td></tr>
+    <tr><td>標記時不小心覆蓋答案</td><td>舊檔自動改名為 <code>.bak</code>；重新開啟同一支影片會接續之前的標記</td></tr>
+    <tr><td>存截圖的路徑有中文</td><td>用 <code>cv2.imencode(...).tofile()</code> 存檔，不會失敗</td></tr>
+  </table></div>
+
+  <h3>3.6 功能測試對照</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>測試</th><th>對應功能</th><th>方法</th><th>通過標準</th></tr>
+    <tr><td>T1</td><td>F2～F8、F18</td><td>執行 <code>0_demo_practice.bat</code></td><td>規則測試 47 項通過；練習資料 6 件偵測到 5 件、誤報 1 次、重複 1 次、平均反應 2.18 秒</td></tr>
+    <tr><td>T2</td><td>F4、F19</td><td>執行 <code>11_param_experiment.bat</code></td><td><code>WEAPON_SUSTAIN_SEC</code> 2 秒時誤報 0 次；<code>WEAPON_CONF</code> 0.25 時 6 件全抓到但誤報 2 次</td></tr>
+    <tr><td>T3</td><td>F2、F3</td><td><code>3_weapon.bat</code>：剪刀放桌上（人離開）、再拿起來</td><td>橘框 → 紅框「手持!」</td></tr>
+    <tr><td>T4</td><td>F4</td><td><code>4_sustain.bat</code>：剪刀快速晃過鏡頭 10 次</td><td>進度條沒跑滿就不觸發</td></tr>
+    <tr><td>T5</td><td>F8～F10</td><td>監控牆觸發持械兩次（間隔 60 秒以上），一次不取消、一次按 C</td><td><code>events.csv</code> 有「二級通報(LINE)」與「保全取消(誤報)」各一筆，截圖齊全</td></tr>
+    <tr><td>T6</td><td>F11</td><td><code>6_line_test.bat</code>；再故意貼錯金鑰</td><td>手機收到訊息；錯誤金鑰顯示 401、程式不當掉</td></tr>
+    <tr><td>T7</td><td>F1、F12</td><td>監控牆接攝影機＋影片，中途拔掉 USB 攝影機再接回</td><td>該格顯示「訊號中斷」後恢復，另一格不受影響</td></tr>
+    <tr><td>T8</td><td>F13、F15</td><td>執行 <code>12_test_alarm_box.bat</code>，最後拔掉 USB</td><td>六種畫面、燈號、聲音都正確</td></tr>
+    <tr><td>T9</td><td>F14</td><td>監控牆觸發持械，倒數中按警示盒取消鈕</td><td>TFT「已取消」、不發 LINE、紀錄為保全取消</td></tr>
+    <tr><td>T10</td><td>F5～F7</td><td>演練影片中倒地、奔逃、聚集各做一次，拖到 <code>9_analyze_video.bat</code></td><td>三種事件都有對應的警示片段</td></tr>
+    <tr><td>T11</td><td>F16～F18</td><td>標記兩支演練影片後執行 <code>10_batch_evaluate.bat</code> 兩次</td><td>成績表有兩支影片、合計與各事件；第二次不再跑 YOLO</td></tr>
+    <tr><td>T12</td><td>F20</td><td>逐張檢查 <code>output/</code> 的標註影片與截圖</td><td>認不出是誰；沒被偵測到的人另外處理後才對外使用</td></tr>
+  </table></div>
+</section>
+
+<section id="hardware" class="page">
+  <h2><span class="tag">04</span>器材清單</h2>
+  <p>價格為參考價，依實際採購為準。只做第一階段的話，只要筆電與一支 USB 攝影機。</p>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>項目</th><th>建議規格</th><th>數量</th><th>參考價</th></tr>
+    <tr><th colspan="4">第一階段：演練與分析</th></tr>
+    <tr><td>筆記型電腦</td><td>Windows 10／11、Intel i5 第 8 代或同級以上、8 GB 記憶體</td><td>1</td><td>學校既有</td></tr>
+    <tr><td>USB 網路攝影機</td><td>1080p、廣角；多路監控要 2 支</td><td>1～2</td><td>每支 600～1,200 元</td></tr>
+    <tr><td>三腳架或夾具</td><td>能把鏡頭架到 2 公尺以上（例如燈架、書櫃頂端夾具）</td><td>1～2</td><td>每個 300～800 元</td></tr>
+    <tr><td>USB 延長線</td><td>主動式 5 公尺，鏡頭離筆電較遠時使用</td><td>1</td><td>200～400 元</td></tr>
+    <tr><td>演練道具</td><td>圓頭剪刀、泡棉或紙板做的道具刀、軟墊（體育組借用）</td><td>1 組</td><td>50～200 元</td></tr>
+    <tr><td>手機</td><td>安裝 LINE，加官方帳號為好友</td><td>1</td><td>組員既有</td></tr>
+    <tr><th colspan="4">第二階段：現場警示盒</th></tr>
+    <tr><td>ESP32 開發板</td><td>ESP32 DevKit（USB 轉序列晶片 CP2102 或 CH340）</td><td>1</td><td>200～350 元</td></tr>
+    <tr><td>LED 與電阻</td><td>綠、黃、紅 LED 各 1 顆，220Ω 電阻 3 個</td><td>1 組</td><td>約 30 元</td></tr>
+    <tr><td>主動式蜂鳴器模組</td><td>3.3V 可用、<b>高電位觸發</b></td><td>1</td><td>30～60 元</td></tr>
+    <tr><td>取消按鈕</td><td>自復式大型按鈕（24 mm 以上，好按、不容易誤觸）</td><td>1</td><td>50～150 元</td></tr>
+    <tr><td>ST7735 1.8 吋 TFT</td><td>160×128、SPI 介面（標示 1.8" TFT SPI）</td><td>1</td><td>150～300 元</td></tr>
+    <tr><td>麵包板、杜邦線</td><td>—</td><td>1 組</td><td>100～200 元</td></tr>
+    <tr><td>外殼</td><td>壓克力、紙盒或 3D 列印，按鈕與螢幕外露</td><td>1</td><td>100～300 元</td></tr>
+    <tr><td>USB 傳輸線</td><td>可傳資料（不是只能充電的線）</td><td>1</td><td>50～100 元</td></tr>
+    <tr><th colspan="4">選購</th></tr>
+    <tr><td>網路攝影機（RTSP）</td><td>支援 RTSP 的家用攝影機，只能用自己的或已授權的</td><td>1</td><td>800～1,200 元</td></tr>
+  </table></div>
+</section>
+
+<section id="wiring">
+  <h2><span class="tag">05</span>警示盒接線</h2>
+  <p>所有元件都使用 ESP32 的 <b>3.3V</b>，由筆電 USB 供電。</p>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>元件</th><th>接法</th><th>ESP32 腳位</th><th>用途</th></tr>
+    <tr><td>綠色 LED</td><td>長腳 → 220Ω → GPIO；短腳 → GND</td><td>GPIO25</td><td>恆亮＝監控中；快閃＝已取消；每 2 秒閃一下＝未連線</td></tr>
+    <tr><td>黃色 LED</td><td>同上</td><td>GPIO26</td><td>恆亮＝注意</td></tr>
+    <tr><td>紅色 LED</td><td>同上</td><td>GPIO27</td><td>快閃＝警報倒數；恆亮＝已通報</td></tr>
+    <tr><td>主動式蜂鳴器模組</td><td>VCC → 3V3、GND → GND、I/O → GPIO</td><td>GPIO14</td><td>HIGH＝響</td></tr>
+    <tr><td>取消按鈕</td><td>一腳 → GPIO，另一腳 → GND（使用內建上拉電阻）</td><td>GPIO4</td><td>按下送出 <code>K</code>，並短嗶一聲</td></tr>
+    <tr><td rowspan="2">ST7735 TFT</td><td>SCK、SDA（MOSI）、CS、A0（DC）、RST</td><td>GPIO18、23、5、21、22</td><td rowspan="2">狀態、事件、倒數秒數</td></tr>
+    <tr><td>VCC、GND、LED（背光）</td><td>3V3、GND、3V3</td></tr>
+  </table></div>
+  <div class="box"><b>「未連線」燈號很重要</b>
+    <p style="margin:6px 0 0">電腦每 0.2 秒送一次狀態，警示盒超過 1.5 秒沒收到就顯示未連線。警示裝置最怕「壞掉了卻看起來正常」，保全以為一切平安，其實系統早就停了。</p></div>
+  <h3>接線注意</h3>
+  <ul>
+    <li>按鈕不要接到 3V3，否則按下時會短路；接 GPIO4 與 GND 即可。</li>
+    <li>蜂鳴器一直響，代表買到「低電位觸發」的模組：換模組，或請 AI 助手把程式裡蜂鳴器的 HIGH／LOW 反過來。</li>
+    <li>TFT 顏色或邊緣不對時，把程式裡的 <code>INITR_BLACKTAB</code> 改成 <code>INITR_GREENTAB</code> 或 <code>INITR_REDTAB</code>。</li>
+    <li>想改 TFT 上的中文，修改 <code>make_tft_labels.py</code> 的 <code>LABELS</code>，執行後再重新上傳。</li>
+  </ul>
+  <details><summary>韌體：system/esp32_guard_alarm/esp32_guard_alarm.ino</summary><pre><code>{{system/esp32_guard_alarm/esp32_guard_alarm.ino}}</code></pre></details>
+</section>
+
+<section id="setup" class="page">
+  <h2><span class="tag">06</span>軟體與安裝</h2>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>軟體</th><th>用途</th><th>取得方式</th></tr>
+    <tr><td>Python 3.10 以上</td><td>所有程式</td><td>python.org，安裝時勾選「Add python.exe to PATH」</td></tr>
+    <tr><td>ultralytics、opencv-python、pillow、numpy、pyserial</td><td>YOLO 辨識、影像處理、中文字、與 ESP32 通訊</td><td><code>pip install -r requirements.txt</code></td></tr>
+    <tr><td>Arduino IDE ＋ ESP32 開發板套件</td><td>上傳 <code>esp32_guard_alarm.ino</code>，開發板選「ESP32 Dev Module」</td><td>arduino.cc</td></tr>
+    <tr><td>Adafruit ST7735 and ST7789 Library、Adafruit GFX Library</td><td>TFT 顯示</td><td>Arduino IDE 程式庫管理員</td></tr>
+    <tr><td>LINE 官方帳號（Messaging API）</td><td>通報訊息</td><td>見關卡 L6</td></tr>
+    <tr><td>ffmpeg（教師選用）</td><td>重新產生示意影片</td><td><code>winget install Gyan.FFmpeg</code></td></tr>
+    <tr><td>Google Antigravity／Claude Code</td><td>AI 程式助手（擇一）</td><td>Antigravity 免費；Claude Code 需 Claude 付費方案</td></tr>
+  </table></div>
+  <ol>
+    <li>下載本頁上方的<b>程式包</b>，解壓縮後進入 <code>ai_guardian_starter</code> 資料夾，在資料夾裡開啟命令提示字元（檔案總管網址列輸入 <code>cmd</code> 按 Enter）。</li>
+    <li>建立虛擬環境並安裝套件（第一次會下載 PyTorch，約 5～10 分鐘）：</li>
+  </ol>
+<pre><code>py -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt</code></pre>
+  <p>命令列前面出現 <code>(.venv)</code> 代表虛擬環境已啟用。之後每次開新的命令視窗，都要先執行 <code>.venv\Scripts\activate</code>，再在同一個視窗執行 bat 檔（或直接把套件裝在全域的 Python）。第一次執行時，程式會自動下載 YOLO 模型檔 <code>yolov8n.pt</code>（約 6 MB）。</p>
+  <p>安裝完先執行 <code>0_demo_practice.bat</code>：它不需要攝影機，會先跑 47 項規則測試，再產生一段 3 分鐘的模擬演練資料並算出成績。看到「6 件偵測到 5 件、誤報 1 次」就代表環境沒問題。</p>
+</section>
+
+<section id="record" class="page">
+  <h2><span class="tag">07</span>演練錄影</h2>
+  <div class="warn">
+    <p><strong>只在校內、取得同意後演練</strong>：場地要經學校同意，演練時張貼「AI 監控演練錄影中」告示；參與的同學（未成年要有家長）簽同意書；不錄到沒有同意的人。<b>絕對不要在車站、捷運等公共場所演練或測試</b>，以免引起恐慌。</p>
+    <p style="margin:0"><strong>道具與動作</strong>：只用剪刀、泡棉或紙板道具；不做攻擊、揮舞、追逐的動作；倒地在軟墊上、慢慢躺下；奔跑在空曠處、同方向，老師在場。</p>
+  </div>
+  <h3>鏡頭架設</h3>
+  <ul>
+    <li>高度 2～2.5 公尺、斜向下 20～30°，拍攝 3～6 公尺範圍（見圖 2）。</li>
+    <li>解析度 1080p、30fps；每段 2～5 分鐘，檔名寫上日期、場地、光線，例如 <code>0917_穿堂_白天_1.mp4</code>，放進程式包的 <code>videos/</code>。</li>
+    <li>不同光線（白天、開燈、背光）、不同距離都要錄，才能比較方法在哪裡最弱。</li>
+  </ul>
+  <h3>演練腳本（每段影片照腳本做，事後才好標記）</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>情境</th><th>動作要求</th><th>要不要標記</th><th>系統應該</th></tr>
+    <tr><td>持械</td><td>剪刀張開、側面朝鏡頭，舉起後拿著 3～5 秒再放下</td><td>持械（舉起 → 放下）</td><td>警報倒數</td></tr>
+    <tr><td>桌上物品</td><td>剪刀放桌上，人離開；再從桌旁走過</td><td>不標記</td><td>不警示（走過時可能誤報，要記錄）</td></tr>
+    <tr><td>快速晃過</td><td>剪刀在鏡頭前晃一下就收起來</td><td>不標記</td><td>不警示</td></tr>
+    <tr><td>倒地</td><td>在軟墊上慢慢躺下 5～8 秒再起來</td><td>倒地（躺下 → 起來）</td><td>注意＋LINE</td></tr>
+    <tr><td>蹲下</td><td>蹲下綁鞋帶、撿東西 1～2 秒</td><td>不標記</td><td>不警示</td></tr>
+    <tr><td>奔逃</td><td>3 人以上同方向跑過鏡頭前（空曠處）</td><td>奔逃（開始跑 → 跑出畫面）</td><td>警報倒數</td></tr>
+    <tr><td>快走</td><td>3 人快步走過</td><td>不標記</td><td>不警示</td></tr>
+    <tr><td>聚集</td><td>15 人以上走進畫面、停留 10 秒再散開（可和班級合作）</td><td>聚集（達 15 人 → 散開）</td><td>注意（只記錄）</td></tr>
+    <tr><td>容易誤判的物品</td><td>拿手機、雨傘、長尺、掃把</td><td>不標記</td><td>不警示（誤報要記錄原因）</td></tr>
+  </table></div>
+  <p>每種要標記的事件至少做 <b>5 次</b>、全部加起來至少 <b>30 次</b>，數據才有參考價值。每次演練在紙本上記下順序與大概時間，標記時比較不會漏。</p>
+  <p>影片裡有同學的臉：<b>原始影片不上傳網路</b>，存在學校指定的位置，專題結束後刪除；對外只用 <code>9_analyze_video.bat</code> 產生的馬賽克影片與截圖。</p>
+</section>
+
+<section id="weeks" class="page">
+  <h2><span class="tag">08</span>12 週製作流程</h2>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>週次</th><th>工作內容</th><th>要交出的成果</th></tr>
+    <tr><td>第 1 週</td><td>訪談學校警衛或教官，了解巡邏、監視與通報流程；比較市售 AI 監控的功能與限制（討論事件時聚焦「如何更早發現、更快應變」）</td><td>訪談紀錄、產品比較表</td></tr>
+    <tr><td>第 2 週</td><td>安裝環境，執行 <code>0_demo_practice.bat</code>；讀懂 <code>threat_rules.py</code> 最上方的門檻；分工</td><td>練習資料的成績表截圖</td></tr>
+    <tr><td>第 3 週</td><td>程式關卡 L1～L3</td><td>關卡檢核表</td></tr>
+    <tr><td>第 4 週</td><td>程式關卡 L4～L6；申請 LINE 官方帳號（各組一個）；課堂小實驗</td><td>LINE 測試截圖、小實驗表格</td></tr>
+    <tr><td>第 5 週</td><td>寫演練計畫：場地、腳本、安全措施、同意書，取得老師與學校同意；試拍 1 段</td><td>演練計畫書、試拍影片</td></tr>
+    <tr><td>第 6 週</td><td>正式錄製演練影片，涵蓋不同光線、距離與容易誤判的情境</td><td>影片清單（日期、場地、光線、長度、腳本）</td></tr>
+    <tr><td>第 7 週</td><td>把影片拖到 <code>8_label_video.bat</code> 標記；兩人各自標記再比對</td><td>每支影片的 <code>_truth.csv</code>、標記差異紀錄</td></tr>
+    <tr><td>第 8 週</td><td>執行 <code>10_batch_evaluate.bat</code> 得到基準成績；用 <code>9_analyze_video.bat</code> 看截圖，把漏報與誤報的原因分類</td><td>基準成績表、原因分類表</td></tr>
+    <tr><td>第 9 週</td><td>用 <code>11_param_experiment.bat</code> 或 <code>--set</code> 調整門檻，或改良規則，<b>每次只改一項</b>，在同一批影片上比較</td><td>參數比較表</td></tr>
+    <tr><td>第 10 週</td><td>警示盒接線、上傳韌體、<code>12_test_alarm_box.bat</code>；L7 監控牆整合</td><td>接線照片、狀態對照表</td></tr>
+    <tr><td>第 11 週</td><td>整合演練：一位同學扮演保全，只看監控牆與警示盒決定要不要取消；慢動作錄影量反應時間；請同學回饋</td><td>反應時間紀錄、使用者回饋</td></tr>
+    <tr><td>第 12 週</td><td>製作成果影片（只用馬賽克後的畫面）；（選做）延伸挑戰</td><td>成果影片</td></tr>
+    <tr><td>第 13 週以後</td><td>撰寫書面報告、練習上台報告</td><td>書面報告、簡報</td></tr>
+  </table></div>
+</section>
+
+<section id="logic" class="page">
+  <h2><span class="tag">09</span>運作原理</h2>
+  <h3>步驟一：YOLO 找出人與物品</h3>
+  <p>YOLO 看一次畫面就能同時找出多個物體，每個結果有類別、信心度（0～1）與框的座標。程式先用較低的門檻 0.2 把可能的結果都收集起來，再由規則決定要不要採用：人要達 0.3、危險物品要達 0.35。這樣改門檻做實驗時，不必重新辨識。</p>
+  <h3>步驟二：「拿在手上」怎麼判斷</h3>
+  <figure>
+    <svg class="dia" viewBox="0 0 640 220" role="img" aria-label="手持判斷示意：人框往外擴大 15% 後，和剪刀框重疊就算手持；遠處桌上的剪刀不重疊">
+      <rect class="node" x="80" y="30" width="90" height="170" rx="2"/>
+      <rect x="66" y="4" width="118" height="212" fill="none" stroke="var(--accent)" stroke-dasharray="6 4"/>
+      <text class="sub" x="125" y="20" text-anchor="middle">擴大 15%</text>
+      <text x="125" y="120" text-anchor="middle">人</text>
+      <rect class="hot" x="165" y="95" width="30" height="30" rx="2"/>
+      <text class="sub" x="235" y="115">剪刀：重疊 → 手持</text>
+      <rect class="node" x="430" y="140" width="30" height="30" rx="2"/>
+      <text class="sub" x="445" y="195" text-anchor="middle">剪刀：不重疊 → 不算</text>
+      <rect class="node" x="400" y="170" width="200" height="12" rx="2"/>
+    </svg>
+    <figcaption>圖 4　兩個框「沒有重疊」只有四種情況：一個在另一個的左、右、上、下。四種都不是，就是重疊。</figcaption>
+  </figure>
+  <p>這個方法很簡單，但也有明顯的缺點：有人從放著剪刀的桌子旁走過，人框碰到剪刀框，也會被當成手持——練習資料裡唯一的誤報就是這樣來的。延伸挑戰可以加上「物品要在上半身高度」「物品要跟著人移動」之類的條件。</p>
+  <h3>步驟三：持續才算數</h3>
+  <p>AI 偶爾會在某一格認錯，如果一出現就通報，保全很快就會不理警報。所以每種訊號都要<b>持續一段時間</b>才成立（持械 0.6 秒、奔逃 1 秒、倒地 3 秒、聚集 5 秒）；訊號短暫消失 0.8 秒內不歸零，但這段時間<b>不算進持續秒數</b>，只出現 0.3 秒的剪刀永遠不會觸發。</p>
+  <h3>步驟四：奔逃與倒地</h3>
+  <p><b>奔逃</b>：把這一次每個人框的中心，和上一次最近的中心配對，算出移動距離。距離除以畫面高度、再除以經過的秒數，就是「每秒移動幾個畫面高」。用畫面高度當單位，換了解析度也能用同一個門檻。超過 0.6 的人達 3 人、持續 1 秒，就是奔逃。</p>
+  <div class="box calc" role="group" aria-labelledby="calcTitle">
+    <b id="calcTitle" style="grid-column:1/-1">動手算算看：這個人算不算在跑？</b>
+    <div><label for="cPx">移動的距離（像素）</label><input id="cPx" type="number" value="90" min="0" inputmode="decimal"></div>
+    <div><label for="cH">畫面高度（像素）</label><input id="cH" type="number" value="720" min="1" inputmode="decimal"></div>
+    <div><label for="cDt">經過時間（秒）</label><input id="cDt" type="number" value="0.1" min="0.01" step="0.01" inputmode="decimal"></div>
+    <output id="cOut" for="cPx cH cDt" aria-live="polite" style="grid-column:1/-1"></output>
+  </div>
+  <p><b>倒地</b>：站著的人框是瘦高的，躺下時變成寬扁的。框寬超過框高的 1.25 倍、持續 3 秒，就判斷為倒地；蹲下綁鞋帶也會讓框變寬，但通常不到 3 秒。</p>
+  <h3>步驟五：分級通報與取消窗口</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>事件</th><th>判斷</th><th>風險</th><th>系統反應</th></tr>
+    <tr><td>持械</td><td>危險物品框和人框重疊，持續 0.6 秒</td><td><span class="lvl h">高</span></td><td>警示盒警報並倒數 5 秒；沒取消就發 LINE 緊急通報</td></tr>
+    <tr><td>人群奔逃</td><td>3 人以上快速移動，持續 1 秒</td><td><span class="lvl h">高</span></td><td>同上</td></tr>
+    <tr><td>人員倒地</td><td>人框寬比高大，持續 3 秒</td><td><span class="lvl m">中</span></td><td>警示盒「注意」，直接發 LINE</td></tr>
+    <tr><td>異常聚集</td><td>人數達 15 人，持續 5 秒</td><td><span class="lvl l">低</span></td><td>警示盒「注意」，只記錄</td></tr>
+  </table></div>
+  <p>「取消窗口」是 AI 系統常見的<b>人在迴路中</b>（human-in-the-loop）設計：AI 負責「多看一眼」，最後由人確認。窗口太短，保全來不及看；太長，真的出事時通報會變慢——這也是可以做實驗、寫進報告的取捨。</p>
+  <h3>步驟六：用數據評估</h3>
+  <ul class="flow">
+    <li><b>錄影</b>照腳本演練</li>
+    <li><b>標記</b>8_label_video</li>
+    <li><b>分析</b>9_analyze_video</li>
+    <li><b>成績</b>10_batch_evaluate</li>
+    <li><b>改良</b>11_param_experiment</li>
+  </ul>
+  <p>比對規則：同種類的警示在「標記開始前 0.5 秒」到「標記結束後 1 秒」之間出現，就算偵測到，反應秒數＝警示時間－標記開始；沒對應到任何標記的警示算誤報；同一件事警示兩次以上算重複警示。</p>
+  <div class="warn"><p style="margin:0"><strong>方法的限制（要寫進報告）</strong>：COCO 模型沒有槍、火焰、煙霧；小模型在遠處、背光、物品被手遮住時很難認出刀具；「手持」只看框有沒有重疊；倒地用長寬比，鏡頭角度會影響；奔逃的最近鄰配對在人多時容易配錯；演練動作和真實事件不同，數據只能說明「在演練條件下」的表現。</p></div>
+</section>
+
+<section id="levels" class="page">
+  <h2><span class="tag">10</span>程式學習關卡 L1～L7</h2>
+  <p>正式做專題之前，先用七個關卡把系統的每個零件親手做一次。每關都能單獨執行，L7 把它們接成完整系統。關卡 1～5 的 bat：雙擊用 0 號攝影機，把影片檔拖到 bat 上就改用影片。</p>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>關卡</th><th>內容</th><th>啟動</th><th>時間</th></tr>
+    <tr><td>L1</td><td>打開攝影機</td><td><code>1_camera.bat</code></td><td>20 分鐘</td></tr>
+    <tr><td>L2</td><td>用 YOLO 找出人</td><td><code>2_people.bat</code></td><td>30 分鐘</td></tr>
+    <tr><td>L3</td><td>判斷「手持」危險物品</td><td><code>3_weapon.bat</code></td><td>40 分鐘</td></tr>
+    <tr><td>L4</td><td>防誤報：持續才算數</td><td><code>4_sustain.bat</code></td><td>30 分鐘</td></tr>
+    <tr><td>L5</td><td>通報流程：存證與取消</td><td><code>5_alert.bat</code></td><td>40 分鐘</td></tr>
+    <tr><td>L6</td><td>LINE 推播</td><td><code>6_line_test.bat</code></td><td>40 分鐘</td></tr>
+    <tr><td>L7</td><td>多路監控牆＋警示盒</td><td><code>7_monitor_wall.bat</code></td><td>2 節</td></tr>
+  </table></div>
+</section>
+
+<section id="l1" class="page">
+  <h2><span class="tag lv">L1</span>打開攝影機</h2>
+  <dl class="goal"><dt>目標</dt><dd>在視窗中看到攝影機的即時畫面，並顯示解析度。</dd><dt>時間</dt><dd>約 20 分鐘</dd></dl>
+  <pre><code>python step1_camera.py</code></pre>
+  <h3>重點觀念</h3>
+  <ul>
+    <li>影片其實是一張一張的圖片（幀）。<code>cap.read()</code> 每呼叫一次，就讀進一張。</li>
+    <li>每張畫面是一個 NumPy 陣列，形狀是（高, 寬, 3），3 代表 <b>B、G、R</b> 三個顏色——OpenCV 的順序和一般的 RGB 相反。</li>
+    <li><code>cv2.putText</code> 不能寫中文，所以用 <code>tw_text.py</code> 裡的 <code>put_chinese_text()</code>，透過 PIL 套件和微軟正黑體來畫字。</li>
+  </ul>
+  <details><summary>完整程式：step1_camera.py</summary><pre><code>{{step1_camera.py}}</code></pre></details>
+  <details><summary>小工具：tw_text.py</summary><pre><code>{{tw_text.py}}</code></pre></details>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c1a"><label for="c1a">看到即時畫面，按 q 能關閉</label></li>
+    <li><input type="checkbox" id="c1b"><label for="c1b">畫面左上角顯示中文「解析度」</label></li>
+  </ul>
+  <div class="challenge"><b>挑戰</b>：在畫面右上角加上現在時間（提示：<code>time.strftime("%H:%M:%S")</code>）。</div>
+</section>
+
+<section id="l2" class="page">
+  <h2><span class="tag lv">L2</span>用 AI 找出人</h2>
+  <dl class="goal"><dt>目標</dt><dd>用 YOLO 把畫面中的人框起來，並即時顯示人數。</dd><dt>時間</dt><dd>約 30 分鐘</dd></dl>
+  <pre><code>python step2_people.py</code></pre>
+  <h3>重點觀念</h3>
+  <ul>
+    <li><b>YOLO</b>（You Only Look Once）是一種物件偵測模型，看一次畫面就能同時找出多個物體。我們用的模型是以 <b>COCO 資料集</b>訓練的，認得 80 種物體，「人」是第 0 類。</li>
+    <li>每個偵測結果有三個資料：<b>類別</b>（<code>box.cls</code>）、<b>信心度</b>（<code>box.conf</code>，0～1）、<b>框的座標</b>（<code>box.xyxy</code>，左上角 x1,y1 和右下角 x2,y2）。</li>
+    <li><code>CONF</code> 是信心度門檻：調高會比較嚴格（漏抓變多），調低會比較寬鬆（誤抓變多）。</li>
+    <li><code>imgsz=416</code> 是把畫面縮小後再辨識，數字越小越快、但遠處的小東西越難認出來。</li>
+  </ul>
+  <details><summary>完整程式：step2_people.py</summary><pre><code>{{step2_people.py}}</code></pre></details>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c2a"><label for="c2a">人被綠框框起來，人數隨人進出而變化</label></li>
+    <li><input type="checkbox" id="c2b"><label for="c2b">找到一個「不是人卻被框起來」的誤判（例如衣架、門把），並寫下原因</label></li>
+  </ul>
+  <div class="challenge"><b>挑戰</b>：把 <code>CONF</code> 改成 0.2 和 0.7，各觀察 1 分鐘，比較誤判和漏抓的情況。</div>
+</section>
+
+<section id="l3" class="page">
+  <h2><span class="tag lv">L3</span>判斷「手持」危險物品</h2>
+  <dl class="goal"><dt>目標</dt><dd>偵測剪刀、刀子、球棒，並分辨它是「拿在手上」還是「放在桌上」。</dd><dt>時間</dt><dd>約 40 分鐘</dd></dl>
+  <pre><code>python step3_weapon.py</code></pre>
+  <h3>重點觀念：兩個框有沒有重疊</h3>
+  <p>桌上放一把剪刀不危險，有人拿著才需要注意。程式的判斷方式是：<b>危險物品的框</b>如果和<b>人的框</b>重疊，就當作拿在手上。手伸出去時，物品常常在人的框外面一點，所以先把人的框往外擴大 15%（<code>expand</code>）再比較。</p>
+  <pre><code>def overlap(a, b):
+    # 兩個框「沒有重疊」只有四種情況：a 在 b 的左、右、上、下
+    return not (a[2] &lt; b[0] or b[2] &lt; a[0] or a[3] &lt; b[1] or b[3] &lt; a[1])</code></pre>
+  <p>框的顏色：<b>紅色</b>＝手持，<b>橘色</b>＝附近沒人，綠色＝人。</p>
+  <details><summary>完整程式：step3_weapon.py</summary><pre><code>{{step3_weapon.py}}</code></pre></details>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c3a"><label for="c3a">剪刀放桌上（人不在旁邊）顯示橘框</label></li>
+    <li><input type="checkbox" id="c3b"><label for="c3b">拿起剪刀顯示紅框和「手持!」</label></li>
+    <li><input type="checkbox" id="c3c"><label for="c3c">能在紙上畫圖，說明 <code>overlap()</code> 的四個判斷條件</label></li>
+  </ul>
+  <div class="challenge"><b>挑戰</b>：剪刀在什麼角度、距離下最難被偵測到？至少試 4 種情況並記錄。</div>
+</section>
+
+<section id="l4" class="page">
+  <h2><span class="tag lv">L4</span>防誤報：持續才算數</h2>
+  <dl class="goal"><dt>目標</dt><dd>危險物品要連續出現一段時間，才正式成立警示。</dd><dt>時間</dt><dd>約 30 分鐘</dd></dl>
+  <pre><code>python step4_sustain.py</code></pre>
+  <h3>重點觀念</h3>
+  <p>AI 偶爾會在某一幀認錯，如果一出現就通報，保全會被假警報煩死，最後乾脆不理——這比沒有系統更危險。所以要加上<b>時間條件</b>：</p>
+  <ul>
+    <li><code>sustain_sec</code>：訊號要連續成立多少秒才算數（畫面上的紅色進度條）。</li>
+    <li><code>grace_sec</code>：訊號短暫消失多久內不歸零（AI 漏看一兩幀不會讓進度重來）。</li>
+  </ul>
+  <p>L3 的判斷已經整理進 <code>guard_core.py</code> 的 <code>find_held_weapons()</code>，這一關直接匯入使用。</p>
+  <details><summary>共用模組：guard_core.py</summary><pre><code>{{guard_core.py}}</code></pre></details>
+  <details><summary>完整程式：step4_sustain.py</summary><pre><code>{{step4_sustain.py}}</code></pre></details>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c4a"><label for="c4a">剪刀快速晃過鏡頭，進度條沒跑滿，不會觸發</label></li>
+    <li><input type="checkbox" id="c4b"><label for="c4b">穩定拿著剪刀，約 0.6 秒後畫面出現紅色外框</label></li>
+    <li><input type="checkbox" id="c4c"><label for="c4c">完成「調參實驗表」的第一部分</label></li>
+  </ul>
+</section>
+
+<section id="l5" class="page">
+  <h2><span class="tag lv">L5</span>通報流程：存證與取消</h2>
+  <dl class="goal"><dt>目標</dt><dd>警示成立後截圖存證、寫入紀錄，並給保全 5 秒取消誤報。</dd><dt>時間</dt><dd>約 40 分鐘</dd></dl>
+  <pre><code>python step5_alert.py</code></pre>
+  <h3>重點觀念</h3>
+  <ul>
+    <li><b>存證</b>：事件當下的畫面存到 <code>events</code> 資料夾，每筆事件寫一列到 <code>events.csv</code>。用 <code>utf-8-sig</code> 編碼，Excel 打開中文才不會亂碼。</li>
+    <li><b>取消窗口</b>：嗶一聲後倒數 5 秒，這段時間內按 <code>c</code> 會記為「誤報取消」；沒人按就正式通報。這是 AI 系統常見的「人在迴路中」（human-in-the-loop）設計。</li>
+    <li><b>冷卻時間</b>：通報後 30 秒內不重複通報同一件事。</li>
+  </ul>
+  <details><summary>完整程式：step5_alert.py</summary><pre><code>{{step5_alert.py}}</code></pre></details>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c5a"><label for="c5a">拿剪刀後聽到嗶聲、看到倒數，5 秒後終端機印出【緊急通報】</label></li>
+    <li><input type="checkbox" id="c5b"><label for="c5b">倒數時按 c，終端機顯示「已取消」</label></li>
+    <li><input type="checkbox" id="c5c"><label for="c5c">用 Excel 打開 events.csv，看得到兩筆紀錄（已通報／誤報取消）和截圖檔名</label></li>
+  </ul>
+  <div class="challenge"><b>討論</b>：取消窗口該設幾秒？太短會怎樣？太長會怎樣？如果保全剛好不在座位上呢？</div>
+</section>
+
+<section id="l6" class="page">
+  <h2><span class="tag lv">L6</span>LINE 推播</h2>
+  <dl class="goal"><dt>目標</dt><dd>建立 LINE 官方帳號，讓程式能發通報訊息到手機。</dd><dt>時間</dt><dd>約 40 分鐘</dd></dl>
+  <p>LINE Notify 已在 2025 年 3 月停止服務，現在要改用 <b>LINE Messaging API</b>。</p>
+  <h3>申請步驟</h3>
+  <ol>
+    <li>到 <b>LINE Official Account Manager</b>（manager.line.biz）建立一個官方帳號，例如「XX 班監控通報」。</li>
+    <li>在官方帳號的「設定 → Messaging API」按「啟用 Messaging API」，選擇或建立一個 Provider。</li>
+    <li>到 <b>LINE Developers</b>（developers.line.biz）找到這個 Channel，進入 <b>Messaging API</b> 分頁，最下方的 <b>Channel access token (long-lived)</b> 按 Issue，複製這串金鑰。</li>
+    <li>用手機掃描同一頁的 QR Code，<b>把官方帳號加為好友</b>。</li>
+  </ol>
+  <div class="warn">
+    <p><strong>金鑰就是密碼</strong>：不要寫進程式、不要貼到群組、不要上傳到 GitHub。用環境變數設定：</p>
+<pre><code>set LINE_TOKEN=貼上你的金鑰
+python step6_line.py</code></pre>
+    <p style="margin:0">同一頁上還有一個 <b>Channel secret</b>，那是驗證用的，<b>不是</b>發訊息用的金鑰，不要複製錯。</p>
+  </div>
+  <h3>重點觀念</h3>
+  <ul>
+    <li>程式呼叫的是 <b>broadcast</b>（廣播）API，會發給這個官方帳號的<b>所有好友</b>。</li>
+    <li>免費方案每個月能發的訊息數有上限，廣播是「好友人數 × 則數」計算，測試時不要一直狂發。</li>
+    <li>使用 Python 內建的 <code>http.client</code>，不用 requests 套件；有些電腦的防毒軟體會讓 requests 卡住。</li>
+  </ul>
+  <details><summary>完整程式：step6_line.py</summary><pre><code>{{step6_line.py}}</code></pre></details>
+  <h3>把 L5 接上 LINE</h3>
+  <p>打開 <code>step5_alert.py</code>，在最上方加入 <code>from step6_line import send_line</code>，再把 <code>report()</code> 裡的 <code>print(...)</code> 改成：</p>
+<pre><code>def report(ts, what):
+    send_line(f"【緊急通報】{ts} 偵測到有人手持{what}，請保全立即前往處置")</code></pre>
+  <p><code>send_line()</code> 最多會等 8 秒，這段時間畫面會暫停，這是正常的；L7 的完整系統改用背景執行，就不會卡住畫面。</p>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c6a"><label for="c6a">執行 step6_line.py，手機收到測試訊息</label></li>
+    <li><input type="checkbox" id="c6b"><label for="c6b">拿剪刀觸發 L5，手機收到緊急通報</label></li>
+  </ul>
+</section>
+
+<section id="l7" class="page">
+  <h2><span class="tag lv">L7</span>整合：多路監控牆</h2>
+  <dl class="goal"><dt>目標</dt><dd>執行完整系統，同時監看多個畫面，並理解各模組怎麼分工。</dd><dt>時間</dt><dd>約 2 節（含分組發表準備）</dd></dl>
+  <p>完整系統在程式包的 <code>system</code> 資料夾。先在命令視窗執行 <code>cd system</code>，或直接雙擊 <code>7_monitor_wall.bat</code>。</p>
+  <ol>
+    <li>打開 <code>system/sources_config.py</code>，加入要監看的來源（只能用自己的或已取得授權的攝影機）。可以是兩台 USB 攝影機，也可以是一台攝影機加一段影片：</li>
+  </ol>
+<pre><code>SOURCES = [
+    {"name": "教室前門", "type": "webcam", "src": 0},
+    {"name": "測試影片", "type": "video", "src": r"C:\影片\test.mp4"},
+]</code></pre>
+  <ol start="2">
+    <li>執行（先不發 LINE）：<code>python monitor.py --no-line</code>；有接警示盒時會自動尋找，也可以加 <code>--serial COM3</code> 指定。</li>
+    <li>監控牆按鍵：<code>C</code> 取消誤報、<code>Q</code> 離開；警示盒的取消鈕等於按 <code>C</code>。</li>
+    <li>要發 LINE：同一個視窗先 <code>set LINE_TOKEN=你的金鑰</code>，再執行 <code>python monitor.py</code>。</li>
+  </ol>
+  <p><code>threat_rules.py</code> 最上方的 <code>PRACTICE_SCISSORS = True</code> 會把剪刀當成危險物品，方便上課練習；正式展示時改成 <code>False</code>。改了門檻或規則，就執行 <code>0_demo_practice.bat</code> 確認規則測試全部通過、練習資料的成績符合預期。</p>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>檔案</th><th>負責的事</th><th>對應關卡</th></tr>
+    <tr><td><code>sources.py</code></td><td>每個來源一條背景執行緒讀畫面，一台卡住不會拖累其他台</td><td>L1</td></tr>
+    <tr><td><code>threat_rules.py</code></td><td>持械、奔逃、倒地、聚集四種規則</td><td>L2～L4</td></tr>
+    <tr><td><code>alerter.py</code></td><td>截圖、CSV、分級通報、取消窗口、冷卻</td><td>L5</td></tr>
+    <tr><td><code>line_worker.py</code></td><td>用獨立行程發 LINE，網路卡住也不影響畫面</td><td>L6</td></tr>
+    <tr><td><code>monitor.py</code></td><td>主程式，把上面全部串起來並排出監控牆</td><td>L7</td></tr>
+    <tr><td><code>alarm_link.py</code></td><td>決定警示盒要顯示的狀態，接收取消鈕</td><td>L5</td></tr>
+    <tr><td><code>test_rules.py</code></td><td>不用攝影機的規則與工具測試</td><td>全部</td></tr>
+  </table></div>
+  <details><summary>判斷規則：system/threat_rules.py</summary><pre><code>{{system/threat_rules.py}}</code></pre></details>
+  <details><summary>通報流程：system/alerter.py</summary><pre><code>{{system/alerter.py}}</code></pre></details>
+  <details><summary>主程式：system/monitor.py</summary><pre><code>{{system/monitor.py}}</code></pre></details>
+  <details><summary>警示盒狀態：system/alarm_link.py</summary><pre><code>{{system/alarm_link.py}}</code></pre></details>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c7a"><label for="c7a">監控牆同時顯示兩個以上畫面</label></li>
+    <li><input type="checkbox" id="c7b"><label for="c7b">觸發一次高風險事件，並用警示盒的取消鈕（或按 C）示範取消誤報</label></li>
+    <li><input type="checkbox" id="c7c"><label for="c7c">能說明「奔逃」規則是怎麼計算移動速度的（讀 <code>threat_rules.py</code>）</label></li>
+  </ul>
+</section>
+
+<section id="pack" class="page">
+  <h2><span class="tag">11</span>程式包使用說明</h2>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>檔案</th><th>用途</th></tr>
+    <tr><td><code>0_demo_practice.bat</code></td><td>不用攝影機：規則測試 → 產生練習資料 → 成績表</td></tr>
+    <tr><td><code>1_camera.bat</code>～<code>7_monitor_wall.bat</code></td><td>程式學習關卡 L1～L7</td></tr>
+    <tr><td><code>8_label_video.bat</code> ／ <code>label_events.py</code></td><td>把影片拖到 bat 上：事件開始、結束各按一次，存成「影片名_truth.csv」</td></tr>
+    <tr><td><code>9_analyze_video.bat</code> ／ <code>analyze_video.py</code></td><td>把影片拖到 bat 上：YOLO 分析（開視窗），存偵測紀錄、馬賽克標註影片與警示截圖；有答案就算成績</td></tr>
+    <tr><td><code>10_batch_evaluate.bat</code> ／ <code>batch_eval.py</code></td><td>評估 <code>videos/</code> 裡每支有答案的影片，輸出成績表</td></tr>
+    <tr><td><code>11_param_experiment.bat</code></td><td>用 <code>--sweep</code> 比較 <code>WEAPON_CONF</code> 與 <code>WEAPON_SUSTAIN_SEC</code> 的不同值</td></tr>
+    <tr><td><code>12_test_alarm_box.bat</code> ／ <code>test_alarm.py</code></td><td>依序顯示警示盒的每種狀態，並檢查取消鈕</td></tr>
+    <tr><td><code>13_make_scenario_video.bat</code></td><td>（教師用）重新產生動作要求示意影片與 TFT 預覽圖</td></tr>
+    <tr><td><code>system/threat_rules.py</code></td><td>四種規則與所有門檻</td></tr>
+    <tr><td><code>system/evaluate.py</code></td><td>重播規則、比對答案；其他程式也會用它的函式</td></tr>
+    <tr><td><code>system/detlog.py</code></td><td>偵測紀錄的讀寫、資料夾位置</td></tr>
+    <tr><td><code>system/demo_scenes.py</code>、<code>make_demo_detections.py</code></td><td>3 分鐘穿堂演練的模擬偵測結果與正確答案</td></tr>
+    <tr><td><code>system/test_rules.py</code></td><td>規則、通報、警示盒格式、評估工具的測試（47 項）</td></tr>
+  </table></div>
+  <h3>資料夾</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>位置</th><th>內容</th></tr>
+    <tr><td><code>videos/</code></td><td>演練影片、答案 <code>_truth.csv</code>、偵測紀錄 <code>_dets.csv</code>、練習資料 <code>demo_*</code>。<b>不要上傳到網路</b></td></tr>
+    <tr><td><code>logs/</code></td><td>每支影片的警示片段</td></tr>
+    <tr><td><code>output/</code></td><td>成績表 <code>summary_*.csv</code>（同名 .json 記錄當次門檻）、參數比較表 <code>sweep_*.csv</code>、標註影片、截圖 <code>snapshots/</code></td></tr>
+    <tr><td><code>system/events/</code></td><td>監控牆的事件截圖與 <code>events.csv</code>（可能拍到人，<b>定期刪除</b>）</td></tr>
+  </table></div>
+  <h3>標記正確答案的按鍵</h3>
+  <p>事件開始與結束時各按一次同一個鍵：<kbd>1</kbd> 持械、<kbd>2</kbd> 倒地、<kbd>3</kbd> 奔逃、<kbd>4</kbd> 聚集。其他按鍵：<kbd>u</kbd> 取消上一個動作、<kbd>p</kbd> 暫停、<kbd>a</kbd>／<kbd>d</kbd> 倒退／快轉 3 秒、暫停時 <kbd>,</kbd>／<kbd>.</kbd> 逐格、<kbd>q</kbd> 存檔離開。</p>
+  <h3>練習資料的預期結果</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>設定</th><th>偵測到</th><th>誤報</th><th>平均反應秒數</th><th>說明</th></tr>
+    <tr><td>預設</td><td class="num">5／6</td><td class="num">1</td><td class="num">2.18</td><td>漏掉遠處低信心度的剪刀；有人從桌上的剪刀旁走過造成誤報；奔逃重複警示 1 次</td></tr>
+    <tr><td><code>WEAPON_SUSTAIN_SEC=2</code></td><td class="num">5／6</td><td class="num">0</td><td class="num">2.70</td><td>誤報消失，但持械要 2 秒才警報</td></tr>
+    <tr><td><code>WEAPON_SUSTAIN_SEC=0</code></td><td class="num">5／6</td><td class="num">6</td><td class="num">1.90</td><td>零星誤判全部變成誤報</td></tr>
+    <tr><td><code>WEAPON_CONF=0.25</code></td><td class="num">6／6</td><td class="num">2</td><td class="num">1.95</td><td>抓到遠處的剪刀，但手機也被當成刀</td></tr>
+  </table></div>
+  <p>想一想：如果這是車站，你會選哪一組？如果是學校的工藝教室呢？</p>
+  <details><summary>成效評估：system/evaluate.py</summary><pre><code>{{system/evaluate.py}}</code></pre></details>
+</section>
+
+<section id="ai">
+  <h2><span class="tag">12</span>AI 助手提示語（Antigravity／Claude Code）</h2>
+  <p>用 Antigravity 開啟程式包資料夾，或在 Claude 桌面版的「Code」分頁選擇 <code>ai_guardian_starter</code> 資料夾，再貼上提示語。每次修改後，都要先執行 <code>0_demo_practice.bat</code>，確認測試全部通過、成績沒有變差。</p>
+  <div class="warn"><p style="margin:0"><strong>注意</strong>：不要把 LINE 金鑰、攝影機帳號密碼、演練影片或拍到人的截圖貼給 AI；AI 改完的程式要自己看懂、實際跑過，再交作業。</p></div>
+  <h3>① 讀懂原理</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>請閱讀 system/threat_rules.py，用高中生看得懂的繁體中文說明：
+1. _overlap 和 _expand 怎麼判斷剪刀是不是「拿在手上」？請畫一個文字示意圖
+2. SustainedFlag 的 sustain_sec 和 grace_sec 各自解決什麼問題？為什麼只出現 0.3 秒的剪刀不會觸發？
+3. _running_count 怎麼算出每個人的移動速度？為什麼要除以畫面高度？
+先不要修改任何檔案。</code></pre></div>
+  <h3>② 減少「經過桌子」的誤報</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>練習資料中，有人從放著剪刀的桌子旁走過就被判斷成持械。
+請在 system/threat_rules.py 新增門檻 HOLD_ZONE（預設 True）：開啟時，物品框的中心必須在人框的上方 20%～70% 高度之間才算手持，並加進 TUNABLE。
+改完請執行 python batch_eval.py videos --sweep HOLD_ZONE=false,true，把兩次的偵測率、誤報、平均反應秒數整理成表格；
+再在 test_rules.py 加上對應的測試，執行 test_rules.py 全部通過後回報。不要修改其他門檻的預設值。</code></pre></div>
+  <h3>③ 分析誤報與漏報</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>請讀取 output 資料夾中最新的 summary CSV，找出偵測率最低與誤報最多的影片。
+再用 system/evaluate.py 的 evaluate_file 與 print_report，列出那支影片每一次漏報與誤報的時間與事件種類，
+告訴我應該去 output/snapshots 看哪些截圖，並列出可能的原因（光線、距離、遮擋、門檻）。先不要修改程式。</code></pre></div>
+  <h3>④ 參數比較圖表</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>請寫一個 system/plot_sweep.py：讀取 output 資料夾中最新的 sweep_*.csv，
+用 matplotlib 畫一張圖：橫軸是門檻的值，左邊縱軸是偵測率（%），右邊縱軸是每 10 分鐘誤報，
+圖的標題與座標軸使用微軟正黑體顯示中文，存成同名的 png，並用繁體中文說明取捨。不要修改其他檔案。</code></pre></div>
+  <h3>⑤ 延伸：用姿態判斷倒地</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>我們想改用 YOLO 姿態模型判斷倒地。請閱讀 system/threat_rules.py 與 system/monitor.py，先提出做法：
+要改哪些函式、肩膀和臀部的關鍵點怎麼判斷躺下、偵測紀錄要多存哪些欄位、怎麼保留原本長寬比的方法做比較。
+等我確認後再修改；改完要讓 test_rules.py 全部通過，並新增姿態判斷的測試。</code></pre></div>
+  <h3>⑥ 整理實驗結果</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>這是我們所有演練影片的成績表（貼上表格）。請整理成書面報告可用的表格，
+依光線、距離、事件種類分組，計算偵測率與平均反應秒數，並寫一段 150 字的分析，
+說明哪些情況效果最差、可能的原因，以及樣本數是否足夠。數字只能用我提供的資料。</code></pre></div>
+  <h3>⑦ 延伸：警示盒語音</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>我們想讓警示盒用 DFPlayer 播放語音（例如「注意，疑似持械」「已取消」）。
+請參考 system/alarm_link.py 與 system/esp32_guard_alarm/esp32_guard_alarm.ino，先提出設計：
+需要哪些語音檔（列出編號與內容）、什麼時候播放、怎麼避免一直重複播、序列格式要怎麼加（每行最多 8 個字元，不能影響現有的 S 指令）。
+等我確認後再修改，改完同步更新 test_rules.py 的警示盒測試並全部通過。</code></pre></div>
+</section>
+
+<section id="test" class="page">
+  <h2><span class="tag">13</span>測試與驗證</h2>
+  <h3>標記規則（全組要一致）</h3>
+  <ul>
+    <li><b>持械</b>：剪刀舉起、明顯拿在手上的那一刻開始，放下或收起來時結束。</li>
+    <li><b>倒地</b>：身體碰到軟墊時開始，開始起身時結束。</li>
+    <li><b>奔逃</b>：第 3 個人開始跑時開始，最後一人跑出畫面時結束。</li>
+    <li><b>聚集</b>：畫面中人數達到 15 人時開始，開始散開時結束。</li>
+    <li>腳本中「不標記」的情境一律不標；如果程式對它們警示，就算誤報。</li>
+    <li>兩人各自標記同一支影片（用 <code>--out</code> 存成不同檔名），開始時間差超過 0.5 秒或數量不同的地方，一起重看確認。標記時只看影片，不要先看程式的結果。</li>
+  </ul>
+  <h3>評估指標</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>指標</th><th>算法</th><th>意義</th></tr>
+    <tr><td>偵測率（召回率）</td><td>偵測到的事件 ÷ 標記的事件</td><td>有多少危險被發現</td></tr>
+    <tr><td>平均反應秒數</td><td>警示時間 − 標記開始，取平均</td><td>多快發現；高風險事件的 LINE 還要再加 5 秒取消窗口</td></tr>
+    <tr><td>最慢反應秒數</td><td>反應秒數的最大值</td><td>最糟的情況</td></tr>
+    <tr><td>每 10 分鐘誤報</td><td>誤報次數 ÷ 影片分鐘數 × 10</td><td>保全會被打擾幾次；太多會讓人不再理會警報</td></tr>
+    <tr><td>重複警示</td><td>同一件事警示兩次以上的次數</td><td>會不會一直吵</td></tr>
+  </table></div>
+  <h3>情境比較</h3>
+  <p>把成績依下列條件分組，找出方法在哪裡最弱：光線（白天、開燈、背光）、距離（3、4.5、6 公尺）、物品角度（正面、側面、被手遮住）、人數多寡、鏡頭高度。</p>
+  <h3>參數實驗</h3>
+  <p>一次只改一個門檻，在<b>同一批影片</b>上比較，並把結果畫成圖（見提示語 ④）。</p>
+<pre><code>cd system
+python batch_eval.py videos --tag base
+python batch_eval.py videos --set WEAPON_SUSTAIN_SEC=1 --tag sustain1
+python batch_eval.py videos --sweep WEAPON_CONF=0.25,0.35,0.5
+python batch_eval.py videos --sweep FALL_SUSTAIN_SEC=2,3,4</code></pre>
+  <p>可以調整的門檻：<code>PERSON_CONF</code>、<code>WEAPON_CONF</code>、<code>HOLD_EXPAND</code>、<code>WEAPON_SUSTAIN_SEC</code>、<code>FALL_RATIO</code>、<code>FALL_SUSTAIN_SEC</code>、<code>CROWD_COUNT</code>、<code>CROWD_SUSTAIN_SEC</code>、<code>RUN_SPEED</code>、<code>RUN_MIN_PEOPLE</code>、<code>RUN_SUSTAIN_SEC</code>、<code>GRACE_SEC</code>、<code>PRACTICE_SCISSORS</code>。改 <code>DETECT_CONF</code>、<code>IMG_SIZE</code> 這類「辨識」設定，要用 <code>analyze_video.py --redo</code> 重新分析影片。</p>
+  <h3>課堂小實驗：現場調參（L4）</h3>
+  <p>還沒錄演練影片前，可以先用 L4 的程式（改 <code>guard_core.py</code> 的 <code>CONF</code> 與 <code>step4_sustain.py</code> 的 <code>SUSTAIN_SEC</code>）現場體驗取捨，每組參數各做 10 次：</p>
+  <ul>
+    <li><b>正確偵測</b>：穩定拿著剪刀 3 秒，有觸發的次數</li>
+    <li><b>誤報</b>：剪刀快速晃過鏡頭（不到 0.5 秒），觸發的次數</li>
+  </ul>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table class="blank">
+    <tr><th>組別</th><th>CONF</th><th>SUSTAIN_SEC</th><th>正確偵測（/10）</th><th>誤報（/10）</th><th>平均反應時間（秒）</th></tr>
+    <tr><td>A</td><td class="num">0.2</td><td class="num">0</td><td></td><td></td><td></td></tr>
+    <tr><td>B</td><td class="num">0.3</td><td class="num">0.6</td><td></td><td></td><td></td></tr>
+    <tr><td>C</td><td class="num">0.5</td><td class="num">0.6</td><td></td><td></td><td></td></tr>
+    <tr><td>D</td><td class="num">0.3</td><td class="num">2.0</td><td></td><td></td><td></td></tr>
+    <tr><td>自訂</td><td></td><td></td><td></td><td></td><td></td></tr>
+  </table></div>
+  <div class="box">
+    <b>想一想</b>
+    <ol style="margin-bottom:0">
+      <li>哪一組最適合放在車站？哪一組適合放在廚房？為什麼？</li>
+      <li>「漏報」（有危險沒發現）和「誤報」（沒危險卻通報），在公共場所哪一個代價比較大？</li>
+      <li>如果換一台解析度更低的攝影機，你預期表格會怎麼變？</li>
+    </ol>
+  </div>
+
+  <h3>整合演練與使用者測試</h3>
+  <ul>
+    <li><b>反應時間</b>：用手機慢動作同時拍「剪刀舉起」與「警示盒亮紅燈」，數影格算出延遲；比較一路與兩路監控的差別。</li>
+    <li><b>保全操作</b>：請沒參與製作的同學扮演保全，只看監控牆與警示盒，記錄他們多久能判斷「要不要取消」、有沒有取消錯。</li>
+    <li><b>易懂程度</b>：比較「只有監控牆」「監控牆＋警示盒」兩種方式，哪一種比較快注意到警報。</li>
+  </ul>
+</section>
+
+<section id="ethics" class="page">
+  <h2><span class="tag">14</span>安全、隱私與倫理</h2>
+  <ul>
+    <li>演練只用剪刀與道具，不做攻擊、揮舞、追逐；倒地用軟墊；老師在場。</li>
+    <li>不在車站、捷運、商場等公共場所演練或測試；校內演練要取得學校同意並張貼告示。</li>
+    <li>只連線自己的或已取得授權的攝影機；不要嘗試連線別人的攝影機或公開的串流。</li>
+    <li>參與者簽同意書；不錄到沒有同意的人；原始影片不上傳、不外流，專題結束後刪除。</li>
+    <li>報告、簡報、成果影片只用馬賽克後的畫面，並逐張確認沒有漏掉的人臉。</li>
+    <li>LINE 金鑰只放環境變數，不寫進程式、不上傳；官方帳號的好友只加組員與老師。</li>
+    <li>討論真實事件時，聚焦在「如何更早發現、更快應變」，不描述、不模仿細節。</li>
+    <li>想一想並寫進報告：AI 監控可能侵犯隱私、可能因為外表或穿著而誤判特定族群、誤報可能讓無辜的人被盤查。你的系統怎麼降低這些風險？（例如只存事件截圖、定期刪除、一定由人確認）</li>
+    <li>報告與展示時清楚說明：這是教學原型，只能輔助，不能取代保全、警察或 110。</li>
+  </ul>
+</section>
+
+<section id="debug" class="page">
+  <h2><span class="tag">15</span>常見問題</h2>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>狀況</th><th>可能原因</th><th>解決方法</th></tr>
+    <tr><td>打不開攝影機</td><td>被 Teams、LINE 等程式占用；或編號不對</td><td>關掉其他視訊程式；改成 <code>python step1_camera.py 1</code>；到 Windows「設定 → 隱私權與安全性 → 相機」允許桌面應用程式使用相機</td></tr>
+    <tr><td><code>ModuleNotFoundError</code></td><td>沒啟用虛擬環境</td><td>先執行 <code>.venv\Scripts\activate</code></td></tr>
+    <tr><td>中文變成問號或方框</td><td>用了 <code>cv2.putText</code></td><td>改用 <code>put_chinese_text()</code></td></tr>
+    <tr><td>畫面很卡</td><td>電腦算不動</td><td><code>imgsz</code> 改 320；<code>read_frame</code> 的 <code>max_width</code> 改 640</td></tr>
+    <tr><td>剪刀一直偵測不到</td><td>角度、距離、背景太亂</td><td>剪刀張開、側面朝鏡頭、靠近一點、背景單純；或把 <code>CONF</code> 降到 0.2</td></tr>
+    <tr><td>一直誤報</td><td>門檻太鬆</td><td>提高 <code>CONF</code>、延長 <code>SUSTAIN_SEC</code></td></tr>
+    <tr><td>存截圖失敗（路徑有中文）</td><td><code>cv2.imwrite</code> 不支援中文路徑</td><td>改用 <code>cv2.imencode(".jpg", frame)[1].tofile(路徑)</code></td></tr>
+    <tr><td>LINE 回應 401</td><td>金鑰錯誤，常見是貼成 Channel secret</td><td>重新複製 Channel access token</td></tr>
+    <tr><td>LINE 回應 200 但手機沒收到</td><td>官方帳號沒有好友</td><td>用手機掃 QR Code 加好友</td></tr>
+    <tr><td>LINE 回應 429</td><td>本月訊息額度用完</td><td>等下個月，或換一個官方帳號</td></tr>
+    <tr><td>網路攝影機畫面花掉、斷斷續續</td><td>RTSP 預設走 UDP</td><td>在 <code>import cv2</code> 之前加上 <code>os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"</code></td></tr>
+    <tr><td>成績表沒有我的影片</td><td>答案檔名稱或位置不對</td><td>答案檔要叫「影片名_truth.csv」並和影片放在同一個資料夾；用 <code>8_label_video.bat</code> 標記會自動命名</td></tr>
+    <tr><td>分析影片很慢</td><td>電腦較慢、影片解析度高</td><td>分析時不開視窗（直接執行 <code>analyze_video.py 影片</code>）；只需要分析一次，之後改門檻都是重播</td></tr>
+    <tr><td>改了辨識設定，成績卻沒變</td><td>用的還是舊的偵測紀錄</td><td>加 <code>--redo</code> 重新分析</td></tr>
+    <tr><td>有人從桌子旁走過就誤報</td><td>「手持」只看框有沒有重疊</td><td>延長 <code>WEAPON_SUSTAIN_SEC</code>；或參考提示語 ② 加上更嚴格的條件</td></tr>
+    <tr><td>一走動就判斷成奔逃</td><td>鏡頭太近，人在畫面上移動的像素太多；或人多時配錯人</td><td>鏡頭架高、拉遠；提高 <code>RUN_SPEED</code> 或 <code>RUN_MIN_PEOPLE</code></td></tr>
+    <tr><td>警示盒一直顯示未連線</td><td>電腦沒有送出訊號</td><td>確認監控牆開頭顯示「[警示盒] 已連線」；沒有的話加 <code>--serial COM3</code> 指定</td></tr>
+    <tr><td>找不到 ESP32 序列埠</td><td>沒裝 USB 驅動、USB 線只能充電、Arduino IDE 的序列埠監控視窗還開著</td><td>安裝 CP210x 或 CH340 驅動；換傳輸線；關掉序列埠監控視窗</td></tr>
+    <tr><td>按取消鈕沒反應</td><td>按鈕接錯腳位、倒數已經結束</td><td>按鈕接 GPIO4 與 GND；<code>12_test_alarm_box.bat</code> 會顯示「收到取消鈕」</td></tr>
+    <tr><td>蜂鳴器一直響</td><td>買到「低電位觸發」的模組</td><td>換高電位觸發模組，或把程式中蜂鳴器的 HIGH／LOW 反過來</td></tr>
+    <tr><td>TFT 全白、顏色錯</td><td>接線錯誤、面板型號不同</td><td>檢查 CS、A0、RST；改 <code>INITR_GREENTAB</code> 或 <code>INITR_REDTAB</code></td></tr>
+    <tr><td>標註影片裡有人沒被遮住</td><td>那個人沒被偵測到</td><td>對外使用前逐張檢查，用剪輯軟體補上馬賽克</td></tr>
+  </table></div>
+</section>
+
+<section id="more">
+  <h2><span class="tag">16</span>延伸挑戰</h2>
+  <div class="cols">
+    <div class="box"><b>更準的手持判斷</b><p style="margin:6px 0 0">用姿態模型（<code>yolov8n-pose.pt</code>）找出手腕位置，物品要靠近手腕才算手持，減少「經過桌子」的誤報。</p></div>
+    <div class="box"><b>更準的倒地偵測</b><p style="margin:6px 0 0">用姿態模型比較肩膀和臀部的高度差，比框的長寬比準確，也比較不受鏡頭角度影響。</p></div>
+    <div class="box"><b>警示盒語音</b><p style="margin:6px 0 0">參考自行車專題，加上 DFPlayer 播放「注意，疑似持械」等語音，並設計不會太吵的播放規則。</p></div>
+    <div class="box"><b>訓練自己的模型</b><p style="margin:6px 0 0">COCO 沒有「火焰」「煙霧」，可以蒐集公開資料集，用 Ultralytics 訓練自訂類別，並用同一套評估工具比較。</p></div>
+    <div class="box"><b>網頁儀表板</b><p style="margin:6px 0 0">把 <code>events.csv</code> 做成網頁，顯示今日事件數、各攝影機的誤報率，只列出馬賽克後的截圖。</p></div>
+    <div class="box"><b>更小的裝置</b><p style="margin:6px 0 0">把模型匯出成 NCNN，在樹莓派上執行，比較每秒張數、反應時間、耗電與溫度。</p></div>
+  </div>
+</section>
+
+<section id="report" class="page">
+  <h2><span class="tag">17</span>書面報告與評分</h2>
+  <h3>報告架構</h3>
+  <ol>
+    <li><b>摘要</b>：問題、方法、主要成績（用自己算出的數字）。</li>
+    <li><b>研究動機</b>：訪談警衛或教官的結果、校園安全的需求。</li>
+    <li><b>文獻與現況</b>：傳統監視系統、商用 AI 監控、細胞廣播的限制，說明本作品的定位。</li>
+    <li><b>研究方法</b>：功能清單與驗收標準、系統流程、通報狀態、演練腳本與安全措施、標記規則、判斷原理（附圖）、門檻設定。</li>
+    <li><b>測試與結果</b>：功能測試（T1～T12）、基準成績、情境比較、參數實驗、反應時間、使用者測試。</li>
+    <li><b>討論</b>：漏報與誤報的原因（附馬賽克截圖）、方法限制、隱私與倫理風險及對策。</li>
+    <li><b>結論與未來展望</b>：例如姿態辨識、自訂模型、語音警示。</li>
+  </ol>
+  <h3>評分參考</h3>
+  <div class="tbl" tabindex="0" role="region" aria-label="表格（可左右捲動）"><table>
+    <tr><th>項目</th><th>比重</th><th>優秀的表現</th></tr>
+    <tr><td>問題定義與現況</td><td class="num">10%</td><td>有真實使用者（警衛、教官）的意見，清楚說明系統定位與不能做的事</td></tr>
+    <tr><td>程式關卡與理解</td><td class="num">15%</td><td>L1～L7 全部完成，能口頭說明 overlap、SustainedFlag、取消窗口的運作</td></tr>
+    <tr><td>演練與標記</td><td class="num">20%</td><td>腳本完整、安全措施到位，至少 30 次事件，標記規則清楚且經過交叉確認</td></tr>
+    <tr><td>測試與改良</td><td class="num">25%</td><td>有基準成績、一次改一項的參數實驗，能用截圖說明誤報原因並提出改良</td></tr>
+    <tr><td>即時系統與警示盒</td><td class="num">15%</td><td>多路監控、警示盒狀態清楚、取消鈕與未連線提示正常，量測反應時間並做使用者測試</td></tr>
+    <tr><td>安全、隱私與報告</td><td class="num">15%</td><td>同意書與告示齊全、畫面確實馬賽克、數據真實、能具體討論倫理風險</td></tr>
+  </table></div>
+  <div class="warn"><p style="margin:0"><strong>數據一定要是自己測的</strong>：練習資料的成績只能用來確認環境，報告中的所有數字都要來自自己錄製、標記與分析的演練影片。</p></div>
+</section>
+
+<section id="teacher" class="page">
+  <h2>教師備註</h2>
+  <ul>
+    <li>只做程式關卡時，可以用 4 週 8 節完成：第 1 週使用前必讀、安裝、L1、L2；第 2 週 L3、L4、課堂小實驗；第 3 週 L5、L6；第 4 週 L7、分組發表。</li>
+    <li>安裝 <code>ultralytics</code> 會一併下載 PyTorch（約 200 MB 以上），建議課前先在電腦教室裝好，或準備好整份 <code>.venv</code> 複製給學生。</li>
+    <li>規則、通報流程、警示盒通訊格式與評估工具已用 <code>test_rules.py</code> 驗證（47 項）；完整系統與 <code>analyze_video.py</code> 已用錄影檔實測；ESP32 韌體已編譯通過。「手持」判斷還沒用真的剪刀實測，警示盒也還沒接實體硬體測試，正式上課前建議老師先各試一次。</li>
+    <li>程式包不附 LINE 金鑰，也不會讀取任何預設金鑰；學生沒有設定 <code>LINE_TOKEN</code> 時只會在終端機顯示提示。LINE 推播會發給官方帳號的所有好友，請提醒學生不要用同一個帳號互相測試洗版。</li>
+    <li>演練影片與 <code>events/</code> 截圖會拍到學生，課程結束後請確認已刪除，不要上傳到網路或放進成果報告。</li>
+    <li>課程中出現的事件案例屬於敏感議題，討論時聚焦在「如何更早發現、更快應變」，避免描述細節；若有學生對議題感到不適，允許改做倒地或聚集等其他事件。</li>
+  </ul>
+</section>
+
+<footer>【專題實作】AI 守望：公共場所 AI 監控通報・學生實作手冊 · 程式碼：<a href="ai_guardian_starter_pack.zip" download="ai_guardian_starter_pack.zip">ai_guardian_starter_pack.zip</a> · 相關教材：<a href="ai_vision_course_guide.html" target="_top">AI 視覺創客小學堂</a>・<a href="bike_rear_alert_project_guide.html" target="_top">自行車後方來車警示</a>・<a href="tactile_paving_project_guide.html" target="_top">導盲磚占用偵測</a></footer>
+</main>
+</div>
+
+<script>
+(function(){
+  var KEY = "ai-guardian-guide-checks";
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+  document.querySelectorAll(".check input").forEach(function(box){
+    box.checked = !!saved[box.id];
+    box.addEventListener("change", function(){
+      saved[box.id] = box.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+    });
+  });
+  window.addEventListener("beforeprint", function(){ document.querySelectorAll("details").forEach(function(d){ d.open = true; }); });
+  document.querySelectorAll(".copy").forEach(function(b){
+    b.addEventListener("click", function(){
+      var text = b.nextElementSibling.textContent;
+      var done = function(){ b.textContent = "已複製"; setTimeout(function(){ b.textContent = "複製"; }, 1500); };
+      if (navigator.clipboard) { navigator.clipboard.writeText(text).then(done, function(){ b.textContent = "請手動選取"; }); }
+      else { b.textContent = "請手動選取"; }
+    });
+  });
+  var cPx = document.getElementById("cPx"), cH = document.getElementById("cH"),
+      cDt = document.getElementById("cDt"), cOut = document.getElementById("cOut");
+  function calc(){
+    var px = parseFloat(cPx.value), h = parseFloat(cH.value), dt = parseFloat(cDt.value);
+    if (!(px >= 0) || !(h > 0) || !(dt > 0)) { cOut.textContent = "請輸入正數"; return; }
+    var v = px / h / dt;
+    var verdict = v > 3.6 ? "太快了，多半是配錯人，不算" : (v > 0.6 ? "算在跑（超過 0.6）" : "不算在跑（沒超過 0.6）");
+    cOut.textContent = "速度 = " + px + " ÷ " + h + " ÷ " + dt + " = 每秒 " + v.toFixed(2) + " 個畫面高 → " + verdict;
+  }
+  [cPx, cH, cDt].forEach(function(el){ el.addEventListener("input", calc); });
+  calc();
+  var btn = document.getElementById("printBtn");
+  if (btn) btn.addEventListener("click", function(){ window.print(); });
+})();
+</script>
+</body>
+</html>

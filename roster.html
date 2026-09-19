@@ -1,0 +1,1402 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>楊梅高中輪值表產生器</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts Noto Sans TC (解決微軟正黑體垂直偏下問題) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel (用於在瀏覽器編譯 JSX) -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- html2canvas (用於下載圖片) -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    
+    <!-- jsPDF (用於下載 PDF) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- 載入本地行事曆數據 (繞過 file:/// 協議 CORS 限制) -->
+    <script src="ymhs_calendar.js"></script>
+
+    <style>
+        body { font-family: "Microsoft JhengHei", "PingFang TC", sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- 內建圖示組件 (取代 lucide-react 避免引入問題) ---
+        const IconChevronLeft = ({size=24, className=""}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="15 18 9 12 15 6"></polyline></svg>;
+        const IconChevronRight = ({size=24, className=""}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"></polyline></svg>;
+        const IconEdit3 = ({size=18, className=""}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>;
+        const IconCheckCircle = ({size=18, className=""}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>;
+        const IconTrash2 = ({size=18, className=""}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>;
+        const IconDownload = ({size=18, className=""}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>;
+        const IconAlertCircle = ({size=24, className=""}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>;
+        const IconCalculator = ({size=24, className=""}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line></svg>;
+        const IconFolder = ({size=20, className=""}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>;
+        const IconFileText = ({size=18, className=""}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>;
+
+        // --- 配置與資料庫 ---
+        // 吳鼎然已替換為廖恒慶
+        const StaffList = ['卓淑美', '廖恒慶', '簡樹桐', '林君憲', '蔡宏昌', '余家賢'];
+
+        const DefaultRules = {
+          1: '簡樹桐', // 週一：預排簡樹桐
+          2: '廖恒慶', // 週二：預設廖恒慶
+          3: 'float',  // 週三：浮動（卓淑美、余家賢）
+          4: '林君憲', // 週四：預設林君憲
+          5: '蔡宏昌', // 週五：預設蔡宏昌
+          0: null, 
+          6: null 
+        };
+
+        const TaiwanHolidays = {
+          '2025-01-01': '元旦',
+          '2025-01-25': '春節連假', '2025-01-26': '春節連假', '2025-01-27': '春節連假', '2025-01-28': '除夕', '2025-01-29': '春節(初一)', '2025-01-30': '春節(初二)', '2025-01-31': '春節(初三)', '2025-02-01': '春節連假', '2025-02-02': '春節連假',
+          '2025-02-28': '和平紀念日',
+          '2025-04-03': '兒童節', '2025-04-04': '清明節',
+          '2025-05-01': '勞動節',
+          '2025-05-30': '端午節連假',
+          '2025-09-29': '教師節補假',
+          '2025-10-06': '中秋節',
+          '2025-10-10': '國慶日',
+          '2025-10-24': '光復節',
+          '2025-12-25': '行憲紀念日',
+          '2026-01-01': '元旦',
+          '2026-02-14': '春節連假', '2026-02-15': '春節連假', '2026-02-16': '除夕', '2026-02-17': '春節(初一)', '2026-02-18': '春節(初二)', '2026-02-19': '春節(初三)', '2026-02-20': '春節連假', '2026-02-21': '春節連假', '2026-02-22': '春節連假',
+          '2026-02-27': '和平紀念日(補假)', '2026-02-28': '和平紀念日',
+          '2026-04-03': '兒童節(補假)', '2026-04-04': '兒童節', '2026-04-05': '清明節', '2026-04-06': '清明節(補假)',
+          '2026-05-01': '勞動節',
+          '2026-06-19': '端午節',
+          '2026-09-25': '中秋節',
+          '2026-09-28': '教師節',
+          '2026-10-09': '國慶日(補假)', '2026-10-10': '國慶日',
+          '2026-10-24': '光復節', '2026-10-25': '光復節(日)', '2026-10-26': '光復節(補假)',
+          '2026-12-25': '行憲紀念日',
+        };
+
+        function App() {
+          const [year, setYear] = useState(() => {
+            const d = new Date();
+            return d.getMonth() + 1 > 11 ? d.getFullYear() + 1 : d.getFullYear();
+          });
+          
+          const [month, setMonth] = useState(() => {
+            const d = new Date();
+            const m = d.getMonth() + 2;
+            return m > 12 ? m - 12 : m;
+          });
+
+          const [rosterData, setRosterData] = useState({});
+          const [prevStats, setPrevStats] = useState({
+            '卓淑美': 0, '廖恒慶': 0, '簡樹桐': 0, '林君憲': 0, '蔡宏昌': 0, '余家賢': 0
+          });
+          const [targetStats, setTargetStats] = useState({
+            '卓淑美': 0, '廖恒慶': 0, '簡樹桐': 0, '林君憲': 0, '蔡宏昌': 0, '余家賢': 0
+          });
+          
+          const [modalConfig, setModalConfig] = useState({ isOpen: false, type: 'alert', message: '', onConfirm: null });
+          const [savedList, setSavedList] = useState([]); // 留存系統中的輪值表列表
+          const [schoolEvents, setSchoolEvents] = useState([]); // 學校行事曆事件
+          const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false); // 行事曆對話框開關
+          const rosterRef = useRef(null);
+
+          // Helpers
+          const getDaysInMonth = (y, m) => new Date(y, m, 0).getDate();
+          const getDayOfWeek = (y, m, d) => new Date(y, m - 1, d).getDay();
+          const formatDate = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+          const getWeekDayName = (dayIndex) => ['日', '一', '二', '三', '四', '五', '六'][dayIndex];
+
+          const daysInMonth = getDaysInMonth(year, month);
+          const rowHeight = Math.floor(1410 / (daysInMonth + 1));
+          const totalTableHeight = rowHeight * (daysInMonth + 1);
+
+          const showMessage = (msg) => {
+            setModalConfig({ isOpen: true, type: 'alert', message: msg, onConfirm: () => setModalConfig(prev => ({...prev, isOpen: false})) });
+          };
+
+          const showConfirm = (msg, onYes) => {
+            setModalConfig({ 
+              isOpen: true, 
+              type: 'confirm', 
+              message: msg, 
+              onConfirm: () => {
+                onYes();
+                setModalConfig(prev => ({...prev, isOpen: false}));
+              }
+            });
+          };
+
+          // 從 LocalStorage 載入已存檔清單
+          const loadSavedList = () => {
+            const saved = localStorage.getItem('ym_rosters');
+            if (saved) {
+              try {
+                setSavedList(Object.keys(JSON.parse(saved)).sort());
+              } catch(e) {
+                setSavedList([]);
+              }
+            } else {
+              setSavedList([]);
+            }
+          };
+
+          // 頁面初次載入時，直接從 window.YMHS_CALENDAR_DATA 載入本地行事曆數據 (解決 file:/// 協議 CORS 限制)
+          useEffect(() => {
+            if (window.YMHS_CALENDAR_DATA && Array.isArray(window.YMHS_CALENDAR_DATA)) {
+              setSchoolEvents(window.YMHS_CALENDAR_DATA);
+              console.log(`成功從本地 JS 腳本載入學校行事曆共 ${window.YMHS_CALENDAR_DATA.length} 筆活動。`);
+            } else {
+              // 備用：若無法載入，嘗試去 fetch 舊的 JSON
+              fetch('ymhs_calendar.json')
+                .then(res => {
+                  if (!res.ok) throw new Error("File not found");
+                  return res.json();
+                })
+                .then(data => {
+                  setSchoolEvents(data);
+                  console.log(`備用方案成功：從 JSON 載入 ${data.length} 筆活動。`);
+                })
+                .catch(err => {
+                  console.warn("未能載入本地行事曆數據，請確保您已雙擊執行過 update_calendar.py 腳本：", err);
+                });
+            }
+          }, []);
+
+          // 初始化與年份/月份更動監聽
+          useEffect(() => {
+            loadSavedList();
+            
+            // 當切换年份/月份時，自動確認是否有存檔
+            const saved = localStorage.getItem('ym_rosters');
+            if (saved) {
+              try {
+                const allRosters = JSON.parse(saved);
+                const key = `${year}-${String(month).padStart(2, '0')}`;
+                if (allRosters[key]) {
+                  setRosterData(allRosters[key].rosterData || {});
+                  setTargetStats(allRosters[key].targetStats || {
+                    '卓淑美': 0, '廖恒慶': 0, '簡樹桐': 0, '林君憲': 0, '蔡宏昌': 0, '余家賢': 0
+                  });
+                  return;
+                }
+              } catch(e) {}
+            }
+            // 若無存檔，則初始化假日與國定放假日備註
+            const initialRoster = {};
+            const daysCount = getDaysInMonth(year, month);
+            for (let d = 1; d <= daysCount; d++) {
+              const dateKey = formatDate(year, month, d);
+              if (TaiwanHolidays[dateKey]) {
+                initialRoster[dateKey] = { name: '', note: TaiwanHolidays[dateKey], note2: '' };
+              }
+            }
+            setRosterData(initialRoster);
+            setTargetStats({
+              '卓淑美': 0, '廖恒慶': 0, '簡樹桐': 0, '林君憲': 0, '蔡宏昌': 0, '余家賢': 0
+            });
+          }, [year, month]);
+
+          const hasConsecutiveConflict = (name, dateKey, currentRoster) => {
+            if (!name) return false;
+            const [y, m, d] = dateKey.split('-').map(Number);
+            const date = new Date(y, m - 1, d);
+            const prev = new Date(date); prev.setDate(date.getDate() - 1);
+            const prevKey = formatDate(prev.getFullYear(), prev.getMonth() + 1, prev.getDate());
+            if (currentRoster[prevKey]?.name === name) return true;
+            const next = new Date(date); next.setDate(date.getDate() + 1);
+            const nextKey = formatDate(next.getFullYear(), next.getMonth() + 1, next.getDate());
+            if (currentRoster[nextKey]?.name === name) return true;
+            return false;
+          };
+
+          const hasWeeklyConflict = (name, dateKey, currentRoster) => {
+            if (!name) return false;
+            const [y, m, d] = dateKey.split('-').map(Number);
+            const currentDate = new Date(y, m - 1, d);
+            const day = currentDate.getDay(); 
+            const diff = currentDate.getDate() - day; 
+            const startOfWeek = new Date(currentDate);
+            startOfWeek.setDate(diff);
+
+            for (let i = 0; i < 7; i++) {
+              const checkDate = new Date(startOfWeek);
+              checkDate.setDate(startOfWeek.getDate() + i);
+              const checkKey = formatDate(checkDate.getFullYear(), checkDate.getMonth() + 1, checkDate.getDate());
+              if (checkKey === dateKey) continue;
+              if (currentRoster[checkKey]?.name === name) return true;
+            }
+            return false;
+          };
+
+          const handlePrevMonth = () => setMonth(m => m === 1 ? (setYear(y => y - 1), 12) : m - 1);
+          const handleNextMonth = () => setMonth(m => m === 12 ? (setYear(y => y + 1), 1) : m + 1);
+
+          const calculateTotalWorkingDays = () => {
+            const days = getDaysInMonth(year, month);
+            let count = 0;
+            for (let d = 1; d <= days; d++) {
+              const dateKey = formatDate(year, month, d);
+              const dayIdx = getDayOfWeek(year, month, d);
+              if (!TaiwanHolidays[dateKey] && dayIdx !== 0 && dayIdx !== 6) count++;
+            }
+            return count;
+          };
+          const totalWorkingDays = calculateTotalWorkingDays();
+
+          const handleCalculateTargets = () => {
+            const daysCount = getDaysInMonth(year, month);
+            const totalSlots = calculateTotalWorkingDays();
+            const staffCount = StaffList.length;
+            
+            const baseCount = Math.floor(totalSlots / staffCount);
+            const remainder = totalSlots % staffCount;
+            
+            const newTargets = {};
+            StaffList.forEach((name, index) => {
+              newTargets[name] = baseCount + (index < remainder ? 1 : 0);
+            });
+            setTargetStats(newTargets);
+
+            const newRoster = {};
+            for (let d = 1; d <= daysCount; d++) {
+              const dateKey = formatDate(year, month, d);
+              if (TaiwanHolidays[dateKey]) {
+                newRoster[dateKey] = { name: '', note: TaiwanHolidays[dateKey] };
+              }
+            }
+            setRosterData(newRoster);
+            showMessage(`系統已計算本月工作日共 ${totalSlots} 天。\n已將「目標次數」平均分配。\n\n請在右側檢查並手動調整每人的「目標次數」，\n確定後請按 Step 2 進行排班。`);
+          };
+
+          const handleGenerateFromTargets = () => {
+            const targetSum = Object.values(targetStats).reduce((a, b) => a + parseInt(b||0), 0);
+            
+            const runGeneration = () => {
+                const daysCount = getDaysInMonth(year, month);
+                const newRoster = { ...rosterData };
+                let workDays = [];
+                let currentCounts = {};
+                StaffList.forEach(p => currentCounts[p] = 0);
+                
+                const floatStaff = ['卓淑美', '余家賢'];
+                let floatIdx = 0;
+
+                for (let d = 1; d <= daysCount; d++) {
+                  const dateKey = formatDate(year, month, d);
+                  const dayIdx = getDayOfWeek(year, month, d);
+
+                  if (TaiwanHolidays[dateKey]) {
+                    newRoster[dateKey] = { name: '', note: TaiwanHolidays[dateKey] };
+                    continue;
+                  }
+                  if (dayIdx === 0 || dayIdx === 6) {
+                    newRoster[dateKey] = { name: '', note: newRoster[dateKey]?.note || '' };
+                    continue;
+                  }
+
+                  workDays.push({ d, dateKey, dayIdx });
+                  let assignedName = '';
+                  if (DefaultRules[dayIdx] === 'float') {
+                    assignedName = floatStaff[floatIdx % 2];
+                    floatIdx++;
+                  } else if (DefaultRules[dayIdx]) {
+                    assignedName = DefaultRules[dayIdx];
+                  }
+                  
+                  newRoster[dateKey] = { ...newRoster[dateKey], name: assignedName };
+                  if (assignedName) currentCounts[assignedName]++;
+                }
+
+                for(let iter=0; iter<3; iter++) {
+                    [...workDays].reverse().forEach(({ dateKey, dayIdx }) => {
+                      const currentName = newRoster[dateKey]?.name;
+                      if (!currentName) return;
+
+                      const target = parseInt(targetStats[currentName]) || 0;
+                      
+                      if (currentCounts[currentName] > target) {
+                        const candidates = StaffList
+                          .filter(n => currentCounts[n] < (parseInt(targetStats[n]) || 0))
+                          .sort((a, b) => {
+                              const gapA = (parseInt(targetStats[a])||0) - currentCounts[a];
+                              const gapB = (parseInt(targetStats[b])||0) - currentCounts[b];
+                              return gapB - gapA;
+                          });
+
+                        let swapTarget = null;
+                        for (const cand of candidates) {
+                          if (!hasConsecutiveConflict(cand, dateKey, newRoster) && !hasWeeklyConflict(cand, dateKey, newRoster)) {
+                            swapTarget = cand;
+                            break;
+                          }
+                        }
+
+                        if (swapTarget) {
+                          newRoster[dateKey].name = swapTarget;
+                          currentCounts[currentName]--;
+                          currentCounts[swapTarget]++;
+                        }
+                      }
+                    });
+                }
+                setRosterData(newRoster);
+            };
+
+            if (targetSum !== totalWorkingDays) {
+              showConfirm(`注意：目前設定的目標總數 (${targetSum}) 與本月工作日 (${totalWorkingDays}) 不符。\n系統將盡力排班，但可能會有空缺或超額。\n是否繼續？`, runGeneration);
+            } else {
+              runGeneration();
+            }
+          };
+
+          // 儲存目前的輪值表在系統中
+          const handleSaveRoster = () => {
+            const saved = localStorage.getItem('ym_rosters') || '{}';
+            let allRosters = {};
+            try {
+              allRosters = JSON.parse(saved);
+            } catch(e) {
+              allRosters = {};
+            }
+            const key = `${year}-${String(month).padStart(2, '0')}`;
+            allRosters[key] = {
+              rosterData,
+              targetStats
+            };
+            localStorage.setItem('ym_rosters', JSON.stringify(allRosters));
+            loadSavedList();
+            showMessage(`已成功在系統存檔：${year} 年 ${month} 月的輪值表！`);
+          };
+
+          // 載入指定的存檔紀錄
+          const handleLoadRoster = (key) => {
+            const [y, m] = key.split('-').map(Number);
+            setYear(y);
+            setMonth(m);
+            const saved = localStorage.getItem('ym_rosters');
+            if (saved) {
+              try {
+                const allRosters = JSON.parse(saved);
+                if (allRosters[key]) {
+                  setRosterData(allRosters[key].rosterData || {});
+                  setTargetStats(allRosters[key].targetStats || {});
+                }
+              } catch(e) {}
+            }
+          };
+
+          // 解析 ICS 格式文本
+          const parseICS = (icsText) => {
+            const events = [];
+            const vevents = icsText.match(/BEGIN:VEVENT[\s\S]*?END:VEVENT/g);
+            if (!vevents) return [];
+            
+            vevents.forEach(vevent => {
+              const summaryMatch = vevent.match(/SUMMARY:(.*?)\r?\n/);
+              const dtstartMatch = vevent.match(/DTSTART(?:;VALUE=DATE)?:([0-9T]+)\r?\n/);
+              const dtendMatch = vevent.match(/DTEND(?:;VALUE=DATE)?:([0-9T]+)\r?\n/);
+              const descMatch = vevent.match(/DESCRIPTION:(.*?)\r?\n/);
+              
+              if (!summaryMatch || !dtstartMatch) return;
+              
+              const summary = summaryMatch[1].trim ? summaryMatch[1].trim() : summaryMatch[1];
+              const cleanedSummary = summary
+                .replace(/\\,/g, ',')
+                .replace(/\\;/g, ';')
+                .replace(/\\n/g, '\n');
+                
+              const startStr = dtstartMatch[1].trim ? dtstartMatch[1].trim() : dtstartMatch[1];
+              const endStr = dtendMatch ? (dtendMatch[1].trim ? dtendMatch[1].trim() : dtendMatch[1]) : startStr;
+              
+              const startDateStr = startStr.substring(0, 8);
+              const endDateStr = endStr.substring(0, 8);
+              
+              const startYear = parseInt(startDateStr.substring(0, 4));
+              const startMonth = parseInt(startDateStr.substring(4, 6)) - 1;
+              const startDay = parseInt(startDateStr.substring(6, 8));
+              
+              const endYear = parseInt(endDateStr.substring(0, 4));
+              const endMonth = parseInt(endDateStr.substring(4, 6)) - 1;
+              const endDay = parseInt(endDateStr.substring(6, 8));
+              
+              let startDate = new Date(startYear, startMonth, startDay);
+              let endDate = new Date(endYear, endMonth, endDay);
+              
+              if (endStr.length === 8 || !endStr.includes('T')) {
+                if (endDate > startDate) {
+                  endDate.setDate(endDate.getDate() - 1);
+                }
+              }
+              
+              let curr = new Date(startDate);
+              while (curr <= endDate) {
+                const yyyy = curr.getFullYear();
+                const mm = String(curr.getMonth() + 1).padStart(2, '0');
+                const dd = String(curr.getDate()).padStart(2, '0');
+                const formattedDate = `${yyyy}-${mm}-${dd}`;
+                
+                events.push({
+                  date: formattedDate,
+                  summary: cleanedSummary,
+                  description: descMatch ? descMatch[1].trim() : ""
+                });
+                curr.setDate(curr.getDate() + 1);
+              }
+            });
+            
+            events.sort((a, b) => a.date.localeCompare(b.date));
+            return events;
+          };
+
+          // 在線同步最新日曆 (合併所有 9 個子日曆)
+          const handleSyncCalendarOnline = () => {
+            const calendarIds = [
+              "calendar@ymhs.tyc.edu.tw",
+              "c_08u857sd2lpto61ipblurdgej8@group.calendar.google.com",
+              "c_keqn8cl3cto6ua47odlrhs9qkc@group.calendar.google.com",
+              "c_hscldi6ihja5u44matubm1ebi4@group.calendar.google.com",
+              "c_csl9j3a43p3hcrs31q3tts21p0@group.calendar.google.com",
+              "c_cf8505cff2fdee51a531c7c5e2e4ed7954db783cef6148cd756d0a020b650e22@group.calendar.google.com",
+              "c_i0o701vhndfjuqia24d37002qo@group.calendar.google.com",
+              "c_lbigaf9hd5kiqpvffs59tvmke8@group.calendar.google.com",
+              "c_o68c8e40kufk9b0gjuq4tovc1g@group.calendar.google.com"
+            ];
+
+            showMessage("正在聯網同步 9 個子處室之行事曆資料，這需要數秒鐘，請稍候...");
+
+            const fetchPromises = calendarIds.map(calId => {
+              const targetUrl = `https://calendar.google.com/calendar/ical/${encodeURIComponent(calId)}/public/basic.ics`;
+              const corsUrl = "https://api.allorigins.win/raw?url=" + encodeURIComponent(targetUrl);
+              
+              return fetch(corsUrl)
+                .then(res => {
+                  if (!res.ok) throw new Error("CORS fail");
+                  return res.text();
+                })
+                .then(text => parseICS(text))
+                .catch(err => {
+                  console.warn(`同步子日曆 ${calId} 失敗，跳過：`, err);
+                  return [];
+                });
+            });
+
+            Promise.all(fetchPromises)
+              .then(results => {
+                // 合併與去重
+                const mergedEvents = [];
+                const seenKeys = new Set();
+
+                results.flat().forEach(ev => {
+                  const key = `${ev.date}_${ev.summary}`;
+                  if (!seenKeys.has(key)) {
+                    seenKeys.add(key);
+                    mergedEvents.push(ev);
+                  }
+                });
+
+                if (mergedEvents.length > 0) {
+                  mergedEvents.sort((a, b) => a.date.localeCompare(b.date));
+                  setSchoolEvents(mergedEvents);
+                  showMessage(`聯網在線更新成功！共載入與去重合併 ${mergedEvents.length} 筆最新行事曆事件。`);
+                } else {
+                  showMessage("所有日曆解析均失敗，未找到有效的活動。");
+                }
+              })
+              .catch(err => {
+                console.error(err);
+                showMessage("聯網在線更新失敗。\n請確保本地已存有 ymhs_calendar.json 快取檔案。");
+              });
+          };
+
+          // 將行事曆事件導入特定日期的備註一或備註二
+          const importEventToNote = (date, eventName, noteField) => {
+            const cellData = rosterData[date] || { name: '', note: '', note2: '' };
+            setRosterData({
+              ...rosterData,
+              [date]: {
+                ...cellData,
+                [noteField]: eventName
+              }
+            });
+          };
+
+          // 一鍵將當月所有行事曆事件填入備註一
+          const importAllEventsToNote1 = () => {
+            const currentMonthPrefix = `${year}-${String(month).padStart(2, '0')}`;
+            const currentMonthEvents = schoolEvents.filter(ev => ev.date.startsWith(currentMonthPrefix));
+            
+            if (currentMonthEvents.length === 0) {
+              showMessage("當月沒有任何行事曆活動可供導入。");
+              return;
+            }
+            
+            const newRoster = { ...rosterData };
+            currentMonthEvents.forEach(ev => {
+              const cellData = newRoster[ev.date] || { name: '', note: '', note2: '' };
+              newRoster[ev.date] = {
+                ...cellData,
+                note: ev.summary
+              };
+            });
+            
+            setRosterData(newRoster);
+            showMessage(`已成功一鍵將當月 ${currentMonthEvents.length} 筆活動填入「備註一」！`);
+          };
+
+          // 刪除指定的存檔紀錄
+          const handleDeleteSaved = (key, e) => {
+            e.stopPropagation();
+            showConfirm(`確定要刪除 ${key.split('-')[0]} 年 ${key.split('-')[1]} 月的系統存檔紀錄嗎？`, () => {
+              const saved = localStorage.getItem('ym_rosters') || '{}';
+              try {
+                const allRosters = JSON.parse(saved);
+                delete allRosters[key];
+                localStorage.setItem('ym_rosters', JSON.stringify(allRosters));
+                loadSavedList();
+                if (key === `${year}-${String(month).padStart(2, '0')}`) {
+                  setRosterData({});
+                  setTargetStats({
+                    '卓淑美': 0, '廖恒慶': 0, '簡樹桐': 0, '林君憲': 0, '蔡宏昌': 0, '余家賢': 0
+                  });
+                }
+              } catch(err) {}
+            });
+          };
+
+          const renderRows = () => {
+            const daysCount = getDaysInMonth(year, month);
+            const rows = [];
+            for (let d = 1; d <= daysCount; d++) {
+              const dateKey = formatDate(year, month, d);
+              const dayIdx = getDayOfWeek(year, month, d);
+              const isWeekend = dayIdx === 0 || dayIdx === 6;
+              const isHoliday = !!TaiwanHolidays[dateKey];
+              const cellData = rosterData[dateKey] || { name: '', note: '', note2: '' };
+              const isConflict = hasConsecutiveConflict(cellData.name, dateKey, rosterData) || hasWeeklyConflict(cellData.name, dateKey, rosterData);
+
+              rows.push(
+                <tr key={dateKey} className={`${isHoliday ? 'bg-red-50' : isWeekend ? 'bg-gray-100' : 'bg-white'} border-b border-gray-300`} style={{ height: `${rowHeight}px` }}>
+                  <td className={`border-r border-gray-400 text-center font-medium ${isHoliday || isWeekend ? 'text-red-500' : 'text-gray-800'} text-xl`} style={{ height: `${rowHeight}px`, lineHeight: `${rowHeight - 6}px`, verticalAlign: 'middle' }}>{dateKey}</td>
+                  <td className={`border-r border-gray-400 text-center font-bold ${isHoliday || isWeekend ? 'text-red-500' : 'text-gray-800'} text-xl`} style={{ height: `${rowHeight}px`, lineHeight: `${rowHeight - 6}px`, verticalAlign: 'middle' }}>{getWeekDayName(dayIdx)}</td>
+                  <td className="border-r border-gray-400 p-0 text-center relative font-bold" style={{ height: `${rowHeight}px`, lineHeight: `${rowHeight - 6}px`, verticalAlign: 'middle' }}>
+                    {isHoliday ? <span className="text-red-400 font-bold text-lg inline-block" style={{ height: `${rowHeight}px`, lineHeight: `${rowHeight - 6}px`, verticalAlign: 'middle' }}>({TaiwanHolidays[dateKey]})</span> : 
+                     isWeekend ? <span className="text-gray-400 inline-block text-lg" style={{ height: `${rowHeight}px`, lineHeight: `${rowHeight - 6}px`, verticalAlign: 'middle' }}>-</span> : 
+                     <select value={cellData.name} onChange={(e) => setRosterData({...rosterData, [dateKey]: {...cellData, name: e.target.value}})} 
+                       className="w-full h-full bg-transparent text-center font-bold text-2xl text-blue-900 appearance-none cursor-pointer hover:bg-blue-50 transition-colors focus:outline-none" 
+                       style={{textAlignLast:'center', border: 'none', padding: '0', margin: '0', display: 'block', height: '100%', minHeight: `${rowHeight}px`, lineHeight: 'inherit'}}>
+                       <option value="">(選擇)</option>
+                       {StaffList.map(n => <option key={n} value={n}>{n}</option>)}
+                     </select>
+                    }
+                    {!isHoliday && !isWeekend && isConflict && (
+                       <IconAlertCircle size={22} className="absolute right-2 text-red-500 animate-pulse" style={{ top: '50%', transform: 'translateY(-50%)' }} title="警告：連續值班或同週重複" />
+                     )}
+                  </td>
+                  <td className="border-r border-gray-400 p-0 text-center" style={{ height: `${rowHeight}px`, lineHeight: `${rowHeight - 6}px`, verticalAlign: 'middle' }}>
+                    <input type="text" value={cellData.note||''} onChange={(e)=>setRosterData({...rosterData,[dateKey]:{...cellData,note:e.target.value}})} 
+                      className={`w-full h-full bg-transparent text-center font-bold focus:outline-none text-lg ${cellData.note||isHoliday?'text-red-600':'text-gray-500'}`} 
+                      style={{ textAlignLast: 'center', border: 'none', padding: '0', margin: '0', display: 'block', height: '100%', lineHeight: 'inherit' }} />
+                  </td>
+                  <td className="p-0 text-center" style={{ height: `${rowHeight}px`, lineHeight: `${rowHeight - 6}px`, verticalAlign: 'middle' }}>
+                    <input type="text" value={cellData.note2||''} onChange={(e)=>setRosterData({...rosterData,[dateKey]:{...cellData,note2:e.target.value}})} 
+                      className={`w-full h-full bg-transparent text-center font-bold focus:outline-none text-lg ${cellData.note2?'text-red-600':'text-gray-500'}`} 
+                      style={{ textAlignLast: 'center', border: 'none', padding: '0', margin: '0', display: 'block', height: '100%', lineHeight: 'inherit' }} />
+                  </td>
+                </tr>
+              );
+            }
+            return rows;
+          };
+
+          const calculateStats = () => {
+            const currentCounts = {};
+            StaffList.forEach(p => currentCounts[p] = 0);
+            const prefix = `${year}-${String(month).padStart(2, '0')}`;
+            Object.keys(rosterData).forEach(key => {
+              if (key.startsWith(prefix) && rosterData[key].name && StaffList.includes(rosterData[key].name)) {
+                currentCounts[rosterData[key].name]++;
+              }
+            });
+            return StaffList.map(name => ({
+              name,
+              current: currentCounts[name],
+              target: targetStats[name] || 0,
+              prev: prevStats[name] || 0,
+            }));
+          };
+          const stats = calculateStats();
+          const currentTotalSum = stats.reduce((acc, s) => acc + s.current, 0);
+          const targetTotalSum = stats.reduce((acc, s) => acc + parseInt(s.target||0), 0);
+
+          const getThreeMonthsNames = () => {
+            const names = [];
+            for (let i = 0; i < 3; i++) {
+              let m = month - i;
+              let y = year;
+              if (m <= 0) {
+                m += 12;
+                y -= 1;
+              }
+              names.push(`${y}年${m}月`);
+            }
+            return names.reverse();
+          };
+
+          const getMonthLabel = (idx) => {
+            let m = month - idx;
+            if (m <= 0) m += 12;
+            return `${m}月`;
+          };
+
+          const calculateThreeMonthStats = () => {
+            const keys = [];
+            for (let i = 0; i < 3; i++) {
+              let m = month - i;
+              let y = year;
+              if (m <= 0) {
+                m += 12;
+                y -= 1;
+              }
+              keys.push(`${y}-${String(m).padStart(2, '0')}`);
+            }
+
+            const saved = localStorage.getItem('ym_rosters');
+            let allRosters = {};
+            if (saved) {
+              try {
+                allRosters = JSON.parse(saved);
+              } catch(e) {}
+            }
+
+            const counts = {};
+            StaffList.forEach(name => {
+              counts[name] = {
+                months: [0, 0, 0],
+                total: 0
+              };
+            });
+
+            keys.forEach((key, idx) => {
+              let data = {};
+              if (idx === 0) {
+                data = rosterData;
+              } else {
+                data = allRosters[key]?.rosterData || {};
+              }
+
+              Object.keys(data).forEach(dateKey => {
+                if (dateKey.startsWith(key)) {
+                  const name = data[dateKey]?.name;
+                  if (name && StaffList.includes(name)) {
+                    counts[name].months[idx]++;
+                    counts[name].total++;
+                  }
+                }
+              });
+            });
+
+            return counts;
+          };
+          const threeMonthStats = calculateThreeMonthStats();
+
+          // 建立純文字列印用 HTML 字串（繞過 html2canvas 無法渲染 select/input 的問題）
+          const buildPrintHTML = () => {
+            const daysCount = getDaysInMonth(year, month);
+            const rowHeight = Math.floor(1410 / (daysCount + 1));
+            const totalTableHeight = rowHeight * (daysCount + 1);
+            const weekDayNames = ['日','一','二','三','四','五','六'];
+            // 共用 td 基底樣式：無天地留白，文字撐滿格子高度
+            const tdBase = `border:1px solid #9ca3af;text-align:center;vertical-align:middle;height:${rowHeight}px;line-height:${rowHeight - 6}px;padding:0;`;
+            let rowsHTML = '';
+            for (let d = 1; d <= daysCount; d++) {
+              const dateKey = formatDate(year, month, d);
+              const dayIdx = getDayOfWeek(year, month, d);
+              const isWeekend = dayIdx === 0 || dayIdx === 6;
+              const isHoliday = !!TaiwanHolidays[dateKey];
+              const cellData = rosterData[dateKey] || { name: '', note: '', note2: '' };
+              const bgColor = isHoliday ? '#fff1f2' : isWeekend ? '#f3f4f6' : '#ffffff';
+              const dateColor = (isHoliday || isWeekend) ? '#ef4444' : '#1f2937';
+              let nameCell = '';
+              if (isHoliday) {
+                nameCell = `<td style="${tdBase}color:#f87171;font-weight:bold;font-size:18px;">(${TaiwanHolidays[dateKey]})</td>`;
+              } else if (isWeekend) {
+                nameCell = `<td style="${tdBase}color:#9ca3af;font-size:18px;">-</td>`;
+              } else {
+                const nameColor = cellData.name ? '#1e3a8a' : '#9ca3af';
+                nameCell = `<td style="${tdBase}color:${nameColor};font-weight:bold;font-size:23px;">${cellData.name || ''}</td>`;
+              }
+              const noteColor = (cellData.note || isHoliday) ? '#dc2626' : '#6b7280';
+              const note2Color = cellData.note2 ? '#dc2626' : '#6b7280';
+              rowsHTML += `<tr style="background:${bgColor};">
+                <td style="${tdBase}color:${dateColor};font-weight:500;font-size:20px;">${dateKey}</td>
+                <td style="${tdBase}color:${dateColor};font-weight:bold;font-size:20px;">${weekDayNames[dayIdx]}</td>
+                ${nameCell}
+                <td style="${tdBase}color:${noteColor};font-weight:bold;font-size:18px;">${cellData.note || ''}</td>
+                <td style="${tdBase}color:${note2Color};font-weight:bold;font-size:18px;">${cellData.note2 || ''}</td>
+              </tr>`;
+            }
+            const thBase = `border:1px solid #6b7280;padding:0;text-align:center;vertical-align:middle;color:#1f2937;font-size:21px;font-weight:bold;height:${rowHeight}px;line-height:${rowHeight - 6}px;`;
+            return `<div style="width:1190px;height:1684px;background:#ffffff;padding:32px;box-sizing:border-box;font-family:'Microsoft JhengHei','PingFang TC',sans-serif;display:flex;flex-direction:column;">
+              <div style="text-align:center;margin-bottom:30px;background:#fefce8;padding:12px 0;border-bottom:4px solid #facc15;border-radius:8px 8px 0 0;">
+                <div style="font-size:36px;font-weight:900;color:#111827;letter-spacing:4px;margin-bottom:6px;">楊梅高中 ${year-1911}年${month}月 實習處</div>
+                <div style="font-size:22px;font-weight:bold;color:#4b5563;letter-spacing:2px;">留守人員輪值表 (至17:00下班)</div>
+              </div>
+              <table style="width:100%;height:${totalTableHeight}px;border-collapse:collapse;border:2px solid #1f2937;table-layout:fixed;">
+                <thead>
+                  <tr style="background:#fef9c3;">
+                    <th style="${thBase}width:20%;">日期</th>
+                    <th style="${thBase}width:8%;">星期</th>
+                    <th style="${thBase}width:16%;">值日人員</th>
+                    <th style="${thBase}width:28%;">備註一</th>
+                    <th style="${thBase}width:28%;">備註二</th>
+                  </tr>
+                </thead>
+                <tbody>${rowsHTML}</tbody>
+              </table>
+            </div>`;
+          };
+
+          // 通用：建立離屏 DOM → html2canvas 截圖 → 回傳 canvas
+          const renderToCanvas = () => {
+            return new Promise((resolve, reject) => {
+              if (!window.html2canvas) { reject(new Error('html2canvas 未載入')); return; }
+              const printHTML = buildStandaloneHTML();
+              
+              // 建立沙盒 iframe 避免主頁面的 Tailwind CSS 與其他樣式干擾
+              const iframe = document.createElement('iframe');
+              iframe.style.position = 'fixed';
+              iframe.style.left = '-9999px';
+              iframe.style.top = '0';
+              iframe.style.width = '1200px';
+              iframe.style.height = '1700px';
+              iframe.style.border = '0';
+              document.body.appendChild(iframe);
+              
+              const doc = iframe.contentDocument || iframe.contentWindow.document;
+              doc.open();
+              doc.write(printHTML);
+              doc.close();
+              
+              // 等待 iframe 渲染完成再進行截圖
+              setTimeout(() => {
+                const target = doc.querySelector('.a4-page');
+                if (!target) {
+                  document.body.removeChild(iframe);
+                  reject(new Error('Cannot find A4 page element in iframe'));
+                  return;
+                }
+                
+                // 精確取得沙盒中的實際高度並設定 line-height
+                const cells = target.querySelectorAll('td, th');
+                cells.forEach(cell => {
+                  const rect = cell.getBoundingClientRect();
+                  cell.style.height = rect.height + 'px';
+                  cell.style.lineHeight = (rect.height - 6) + 'px';
+                });
+                
+                window.html2canvas(target, { 
+                  scale: 3, 
+                  backgroundColor: '#ffffff', 
+                  useCORS: true, 
+                  logging: false,
+                  scrollX: 0,
+                  scrollY: 0
+                })
+                  .then(canvas => { 
+                    document.body.removeChild(iframe); 
+                    resolve(canvas); 
+                  })
+                  .catch(err => { 
+                    document.body.removeChild(iframe); 
+                    reject(err); 
+                  });
+              }, 300);
+            });
+          };
+
+          // 下載圖片
+          const handleDownloadImage = () => {
+            renderToCanvas().then(canvas => {
+              const link = document.createElement('a');
+              link.download = `楊梅高中輪值表_${year}_${month}.png`;
+              link.href = canvas.toDataURL('image/png');
+              link.click();
+            }).catch(err => { console.error(err); showMessage('圖片生成失敗'); });
+          };
+
+          // 下載 PDF
+          const handleDownloadPDF = () => {
+            if (!window.jspdf) { showMessage('PDF 組件載入中，請稍後再試。'); return; }
+            const { jsPDF } = window.jspdf;
+            renderToCanvas().then(canvas => {
+              const imgData = canvas.toDataURL('image/jpeg', 1.0);
+              const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+              pdf.addImage(imgData, 'JPEG', 0, 0, 595.28, 841.89);
+              pdf.save(`楊梅高中輪值表_${year}_${month}.pdf`);
+            }).catch(err => { console.error(err); showMessage('PDF 生成失敗'); });
+          };
+
+          // 建立純網頁列印用 HTML 字串（使用原生瀏覽器列印引擎，文字向量清晰，且無垂直偏置）
+          const buildStandaloneHTML = () => {
+            const daysCount = getDaysInMonth(year, month);
+            const weekDayNames = ['日','一','二','三','四','五','六'];
+            
+            // 原生網頁列印使用標準 border 樣式，不再需要偏移補償
+            const tdBase = `border:1px solid #1f2937; text-align:center; vertical-align:middle; padding:0;`;
+            let rowsHTML = '';
+            
+            for (let d = 1; d <= daysCount; d++) {
+              const dateKey = formatDate(year, month, d);
+              const dayIdx = getDayOfWeek(year, month, d);
+              const isWeekend = dayIdx === 0 || dayIdx === 6;
+              const isHoliday = !!TaiwanHolidays[dateKey];
+              const cellData = rosterData[dateKey] || { name: '', note: '', note2: '' };
+              const bgColor = isHoliday ? '#fff1f2' : isWeekend ? '#f3f4f6' : '#ffffff';
+              const dateColor = (isHoliday || isWeekend) ? '#ef4444' : '#1f2937';
+              
+              let nameCell = '';
+              if (isHoliday) {
+                nameCell = `<td style="${tdBase}color:#ef4444; font-weight:bold; font-size:14pt;">(${TaiwanHolidays[dateKey]})</td>`;
+              } else if (isWeekend) {
+                nameCell = `<td style="${tdBase}color:#9ca3af; font-size:14pt;">-</td>`;
+              } else {
+                const nameColor = cellData.name ? '#1e3a8a' : '#9ca3af';
+                nameCell = `<td style="${tdBase}color:${nameColor}; font-weight:bold; font-size:18pt;">${cellData.name || ''}</td>`;
+              }
+              
+              const noteColor = (cellData.note || isHoliday) ? '#dc2626' : '#4b5563';
+              const note2Color = cellData.note2 ? '#dc2626' : '#4b5563';
+              
+              rowsHTML += `<tr style="background:${bgColor};">
+                <td style="${tdBase}color:${dateColor}; font-weight:500; font-size:14pt;">${dateKey}</td>
+                <td style="${tdBase}color:${dateColor}; font-weight:bold; font-size:14pt;">${weekDayNames[dayIdx]}</td>
+                ${nameCell}
+                <td style="${tdBase}color:${noteColor}; font-weight:bold; font-size:12pt;">${cellData.note || ''}</td>
+                <td style="${tdBase}color:${note2Color}; font-weight:bold; font-size:12pt;">${cellData.note2 || ''}</td>
+              </tr>`;
+            }
+            
+            const thBase = `border:1px solid #1f2937; text-align:center; vertical-align:middle; color:#1f2937; font-size:15pt; font-weight:bold; background:#fef9c3;`;
+            
+            return `<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>楊梅高中輪值表_${year}_${month}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Microsoft JhengHei", "PingFang TC", sans-serif;
+            background-color: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+            overflow: hidden;
+        }
+        .a4-page {
+            width: 210mm;
+            height: 297mm;
+            padding: 5mm 12mm 5mm 12mm; /* 減少上下邊距，釋放垂直空間 */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            background: #ffffff;
+            page-break-inside: avoid;
+            page-break-after: avoid;
+            page-break-before: avoid;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2mm; /* 減少下邊距，釋放空間 */
+            background: #fefce8;
+            padding: 2mm 0; /* 減少內邊距 */
+            border-bottom: 4px solid #facc15;
+            border-radius: 8px 8px 0 0;
+            flex-shrink: 0;
+        }
+        .title {
+            font-size: 20pt;
+            font-weight: 900;
+            color: #111827;
+            letter-spacing: 4px;
+            margin: 0 0 4px 0;
+        }
+        .subtitle {
+            font-size: 13pt;
+            font-weight: bold;
+            color: #4b5563;
+            letter-spacing: 2px;
+            margin: 0;
+        }
+        .table-container {
+            flex-grow: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            height: 210mm;
+            border-collapse: collapse;
+            border: 2px solid #1f2937;
+            table-layout: fixed;
+        }
+        /* 螢幕預覽模式特別處理 */
+        @media screen {
+            body {
+                background-color: #f3f4f6;
+                display: flex;
+                justify-content: center;
+                padding: 20px 0;
+                overflow: auto;
+            }
+            .a4-page {
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+                border-radius: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="a4-page">
+        <div class="header">
+            <h1 class="title">楊梅高中 ${year-1911}年${month}月 實習處</h1>
+            <h2 class="subtitle">留守人員輪值表 (至17:00下班)</h2>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="${thBase}width:20%;">日期</th>
+                        <th style="${thBase}width:8%;">星期</th>
+                        <th style="${thBase}width:16%;">值日人員</th>
+                        <th style="${thBase}width:28%;">備註一</th>
+                        <th style="${thBase}width:28%;">備註二</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rowsHTML}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        // 頁面載入後自動彈出瀏覽器的列印對話框
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 300);
+        };
+    <\/script>
+</body>
+</html>`;
+          };
+
+          const handleExportHTML = () => {
+            showMessage("系統將下載『列印版 HTML 網頁』。\n\n下載完成後，請「按兩下開啟」該下載檔案，它將自動彈出列印視窗，請在目的地選擇「另存為 PDF」即可！");
+            setTimeout(() => {
+              const htmlContent = buildStandaloneHTML();
+              const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8;' });
+              const link = document.createElement('a');
+              link.href = URL.createObjectURL(blob);
+              link.download = `楊梅高中輪值表_${year}_${month}_列印版.html`;
+              link.click();
+            }, 100);
+          };
+
+          // 透過隱藏的 iframe 直接呼叫瀏覽器原生列印引擎
+          const handleIframePrint = () => {
+            const htmlContent = buildStandaloneHTML();
+            const iframe = document.createElement('iframe');
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = '0';
+            document.body.appendChild(iframe);
+            
+            iframe.contentDocument.write(htmlContent);
+            iframe.contentDocument.close();
+            
+            iframe.contentWindow.focus();
+            setTimeout(() => {
+              iframe.contentWindow.print();
+              setTimeout(() => {
+                document.body.removeChild(iframe);
+              }, 1000);
+            }, 500);
+          };
+
+          return (
+            <div className="min-h-screen p-4 md:p-6 flex flex-col items-center">
+              
+              {/* 返回首頁按鈕 */}
+              <div className="w-full max-w-[95%] mb-4 flex justify-start">
+                  <a href="index.html" target="_top" className="text-gray-500 hover:text-slate-800 text-base font-bold inline-flex items-center gap-2 transition-colors">
+                      &larr; 返回首頁
+                  </a>
+              </div>
+
+              {/* Modal for Messages */}
+              {modalConfig.isOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-2xl transition-all duration-200 transform scale-100 opacity-100">
+                    <h3 className="text-xl font-bold mb-3 text-gray-800">系統提示</h3>
+                    <p className="text-gray-600 mb-6 text-lg whitespace-pre-line">{modalConfig.message}</p>
+                    <div className="flex justify-end gap-3">
+                      {modalConfig.type === 'confirm' && (
+                        <button 
+                          onClick={() => setModalConfig(prev => ({...prev, isOpen: false}))}
+                          className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md font-medium text-lg"
+                        >
+                          取消
+                        </button>
+                      )}
+                      <button 
+                        onClick={modalConfig.onConfirm}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium text-lg"
+                      >
+                        確定
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Modal for Calendar Events Selection */}
+              {isCalendarModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                  <div className="bg-white rounded-xl shadow-2xl border border-gray-200 max-w-3xl w-full max-h-[90vh] flex flex-col transition-all duration-200 transform scale-100 opacity-100">
+                    
+                    {/* Modal Header */}
+                    <div className="p-5 border-b border-gray-100 flex items-center justify-between shrink-0 bg-slate-50 rounded-t-xl">
+                      <div>
+                        <h3 className="text-2xl font-black text-gray-800 flex items-center gap-2">
+                          📅 楊梅高中行事曆事件導入
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          目前選擇學期月份：<strong>{year} 年 {month} 月</strong> (點選按鈕直接導入至左側值班備註欄)
+                        </p>
+                      </div>
+                      <button 
+                        onClick={() => setIsCalendarModalOpen(false)}
+                        className="text-gray-400 hover:text-gray-600 p-2 hover:bg-gray-100 rounded-full transition-colors"
+                      >
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                      </button>
+                    </div>
+
+                    {/* Modal Actions Toolbar */}
+                    <div className="px-5 py-3 bg-blue-50 border-b border-blue-100 flex flex-wrap gap-2 items-center justify-between shrink-0">
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={importAllEventsToNote1}
+                          className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all"
+                        >
+                          ⚡ 一鍵導入本月全部活動至備註一
+                        </button>
+                      </div>
+                      <button 
+                        onClick={handleSyncCalendarOnline}
+                        className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-1"
+                      >
+                        🔄 在線更新行事曆
+                      </button>
+                    </div>
+
+                    {/* Modal Content - Events List */}
+                    <div className="flex-1 overflow-y-auto p-5 space-y-4">
+                      {schoolEvents.filter(ev => ev.date.startsWith(`${year}-${String(month).padStart(2, '0')}`)).length === 0 ? (
+                        <div className="text-center py-12 space-y-3">
+                          <div className="text-5xl">📅</div>
+                          <p className="text-gray-500 font-bold text-lg">本月份沒有找到任何學校行事曆事件</p>
+                          <p className="text-gray-400 text-sm max-w-md mx-auto">
+                            請點選上方「🔄 在線更新行事曆」或確認本機資料夾中是否有 `ymhs_calendar.json`！(可執行 update_calendar.py 產生)
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="border border-gray-200 rounded-lg overflow-hidden divide-y divide-gray-200">
+                          {schoolEvents
+                            .filter(ev => ev.date.startsWith(`${year}-${String(month).padStart(2, '0')}`))
+                            .map((ev, index) => {
+                              const [y, m, d] = ev.date.split('-').map(Number);
+                              const dayIdx = getDayOfWeek(y, m, d);
+                              const isWeekend = dayIdx === 0 || dayIdx === 6;
+                              return (
+                                <div key={index} className="flex flex-col md:flex-row items-start md:items-center justify-between p-3.5 hover:bg-slate-50 transition-colors gap-3">
+                                  <div className="flex items-center gap-3">
+                                    <span className={`px-2.5 py-1 rounded font-bold text-sm ${isWeekend ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
+                                      {ev.date.substring(5)} ({getWeekDayName(dayIdx)})
+                                    </span>
+                                    <strong className="text-gray-800 text-base font-bold">{ev.summary}</strong>
+                                    {ev.description && ev.description !== '[備註]' && ev.description !== '[行事]' && (
+                                      <span className="text-xs text-gray-400 font-normal">({ev.description})</span>
+                                    )}
+                                  </div>
+                                  <div className="flex gap-2 w-full md:w-auto justify-end">
+                                    <button 
+                                      onClick={() => importEventToNote(ev.date, ev.summary, 'note')}
+                                      className="px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white rounded text-xs font-bold transition-all flex items-center gap-1 border border-blue-200"
+                                    >
+                                      📝 填入備註一
+                                    </button>
+                                    <button 
+                                      onClick={() => importEventToNote(ev.date, ev.summary, 'note2')}
+                                      className="px-2.5 py-1.5 bg-green-50 text-green-700 hover:bg-green-600 hover:text-white rounded text-xs font-bold transition-all flex items-center gap-1 border border-green-200"
+                                    >
+                                      📝 填入備註二
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          }
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="p-4 border-t border-gray-100 flex justify-end shrink-0 bg-slate-50 rounded-b-xl">
+                      <button 
+                        onClick={() => setIsCalendarModalOpen(false)}
+                        className="px-5 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-bold text-sm transition-all"
+                      >
+                        關閉視窗
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              )}
+
+              {/* Control Panel */}
+              <div className="w-full max-w-[95%] bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center bg-gray-100 rounded-lg p-1 border border-gray-200">
+                    <button onClick={handlePrevMonth} className="p-2 hover:bg-white hover:shadow-sm rounded transition-all"><IconChevronLeft size={24} className="text-gray-600"/></button>
+                    <div className="flex gap-2 px-4 font-bold text-2xl text-gray-700 min-w-[160px] justify-center font-mono">
+                      <span>{year}年 {month}月</span>
+                    </div>
+                    <button onClick={handleNextMonth} className="p-2 hover:bg-white hover:shadow-sm rounded transition-all"><IconChevronRight size={24} className="text-gray-600"/></button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 items-center justify-center md:justify-end">
+                  <button onClick={handleCalculateTargets} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-4 py-3 rounded-lg shadow-sm font-bold text-base transition-colors">
+                    <IconEdit3 size={18} /> Step 1: 試算均分目標
+                  </button>
+                  <div className="text-gray-300 mx-1 hidden md:block text-xl">➔</div>
+                  <button onClick={handleGenerateFromTargets} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:bg-green-800 text-white px-4 py-3 rounded-lg shadow-sm font-bold text-base transition-colors">
+                    <IconCheckCircle size={18} /> Step 2: 依目標排班
+                  </button>
+                  <div className="h-6 w-px bg-gray-300 mx-2 hidden md:block"></div>
+                  <button onClick={handleSaveRoster} className="flex items-center gap-1.5 bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-3 rounded-lg shadow-sm font-bold text-base transition-colors">
+                    💾 儲存存檔
+                  </button>
+                  <button onClick={() => setIsCalendarModalOpen(true)} className="flex items-center gap-1.5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 text-white px-4 py-3 rounded-lg shadow-sm font-bold text-base transition-colors">
+                    📅 導入行事曆
+                  </button>
+                  <button onClick={() => setRosterData({})} className="flex items-center gap-1 bg-red-50 text-red-600 hover:bg-red-100 px-3 py-3 rounded-lg text-base transition-colors border border-red-100"><IconTrash2 size={18} /> 清空</button>
+                  <button onClick={handleIframePrint} className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-3 rounded-lg shadow-sm font-bold text-base transition-colors">
+                    🖨️ 另存為 PDF / 列印 (向量清晰版)
+                  </button>
+                </div>
+              </div>
+
+              <div className="w-full max-w-[95%] flex flex-col lg:flex-row gap-6 items-start">
+                
+                {/* Main Roster Container (A4 Settings) */}
+                <div className="flex-2 w-full lg:w-4/5 bg-white shadow-xl rounded-lg overflow-x-auto border border-gray-200">
+                  <div ref={rosterRef} className="bg-white p-8 flex flex-col" style={{ width: '1190px', height: '1684px', margin: '0 auto', overflow: 'hidden' }}> 
+                    <div className="text-center mb-3 bg-yellow-50 py-3 border-b-4 border-yellow-400 rounded-t-lg shrink-0">
+                      <h1 className="text-4xl font-black text-gray-900 tracking-wider mb-2">楊梅高中 {year-1911}年{month}月 實習處</h1>
+                      <h2 className="text-2xl font-bold text-gray-600 tracking-wide">留守人員輪值表 (至17:00下班)</h2>
+                    </div>
+                    
+                    <div className="flex-1 flex flex-col w-full min-h-0">
+                         <table className="w-full border-collapse border-2 border-gray-800" style={{ tableLayout: 'fixed', height: totalTableHeight + 'px' }}>
+                        <thead>
+                            <tr className="bg-yellow-100 shrink-0">
+                              <th className="border border-gray-500 py-1.5 px-3 text-center align-middle text-gray-800 w-[20%] text-xl font-bold">日期</th>
+                              <th className="border border-gray-500 py-1.5 px-3 text-center align-middle text-gray-800 w-[8%] text-xl font-bold">星期</th>
+                              <th className="border border-gray-500 py-1.5 px-3 text-center align-middle text-gray-800 w-[16%] text-xl font-bold">值日人員</th>
+                              <th className="border border-gray-500 py-1.5 px-3 text-center align-middle text-gray-800 w-[28%] text-xl font-bold">備註一</th>
+                              <th className="border border-gray-500 py-1.5 px-3 text-center align-middle text-gray-800 w-[28%] text-xl font-bold">備註二</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-300">
+                            {renderRows()}
+                        </tbody>
+                        </table>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 右側控制與統計面板 */}
+                <div className="w-full lg:w-1/5 space-y-6">
+                    
+                    {/* 留存輪值表 */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
+                        <h3 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center gap-2">
+                            <IconFolder size={20} className="text-yellow-600" />
+                            系統存檔紀錄
+                        </h3>
+                        {savedList.length === 0 ? (
+                            <p className="text-gray-400 text-sm py-2 italic">目前尚無存檔紀錄</p>
+                        ) : (
+                            <div className="max-h-[220px] overflow-y-auto space-y-2 pr-1">
+                                {savedList.map(key => {
+                                    const [y, m] = key.split('-');
+                                    const isCurrent = key === `${year}-${String(month).padStart(2, '0')}`;
+                                    return (
+                                        <div 
+                                            key={key} 
+                                            onClick={() => handleLoadRoster(key)}
+                                            className={`flex items-center justify-between p-2.5 rounded-lg border text-sm cursor-pointer transition-all ${isCurrent ? 'bg-yellow-50 border-yellow-300 font-bold text-yellow-800' : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-700'}`}
+                                        >
+                                            <span className="flex items-center gap-2">
+                                                <IconFileText size={16} className={isCurrent ? 'text-yellow-600' : 'text-gray-400'} />
+                                                {y} 年 {m} 月 輪值表
+                                            </span>
+                                            <button 
+                                                onClick={(e) => handleDeleteSaved(key, e)}
+                                                className="text-red-500 hover:text-red-700 p-1 hover:bg-red-50 rounded"
+                                                title="刪除此紀錄"
+                                            >
+                                                <IconTrash2 size={14} />
+                                            </button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                        <button 
+                            onClick={handleSaveRoster} 
+                            className="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-lg transition-colors text-sm shadow-sm"
+                        >
+                            💾 儲存目前值班表
+                        </button>
+                    </div>
+
+                    {/* 值班次數統計 */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
+                        <h3 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center gap-2">
+                            <IconCalculator size={20} className="text-blue-500" />
+                            值班次數統計
+                        </h3>
+                        <div className="space-y-4">
+                            {stats.map(s => {
+                                const diff = s.current - s.target;
+                                return (
+                                    <div key={s.name} className="p-3 bg-gray-50 rounded-lg border border-gray-100 flex flex-col gap-2">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-bold text-lg text-gray-700">{s.name}</span>
+                                            <span className={`px-2 py-0.5 rounded text-xs font-bold ${diff === 0 ? 'bg-green-100 text-green-700' : diff > 0 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                                {diff === 0 ? '已達標' : diff > 0 ? `多 ${diff} 次` : `缺 ${Math.abs(diff)} 次`}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-4 text-sm">
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-gray-400">目標:</span>
+                                                <input 
+                                                    type="number" 
+                                                    value={s.target} 
+                                                    onChange={(e) => setTargetStats({...targetStats, [s.name]: parseInt(e.target.value) || 0})}
+                                                    className="w-12 text-center font-bold border rounded bg-white text-base"
+                                                />
+                                            </div>
+                                            <div>
+                                                <span className="text-gray-400">已排:</span>
+                                                <span className="font-bold text-blue-600 ml-1 text-base">{s.current}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="border-t pt-4 text-sm text-gray-500 space-y-2">
+                            <div className="flex justify-between">
+                                <span>目標總和:</span>
+                                <span className="font-bold text-gray-700">{targetTotalSum} / {totalWorkingDays}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>已排總和:</span>
+                                <span className={`font-bold ${currentTotalSum === totalWorkingDays ? 'text-green-600' : 'text-red-500'}`}>{currentTotalSum} / {totalWorkingDays}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 近三月留守累計 */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
+                        <h3 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center gap-2">
+                            <IconCalculator size={20} className="text-indigo-500" />
+                            近三月留守累計
+                        </h3>
+                        <div className="text-xs text-gray-400 font-medium">
+                            統計範圍：{getThreeMonthsNames().join('、')}
+                        </div>
+                        <div className="space-y-3">
+                            {StaffList.map(name => {
+                                const c = threeMonthStats[name];
+                                return (
+                                    <div key={name} className="flex flex-col gap-1.5 p-2.5 bg-gray-50 rounded border border-gray-100 text-sm">
+                                        <div className="flex justify-between items-center">
+                                            <span className="font-bold text-gray-700">{name}</span>
+                                            <span className="font-extrabold text-indigo-700 text-base">{c.total} 天</span>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-1 text-center text-xs text-gray-400 font-mono">
+                                            <div>{getMonthLabel(0)}:{c.months[0]}天</div>
+                                            <div>{getMonthLabel(1)}:{c.months[1]}天</div>
+                                            <div>{getMonthLabel(2)}:{c.months[2]}天</div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* 填表說明 */}
+                    <div className="bg-blue-50 p-5 rounded-lg border border-blue-100 text-sm text-blue-800 space-y-2 font-medium">
+                        <div className="font-bold flex items-center gap-1">💡 填表說明</div>
+                        <p className="leading-relaxed">
+                            1. 週三為浮動排班，在 <strong>卓淑美、余家賢</strong> 之間輪替。<br />
+                            2. 週一、二、四、五分別預排為 <strong>簡樹桐、廖恒慶、林君憲、蔡宏昌</strong>。<br />
+                            3. 點選下拉選單可手動調整人員。若有連續值班或同週重複，系統將標註紅字與警示。<br />
+                            4. 排定後可點擊右上角<strong>「下載圖片」</strong>或<strong>「下載 PDF」</strong>保存。<br />
+                            5. 系統會自動記錄各月份的排班資料，供您隨時切換及查看。
+                        </p>
+                    </div>
+                </div>
+
+              </div>
+            </div>
+          );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

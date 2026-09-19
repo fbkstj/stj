@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工業電子量測 - 互動教學系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Roboto+Mono:wght@400;700&display=swap');
+
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f3f4f6; }
+        canvas { background: #ffffff; border-radius: 8px; box-shadow: inset 0 0 20px rgba(0,0,0,0.05); }
+        .mono-font { font-family: 'Roboto Mono', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .tab-active { border-bottom: 3px solid #3b82f6; color: #1d4ed8; font-weight: bold; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-slate-800 text-white shadow-md z-10">
+        <div class="max-w-full mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-microchip text-blue-400 text-2xl"></i>
+                <div>
+                    <h1 class="text-lg font-bold tracking-wide">工業電子量測</h1>
+                    <p class="text-xs text-slate-400">12題組電路模擬與計算</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="index.html" target="_top" class="text-slate-300 hover:text-white text-sm bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-md flex items-center gap-1 transition">
+                    <i class="fa-solid fa-house"></i> 返回首頁
+                </a>
+                <div class="h-8 w-px bg-slate-600 mx-1"></div>
+                <div class="bg-slate-700 p-1 rounded-lg flex">
+                    <button id="modeStudy" onclick="app.setMode('study')" class="px-4 py-1.5 rounded-md text-sm transition-all bg-blue-500 text-white shadow"><i class="fa-solid fa-book-open mr-1"></i> 教學模式</button>
+                    <button id="modeQuiz" onclick="app.setMode('quiz')" class="px-4 py-1.5 rounded-md text-sm transition-all text-slate-300 hover:text-white"><i class="fa-solid fa-pen-to-square mr-1"></i> 測驗模式</button>
+                </div>
+                <div class="h-8 w-px bg-slate-600 mx-2"></div>
+                <div class="flex items-center gap-2">
+                    <label for="setSelect" class="text-sm font-medium">題組：</label>
+                    <select id="setSelect" onchange="app.loadSet()" class="bg-slate-700 border border-slate-600 text-white text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 block p-1.5"></select>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden w-full">
+        <div class="flex-1 p-4 bg-slate-100 flex flex-col relative overflow-hidden">
+            <div class="absolute top-4 left-4 bg-white/90 backdrop-blur p-2 rounded-lg shadow-sm border border-slate-200 z-10 text-xs flex gap-3">
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-600"></span> 0Ω 短路</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span> 開路</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> 節點</span>
+                <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-yellow-400 border border-yellow-600"></span> 高亮</span>
+            </div>
+            <div class="flex-1 flex items-center justify-center overflow-auto p-2">
+                <canvas id="circuitCanvas" width="800" height="550" class="shadow-lg border border-slate-200" style="width: 100%; height: auto; max-width: 1000px; object-fit: contain;"></canvas>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-[320px] bg-white border-l border-slate-200 flex flex-col shadow-xl z-20">
+            <div class="flex border-b border-slate-200 bg-slate-50">
+                <button id="tabDC" onclick="app.switchTab('dc')" class="flex-1 py-3 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors tab-active">DC 直流 analysis</button>
+                <button id="tabAC" onclick="app.switchTab('ac')" class="flex-1 py-3 text-sm font-medium text-slate-500 hover:text-blue-600 transition-colors">AC 交流 analysis</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-4 relative" id="panelContent"></div>
+            <div class="p-3 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex justify-between items-center">
+                <span>提示：游標移至算式可高亮電路</span>
+                <span id="scoreBoard" class="hidden font-bold text-blue-600">得分: 0/0</span>
+            </div>
+        </div>
+    </main>
+
+<script>
+    const app = {
+        // 資料庫
+        data: [
+            { id: 1, RL1: 1000, RL2: 5100, RL3: 220, RL4: 8200, RL5: 0, R7: 100, R8: 1500, R11: 47000, targets: {ac:['BD','EF'], dc:['JH','LK'], i:['I1','I2']} },
+            { id: 2, RL1: 5100, RL2: 2000, RL3: 100, RL4: 1500, RL5: 22000, R7: 330, R8: 6800, R11: 0, targets: {ac:['BC','ED'], dc:['JK','JM'], i:['I2','I3']} },
+            { id: 3, RL1: 10000, RL2: 10000, RL3: 330, RL4: 8200, RL5: 10000, R7: 470, R8: 6800, R11: 22000, targets: {ac:['AE','EC'], dc:['IJ','JL'], i:['I1','I3']} },
+            { id: 4, RL1: 2000, RL2: 20000, RL3: 680, RL4: 6800, RL5: 22000, R7: 220, R8: 4700, R11: 47000, targets: {ac:['AC','FD'], dc:['KH','MK'], i:['I1','I2']} },
+            { id: 5, RL1: 20000, RL2: 1000, RL3: 470, RL4: 4700, RL5: 47000, R7: 680, R8: 8200, R11: 0, targets: {ac:['BC','AF'], dc:['LO','IM'], i:['I1','I3']} },
+            { id: 6, RL1: 33000, RL2: 10000, RL3: "OPEN", RL4: 0, RL5: 10000, R7: 680, R8: 4700, R11: 22000, targets: {ac:['BF','ED'], dc:['JK','JL'], i:['I2','I3']} },
+            { id: 7, RL1: 10000, RL2: 51000, RL3: 470, RL4: 4700, RL5: "OPEN", R7: 470, R8: 4700, R11: 47000, targets: {ac:['BD','BF'], dc:['JM','LH'], i:['I1','I2']} },
+            { id: 8, RL1: 82000, RL2: 33000, RL3: 330, RL4: "OPEN", RL5: 22000, R7: 220, R8: 6800, R11: 10000, targets: {ac:['BC','ED'], dc:['KH','JN'], i:['I1','I3']} },
+            { id: 9, RL1: 5100, RL2: 20000, RL3: 220, RL4: 1500, RL5: 10000, R7: 100, R8: 1500, R11: 0, targets: {ac:['AB','EC'], dc:['NO','JM'], i:['I2','I3']} },
+            { id: 10, RL1: 1000, RL2: 20000, RL3: 100, RL4: 4700, RL5: 10000, R7: 470, R8: 6800, R11: 82000, targets: {ac:['BD','ED'], dc:['IK','KO'], i:['I1','I2']} },
+            { id: 11, RL1: 100000, RL2: 0, RL3: 680, RL4: 6800, RL5: 82000, R7: 330, R8: 6800, R11: 47000, targets: {ac:['BC','FB'], dc:['ML','JO'], i:['I1','I3']} },
+            { id: 12, RL1: 0, RL2: 100000, RL3: 470, RL4: 8200, RL5: 47000, R7: 220, R8: 8200, R11: 10000, targets: {ac:['DB','CE'], dc:['ON','NK'], i:['I2','I3']} }
+        ],
+        
+        fixedR: { R1: 10000, R2: 1000, R3: 5100, R4: 10000, R6: 150, R9: 2200, R10: 10000 },
+        ctx: null,
+        currentMode: 'study',
+        currentTab: 'dc',
+        highlightTarget: null,
+        resultsCache: null,
+
+        layout: {
+            yTop: 60,
+            yBot: 500,
+            // DC Section (Left)
+            i3_x: 100,       
+            i2_x: 220,       
+            i1_x: 340,       
+            // AC Section (Right)
+            ac1_x: 520,      
+            ac2_x: 640       
+        },
+
+        init: function() {
+            this.ctx = document.getElementById('circuitCanvas').getContext('2d');
+            const select = document.getElementById('setSelect');
+            this.data.forEach(set => {
+                let opt = document.createElement('option');
+                opt.value = set.id; opt.text = `第 ${set.id} 題組`;
+                select.add(opt);
+            });
+            this.loadSet();
+        },
+
+        setMode: function(mode) {
+            this.currentMode = mode;
+            document.getElementById('modeStudy').className = mode==='study' ? "px-4 py-1.5 rounded-md text-sm transition-all bg-blue-500 text-white shadow" : "px-4 py-1.5 rounded-md text-sm transition-all text-slate-300 hover:text-white";
+            document.getElementById('modeQuiz').className = mode==='quiz' ? "px-4 py-1.5 rounded-md text-sm transition-all bg-purple-500 text-white shadow" : "px-4 py-1.5 rounded-md text-sm transition-all text-slate-300 hover:text-white";
+            document.getElementById('scoreBoard').classList.toggle('hidden', mode==='study');
+            this.renderPanel();
+        },
+
+        switchTab: function(tab) {
+            this.currentTab = tab;
+            document.getElementById('tabDC').className = `flex-1 py-3 text-sm font-medium transition-colors ${tab==='dc'?'tab-active':'text-slate-500 hover:text-blue-600'}`;
+            document.getElementById('tabAC').className = `flex-1 py-3 text-sm font-medium transition-colors ${tab==='ac'?'tab-active':'text-slate-500 hover:text-blue-600'}`;
+            this.renderPanel();
+            this.drawCircuit();
+        },
+
+        loadSet: function() {
+            const id = parseInt(document.getElementById('setSelect').value);
+            const set = this.data.find(s => s.id === id);
+            this.resultsCache = this.calculateAll(set);
+            this.drawCircuit(set);
+            this.renderPanel();
+        },
+
+        calculateAll: function(set) {
+            let results = { id: set.id, currents: {}, dcVoltages: {}, acVoltages: {} };
+            
+            const calcI = (resArr, names) => {
+                let rT = 0, isOpen = false, openN = "";
+                let fStr = "12V / (";
+                resArr.forEach((r, i) => {
+                    if(r==="OPEN") { isOpen=true; openN=names[i]; } else rT+=r;
+                    fStr += (i===0?"":"+")+(r===0?"0":r);
+                });
+                fStr += ")";
+                return isOpen ? {val:0, formula:`開路(${openN})`} : {val:(12/rT)*1000, formula:fStr};
+            };
+            const calcV = (ImA, rBotArr, sourceV=12) => {
+                // 若此節點「下方」（往GND方向）有電阻開路，此節點仍與電源直接相連（無壓降）=> 等於電源電壓
+                if(rBotArr.some(r=>r==="OPEN")) return sourceV;
+                // 否則若整條支路電流為0，代表開路點在此節點「上方」，此節點已無電源驅動 => 0V
+                if(ImA===0) return 0;
+                let rBot = rBotArr.reduce((a,b)=>a+(b==="OPEN"?0:b),0);
+                return (ImA/1000)*rBot;
+            };
+
+            const I1 = calcI([this.fixedR.R6, set.RL3, set.R7], ["R6","RL3","R7"]);
+            const I2 = calcI([set.R8, this.fixedR.R9, set.RL4], ["R8","R9","RL4"]);
+            const I3 = calcI([set.RL5, this.fixedR.R10, set.R11], ["RL5","R10","R11"]);
+            results.currents = {I1, I2, I3};
+
+            let nodes = {};
+            nodes.I = 12;
+            nodes.J = calcV(I1.val, [set.RL3, set.R7]);
+            nodes.K = calcV(I1.val, [set.R7]);
+            nodes.L = calcV(I2.val, [this.fixedR.R9, set.RL4]);
+            nodes.M = calcV(I2.val, [set.RL4]);
+            nodes.N = calcV(I3.val, [this.fixedR.R10, set.R11]);
+            nodes.O = calcV(I3.val, [set.R11]);
+
+            set.targets.dc.forEach(t => {
+                let v1 = (t[0]==='H')?0:nodes[t[0]]; let v2 = (t[1]==='H')?0:nodes[t[1]];
+                results.dcVoltages[t] = {v1:v1||0, v2:v2||0, diff:Math.abs((v1||0)-(v2||0)).toFixed(2)};
+            });
+
+            const calcAC = (vin, rArr) => {
+                // rArr = [r0, r1, r2]，由電源端往GND方向排列
+                const nodeV = (rBotArr, aboveArr) => {
+                    if(rBotArr.some(r=>r==="OPEN")) return vin; // 開路點在此節點下方 => 此節點仍等於電源電壓
+                    if(rArr.some(r=>r==="OPEN")) return 0; // 開路點在此節點上方（支路無電流）=> 0V
+                    let tot = rArr.reduce((a,b)=>a+b,0);
+                    let i = vin/tot;
+                    let aboveSum = aboveArr.reduce((a,b)=>a+b,0);
+                    return vin - i*aboveSum;
+                };
+                return [nodeV([rArr[1],rArr[2]], [rArr[0]]), nodeV([rArr[2]], [rArr[0],rArr[1]])];
+            };
+            const acOut = calcAC(15, [set.RL2, this.fixedR.R3, this.fixedR.R4]); 
+            const acIn = calcAC(15, [this.fixedR.R1, set.RL1, this.fixedR.R2]);
+            
+            const acNodes = { A:15, B:acIn[0], C:acIn[1], D:0, E:acOut[0], F:acOut[1] };
+            set.targets.ac.forEach(t => {
+                let v1 = acNodes[t[0]], v2 = acNodes[t[1]];
+                results.acVoltages[t] = {v1:v1, v2:v2, diff:Math.abs(v1-v2).toFixed(2)};
+            });
+
+            return results;
+        },
+
+        drawCircuit: function(set) {
+            if(!set) set = this.data.find(s => s.id === parseInt(document.getElementById('setSelect').value));
+            const ctx = this.ctx;
+            const l = this.layout;
+            ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+            
+            this.drawGrid(ctx);
+
+            this.drawText(ctx, 220, 30, "DC 負載量測區 (Input: +12V)", "bold 16px Arial", "#333", "center");
+            this.drawText(ctx, 600, 30, "AC 分壓量測區 (Input: AC 15V)", "bold 16px Arial", "#333", "center");
+
+            // DC Rails
+            this.drawLine(ctx, 50, l.yTop, 400, l.yTop, "#ef4444", 3); 
+            this.drawLine(ctx, 50, l.yBot, 400, l.yBot, "#1e293b", 3); 
+            this.drawText(ctx, 30, l.yTop+5, "+12V (I)", "bold 14px Arial", "#ef4444");
+            this.drawText(ctx, 30, l.yBot+5, "GND (H)", "bold 14px Arial", "#1e293b");
+
+            // AC Rails
+            this.drawLine(ctx, 450, l.yTop, 750, l.yTop, "#f97316", 3); 
+            this.drawLine(ctx, 450, l.yBot, 750, l.yBot, "#1e293b", 3); 
+            this.drawText(ctx, 770, l.yTop+5, "AC", "bold 14px Arial", "#f97316");
+            this.drawText(ctx, 770, l.yBot+5, "GND", "bold 14px Arial", "#1e293b");
+
+            // Branches
+            this.drawBranch(ctx, l.i3_x, l.yTop, l.yBot, [
+                {name:"RL5", val:set.RL5, top:"I", bot:"N"},
+                {name:"R10", val:this.fixedR.R10, top:"N", bot:"O"},
+                {name:"R11", val:set.R11, top:"O", bot:"GND"}
+            ], "I3");
+            this.drawBranch(ctx, l.i2_x, l.yTop, l.yBot, [
+                {name:"R8", val:set.R8, top:"I", bot:"L"},
+                {name:"R9", val:this.fixedR.R9, top:"L", bot:"M"},
+                {name:"RL4", val:set.RL4, top:"M", bot:"GND"}
+            ], "I2");
+            this.drawBranch(ctx, l.i1_x, l.yTop, l.yBot, [
+                {name:"R6", val:this.fixedR.R6, top:"I", bot:"J"},
+                {name:"RL3", val:set.RL3, top:"J", bot:"K"},
+                {name:"R7", val:set.R7, top:"K", bot:"GND"}
+            ], "I1");
+
+            this.drawBranch(ctx, l.ac1_x, l.yTop, l.yBot, [
+                {name:"RL2", val:set.RL2, top:"A", bot:"E"},
+                {name:"R3", val:this.fixedR.R3, top:"E", bot:"F"},
+                {name:"R4", val:this.fixedR.R4, top:"F", bot:"GND"}
+            ], "");
+            this.drawBranch(ctx, l.ac2_x, l.yTop, l.yBot, [
+                {name:"R1", val:this.fixedR.R1, top:"A", bot:"B"},
+                {name:"RL1", val:set.RL1, top:"B", bot:"C"},
+                {name:"R2", val:this.fixedR.R2, top:"C", bot:"D"}
+            ], "");
+
+            if (this.highlightTarget) {
+                ctx.lineWidth=20; ctx.strokeStyle="rgba(250, 204, 21, 0.4)"; ctx.lineCap="round"; ctx.beginPath();
+                if(this.highlightTarget==='I3') { ctx.moveTo(l.i3_x, l.yTop); ctx.lineTo(l.i3_x, l.yBot); }
+                if(this.highlightTarget==='I2') { ctx.moveTo(l.i2_x, l.yTop); ctx.lineTo(l.i2_x, l.yBot); }
+                if(this.highlightTarget==='I1') { ctx.moveTo(l.i1_x, l.yTop); ctx.lineTo(l.i1_x, l.yBot); }
+                if(this.highlightTarget==='AC1') { ctx.moveTo(l.ac1_x, l.yTop); ctx.lineTo(l.ac1_x, l.yBot); }
+                if(this.highlightTarget==='AC2') { ctx.moveTo(l.ac2_x, l.yTop); ctx.lineTo(l.ac2_x, l.yBot); }
+                ctx.stroke();
+            }
+        },
+
+        drawBranch: function(ctx, x, yTop, yBot, resArr, label) {
+            const gap = (yBot-yTop)/3;
+            if(label) {
+                ctx.fillStyle="#3b82f6"; ctx.beginPath(); ctx.arc(x, yTop-20, 12, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle="#fff"; ctx.font="bold 12px Arial"; ctx.fillText(label, x-5, yTop-15);
+            }
+            resArr.forEach((r, i) => {
+                let cy = yTop + gap*i + gap/2;
+                let tY = yTop + gap*i;
+                let bY = yTop + gap*(i+1);
+                this.drawLine(ctx, x, tY, x, cy-20, "#64748b", 2);
+                if(r.name && r.name.startsWith("RL")) {
+                    ctx.save(); ctx.strokeStyle="#94a3b8"; ctx.lineWidth=1; ctx.setLineDash([4,2]); ctx.strokeRect(x-22, cy-25, 44, 50); ctx.restore();
+                }
+                
+                if(r.val==="OPEN") {
+                    this.drawSymbolOpen(ctx, x, cy);
+                    this.drawText(ctx, x+25, cy-5, r.name, "#64748b");
+                    this.drawText(ctx, x+25, cy+12, "OPEN", "red");
+                } else if(r.val===0) {
+                    this.drawLine(ctx, x, cy-20, x, cy+20, "#2563eb", 4); 
+                    this.drawText(ctx, x+25, cy-5, r.name, "#64748b");
+                    this.drawText(ctx, x+25, cy+12, "0Ω", "blue");
+                } else {
+                    this.drawSymbolResistor(ctx, x, cy);
+                    this.drawText(ctx, x+25, cy-5, r.name); 
+                    this.drawText(ctx, x+25, cy+12, this.fmtR(r.val));
+                }
+                
+                if(r.val!=="OPEN") this.drawLine(ctx, x, cy+20, x, bY, "#64748b", 2);
+                
+                if(i===0) {
+                    if(r.top==='A') this.drawNode(ctx, x, tY, 'A');
+                    else if(r.top==='I') this.drawNode(ctx, x, tY, 'I');
+                    else this.drawNode(ctx, x, tY, r.top);
+                }
+                if(i===resArr.length-1 && resArr[0].top==='I' && r.bot==='GND') {
+                    this.drawNode(ctx, x, bY, 'H');
+                } else {
+                    if(r.bot!=='GND') this.drawNode(ctx, x, bY, r.bot);
+                }
+            });
+        },
+        drawSymbolResistor: function(ctx, x, y) {
+            ctx.strokeStyle="#334155"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(x, y-20);
+            ctx.lineTo(x-8, y-14); ctx.lineTo(x+8, y-7); ctx.lineTo(x-8, y); ctx.lineTo(x+8, y+7); ctx.lineTo(x-8, y+14); ctx.lineTo(x, y+20); ctx.stroke();
+        },
+        drawSymbolOpen: function(ctx, x, y) {
+            ctx.strokeStyle="red"; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(x-8, y-8); ctx.lineTo(x+8, y+8); ctx.moveTo(x+8, y-8); ctx.lineTo(x-8, y+8); ctx.stroke();
+        },
+        drawNode: function(ctx, x, y, lbl) {
+            ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2); ctx.fillStyle="#22c55e"; ctx.fill();
+            if(lbl) this.drawText(ctx, x-15, y-5, lbl, "#166534");
+        },
+        drawLine: function(ctx, x1, y1, x2, y2, color, w) {
+            ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.strokeStyle=color; ctx.lineWidth=w; ctx.stroke();
+        },
+        drawText: function(ctx, x, y, txt, color="#000", align="left") {
+            ctx.font="12px Arial"; ctx.fillStyle=color; ctx.textAlign=align; ctx.fillText(txt, x, y); ctx.textAlign="left";
+        },
+        drawGrid: function(ctx) {
+            ctx.strokeStyle="#f1f5f9"; ctx.lineWidth=1;
+            for(let i=0;i<ctx.canvas.width;i+=20){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,600);ctx.stroke();}
+            for(let i=0;i<600;i+=20){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(ctx.canvas.width,i);ctx.stroke();}
+        },
+        fmtR: function(v) { return typeof v==='number' ? (v>=1000?v/1000+"kΩ":v+"Ω") : v; },
+        
+        renderPanel: function() {
+            const c = document.getElementById('panelContent'); c.innerHTML='';
+            if(this.currentMode==='study') this.renderStudy(c); else this.renderQuiz(c);
+        },
+        renderStudy: function(c) {
+            const res = this.resultsCache;
+            const set = this.data.find(s=>s.id===res.id);
+            let h = `<div class="space-y-4">`;
+            if(this.currentTab==='dc') {
+                ['I1','I2','I3'].forEach(k => {
+                    h+=`<div class="p-3 bg-white border rounded shadow-sm hover:bg-blue-50 cursor-pointer" onmouseenter="app.highlightTarget='${k}';app.drawCircuit()" onmouseleave="app.highlightTarget=null;app.drawCircuit()">
+                        <div class="flex justify-between font-bold text-slate-700"><span>${k}</span><span>${res.currents[k].val.toFixed(2)} mA</span></div>
+                        <div class="text-xs text-slate-500 mt-1 font-mono">${res.currents[k].formula}</div>
+                    </div>`;
+                });
+                set.targets.dc.forEach(t => h+=`<div class="p-3 bg-white border rounded shadow-sm"><div class="flex justify-between font-bold text-purple-700"><span>V_${t}</span><span>${res.dcVoltages[t].diff} V</span></div></div>`);
+            } else {
+                set.targets.ac.forEach(t => h+=`<div class="p-3 bg-white border rounded shadow-sm"><div class="flex justify-between font-bold text-orange-700"><span>V_${t}</span><span>${res.acVoltages[t].diff} V</span></div></div>`);
+            }
+            c.innerHTML = h + "</div>";
+        },
+        renderQuiz: function(c) {
+            const res = this.resultsCache;
+            const set = this.data.find(s=>s.id===res.id);
+            let h = `<div class="space-y-4">`;
+            if(this.currentTab==='dc') {
+                ['I1','I2','I3'].forEach(k => h+=this.quizItem(k, res.currents[k].val, "mA", k));
+                set.targets.dc.forEach(t => h+=this.quizItem(`V_${t}`, parseFloat(res.dcVoltages[t].diff), "V"));
+            } else {
+                set.targets.ac.forEach(t => h+=this.quizItem(`V_${t}`, parseFloat(res.acVoltages[t].diff), "V"));
+            }
+            c.innerHTML = h + "</div>";
+        },
+        quizItem: function(lbl, ans, unit, hlTag=null) {
+            const ev = hlTag ? `onmouseenter="app.highlightTarget='${hlTag}';app.drawCircuit()" onmouseleave="app.highlightTarget=null;app.drawCircuit()"` : "";
+            return `<div class="p-3 bg-white border rounded shadow-sm" ${ev}>
+                <div class="flex justify-between mb-2 font-bold text-slate-700"><span>${lbl}</span><span class="text-xs text-gray-400">${unit}</span></div>
+                <div class="flex gap-2"><input type="number" class="border rounded px-2 py-1 w-full" id="inp_${lbl}"><button class="bg-blue-500 text-white px-3 rounded" onclick="app.check('${lbl}', ${ans}, this)">Check</button></div>
+                <div class="res mt-1 text-sm hidden"></div>
+            </div>`;
+        },
+        check: function(id, ans, btn) {
+            const val = parseFloat(document.getElementById('inp_'+id).value);
+            const resDiv = btn.parentElement.nextElementSibling;
+            resDiv.classList.remove('hidden');
+            if(Math.abs(val-ans) < 0.1) resDiv.innerHTML = "<span class='text-green-600 font-bold'>Correct!</span>";
+            else resDiv.innerHTML = "<span class='text-red-600 font-bold'>Wrong.</span>";
+        }
+    };
+    window.onload = function() { app.init(); };
+</script>
+</body>
+</html>

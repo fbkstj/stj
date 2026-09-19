@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【專題實作】導盲磚占用偵測｜學生實作手冊</title>
+<meta name="description" content="高中職專題實作手冊：用 USB 網路攝影機、YOLO11 與 OpenCV 偵測導盲磚上的機車、腳踏車與雜物，含硬體軟體清單、12 週製作流程、演算法、程式包、驗證方式與評分表。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #cbd5e1;
+    --text: #0f172a;
+    --muted: #475569;
+    --primary: #0369a1;
+    --primary-soft: #e0f2fe;
+    --accent: #a16207;
+    --accent-soft: #fef9c3;
+    --danger: #b91c1c;
+    --danger-soft: #fef2f2;
+    --ok: #047857;
+    --ok-soft: #ecfdf5;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--text);
+    background: var(--bg);
+  }
+  a { color: var(--primary); }
+  :focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; border-radius: 4px; }
+  .skip { position: absolute; left: -9999px; }
+  .skip:focus { left: 16px; top: 8px; background: #fff; padding: 6px 12px; z-index: 10; }
+
+  header.hero {
+    background: linear-gradient(135deg, #0c4a6e 0%, #0f766e 100%);
+    color: #fff;
+    padding: 48px 20px 40px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .hero .wrap { padding: 0; }
+  .hero .eyebrow {
+    display: inline-block; background: rgba(15,23,42,0.4); border: 1px solid rgba(255,255,255,0.35);
+    padding: 2px 12px; border-radius: 999px; font-size: 0.9rem; font-weight: 700;
+  }
+  .hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.3; margin: 14px 0 10px; font-weight: 900; }
+  .hero p { font-size: 1.1rem; max-width: 760px; margin: 0 0 20px; color: #f0f9ff; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px;
+    font-weight: 700; text-decoration: none; border: 2px solid transparent; font-size: 1rem; cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary { background: #fde047; color: #0f172a; }
+  .btn-primary:hover { background: #facc15; }
+  .btn-ghost { color: #fff; border-color: rgba(255,255,255,0.7); background: transparent; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.12); }
+  .facts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; padding: 0; list-style: none; }
+  .facts li { background: rgba(15,23,42,0.35); border-radius: 8px; padding: 4px 12px; font-size: 0.95rem; }
+
+  .layout { display: grid; grid-template-columns: 240px 1fr; gap: 32px; padding-top: 28px; padding-bottom: 60px; }
+  nav.toc { position: sticky; top: 16px; align-self: start; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  nav.toc h2 { font-size: 1rem; margin: 0 0 6px; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; font-size: 0.95rem; line-height: 1.9; }
+  nav.toc a { text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+  main { min-width: 0; }
+
+  section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin-bottom: 24px; scroll-margin-top: 16px; }
+  section > h2 { font-size: 1.5rem; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+  .num { display: inline-flex; width: 36px; height: 36px; border-radius: 9px; background: var(--primary-soft); color: var(--primary); align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; flex-shrink: 0; }
+  h3 { font-size: 1.15rem; margin: 20px 0 6px; }
+  p { margin: 8px 0; }
+  ul, ol { padding-left: 1.4em; margin: 8px 0; }
+  li { margin: 3px 0; }
+  .muted { color: var(--muted); }
+
+  .table-wrap { overflow-x: auto; margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.97rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  thead th { background: #e2e8f0; }
+  tbody th { background: #f1f5f9; font-weight: 700; }
+
+  .note { border-radius: 10px; padding: 12px 16px; margin: 12px 0; border: 1px solid; }
+  .note strong:first-child { display: block; }
+  .note.warn { background: var(--danger-soft); border-color: #fca5a5; color: #7f1d1d; }
+  .note.tip { background: var(--ok-soft); border-color: #6ee7b7; color: #064e3b; }
+  .note.info { background: var(--accent-soft); border-color: #fde047; color: #713f12; }
+
+  .flow { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; counter-reset: flow; }
+  .flow li { counter-increment: flow; background: var(--primary-soft); border: 1px solid #7dd3fc; border-radius: 10px; padding: 8px 12px; flex: 1 1 150px; font-size: 0.95rem; position: relative; margin: 0; }
+  .flow li::before { content: counter(flow); display: inline-block; background: var(--primary); color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 0.8rem; font-weight: 700; margin-right: 6px; }
+  .flow li b { display: block; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .box { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: #f8fafc; }
+  .box h3 { margin-top: 0; }
+
+  pre, code { font-family: "JetBrains Mono", Consolas, monospace; }
+  code { background: #e2e8f0; padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-text); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 0.9rem; line-height: 1.6; margin: 8px 0; }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  .prompt { border: 1px solid var(--border); border-radius: 10px; margin: 12px 0; overflow: hidden; }
+  .prompt-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #f1f5f9; padding: 8px 12px; font-weight: 700; flex-wrap: wrap; }
+  .prompt pre { margin: 0; border-radius: 0; white-space: pre-wrap; }
+  .copy { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 4px 12px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+  .copy:hover { background: #075985; }
+
+  .check { list-style: none; padding-left: 0; }
+  .check li::before { content: "☐ "; font-weight: 700; color: var(--primary); }
+
+  footer { text-align: center; color: var(--muted); padding: 24px 16px 40px; font-size: 0.95rem; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static; }
+    .grid2 { grid-template-columns: 1fr; }
+    section { padding: 20px 16px; }
+    body { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    nav.toc, .hero .actions, .copy { display: none; }
+    .layout { display: block; }
+    section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要內容</a>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">專題製作・學生實作手冊</span>
+    <h1>導盲磚占用偵測：<br>用一顆鏡頭守護視障者的路</h1>
+    <p>機車、腳踏車停在導盲磚上，或堆放雜物，視障者走到一半就會被擋住。這個專題用 USB 網路攝影機加上 AI 影像辨識，偵測導盲磚是否被占用，持續占用時發出提醒並留下紀錄，協助管理單位改善。</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="tactile_paving_starter_pack.zip" download="tactile_paving_starter_pack.zip">⬇ 下載程式包（ZIP）</a>
+      <a class="btn btn-ghost" href="#flow">看製作流程</a>
+    </div>
+    <ul class="facts">
+      <li>難度：進階 ★★</li>
+      <li>建議人數：3～4 人</li>
+      <li>時程：約 12～16 週</li>
+      <li>核心技術：YOLO11 ＋ OpenCV</li>
+      <li>預算：約 1,500～3,000 元（不含筆電）</li>
+    </ul>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="本頁目錄">
+    <h2>目錄</h2>
+    <ol>
+      <li><a href="#overview">專題概要</a></li>
+      <li><a href="#architecture">系統架構</a></li>
+      <li><a href="#hardware">硬體清單</a></li>
+      <li><a href="#software">軟體與安裝</a></li>
+      <li><a href="#site">場地與鏡頭架設</a></li>
+      <li><a href="#flow">12 週製作流程</a></li>
+      <li><a href="#algorithm">核心判斷方法</a></li>
+      <li><a href="#code">程式包使用說明</a></li>
+      <li><a href="#prompts">AI 助手提示語</a></li>
+      <li><a href="#verify">測試與驗證</a></li>
+      <li><a href="#ethics">隱私、安全與倫理</a></li>
+      <li><a href="#trouble">常見問題</a></li>
+      <li><a href="#extend">延伸方向</a></li>
+      <li><a href="#report">書面報告架構</a></li>
+      <li><a href="#rubric">評分參考</a></li>
+    </ol>
+  </nav>
+
+  <main id="main">
+
+    <section id="overview">
+      <h2><span class="num">1</span>專題概要</h2>
+      <h3>要解決的問題</h3>
+      <p>導盲磚是視障者行走的重要依據，但常被停放的機車、腳踏車或店家的招牌、紙箱擋住。巡查人員不可能隨時在現場，被占用的地點與時段也缺乏紀錄。</p>
+      <h3>專題目標</h3>
+      <ol>
+        <li>即時偵測導盲磚上的<strong>車輛</strong>與<strong>雜物</strong>，行人經過不誤報。</li>
+        <li>持續占用超過設定時間，現場<strong>語音提醒</strong>（選配：警示燈、LINE 通知）。</li>
+        <li>自動<strong>記錄</strong>每次占用的時間、原因與打上馬賽克的截圖，產生報表給管理單位。</li>
+        <li>用實際影片<strong>驗證</strong>準確率，提出改善建議。</li>
+      </ol>
+      <div class="note info">
+        <strong>這個題目的特色</strong>
+        系統幫助的是「維護導盲設施的人」，不需要讓視障者冒險測試原型；而且除了 YOLO 認得的車輛，還用黃色比例抓出 YOLO 不認得的雜物，是和一般物件偵測專題不同的地方。
+      </div>
+      <h3>完成後的樣子</h3>
+      <ul>
+        <li>電腦畫面顯示導盲磚區域：綠色＝淨空、橘色＝疑似占用（計時中）、紅色＝警示。</li>
+        <li>喇叭播放「此處為導盲磚，請勿停放車輛或堆放物品」。</li>
+        <li><code>output/report.html</code> 報表：事件數、占用總時間、原因統計、各時段分布、事件明細。</li>
+      </ul>
+    </section>
+
+    <section id="architecture">
+      <h2><span class="num">2</span>系統架構</h2>
+      <ol class="flow" aria-label="系統處理流程">
+        <li><b>USB 攝影機</b>拍攝導盲磚</li>
+        <li><b>OpenCV</b>讀取畫面、套用導盲磚區域</li>
+        <li><b>YOLO11</b>偵測機車、腳踏車等</li>
+        <li><b>黃色比例</b>判斷是否被雜物遮住</li>
+        <li><b>占用判斷</b>車輛著地處或遮擋</li>
+        <li><b>持續計時</b>超過 N 秒才警示</li>
+        <li><b>提醒與紀錄</b>語音、截圖、CSV</li>
+        <li><b>報表與驗證</b>統計、準確率</li>
+      </ol>
+      <div class="grid2">
+        <div class="box">
+          <h3>輸入</h3>
+          <ul>
+            <li>即時攝影機畫面，或預先錄好的影片</li>
+            <li><code>config.json</code>：導盲磚區域、黃色範圍、秒數門檻</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h3>輸出</h3>
+          <ul>
+            <li>即時畫面與語音提醒（選配 ESP32 警示燈、LINE 通知）</li>
+            <li><code>output/events.csv</code>、<code>state_log.csv</code>、<code>snapshots/</code>、<code>report.html</code></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="hardware">
+      <h2><span class="num">3</span>硬體清單</h2>
+      <p class="muted">價格為參考價，依實際採購為準。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">項目</th><th scope="col">建議規格</th><th scope="col">數量</th><th scope="col">參考價</th><th scope="col">必要性</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">筆記型電腦</th><td>Windows 10／11、Intel i5 第 8 代或同級以上、8 GB 記憶體</td><td>1</td><td>學校既有</td><td>必要</td></tr>
+            <tr><th scope="row">USB 網路攝影機</th><td>720p 以上（如 Logitech C270），戶外建議 1080p、廣角</td><td>1</td><td>600～1,500 元</td><td>必要</td></tr>
+            <tr><th scope="row">三腳架或夾式支架</th><td>可調角度，能固定在欄杆、窗框或高處</td><td>1</td><td>300～800 元</td><td>必要</td></tr>
+            <tr><th scope="row">USB 主動式延長線</th><td>5 公尺（鏡頭離電腦較遠時）</td><td>1</td><td>300～500 元</td><td>視場地</td></tr>
+            <tr><th scope="row">喇叭</th><td>USB 或 3.5mm，現場語音提醒用</td><td>1</td><td>約 300 元</td><td>建議</td></tr>
+            <tr><th scope="row">ESP32 開發板</th><td>含 USB 線，控制警示燈與蜂鳴器</td><td>1</td><td>200～350 元</td><td>選配</td></tr>
+            <tr><th scope="row">LED、220Ω 電阻、主動式蜂鳴器、杜邦線、麵包板</th><td>只用 3.3V／5V 低壓元件</td><td>1 組</td><td>約 100 元</td><td>選配</td></tr>
+            <tr><th scope="row">教室模擬場景</th><td>黃色 PP 板或止滑墊（當導盲磚）、紙箱、腳踏車或模型車</td><td>1 組</td><td>100～300 元</td><td>建議</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note tip">
+        <strong>先在教室模擬，再到現場</strong>
+        用黃色 PP 板鋪在地上當導盲磚，推一台腳踏車、放紙箱進去，就能在教室完成大部分開發與測試，不受天氣與場地限制。
+      </div>
+    </section>
+
+    <section id="software">
+      <h2><span class="num">4</span>軟體與安裝</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">軟體</th><th scope="col">用途</th><th scope="col">取得方式</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Python 3.10 以上</th><td>執行程式</td><td>python.org，安裝時勾選 <code>Add Python to PATH</code></td></tr>
+            <tr><th scope="row">Google Antigravity</th><td>免費 AI 程式助手，協助修改與除錯</td><td><a href="https://antigravity.google/download" target="_blank" rel="noopener">antigravity.google</a>（免費方案每週有使用額度）</td></tr>
+            <tr><th scope="row">Claude Code（替代方案）</th><td>Anthropic 的 AI 程式助手，本頁提示語可直接使用</td><td>Claude 桌面版的「Code」分頁，或 PowerShell 執行 <code>irm https://claude.ai/install.ps1 | iex</code>；需 Claude 付費方案或 Anthropic Console 帳號</td></tr>
+            <tr><th scope="row">ultralytics</th><td>YOLO11 物件偵測</td><td><code>pip install -r requirements.txt</code></td></tr>
+            <tr><th scope="row">opencv-python、numpy</th><td>讀取畫面、顏色判斷、繪圖</td><td>同上</td></tr>
+            <tr><th scope="row">pyttsx3</th><td>電腦語音提醒（離線）</td><td>同上</td></tr>
+            <tr><th scope="row">pyserial</th><td>選配：與 ESP32 通訊</td><td><code>pip install pyserial</code></td></tr>
+            <tr><th scope="row">Arduino IDE ＋ ESP32 開發板套件</th><td>選配：燒錄 <code>esp32_alert.ino</code></td><td>arduino.cc</td></tr>
+            <tr><th scope="row">LINE Messaging API</th><td>選配：推播通知（LINE Notify 已停止服務）</td><td>LINE Developers 建立官方帳號頻道</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>安裝步驟</h3>
+      <ol>
+        <li>下載並解壓縮<a href="tactile_paving_starter_pack.zip" download="tactile_paving_starter_pack.zip">程式包</a>。</li>
+        <li>在解壓縮的資料夾開啟命令提示字元，執行：
+<pre><code>pip install -r requirements.txt</code></pre></li>
+        <li>雙擊 <code>0_demo_practice.bat</code>，確認能跑完練習影片（第一次會自動下載約 6 MB 的模型）。</li>
+      </ol>
+    </section>
+
+    <section id="site">
+      <h2><span class="num">5</span>場地與鏡頭架設</h2>
+      <div class="grid2">
+        <div class="box">
+          <h3>選擇場地</h3>
+          <ul>
+            <li>先在校內或校門口找有導盲磚、常被停車的地點，拍照記錄現況。</li>
+            <li>向學校（總務處、學務處）說明專題目的，取得拍攝同意。</li>
+            <li>現場張貼「本區域進行學生專題攝影，影像僅供研究並打馬賽克處理」告示。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h3>鏡頭位置</h3>
+          <ul>
+            <li>高度約 2.5～4 公尺，往下斜拍，完整拍到一段導盲磚。</li>
+            <li>避免正對太陽或路燈（逆光會讓黃色判斷失準）。</li>
+            <li>固定牢靠，鏡頭一移動就要重新設定區域。</li>
+            <li>線材沿牆固定，不要橫跨通道。</li>
+          </ul>
+        </div>
+      </div>
+      <h3>要錄的測試影片</h3>
+      <p>每支 5～10 分鐘，至少錄下列情境各一次，之後用來調整參數與計算準確率：</p>
+      <ul>
+        <li>白天晴天、陰天、傍晚（光線變暗）</li>
+        <li>機車停放、腳踏車停放、紙箱或招牌遮擋</li>
+        <li>行人、腳踏車只是「經過」（不應警示）</li>
+        <li>有樹影或建築陰影落在導盲磚上</li>
+      </ul>
+    </section>
+
+    <section id="flow">
+      <h2><span class="num">6</span>12 週製作流程</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">週次</th><th scope="col">工作內容</th><th scope="col">要交出的成果</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">第 1 週</th><td>需求訪談：聯絡特教老師、視障協會或啟明學校，了解導盲磚被占用的困擾；校內場勘拍照</td><td>訪談紀錄、現況照片、問題描述</td></tr>
+            <tr><th scope="row">第 2 週</th><td>安裝環境，跑完練習影片；閱讀程式包說明，分工</td><td>練習影片的報表截圖、分工表</td></tr>
+            <tr><th scope="row">第 3 週</th><td>教室搭模擬場景；取得拍攝同意後，到現場錄第一批影片</td><td>模擬場景照片、3 支以上測試影片</td></tr>
+            <tr><th scope="row">第 4 週</th><td>用 <code>setup_roi.py</code> 設定導盲磚區域，用 <code>tune_color.py</code> 調整黃色範圍</td><td>設定檔、不同光線下的黃色比例紀錄</td></tr>
+            <tr><th scope="row">第 5 週</th><td>測試 YOLO 對機車、腳踏車的偵測；調整 <code>overlap_threshold</code></td><td>偵測截圖、門檻值測試表</td></tr>
+            <tr><th scope="row">第 6 週</th><td>調整計時邏輯（<code>occupy_seconds</code>、<code>clear_seconds</code>），確認行人經過不誤報</td><td>行人經過測試結果</td></tr>
+            <tr><th scope="row">第 7 週</th><td>加入提醒：語音文字、（選配）ESP32 警示燈或 LINE 通知</td><td>現場提醒展示影片</td></tr>
+            <tr><th scope="row">第 8 週</th><td>標記影片的真實占用時段（<code>ground_truth.csv</code>），執行 <code>evaluate.py</code></td><td>第一次準確率報告</td></tr>
+            <tr><th scope="row">第 9～10 週</th><td>找出誤報、漏報的原因並改良（陰影、夜間、遮擋一半），補錄影片再測</td><td>改良前後比較表</td></tr>
+            <tr><th scope="row">第 11 週</th><td>現場實測 1～3 天，產生報表；整理占用熱門時段</td><td>現場報表、給管理單位的建議</td></tr>
+            <tr><th scope="row">第 12 週</th><td>拍攝 1～3 分鐘成果影片，準備展示</td><td>成果影片、展示海報</td></tr>
+            <tr><th scope="row">第 13 週以後</th><td>撰寫書面報告、練習上台報告</td><td>書面報告、簡報</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="algorithm">
+      <h2><span class="num">7</span>核心判斷方法</h2>
+      <h3>訊號一：車輛停在導盲磚上</h3>
+      <p>YOLO 會框出機車、腳踏車等物件。但車身在畫面上會「浮」在導盲磚上方（透視關係），所以只取框的<strong>下方 35%</strong>（輪子著地的位置），計算這一塊有多少比例落在導盲磚區域內，超過 <code>overlap_threshold</code>（預設 0.3）就算車輛占用。</p>
+      <h3>訊號二：導盲磚被雜物遮住</h3>
+      <p>YOLO 不認得紙箱、招牌、盆栽。改用顏色判斷：把畫面轉成 HSV 色彩空間，計算導盲磚區域裡「黃色像素」的比例。淨空時的比例當作<strong>基準值</strong>，當比例低於基準值的 <code>blocked_ratio</code>（預設 5 成），就算被遮住。</p>
+      <h3>持續計時，避免誤報</h3>
+      <p>行人或車輛只是經過時，也會短暫擋住導盲磚。所以「被占用」必須<strong>連續</strong>超過 <code>occupy_seconds</code> 秒才發出警示；淨空超過 <code>clear_seconds</code> 秒才算事件結束。</p>
+<pre><code>每張畫面：
+  黃色比例 = 導盲磚區域內黃色像素數 ÷ 區域像素數
+  車輛重疊 = 各車輛框下方 35% 落在區域內的最大比例
+
+  被占用 = (車輛重疊 ≥ 0.3) 或 (黃色比例 &lt; 基準值 × 0.5)
+
+  如果 被占用：
+      若尚未開始計時 → 記下開始時間
+      若已持續 ≥ occupy_seconds 且尚未警示 → 發出警示、截圖、記錄
+  否則：
+      若已淨空 ≥ clear_seconds → 事件結束，寫入 events.csv，重設</code></pre>
+      <div class="note info">
+        <strong>為什麼不每張畫面都跑 YOLO？</strong>
+        筆電 CPU 跑 YOLO 比較慢。導盲磚占用是「慢慢發生」的事件，程式每 0.5 秒偵測一次（<code>detect_interval_sec</code>）就夠用，可以大幅降低 CPU 負擔。
+      </div>
+    </section>
+
+    <section id="code">
+      <h2><span class="num">8</span>程式包使用說明</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">檔案</th><th scope="col">用途</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>0_demo_practice.bat</code></th><td>產生練習影片並跑完整流程（偵測 → 準確率 → 報表）</td></tr>
+            <tr><th scope="row"><code>1_setup_roi.bat</code>／<code>setup_roi.py</code></th><td>在畫面上點出導盲磚四個角，按 s 儲存</td></tr>
+            <tr><th scope="row"><code>2_tune_color.bat</code>／<code>tune_color.py</code></th><td>滑桿調整黃色範圍，按 s 儲存並記錄基準值（導盲磚淨空時執行）</td></tr>
+            <tr><th scope="row"><code>3_run_monitor.bat</code>／<code>paving_monitor.py</code></th><td>主程式：偵測、計時、提醒、紀錄</td></tr>
+            <tr><th scope="row"><code>4_make_report.bat</code>／<code>make_report.py</code></th><td>產生 <code>output/report.html</code> 報表</td></tr>
+            <tr><th scope="row"><code>evaluate.py</code></th><td>比對 <code>ground_truth.csv</code> 與偵測紀錄，計算準確率</td></tr>
+            <tr><th scope="row"><code>make_demo_video.py</code></th><td>產生 60 秒練習影片與對應的標記檔</td></tr>
+            <tr><th scope="row"><code>config.json</code></th><td>所有可調整的設定（說明見 <code>README_先看我.md</code>）</td></tr>
+            <tr><th scope="row"><code>esp32_alert/esp32_alert.ino</code></th><td>選配：ESP32 警示燈與蜂鳴器程式</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>實際場地的操作順序</h3>
+      <ol>
+        <li>把 <code>config.json</code> 的 <code>source</code> 改成攝影機編號（外接鏡頭常是 <code>1</code>）。</li>
+        <li>雙擊 <code>1_setup_roi.bat</code>，點出導盲磚範圍。</li>
+        <li>導盲磚淨空時，雙擊 <code>2_tune_color.bat</code>，調到遮罩視窗裡導盲磚是白色、其他地方是黑色，按 s。</li>
+        <li>實際場地把 <code>occupy_seconds</code> 改成 180（3 分鐘）左右，雙擊 <code>3_run_monitor.bat</code>。</li>
+        <li>結束後雙擊 <code>4_make_report.bat</code>，打開 <code>output/report.html</code>。</li>
+      </ol>
+      <h3>計算準確率</h3>
+<pre><code>1. 把 config.json 的 source 改成測試影片檔名，例如 "site_day1.mp4"
+2. 看影片，把真正被占用的時段填進 ground_truth.csv（單位：秒）
+      start_sec,end_sec,note
+      125,410,機車停放
+3. python paving_monitor.py --no-window
+4. python evaluate.py --min-event 30        （數字要和 occupy_seconds 一樣）</code></pre>
+      <p>練習影片的參考結果：兩個占用事件都有抓到，行人經過沒有誤報，逐秒 F1 約 95%。</p>
+    </section>
+
+    <section id="prompts">
+      <h2><span class="num">9</span>AI 助手提示語（Antigravity／Claude Code）</h2>
+      <p>在 Antigravity 用「開啟資料夾」打開程式包資料夾，把下面的提示語貼到 AI 對話面板。每次改完都要請 AI 先測試，再自己用練習影片確認。</p>
+      <p>改用 <strong>Claude Code</strong> 時，提示語不用修改：在 Claude 桌面版的「Code」分頁選擇程式包資料夾（或在資料夾執行 <code>claude</code>）後貼上即可。不要用 claude.ai 一般聊天或網頁版 Claude Code，它們碰不到你電腦上的檔案與攝影機。</p>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>① 讀懂程式</span><button type="button" class="copy" data-target="p1">複製</button></div>
+<pre id="p1">請閱讀這個資料夾的 paving_monitor.py 與 common.py，用高中生看得懂的繁體中文說明：
+1. 程式怎麼判斷導盲磚被占用（車輛與黃色比例兩個訊號）
+2. occupy_seconds、clear_seconds、overlap_threshold、blocked_ratio 各自的作用
+3. 如果我想減少誤報，應該先調整哪一個設定？為什麼？
+先不要修改任何檔案。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>② 改成用外接攝影機</span><button type="button" class="copy" data-target="p2">複製</button></div>
+<pre id="p2">請幫我檢查這台電腦目前可以開啟哪些攝影機編號（0、1、2），各拍一張照片存到 output 資料夾讓我確認，
+然後把 config.json 的 source 改成外接 USB 攝影機的編號。不要開啟即時視窗，我會自己雙擊 3_run_monitor.bat 測試。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>③ 分析誤報原因</span><button type="button" class="copy" data-target="p3">複製</button></div>
+<pre id="p3">我用 site_day1.mp4 測試，evaluate.py 顯示誤報偏多。請讀取 output/state_log.csv 與 ground_truth.csv，
+找出系統判斷「被占用」但實際沒有被占用的時段，統計當時的 yellow_ratio 與 cause，
+推測原因（例如陰影、行人停留、光線變化），並建議要調整哪些設定值。請用表格回報，先不要修改程式。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>④ 加入陰影補償（改良）</span><button type="button" class="copy" data-target="p4">複製</button></div>
+<pre id="p4">導盲磚上有樹影時，黃色會變暗而被誤判為遮擋。請修改 common.py 的 yellow_ratio：
+在 config.json 新增 "shadow_v_lower" 設定（預設 40），讓亮度較低但色相仍是黃色的像素也算黃色。
+改完請用 make_demo_video.py 產生的 demo.mp4 執行
+python paving_monitor.py --config demo_config.json --no-window 與 evaluate.py，確認結果沒有變差再回報。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>⑤ 報表加上每日趨勢</span><button type="button" class="copy" data-target="p5">複製</button></div>
+<pre id="p5">請修改 make_report.py，在報表中新增「每天事件數」與「每天占用總分鐘數」兩個表格（依 events.csv 的 start 日期分組），
+維持目前的網頁樣式與無障礙寫法（表格要有 th scope）。改完用現有的 output 資料執行一次並回報結果。</pre>
+      </div>
+
+      <div class="note warn">
+        <strong>使用 AI 助手要注意</strong>
+        AI 在背景開啟的視窗不會出現在螢幕上，要看即時畫面請自己雙擊 bat 檔；AI 要執行指令或安裝套件時，先看懂再同意；LINE 權杖只能放在環境變數，不要貼進對話或程式。使用 Claude Code 的組別，可以把專題規則與進度寫在資料夾的 <code>CLAUDE.md</code>，它每次開啟都會自動讀取。
+      </div>
+    </section>
+
+    <section id="verify">
+      <h2><span class="num">10</span>測試與驗證</h2>
+      <h3>評估指標</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">指標</th><th scope="col">意義</th><th scope="col">建議目標</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">召回率 Recall</th><td>真的被占用時，系統有抓到的比例（越高漏報越少）</td><td>90% 以上</td></tr>
+            <tr><th scope="row">精確率 Precision</th><td>系統說被占用時，真的被占用的比例（越高誤報越少）</td><td>85% 以上</td></tr>
+            <tr><th scope="row">事件偵測率</th><td>真實占用事件中，有發出警示的比例</td><td>90% 以上</td></tr>
+            <tr><th scope="row">誤報事件數</th><td>沒有占用卻發出警示的次數（每小時）</td><td>1 次以下</td></tr>
+            <tr><th scope="row">警示延遲</th><td>開始占用到發出警示的時間，減去 occupy_seconds</td><td>5 秒以內</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>測試情境矩陣</h3>
+      <p>每個格子至少測 5 次，記錄是否正確：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">情境</th><th scope="col">晴天</th><th scope="col">陰天</th><th scope="col">傍晚</th><th scope="col">有陰影</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">機車停放</th><td></td><td></td><td></td><td></td></tr>
+            <tr><th scope="row">腳踏車停放</th><td></td><td></td><td></td><td></td></tr>
+            <tr><th scope="row">紙箱／招牌遮擋</th><td></td><td></td><td></td><td></td></tr>
+            <tr><th scope="row">只遮住一半</th><td></td><td></td><td></td><td></td></tr>
+            <tr><th scope="row">行人經過（不應警示）</th><td></td><td></td><td></td><td></td></tr>
+            <tr><th scope="row">車輛經過（不應警示）</th><td></td><td></td><td></td><td></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note tip">
+        <strong>書面報告的重點</strong>
+        不只寫「準確率幾 %」，還要寫測了幾支影片、總共幾分鐘、哪些情境最容易出錯、改了什麼之後進步多少。
+      </div>
+    </section>
+
+    <section id="ethics">
+      <h2><span class="num">11</span>隱私、安全與倫理</h2>
+      <ul class="check">
+        <li>拍攝前取得學校同意，現場張貼告示。</li>
+        <li>截圖一律打馬賽克（<code>blur_privacy</code> 保持 <code>true</code>），不公開車牌與人臉。</li>
+        <li>原始影片只保存到分析完成，之後刪除；不上傳到公開網站或社群。</li>
+        <li>紀錄只用於改善導盲設施，不作為檢舉、公布個人的用途；要提供給管理單位前，先經老師確認。</li>
+        <li>訪談視障者或相關人士前先說明用途並取得同意，報告中不寫出可辨識身分的資料。</li>
+        <li>鏡頭、腳架、延長線不擋住通道，不在車道或危險位置架設。</li>
+        <li>ESP32 只使用低壓元件，不接市電。</li>
+        <li>系統只是輔助提醒，不能取代巡查與實體的無障礙設施維護。</li>
+      </ul>
+    </section>
+
+    <section id="trouble">
+      <h2><span class="num">12</span>常見問題</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">狀況</th><th scope="col">可能原因</th><th scope="col">解決方式</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">無法開啟影像來源</th><td>鏡頭被其他軟體占用、編號不對</td><td>關閉視訊軟體；把 <code>source</code> 改成 1 或 2 試試</td></tr>
+            <tr><th scope="row">「還沒設定導盲磚區域」</th><td>還沒執行 setup_roi.py</td><td>先雙擊 <code>1_setup_roi.bat</code></td></tr>
+            <tr><th scope="row">雙擊 bat 顯示 python 不是內部命令</th><td>安裝 Python 時沒勾選加入 PATH</td><td>重新安裝 Python 並勾選 <code>Add Python to PATH</code></td></tr>
+            <tr><th scope="row">一直顯示被遮擋</th><td>黃色範圍太窄，或基準值是在被占用時量的</td><td>導盲磚淨空時重新執行 <code>tune_color.py</code></td></tr>
+            <tr><th scope="row">車子停著卻沒偵測到</th><td>鏡頭角度太斜、車輛太小、信心門檻太高</td><td>鏡頭架高一點；把 <code>confidence</code> 降到 0.25；降低 <code>overlap_threshold</code></td></tr>
+            <tr><th scope="row">行人停下來聊天就警示</th><td>黃色被人擋住超過設定秒數</td><td>把 <code>occupy_seconds</code> 調長；或在程式中排除有 person 的時段</td></tr>
+            <tr><th scope="row">沒有語音</th><td>電腦沒有中文語音或沒裝 pyttsx3</td><td>到 Windows「語音」設定新增中文語音；程式會改用嗶聲</td></tr>
+            <tr><th scope="row">畫面很卡</th><td>電腦效能不足</td><td>把 <code>detect_interval_sec</code> 改成 1；降低攝影機解析度</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="extend">
+      <h2><span class="num">13</span>延伸方向</h2>
+      <ul>
+        <li><strong>夜間偵測：</strong>加裝補光燈，或比較紅外線鏡頭的效果。</li>
+        <li><strong>多點監測：</strong>同時接兩顆鏡頭，比較不同地點的占用熱點。</li>
+        <li><strong>自訂模型：</strong>拍攝招牌、盆栽、機車停車架的照片訓練 YOLO，讓「原因」分得更細。</li>
+        <li><strong>現場互動：</strong>用 ESP32 控制「請勿停車」警示燈，比較有提醒與沒提醒時的占用時間差異。</li>
+        <li><strong>邊緣部署：</strong>移植到樹莓派，比較耗電量、反應時間與準確率。</li>
+        <li><strong>與學校合作：</strong>把一週的報表交給總務處，追蹤改善前後的變化。</li>
+      </ul>
+    </section>
+
+    <section id="report">
+      <h2><span class="num">14</span>書面報告架構</h2>
+      <ol>
+        <li><strong>摘要：</strong>問題、方法、最重要的測試結果（用實際數字）。</li>
+        <li><strong>研究動機：</strong>現場照片、訪談內容、為什麼需要自動偵測。</li>
+        <li><strong>文獻與現況：</strong>導盲磚規範、現有巡查方式、類似的影像辨識系統，說明本作品的不同。</li>
+        <li><strong>研究方法：</strong>系統架構、硬體、判斷方法、參數設定。</li>
+        <li><strong>測試與結果：</strong>影片數量與時長、情境矩陣、準確率、誤報與漏報分析、改良前後比較。</li>
+        <li><strong>討論：</strong>限制（夜間、角度、遮擋一半）、隱私保護做法。</li>
+        <li><strong>結論與未來展望。</strong></li>
+        <li><strong>參考資料與附錄：</strong>程式、設定檔、訪談同意書範本。</li>
+      </ol>
+      <div class="note warn">
+        <strong>數據一定要是自己測的</strong>
+        報告中的所有數字都要來自自己的影片與 evaluate.py 的結果，並保留原始紀錄檔，評審可能會要求查看。
+      </div>
+    </section>
+
+    <section id="rubric">
+      <h2><span class="num">15</span>評分參考</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">項目</th><th scope="col">比重</th><th scope="col">優秀的表現</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">問題定義與訪談</th><td>15%</td><td>有實際訪談與現場紀錄，問題描述具體</td></tr>
+            <tr><th scope="row">系統完成度</th><td>25%</td><td>偵測、計時、提醒、紀錄、報表都能正常運作</td></tr>
+            <tr><th scope="row">測試與驗證</th><td>25%</td><td>多種情境測試、有數據、能分析錯誤原因並改良</td></tr>
+            <tr><th scope="row">創意與改良</th><td>15%</td><td>在程式包之外有自己的改良（陰影補償、現場互動等）</td></tr>
+            <tr><th scope="row">隱私與安全</th><td>10%</td><td>取得同意、打馬賽克、安全架設</td></tr>
+            <tr><th scope="row">報告與展示</th><td>10%</td><td>報告架構完整、展示影片清楚</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  【專題實作】導盲磚占用偵測 ・ 相關教材：<a href="ai_vision_course_guide.html">AI 視覺創客小學堂</a>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = document.getElementById(btn.dataset.target).innerText;
+      const done = () => {
+        const old = btn.textContent;
+        btn.textContent = '已複製';
+        setTimeout(() => { btn.textContent = old; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => window.prompt('請手動複製：', text));
+      } else {
+        window.prompt('請手動複製：', text);
+      }
+    });
+  });
+</script>
+</body>
+</html>

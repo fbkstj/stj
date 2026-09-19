@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIT App Inventor 練習題庫全集 (含模擬器)</title>
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --panel-bg: #1e293b;
+            --card-bg: #334155;
+            --accent-blue: #38bdf8;
+            --accent-green: #4ade80;
+            --accent-yellow: #facc15;
+            --accent-red: #f87171;
+            --accent-purple: #c084fc;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: "Outfit", "Noto Sans TC", sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background-color: #0b1329;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 20;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1.25rem;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            font-size: 1.15rem;
+            font-weight: 900;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .sidebar-header h1 i {
+            color: var(--accent-yellow);
+            font-size: 1.3rem;
+        }
+
+        .sidebar-header p {
+            font-size: 0.8rem;
+            color: var(--accent-blue);
+            margin-top: 0.35rem;
+            font-weight: 600;
+        }
+
+        .nav-list {
+            list-style: none;
+            padding: 0.75rem 0.5rem;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .nav-item {
+            padding: 0.85rem 1rem;
+            cursor: pointer;
+            border-radius: 0.6rem;
+            transition: all 0.2s ease;
+            font-size: 0.92rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            border: 1px solid transparent;
+        }
+
+        .nav-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 1rem;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+            color: var(--text-main);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.2) 0%, rgba(14, 165, 233, 0.1) 100%);
+            color: #ffffff;
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-item.active i {
+            color: var(--accent-blue);
+        }
+
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid var(--border-color);
+            background-color: #0b1329;
+        }
+
+        .home-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.75rem;
+            color: var(--text-main);
+            text-decoration: none;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            border-radius: 0.5rem;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .home-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(14, 165, 233, 0.5);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            padding: 1.75rem 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            background-color: var(--bg-main);
+        }
+
+        .exercise-container {
+            display: none;
+            animation: fadeIn 0.35s ease forwards;
+        }
+
+        .exercise-container.active {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .ex-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .ex-title {
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .ex-title i {
+            color: var(--accent-yellow);
+        }
+
+        .ex-badge {
+            font-size: 0.82rem;
+            font-weight: 700;
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-blue);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 0.3rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        .instruction-box {
+            background: var(--panel-bg);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 0.5rem;
+            padding: 1rem 1.25rem;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+        }
+
+        .instruction-box strong {
+            color: var(--accent-yellow);
+        }
+
+        /* SPLIT VIEW LAYOUT */
+        .split-container {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        /* Left: Blocks Area */
+        .blocks-card {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blocks-card-header {
+            background-color: #0b1329;
+            padding: 0.85rem 1.25rem;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .blocks-workspace {
+            padding: 1.75rem;
+            min-height: 520px;
+            background-color: #0d1527;
+            background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px);
+            background-size: 22px 22px;
+            overflow-x: auto;
+        }
+
+        /* Right: Phone Simulator Area */
+        .phone-preview-wrap {
+            display: flex;
+            justify-content: center;
+        }
+
+        .phone-case {
+            width: 320px;
+            height: 620px;
+            background-color: #1e293b;
+            border: 3px solid #475569;
+            border-radius: 44px;
+            padding: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), 0 0 20px rgba(56, 189, 248, 0.15);
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        /* Dynamic Notch Bar */
+        .phone-notch {
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 18px;
+            background-color: #090d16;
+            border-radius: 12px;
+            z-index: 30;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+        }
+
+        .phone-camera {
+            width: 8px;
+            height: 8px;
+            background-color: #1e293b;
+            border-radius: 50%;
+            border: 1px solid #334155;
+        }
+
+        .phone-screen {
+            width: 100%;
+            height: 100%;
+            background-color: #f1f5f9;
+            border-radius: 32px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.2);
+        }
+
+        /* Status Bar */
+        .status-bar {
+            height: 28px;
+            background-color: #475569;
+            color: #ffffff;
+            font-size: 0.7rem;
+            padding: 0 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            margin-top: 14px;
+        }
+
+        .app-bar {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+            color: #ffffff;
+            padding: 0.85rem 1rem;
+            font-size: 1rem;
+            font-weight: 800;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .app-content {
+            padding: 1.2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
+            flex: 1;
+            color: #0f172a;
+        }
+
+        /* UI Components Simulation CSS */
+        .sim-label {
+            font-size: 0.88rem;
+            color: #334155;
+            font-weight: 700;
+            margin-bottom: -0.25rem;
+        }
+
+        .sim-textbox {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-family: inherit;
+            background: #ffffff;
+            color: #0f172a;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .sim-textbox:focus {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
+        }
+
+        .sim-button {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(2, 132, 199, 0.35);
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .sim-button:hover {
+            background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+        }
+
+        .sim-button:active {
+            transform: scale(0.98);
+        }
+
+        .sim-result-card {
+            margin-top: 0.5rem;
+            background-color: #ffffff;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.6rem;
+            padding: 0.85rem;
+            min-height: 50px;
+            font-size: 0.95rem;
+            color: #0f172a;
+            font-weight: 700;
+            white-space: pre-wrap;
+            word-break: break-all;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .sim-checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            background-color: #ffffff;
+            padding: 0.75rem 0.85rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1;
+        }
+
+        .sim-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.92rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #1e293b;
+        }
+
+        .sim-checkbox input {
+            accent-color: #0284c7;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        /* --- ULTRA-AUTHENTIC 3D APP INVENTOR PUZZLE BLOCKS --- */
+        .block {
+            padding: 7px 12px;
+            border-radius: 6px;
+            color: #ffffff;
+            font-family: 'Fira Code', 'Noto Sans TC', monospace;
+            font-size: 13.5px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            position: relative;
+            cursor: default;
+            white-space: nowrap;
+            user-select: none;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), 
+                        inset 0 1.5px 1px rgba(255, 255, 255, 0.4), 
+                        inset 0 -2px 3px rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(0, 0, 0, 0.25);
+            transition: transform 0.15s ease, filter 0.15s ease;
+        }
+
+        .block:hover {
+            filter: brightness(1.1);
+        }
+
+        /* Puzzle Jigsaw Notch Top/Bottom */
+        .has-notch-top::before { 
+            content: ''; 
+            position: absolute; 
+            top: -6px; 
+            left: 18px; 
+            width: 16px; 
+            height: 6px; 
+            background-color: inherit; 
+            border-radius: 3px 3px 0 0; 
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), -1px -1px 2px rgba(0,0,0,0.3);
+        }
+
+        .has-notch-bottom::after { 
+            content: ''; 
+            position: absolute; 
+            bottom: -6px; 
+            left: 18px; 
+            width: 16px; 
+            height: 6px; 
+            background-color: inherit; 
+            border-radius: 0 0 3px 3px; 
+            z-index: 10; 
+            box-shadow: inset 0 -1px 2px rgba(0,0,0,0.4), 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .socket-plug {
+            padding-left: 14px;
+        }
+
+        .socket-plug::before {
+            content: ''; 
+            position: absolute; 
+            top: 50%; 
+            left: -6px; 
+            margin-top: -7px; 
+            width: 10px; 
+            height: 14px; 
+            background-color: inherit;
+            clip-path: polygon(0% 20%, 100% 0%, 100% 100%, 0% 80%); 
+            z-index: 2;
+            filter: drop-shadow(-1px 0 1px rgba(0,0,0,0.3));
+        }
+
+        /* Block Categories Gradient Colors */
+        .cat-event { 
+            background: linear-gradient(180deg, #f59e0b 0%, #d97706 50%, #b45309 100%); 
+            border-color: #78350f;
+        }
+        .cat-control { 
+            background: linear-gradient(180deg, #eab308 0%, #ca8a04 50%, #a16207 100%); 
+            border-color: #713f12;
+        }
+        .cat-logic { 
+            background: linear-gradient(180deg, #84cc16 0%, #65a30d 50%, #4d7c0f 100%); 
+            border-color: #365314;
+        }
+        .cat-math { 
+            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%); 
+            border-color: #1e3a8a;
+        }
+        .cat-text { 
+            background: linear-gradient(180deg, #ec4899 0%, #db2777 50%, #be185d 100%); 
+            border-color: #831843;
+        }
+        .cat-component-set { 
+            background: linear-gradient(180deg, #10b981 0%, #059669 50%, #047857 100%); 
+            border-color: #064e3b;
+        }
+        .cat-component-get { 
+            background: linear-gradient(180deg, #34d399 0%, #10b981 50%, #059669 100%); 
+            border-color: #065f46;
+        }
+        .cat-component-call { 
+            background: linear-gradient(180deg, #a855f7 0%, #7c3aed 50%, #6d28d9 100%); 
+            border-color: #4c1d95;
+        } 
+        .cat-variable { 
+            background: linear-gradient(180deg, #f97316 0%, #ea580c 50%, #c2410c 100%); 
+            border-color: #7c2d12;
+        }
+        .cat-procedure { 
+            background: linear-gradient(180deg, #a855f7 0%, #9333ea 50%, #7e22ce 100%); 
+            border-color: #581c87;
+        }
+
+        /* Block Structures (C-Block Containers) */
+        .c-block {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            background-color: transparent !important;
+            box-shadow: none;
+            padding: 0;
+            margin-bottom: 14px;
+        }
+
+        .c-top {
+            padding: 10px 16px;
+            border-radius: 8px 8px 0 0;
+            min-width: 180px;
+            position: relative;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 13.5px;
+            font-family: 'Fira Code', 'Noto Sans TC', monospace;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4), 
+                        inset 0 1.5px 1px rgba(255, 255, 255, 0.45), 
+                        inset 0 -2px 3px rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(0, 0, 0, 0.25);
+        }
+
+        .c-interior {
+            border-left: 18px solid;
+            padding-left: 12px;
+            padding-top: 8px;
+            padding-bottom: 8px;
+            min-width: 130px;
+            background-color: rgba(255, 255, 255, 0.04); 
+            border-radius: 0 0 0 8px;
+            box-shadow: inset 2px 0 4px rgba(0,0,0,0.3);
+        }
+
+        .c-bottom {
+            height: 12px;
+            width: 100%;
+            border-radius: 0 0 8px 8px;
+            margin-top: -1px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), inset 0 -2px 2px rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+        }
+
+        /* Argument Input Socket Pill */
+        .socket {
+            background-color: #ffffff;
+            border: 1.5px solid rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            padding: 3px 8px;
+            margin: 0 6px;
+            color: #0f172a;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            box-shadow: inset 0 1.5px 3px rgba(0,0,0,0.3);
+        }
+
+        .nested-stack { display: flex; flex-direction: column; gap: 6px; }
+
+        /* Mobile Responsiveness (<900px) */
+        @media (max-width: 900px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                overflow-y: auto;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+
+            .nav-list {
+                flex-direction: row;
+                overflow-x: auto;
+                white-space: nowrap;
+                padding: 0.5rem;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .nav-item {
+                flex-shrink: 0;
+                padding: 0.6rem 0.85rem;
+                font-size: 0.85rem;
+            }
+
+            .main-content {
+                padding: 1.25rem 1rem;
+            }
+
+            .split-container {
+                grid-template-columns: 1fr;
+            }
+
+            .phone-preview-wrap {
+                order: -1; /* Place Phone Simulator on top on mobile screens! */
+            }
+
+            .phone-case {
+                width: 100%;
+                max-width: 340px;
+                height: 560px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1><i class="fa-solid fa-shapes"></i> AI2 題庫全集</h1>
+            <p>MIT App Inventor 基礎與進階練習</p>
+        </div>
+        <ul class="nav-list" id="navList">
+            <li class="nav-item active" onclick="showTab('ex1')"><i class="fa-solid fa-temperature-high"></i> 1. 攝氏轉華氏 (程序版)</li>
+            <li class="nav-item" onclick="showTab('ex2')"><i class="fa-solid fa-ruler-combined"></i> 2. 畢氏定理 (求斜邊)</li>
+            <li class="nav-item" onclick="showTab('ex3')"><i class="fa-solid fa-list-ol"></i> 3. 列出公因數 (迴圈)</li>
+            <li class="nav-item" onclick="showTab('ex4')"><i class="fa-solid fa-plus-minus"></i> 4. 1到n求和 (If防呆)</li>
+            <li class="nav-item" onclick="showTab('ex5')"><i class="fa-solid fa-play"></i> 5. 文字三角形 (雙層迴圈)</li>
+            <li class="nav-item" onclick="showTab('ex6')"><i class="fa-solid fa-apple-whole"></i> 6. 喜愛的水果 (複選)</li>
+            <li class="nav-item" onclick="showTab('ex7')"><i class="fa-solid fa-calculator"></i> 7. 計算階層 (累乘)</li>
+            <li class="nav-item" onclick="showTab('ex8')"><i class="fa-solid fa-house-signal"></i> 8. 智慧居家 MQTT 控制</li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <a href="index.html" target="_top" class="home-btn">
+                <i class="fa-solid fa-house"></i> 返回教學首頁
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+
+        <!-- EXERCISE 1: Temp Converter -->
+        <div id="ex1" class="exercise-container active">
+            <div class="ex-header">
+                <div class="ex-title">
+                    <i class="fa-solid fa-temperature-high"></i> 1. 攝氏轉華氏 (使用自訂程序)
+                </div>
+                <span class="ex-badge">程序應用</span>
+            </div>
+            <div class="instruction-box">
+                <div><strong>公式：</strong> F = C × 9 ÷ 5 + 32</div>
+                <div><strong>重點：</strong> 展示 AI2 自訂程序 (Procedure) 帶參數與回傳值的用法。在右側輸入數字測試！</div>
+            </div>
+            
+            <div class="split-container">
+                <!-- Blocks -->
+                <div class="blocks-card">
+                    <div class="blocks-card-header">
+                        <span><i class="fa-solid fa-puzzle-piece"></i> 拼圖積木邏輯 (Blocks)</span>
+                        <div style="display:flex; gap:0.35rem; font-size:0.75rem; flex-wrap:wrap;">
+                            <span style="background:#d97706; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚡ 事件</span>
+                            <span style="background:#ca8a04; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚙️ 控制</span>
+                            <span style="background:#2563eb; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🔢 數學</span>
+                            <span style="background:#059669; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🧩 組件</span>
+                        </div>
+                    </div>
+                    <div class="blocks-workspace">
+                        <!-- Procedure Definition -->
+                        <div class="c-block">
+                            <div class="c-top cat-procedure">
+                                to <span style="font-style: italic;">CelsiusToFahrenheit</span> ( <span style="font-size:0.9em;background:rgba(0,0,0,0.2);padding:0 4px;border-radius:2px;">input_C</span> ) result
+                                <div class="socket">
+                                    <div class="block cat-math socket-plug">
+                                        <div class="socket">
+                                            <div class="block cat-math socket-plug" style="margin:-2px;">
+                                                <div class="socket"><div class="block cat-variable socket-plug" style="margin:-2px;">get input_C</div></div>
+                                                &nbsp;×&nbsp;
+                                                <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">9</div></div>
+                                            </div>
+                                        </div>
+                                        &nbsp;÷&nbsp;
+                                        <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">5</div></div>
+                                        &nbsp;+&nbsp;
+                                        <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">32</div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Event Handler -->
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 Button1 .Click do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="nested-stack">
+                                    <div class="block cat-component-set has-notch-top has-notch-bottom">
+                                        設定 Label_Result .Text to
+                                        <div class="socket">
+                                            <div class="block cat-text socket-plug">
+                                                join
+                                                <div class="socket"><div class="block cat-text socket-plug" style="margin:-2px;">"華氏 = "</div></div>
+                                                <div class="socket">
+                                                    <div class="block cat-component-call socket-plug" style="margin:-2px;">
+                                                        call CelsiusToFahrenheit input_C
+                                                        <div class="socket"><div class="block cat-component-get socket-plug" style="margin:-2px;">TextBox_C.Text</div></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simulator -->
+                <div class="phone-preview-wrap">
+                    <div class="phone-case">
+                        <div class="phone-notch"><div class="phone-camera"></div></div>
+                        <div class="phone-screen">
+                            <div class="status-bar"><span>9:41</span> <span>📶 🔋</span></div>
+                            <div class="app-bar"><i class="fa-solid fa-temperature-three-quarters"></i> 溫度轉換器</div>
+                            <div class="app-content">
+                                <label class="sim-label">輸入攝氏溫度 (°C):</label>
+                                <input type="number" id="sim_ex1_input" class="sim-textbox" placeholder="例如: 25">
+                                <button onclick="runEx1()" class="sim-button">求華氏溫度</button>
+                                <div id="sim_ex1_result" class="sim-result-card">華氏 = ...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXERCISE 2: Pythagorean -->
+        <div id="ex2" class="exercise-container">
+            <div class="ex-header">
+                <div class="ex-title">
+                    <i class="fa-solid fa-ruler-combined"></i> 2. 畢氏定理求斜邊
+                </div>
+                <span class="ex-badge">數學運算</span>
+            </div>
+            <div class="instruction-box">
+                <div><strong>公式：</strong> 斜邊 = √(底² + 高²)</div>
+                <div><strong>操作：</strong> 在手機模擬器中輸入底與高，點擊按鈕計算斜邊。</div>
+            </div>
+            
+            <div class="split-container">
+                <!-- Blocks -->
+                <div class="blocks-card">
+                    <div class="blocks-card-header">
+                        <span><i class="fa-solid fa-puzzle-piece"></i> 拼圖積木邏輯 (Blocks)</span>
+                        <div style="display:flex; gap:0.35rem; font-size:0.75rem; flex-wrap:wrap;">
+                            <span style="background:#d97706; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚡ 事件</span>
+                            <span style="background:#ca8a04; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚙️ 控制</span>
+                            <span style="background:#2563eb; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🔢 數學</span>
+                            <span style="background:#059669; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🧩 組件</span>
+                        </div>
+                    </div>
+                    <div class="blocks-workspace">
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 Button_Calculate .Click do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="nested-stack">
+                                    <div class="block cat-component-set has-notch-top has-notch-bottom">
+                                        設定 Label_Result .Text to
+                                        <div class="socket">
+                                            <div class="block cat-text socket-plug">
+                                                join
+                                                <div class="socket"><div class="block cat-text socket-plug" style="margin:-2px;">"斜邊長 = "</div></div>
+                                                <div class="socket">
+                                                    <div class="block cat-math socket-plug">
+                                                        sqrt
+                                                        <div class="socket">
+                                                            <div class="block cat-math socket-plug" style="margin:-2px;">
+                                                                <div class="socket">
+                                                                    <div class="block cat-math socket-plug" style="margin:-2px;">
+                                                                        <div class="socket"><div class="block cat-component-get socket-plug" style="margin:-2px;">Box_Base.Text</div></div>
+                                                                        &nbsp;^&nbsp;
+                                                                        <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">2</div></div>
+                                                                    </div>
+                                                                </div>
+                                                                &nbsp;+&nbsp;
+                                                                <div class="socket">
+                                                                    <div class="block cat-math socket-plug" style="margin:-2px;">
+                                                                        <div class="socket"><div class="block cat-component-get socket-plug" style="margin:-2px;">Box_Height.Text</div></div>
+                                                                        &nbsp;^&nbsp;
+                                                                        <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">2</div></div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simulator -->
+                <div class="phone-preview-wrap">
+                    <div class="phone-case">
+                        <div class="phone-notch"><div class="phone-camera"></div></div>
+                        <div class="phone-screen">
+                            <div class="status-bar"><span>9:41</span> <span>📶 🔋</span></div>
+                            <div class="app-bar"><i class="fa-solid fa-ruler"></i> 斜邊計算機</div>
+                            <div class="app-content">
+                                <label class="sim-label">輸入底 (Base):</label>
+                                <input type="number" id="sim_ex2_base" class="sim-textbox" placeholder="例如: 3">
+                                <label class="sim-label">輸入高 (Height):</label>
+                                <input type="number" id="sim_ex2_height" class="sim-textbox" placeholder="例如: 4">
+                                <button onclick="runEx2()" class="sim-button">求斜邊長</button>
+                                <div id="sim_ex2_result" class="sim-result-card">斜邊長 = ...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXERCISE 3: Common Factors -->
+        <div id="ex3" class="exercise-container">
+            <div class="ex-header">
+                <div class="ex-title">
+                    <i class="fa-solid fa-list-ol"></i> 3. 列出公因數 (迴圈與餘數)
+                </div>
+                <span class="ex-badge">迴圈與條件</span>
+            </div>
+            <div class="instruction-box">
+                <div><strong>重點：</strong> 使用 for 迴圈搭配整除餘數 (rem) 測試兩個數字的公因數。</div>
+            </div>
+            
+            <div class="split-container">
+                <!-- Blocks -->
+                <div class="blocks-card">
+                    <div class="blocks-card-header">
+                        <span><i class="fa-solid fa-puzzle-piece"></i> 拼圖積木邏輯 (Blocks)</span>
+                        <div style="display:flex; gap:0.35rem; font-size:0.75rem; flex-wrap:wrap;">
+                            <span style="background:#d97706; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚡ 事件</span>
+                            <span style="background:#ca8a04; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚙️ 控制</span>
+                            <span style="background:#2563eb; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🔢 數學</span>
+                            <span style="background:#059669; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🧩 組件</span>
+                        </div>
+                    </div>
+                    <div class="blocks-workspace">
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 Button_Factor .Click do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="nested-stack">
+                                    <div class="block cat-variable has-notch-top has-notch-bottom">set global result to <div class="socket"><div class="block cat-text socket-plug" style="margin:-2px;">" "</div></div></div>
+                                    
+                                    <div class="c-block" style="margin-bottom:0;">
+                                        <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                            for each number from <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">1</div></div>
+                                            to <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">min (Box1.Text, Box2.Text)</div></div>
+                                            by 1 do
+                                        </div>
+                                        <div class="c-interior" style="border-left-color: #ca8a04;">
+                                            <div class="c-block" style="margin-bottom:0;">
+                                                <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                                    if <div class="socket">
+                                                        <div class="block cat-logic socket-plug">
+                                                            (rem(Box1.Text, number) = 0) AND (rem(Box2.Text, number) = 0)
+                                                        </div>
+                                                    </div> then
+                                                </div>
+                                                <div class="c-interior" style="border-left-color: #ca8a04;">
+                                                    <div class="block cat-variable has-notch-top has-notch-bottom">
+                                                        set global result to
+                                                        <div class="socket">
+                                                            <div class="block cat-text socket-plug">join (get global result) (get number) (",")</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="c-bottom cat-control"></div>
+                                            </div>
+                                        </div>
+                                        <div class="c-bottom cat-control"></div>
+                                    </div>
+                                    <div class="block cat-component-set has-notch-top has-notch-bottom">set Label_Result.Text to get global result</div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simulator -->
+                <div class="phone-preview-wrap">
+                    <div class="phone-case">
+                        <div class="phone-notch"><div class="phone-camera"></div></div>
+                        <div class="phone-screen">
+                            <div class="status-bar"><span>9:41</span> <span>📶 🔋</span></div>
+                            <div class="app-bar"><i class="fa-solid fa-list-ol"></i> 公因數計算機</div>
+                            <div class="app-content">
+                                <label class="sim-label">整數 1:</label>
+                                <input type="number" id="sim_ex3_num1" class="sim-textbox" placeholder="例如: 12">
+                                <label class="sim-label">整數 2:</label>
+                                <input type="number" id="sim_ex3_num2" class="sim-textbox" placeholder="例如: 18">
+                                <button onclick="runEx3()" class="sim-button">顯示公因數</button>
+                                <div id="sim_ex3_result" class="sim-result-card">公因數 = ...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXERCISE 4: Sum 1 to N -->
+        <div id="ex4" class="exercise-container">
+            <div class="ex-header">
+                <div class="ex-title">
+                    <i class="fa-solid fa-plus-minus"></i> 4. 計算 1 到 n 總和 (防呆機制)
+                </div>
+                <span class="ex-badge">邏輯判斷與防呆</span>
+            </div>
+            <div class="instruction-box">
+                <div><strong>防呆機制：</strong> 試試看在手機輸入小於 3 的數字，程式會跳出警告訊息提示！</div>
+            </div>
+            
+            <div class="split-container">
+                <!-- Blocks -->
+                <div class="blocks-card">
+                    <div class="blocks-card-header">
+                        <span><i class="fa-solid fa-puzzle-piece"></i> 拼圖積木邏輯 (Blocks)</span>
+                        <div style="display:flex; gap:0.35rem; font-size:0.75rem; flex-wrap:wrap;">
+                            <span style="background:#d97706; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚡ 事件</span>
+                            <span style="background:#ca8a04; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚙️ 控制</span>
+                            <span style="background:#2563eb; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🔢 數學</span>
+                            <span style="background:#059669; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🧩 組件</span>
+                        </div>
+                    </div>
+                    <div class="blocks-workspace">
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 Button_Calc .Click do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="c-block" style="margin-bottom:0;">
+                                    <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                        if <div class="socket"><div class="block cat-logic socket-plug">Box_N.Text < 3</div></div> then
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">set Label.Text to "數值需 >= 3"</div>
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">set Label.TextColor to Red</div>
+                                    </div>
+                                    <div class="c-interior" style="border-left: 16px solid #ca8a04; margin-top: -1px; padding: 5px 0 5px 10px;">
+                                        <span style="color: white; font-weight: bold;">else</span>
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-variable has-notch-top has-notch-bottom">set global sum to 0</div>
+                                        <div class="c-block" style="margin-bottom:0;">
+                                            <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                                for each number from 1 to Box_N.Text by 1 do
+                                            </div>
+                                            <div class="c-interior" style="border-left-color: #ca8a04;">
+                                                <div class="block cat-variable has-notch-top has-notch-bottom">set global sum to (get global sum + get number)</div>
+                                            </div>
+                                            <div class="c-bottom cat-control"></div>
+                                        </div>
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">set Label.Text to join ("總和=", get global sum)</div>
+                                    </div>
+                                    <div class="c-bottom cat-control"></div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simulator -->
+                <div class="phone-preview-wrap">
+                    <div class="phone-case">
+                        <div class="phone-notch"><div class="phone-camera"></div></div>
+                        <div class="phone-screen">
+                            <div class="status-bar"><span>9:41</span> <span>📶 🔋</span></div>
+                            <div class="app-bar"><i class="fa-solid fa-calculator"></i> 累加計算機</div>
+                            <div class="app-content">
+                                <label class="sim-label">輸入 3 以上整數 n:</label>
+                                <input type="number" id="sim_ex4_n" class="sim-textbox" placeholder="例如: 10">
+                                <button onclick="runEx4()" class="sim-button">計算 1+2+...+n</button>
+                                <div id="sim_ex4_result" class="sim-result-card">1+2...+n = ...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXERCISE 5: Triangle -->
+        <div id="ex5" class="exercise-container">
+            <div class="ex-header">
+                <div class="ex-title">
+                    <i class="fa-solid fa-play"></i> 5. 輸出文字三角形 (雙層迴圈)
+                </div>
+                <span class="ex-badge">雙層迴圈</span>
+            </div>
+            <div class="instruction-box">
+                <div><strong>視覺化：</strong> 輸入層數，觀看程式如何透過雙層 for 迴圈產生三角形。</div>
+            </div>
+            
+            <div class="split-container">
+                <!-- Blocks -->
+                <div class="blocks-card">
+                    <div class="blocks-card-header">
+                        <span><i class="fa-solid fa-puzzle-piece"></i> 拼圖積木邏輯 (Blocks)</span>
+                        <div style="display:flex; gap:0.35rem; font-size:0.75rem; flex-wrap:wrap;">
+                            <span style="background:#d97706; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚡ 事件</span>
+                            <span style="background:#ca8a04; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚙️ 控制</span>
+                            <span style="background:#2563eb; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🔢 數學</span>
+                            <span style="background:#059669; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🧩 組件</span>
+                        </div>
+                    </div>
+                    <div class="blocks-workspace">
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 Button_Draw .Click do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="block cat-component-set has-notch-top has-notch-bottom">set Label.Text to ""</div>
+                                <div class="c-block" style="margin-bottom:0;">
+                                    <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                        for each i from 1 to Box_Level.Text by 1 do
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-variable has-notch-top has-notch-bottom">set line_str to ""</div>
+                                        <div class="c-block" style="margin-bottom:0;">
+                                            <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                                for each j from 1 to get i by 1 do
+                                            </div>
+                                            <div class="c-interior" style="border-left-color: #ca8a04;">
+                                                <div class="block cat-variable has-notch-top has-notch-bottom">set line_str to join(line_str, "#")</div>
+                                            </div>
+                                            <div class="c-bottom cat-control"></div>
+                                        </div>
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">set Label.Text to join(Label.Text, line_str, "\n")</div>
+                                    </div>
+                                    <div class="c-bottom cat-control"></div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simulator -->
+                <div class="phone-preview-wrap">
+                    <div class="phone-case">
+                        <div class="phone-notch"><div class="phone-camera"></div></div>
+                        <div class="phone-screen">
+                            <div class="status-bar"><span>9:41</span> <span>📶 🔋</span></div>
+                            <div class="app-bar"><i class="fa-solid fa-shapes"></i> 圖形產生器</div>
+                            <div class="app-content">
+                                <label class="sim-label">三角形層數:</label>
+                                <input type="number" id="sim_ex5_level" class="sim-textbox" placeholder="例如: 5">
+                                <button onclick="runEx5()" class="sim-button">繪出三角形</button>
+                                <div id="sim_ex5_result" class="sim-result-card" style="font-family: 'Fira Code', monospace; color: #dc2626; font-size: 1.1rem; line-height: 1.3;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXERCISE 6: Fruit Checkbox -->
+        <div id="ex6" class="exercise-container">
+            <div class="ex-header">
+                <div class="ex-title">
+                    <i class="fa-solid fa-apple-whole"></i> 6. 喜愛的水果 (複選 Box)
+                </div>
+                <span class="ex-badge">複選組件與字串</span>
+            </div>
+            <div class="instruction-box">
+                <div><strong>複選測試：</strong> 試著勾選一個或多個水果，觀察字串串接效果。</div>
+            </div>
+            
+            <div class="split-container">
+                <!-- Blocks -->
+                <div class="blocks-card">
+                    <div class="blocks-card-header">
+                        <span><i class="fa-solid fa-puzzle-piece"></i> 拼圖積木邏輯 (Blocks)</span>
+                        <div style="display:flex; gap:0.35rem; font-size:0.75rem; flex-wrap:wrap;">
+                            <span style="background:#d97706; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚡ 事件</span>
+                            <span style="background:#ca8a04; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚙️ 控制</span>
+                            <span style="background:#2563eb; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🔢 數學</span>
+                            <span style="background:#059669; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🧩 組件</span>
+                        </div>
+                    </div>
+                    <div class="blocks-workspace">
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 Button1 .Click do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="block cat-component-set has-notch-top has-notch-bottom">set Label.Text to "你喜歡: "</div>
+                                
+                                <div class="c-block" style="margin-bottom:0;">
+                                    <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                        if <div class="socket"><div class="block cat-component-get socket-plug">Check_Banana.Checked</div></div> then
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">set Label.Text to join(Label.Text, "香蕉 ")</div>
+                                    </div>
+                                    <div class="c-bottom cat-control"></div>
+                                </div>
+
+                                <div class="c-block" style="margin-bottom:0;">
+                                    <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                        if <div class="socket"><div class="block cat-component-get socket-plug">Check_Orange.Checked</div></div> then
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">set Label.Text to join(Label.Text, "橘子 ")</div>
+                                    </div>
+                                    <div class="c-bottom cat-control"></div>
+                                </div>
+
+                                <div class="c-block" style="margin-bottom:0;">
+                                    <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                        if <div class="socket"><div class="block cat-component-get socket-plug">Check_Apple.Checked</div></div> then
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">set Label.Text to join(Label.Text, "蘋果 ")</div>
+                                    </div>
+                                    <div class="c-bottom cat-control"></div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simulator -->
+                <div class="phone-preview-wrap">
+                    <div class="phone-case">
+                        <div class="phone-notch"><div class="phone-camera"></div></div>
+                        <div class="phone-screen">
+                            <div class="status-bar"><span>9:41</span> <span>📶 🔋</span></div>
+                            <div class="app-bar"><i class="fa-solid fa-basket-shopping"></i> 喜愛的水果</div>
+                            <div class="app-content">
+                                <label class="sim-label">你喜歡吃哪些水果？</label>
+                                <div class="sim-checkbox-group">
+                                    <label class="sim-checkbox"><input type="checkbox" id="sim_ex6_banana"> 🍌 香蕉</label>
+                                    <label class="sim-checkbox"><input type="checkbox" id="sim_ex6_orange"> 🍊 橘子</label>
+                                    <label class="sim-checkbox"><input type="checkbox" id="sim_ex6_apple"> 🍎 蘋果</label>
+                                </div>
+                                <button onclick="runEx6()" class="sim-button" style="margin-top:0.5rem;">確定送出</button>
+                                <div id="sim_ex6_result" class="sim-result-card" style="color: #dc2626;">你喜歡吃...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXERCISE 7: Factorial -->
+        <div id="ex7" class="exercise-container">
+            <div class="ex-header">
+                <div class="ex-title">
+                    <i class="fa-solid fa-calculator"></i> 7. 計算階層 (Factorial 累乘)
+                </div>
+                <span class="ex-badge">累乘演算法</span>
+            </div>
+            <div class="instruction-box">
+                <div><strong>數學實驗：</strong> 試試看輸入 5 (120) 或 6 (720)。注意初始值必須設定為 1 才能正確累乘！</div>
+            </div>
+            
+            <div class="split-container">
+                <!-- Blocks -->
+                <div class="blocks-card">
+                    <div class="blocks-card-header">
+                        <span><i class="fa-solid fa-puzzle-piece"></i> 拼圖積木邏輯 (Blocks)</span>
+                        <div style="display:flex; gap:0.35rem; font-size:0.75rem; flex-wrap:wrap;">
+                            <span style="background:#d97706; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚡ 事件</span>
+                            <span style="background:#ca8a04; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚙️ 控制</span>
+                            <span style="background:#2563eb; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🔢 數學</span>
+                            <span style="background:#059669; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🧩 組件</span>
+                        </div>
+                    </div>
+                    <div class="blocks-workspace">
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 Button1 .Click do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="block cat-variable has-notch-top has-notch-bottom">set global result to 1</div>
+                                
+                                <div class="c-block" style="margin-bottom:0;">
+                                    <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                        for each number from 1 to Box_Num.Text by 1 do
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-variable has-notch-top has-notch-bottom">
+                                            set result to
+                                            <div class="socket">
+                                                <div class="block cat-math socket-plug">get result × get number</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="c-bottom cat-control"></div>
+                                </div>
+                                
+                                <div class="block cat-component-set has-notch-top has-notch-bottom">set Label.Text to join("階層=", get result)</div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simulator -->
+                <div class="phone-preview-wrap">
+                    <div class="phone-case">
+                        <div class="phone-notch"><div class="phone-camera"></div></div>
+                        <div class="phone-screen">
+                            <div class="status-bar"><span>9:41</span> <span>📶 🔋</span></div>
+                            <div class="app-bar"><i class="fa-solid fa-square-root-variable"></i> 計算階層</div>
+                            <div class="app-content">
+                                <label class="sim-label">輸入整數:</label>
+                                <input type="number" id="sim_ex7_num" class="sim-textbox" placeholder="例如: 5">
+                                <button onclick="runEx7()" class="sim-button">計算階層</button>
+                                <div id="sim_ex7_result" class="sim-result-card">階層值 = ...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXERCISE 8: Smart Home MQTT Control -->
+        <div id="ex8" class="exercise-container">
+            <div class="ex-header">
+                <div class="ex-title">
+                    <i class="fa-solid fa-house-signal"></i> 8. 智慧居家 YMHSMQTT 控制 (MQTT IoT 物聯網)
+                </div>
+                <span class="ex-badge">MQTT 物聯網專案</span>
+            </div>
+            <div class="instruction-box">
+                <div><strong>MQTT 伺服器：</strong> Broker: <code>mqtt.ymhs.tyc.edu.tw</code> (Port: <code>1883</code>), 帳號: <code>ymhsmqtt</code> / 密碼: <code>mqttiot</code></div>
+                <div><strong>主題 (Topic)：</strong> 訂閱 <code>stj/home/temp</code> (溫) 與 <code>stj/home/humi</code> (濕)；發布 <code>stj/home/led1</code> 與 <code>stj/home/led2</code> 開關電燈。</div>
+                <div><strong>重點：</strong> 使用 UrsPahoMqttClient 擴充套件連結 MQTT 物聯網 Server，實作遙控開關燈與讀取感測器數值！</div>
+            </div>
+
+            <!-- Detailed Guide Card for UrsPahoMqttClient -->
+            <div style="background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; color: #cbd5e1;">
+                <div style="font-size: 1.1rem; font-weight: bold; color: #38bdf8; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-book-open-reader"></i> UrsPahoMqttClient 擴充套件詳細說明與連線機制
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; font-size: 0.88rem;">
+                    <!-- Col 1: Properties -->
+                    <div style="background: #0f172a; padding: 1rem; border-radius: 8px; border: 1px solid #334155;">
+                        <div style="font-weight: bold; color: #f43f5e; margin-bottom: 0.5rem;"><i class="fa-solid fa-sliders"></i> 核心屬性設定 (Properties)</div>
+                        <ul style="margin: 0; padding-left: 1.2rem; line-height: 1.6; color: #94a3b8;">
+                            <li><strong style="color:#e2e8f0;">Broker:</strong> <code>mqtt.ymhs.tyc.edu.tw</code> (MQTT 伺服器位址)</li>
+                            <li><strong style="color:#e2e8f0;">Port:</strong> <code>1883</code> (TCP 未加密標準通訊埠)</li>
+                            <li><strong style="color:#e2e8f0;">ClientID:</strong> <code>5454535dfgdgdfgfdg</code> (客戶端唯一 ID)</li>
+                            <li><strong style="color:#e2e8f0;">UserName / UserPassword:</strong> <code>ymhsmqtt</code> / <code>mqttiot</code></li>
+                            <li><strong style="color:#e2e8f0;">KeepAlive:</strong> <code>60</code> 秒心跳維護 TCP 通道</li>
+                        </ul>
+                    </div>
+                    <!-- Col 2: Workflow -->
+                    <div style="background: #0f172a; padding: 1rem; border-radius: 8px; border: 1px solid #334155;">
+                        <div style="font-weight: bold; color: #3b82f6; margin-bottom: 0.5rem;"><i class="fa-solid fa-network-wired"></i> 4 大通訊流程細節</div>
+                        <ol style="margin: 0; padding-left: 1.2rem; line-height: 1.6; color: #94a3b8;">
+                            <li><strong style="color:#e2e8f0;">Connect (連線):</strong> 呼叫 <code>.Connect(CleanSession=真)</code> 建立通道。</li>
+                            <li><strong style="color:#e2e8f0;">ConnectionStateChanged:</strong> 觸發異步事件，成功時自動訂閱 <code>stj/home/temp</code> 與 <code>stj/home/humi</code>。</li>
+                            <li><strong style="color:#e2e8f0;">Publish (遙控發布):</strong> 開關電燈時發布 <code>stj/home/led1</code> (<code>"1"</code>/<code>"0"</code>)。</li>
+                            <li><strong style="color:#e2e8f0;">MessageReceived (接收):</strong> 當 Broker 廣播新數據時，自動解析並更新 Label。</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="split-container">
+                <!-- Blocks -->
+                <div class="blocks-card">
+                    <div class="blocks-card-header">
+                        <span><i class="fa-solid fa-puzzle-piece"></i> 拼圖積木邏輯 (Blocks)</span>
+                        <div style="display:flex; gap:0.35rem; font-size:0.75rem; flex-wrap:wrap;">
+                            <span style="background:#d97706; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚡ 事件</span>
+                            <span style="background:#ca8a04; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">⚙️ 控制</span>
+                            <span style="background:#2563eb; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🔢 數學</span>
+                            <span style="background:#7c3aed; padding:2px 6px; border-radius:4px; color:#fff; font-weight:bold;">🔮 MQTT</span>
+                        </div>
+                    </div>
+                    <div class="blocks-workspace">
+                        <!-- Global Variables & Screen Init -->
+                        <div class="c-block">
+                            <div class="block cat-variable has-notch-top has-notch-bottom">初始化全域變數 LED_1 為 <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">0</div></div></div>
+                            <div class="block cat-variable has-notch-top has-notch-bottom">初始化全域變數 LED_2 為 <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">0</div></div></div>
+                        </div>
+
+                        <!-- Screen1.Initialize -->
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 Screen1 .初始化 do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="nested-stack">
+                                    <div class="block cat-variable has-notch-top has-notch-bottom">設定全域 LED_1 為 <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">0</div></div></div>
+                                    <div class="block cat-variable has-notch-top has-notch-bottom">設定全域 LED_2 為 <div class="socket"><div class="block cat-math socket-plug" style="margin:-2px;">0</div></div></div>
+                                    <div class="block cat-component-set has-notch-top has-notch-bottom">設定 圖像1 .圖片 為 <div class="socket"><div class="block cat-text socket-plug" style="margin:-2px;">"led0.JPG"</div></div></div>
+                                    <div class="block cat-component-set has-notch-top has-notch-bottom">設定 圖像2 .圖片 為 <div class="socket"><div class="block cat-text socket-plug" style="margin:-2px;">"led0.JPG"</div></div></div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+
+                        <!-- broker連線按鈕.Click -->
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 broker連線按鈕 .被點選 do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="nested-stack">
+                                    <div class="block cat-component-call has-notch-top has-notch-bottom">呼叫 MQTTClient .連線 (CleanSession: 真)</div>
+                                    <div class="block cat-component-set has-notch-top has-notch-bottom">
+                                        設定 brokername .文字 為 
+                                        <div class="socket">
+                                            <div class="block cat-text socket-plug">合併文字 ("Broker: ", MQTTClient.Broker, "  PORT: ", MQTTClient.Port)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+
+                        <!-- MQTTClient.ConnectionStateChanged -->
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 MQTTClient .ConnectionStateChanged (NewState, StateString) do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="c-block" style="margin-bottom:0;">
+                                    <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                        if <div class="socket"><div class="block cat-component-get socket-plug">MQTTClient.連線狀態</div></div> then
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">設定 連線狀態 .文字 為 <div class="socket"><div class="block cat-text socket-plug" style="margin:-2px;">"連線狀態：已連線"</div></div></div>
+                                        <div class="block cat-component-call has-notch-top has-notch-bottom">呼叫 MQTTClient .Subscribe (Topic: "stj/home/temp", QoS: 0)</div>
+                                        <div class="block cat-component-call has-notch-top has-notch-bottom">呼叫 MQTTClient .Subscribe (Topic: "stj/home/humi", QoS: 0)</div>
+                                    </div>
+                                    <div class="c-interior" style="border-left: 16px solid #ca8a04; margin-top: -1px; padding: 5px 0 5px 10px;">
+                                        <span style="color: white; font-weight: bold;">else</span>
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">設定 連線狀態 .文字 為 <div class="socket"><div class="block cat-text socket-plug" style="margin:-2px;">"連線狀態：未連線"</div></div></div>
+                                    </div>
+                                    <div class="c-bottom cat-control"></div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+
+                        <!-- Switch 1 Toggle & Publish -->
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 電燈1開關 .狀態被改變 do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="c-block" style="margin-bottom:0;">
+                                    <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                        if <div class="socket"><div class="block cat-logic socket-plug">取得 全域 LED_1 = 0</div></div> then
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-component-call has-notch-top has-notch-bottom">呼叫 MQTTClient .Publish (Topic: "stj/home/led1", Message: "1")</div>
+                                        <div class="block cat-variable has-notch-top has-notch-bottom">設定 全域 LED_1 為 1</div>
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">設定 圖像1 .圖片 為 "led1.JPG"</div>
+                                    </div>
+                                    <div class="c-interior" style="border-left: 16px solid #ca8a04; margin-top: -1px; padding: 5px 0 5px 10px;">
+                                        <span style="color: white; font-weight: bold;">else</span>
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-component-call has-notch-top has-notch-bottom">呼叫 MQTTClient .Publish (Topic: "stj/home/led1", Message: "0")</div>
+                                        <div class="block cat-variable has-notch-top has-notch-bottom">設定 全域 LED_1 為 0</div>
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">設定 圖像1 .圖片 為 "led0.JPG"</div>
+                                    </div>
+                                    <div class="c-bottom cat-control"></div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+
+                        <!-- MQTTClient.MessageReceived -->
+                        <div class="c-block">
+                            <div class="c-top cat-event has-notch-bottom">當 MQTTClient .收到報訊 (Topic, Payload, Message) do</div>
+                            <div class="c-interior" style="border-left-color: #d97706;">
+                                <div class="c-block" style="margin-bottom:0;">
+                                    <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                        if <div class="socket"><div class="block cat-logic socket-plug">取得 Topic = "stj/home/temp"</div></div> then
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">設定 溫度數值 .文字 為 <div class="socket"><div class="block cat-text socket-plug">合併文字(取得 Message, " °C")</div></div></div>
+                                    </div>
+                                    <div class="c-bottom cat-control"></div>
+                                </div>
+                                <div class="c-block" style="margin-bottom:0;">
+                                    <div class="c-top cat-control has-notch-top has-notch-bottom">
+                                        if <div class="socket"><div class="block cat-logic socket-plug">取得 Topic = "stj/home/humi"</div></div> then
+                                    </div>
+                                    <div class="c-interior" style="border-left-color: #ca8a04;">
+                                        <div class="block cat-component-set has-notch-top has-notch-bottom">設定 濕度數值 .文字 為 <div class="socket"><div class="block cat-text socket-plug">合併文字(取得 Message, " %")</div></div></div>
+                                    </div>
+                                    <div class="c-bottom cat-control"></div>
+                                </div>
+                            </div>
+                            <div class="c-bottom cat-event"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Simulator -->
+                <div class="phone-preview-wrap">
+                    <div class="phone-case">
+                        <div class="phone-notch"><div class="phone-camera"></div></div>
+                        <div class="phone-screen">
+                            <div class="status-bar"><span>9:41</span> <span>📶 🔋</span></div>
+                            <div class="app-bar"><i class="fa-solid fa-house-signal"></i> 智慧居家 YMHSMQTT 控制</div>
+                            <div class="app-content" style="background:#0f172a; color:#fff; gap:0.75rem;">
+                                <!-- Top Connection Status Row -->
+                                <div style="display:flex; gap:0.5rem; align-items:center;">
+                                    <button onclick="simConnectMQTT(true)" class="sim-button" style="padding:0.45rem; font-size:0.8rem; background:#0ea5e9;">Broker連線</button>
+                                    <button onclick="simConnectMQTT(false)" class="sim-button" style="padding:0.45rem; font-size:0.8rem; background:#64748b;">斷線</button>
+                                    <span id="sim_ex8_conn_status" style="font-size:0.8rem; font-weight:bold; color:#f87171; margin-left:auto;">未連線</span>
+                                </div>
+                                <div id="sim_ex8_broker_name" style="font-size:0.78rem; font-family:monospace; color:#94a3b8; background:#1e293b; padding:0.35rem 0.5rem; border-radius:4px;">
+                                    Broker: mqtt.ymhs.tyc.edu.tw
+                                </div>
+
+                                <!-- LED 1 & LED 2 Switches -->
+                                <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:0.75rem; display:flex; flex-direction:column; gap:0.65rem;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span style="font-size:0.9rem; font-weight:bold;">💡 電燈 1 開關：</span>
+                                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                                            <input type="checkbox" id="sim_ex8_led1" onchange="toggleSimLED(1)" style="transform:scale(1.3); cursor:pointer;">
+                                            <span id="sim_ex8_led1_icon" style="font-size:1.4rem; opacity:0.3;">💡</span>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                                        <span style="font-size:0.9rem; font-weight:bold;">💡 電燈 2 開關：</span>
+                                        <div style="display:flex; align-items:center; gap:0.5rem;">
+                                            <input type="checkbox" id="sim_ex8_led2" onchange="toggleSimLED(2)" style="transform:scale(1.3); cursor:pointer;">
+                                            <span id="sim_ex8_led2_icon" style="font-size:1.4rem; opacity:0.3;">💡</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Sensor Readouts Table -->
+                                <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; padding:0.75rem; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; text-align:center;">
+                                    <div style="background:#0f172a; padding:0.5rem; border-radius:6px;">
+                                        <div style="font-size:0.75rem; color:#94a3b8;"><i class="fa-solid fa-temperature-half"></i> 溫 度</div>
+                                        <div id="sim_ex8_temp" style="font-size:1.1rem; font-weight:bold; color:#38bdf8; margin-top:2px;">-- °C</div>
+                                    </div>
+                                    <div style="background:#0f172a; padding:0.5rem; border-radius:6px;">
+                                        <div style="font-size:0.75rem; color:#94a3b8;"><i class="fa-solid fa-droplet"></i> 濕 度</div>
+                                        <div id="sim_ex8_humi" style="font-size:1.1rem; font-weight:bold; color:#4ade80; margin-top:2px;">-- %</div>
+                                    </div>
+                                </div>
+
+                                <!-- Logs Box -->
+                                <div id="sim_ex8_log" style="font-family:monospace; font-size:0.75rem; color:#4ade80; background:#080e1a; padding:0.5rem; border-radius:6px; height:80px; overflow-y:auto;">
+                                    [系統Ready] 請點擊「Broker連線」進行連線測試...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function showTab(id) {
+            document.querySelectorAll('.exercise-container').forEach(div => div.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            const activeItem = Array.from(document.querySelectorAll('.nav-item')).find(item => item.getAttribute('onclick').includes(id));
+            if (activeItem) {
+                activeItem.classList.add('active');
+            }
+        }
+
+        // --- SIMULATOR LOGIC ---
+
+        function runEx1() {
+            let c = parseFloat(document.getElementById('sim_ex1_input').value);
+            if(isNaN(c)) { document.getElementById('sim_ex1_result').innerText = "請輸入數字"; return; }
+            let f = c * 9 / 5 + 32;
+            document.getElementById('sim_ex1_result').innerText = "華氏 = " + f.toFixed(2) + " °F";
+        }
+
+        function runEx2() {
+            let base = parseFloat(document.getElementById('sim_ex2_base').value);
+            let height = parseFloat(document.getElementById('sim_ex2_height').value);
+            if(isNaN(base) || isNaN(height)) { document.getElementById('sim_ex2_result').innerText = "請輸入完整數值"; return; }
+            let hyp = Math.sqrt(Math.pow(base, 2) + Math.pow(height, 2));
+            document.getElementById('sim_ex2_result').innerText = "斜邊長 = " + hyp.toFixed(2);
+        }
+
+        function runEx3() {
+            let n1 = parseInt(document.getElementById('sim_ex3_num1').value);
+            let n2 = parseInt(document.getElementById('sim_ex3_num2').value);
+            if(isNaN(n1) || isNaN(n2)) { document.getElementById('sim_ex3_result').innerText = "請輸入兩個整數"; return; }
+            
+            let result = "";
+            let limit = Math.min(n1, n2);
+            for(let i=1; i<=limit; i++) {
+                if(n1 % i === 0 && n2 % i === 0) {
+                    result += i + ", ";
+                }
+            }
+            if (result.endsWith(", ")) result = result.slice(0, -2);
+            document.getElementById('sim_ex3_result').innerText = "公因數: " + result;
+        }
+
+        function runEx4() {
+            let n = parseInt(document.getElementById('sim_ex4_n').value);
+            let label = document.getElementById('sim_ex4_result');
+            
+            if (isNaN(n)) { label.innerText = "請輸入數字"; return; }
+
+            if (n < 3) {
+                label.innerText = "⚠️ 輸入數值必須大於或等於 3";
+                label.style.color = "#dc2626";
+            } else {
+                let sum = 0;
+                for(let i=1; i<=n; i++) {
+                    sum += i;
+                }
+                label.innerText = "1+2...+" + n + " = " + sum;
+                label.style.color = "#0f172a";
+            }
+        }
+
+        function runEx5() {
+            let level = parseInt(document.getElementById('sim_ex5_level').value);
+            if (isNaN(level)) { document.getElementById('sim_ex5_result').innerText = "請輸入層數"; return; }
+            let text = "";
+            for (let i = 1; i <= level; i++) {
+                let line = "";
+                for (let j = 1; j <= i; j++) {
+                    line += "#";
+                }
+                text += line + "\n";
+            }
+            document.getElementById('sim_ex5_result').innerText = text;
+        }
+
+        function runEx6() {
+            let text = "你喜歡吃: ";
+            let selected = [];
+            if(document.getElementById('sim_ex6_banana').checked) selected.push("香蕉 🍌");
+            if(document.getElementById('sim_ex6_orange').checked) selected.push("橘子 🍊");
+            if(document.getElementById('sim_ex6_apple').checked) selected.push("蘋果 🍎");
+            
+            if (selected.length === 0) {
+                text += "未勾選任何水果";
+            } else {
+                text += selected.join(" ");
+            }
+            document.getElementById('sim_ex6_result').innerText = text;
+        }
+
+        function runEx7() {
+            let n = parseInt(document.getElementById('sim_ex7_num').value);
+            if(isNaN(n)) { document.getElementById('sim_ex7_result').innerText = "請輸入整數"; return; }
+            let result = 1;
+            for(let i=1; i<=n; i++) {
+                result = result * i;
+            }
+            document.getElementById('sim_ex7_result').innerText = n + "! 階層值 = " + result;
+        }
+
+        // --- EXERCISE 8: MQTT SMART HOME LOGIC ---
+        let simMqttTimer = null;
+        let simMqttConnected = false;
+
+        function simConnectMQTT(connect) {
+            const statusEl = document.getElementById('sim_ex8_conn_status');
+            const brokerEl = document.getElementById('sim_ex8_broker_name');
+            const logEl = document.getElementById('sim_ex8_log');
+
+            if (connect) {
+                simMqttConnected = true;
+                statusEl.innerText = "連線狀態：已連線";
+                statusEl.style.color = "#4ade80";
+                brokerEl.innerText = "Broker: mqtt.ymhs.tyc.edu.tw  PORT: 1883";
+                logEl.innerHTML += "<br>> 成功連線至 mqtt.ymhs.tyc.edu.tw:1883";
+                logEl.innerHTML += "<br>> 訂閱主題 stj/home/temp";
+                logEl.innerHTML += "<br>> 訂閱主題 stj/home/humi";
+
+                // Simulate receiving sensors data
+                if (!simMqttTimer) {
+                    simMqttTimer = setInterval(() => {
+                        if (!simMqttConnected) return;
+                        let t = (25 + Math.random() * 3).toFixed(1);
+                        let h = Math.floor(55 + Math.random() * 15);
+                        document.getElementById('sim_ex8_temp').innerText = t + " °C";
+                        document.getElementById('sim_ex8_humi').innerText = h + " %";
+                        logEl.innerHTML += `<br>> 收到廣播 [temp]: ${t}°C, [humi]: ${h}%`;
+                        logEl.scrollTop = logEl.scrollHeight;
+                    }, 4000);
+                }
+            } else {
+                simMqttConnected = false;
+                statusEl.innerText = "連線狀態：未連線";
+                statusEl.style.color = "#f87171";
+                brokerEl.innerText = "Broker: ";
+                document.getElementById('sim_ex8_temp').innerText = "-- °C";
+                document.getElementById('sim_ex8_humi').innerText = "-- %";
+                logEl.innerHTML += "<br>> 已中斷 MQTT 伺服器連線";
+            }
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function toggleSimLED(ledNum) {
+            const logEl = document.getElementById('sim_ex8_log');
+            const isChecked = document.getElementById('sim_ex8_led' + ledNum).checked;
+            const iconEl = document.getElementById('sim_ex8_led' + ledNum + '_icon');
+
+            if (isChecked) {
+                iconEl.style.opacity = '1';
+                iconEl.style.textShadow = '0 0 12px #facc15';
+                logEl.innerHTML += `<br>> 發布 Publish Topic [stj/home/led${ledNum}] = 1 (開啟)`;
+            } else {
+                iconEl.style.opacity = '0.3';
+                iconEl.style.textShadow = 'none';
+                logEl.innerHTML += `<br>> 發布 Publish Topic [stj/home/led${ledNum}] = 0 (關閉)`;
+            }
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (location.hash) {
+                const target = location.hash.replace('#', '');
+                if (document.getElementById(target)) showTab(target);
+            }
+        });
+    </script>
+</body>
+</html>

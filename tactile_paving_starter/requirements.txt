@@ -1,0 +1,6 @@
+ultralytics>=8.3
+opencv-python
+numpy
+pyttsx3
+# 選配：ESP32 序列埠警示
+# pyserial

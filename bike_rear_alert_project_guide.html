@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【專題實作】自行車後方來車警示｜學生實作手冊</title>
+<meta name="description" content="高中職專題實作手冊：用朝後拍攝的影片與 YOLO11 辨識後方車輛，從車框變大的速度估計到達時間，提早亮燈、嗶聲並用語音說出車種，TFT 顯示等級與到達秒數。含拍攝方法、原理、程式包、ESP32 桌上模型、驗證方法與評分表。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #cbd5e1;
+    --text: #0f172a;
+    --muted: #475569;
+    --primary: #0369a1;
+    --primary-soft: #e0f2fe;
+    --accent: #a16207;
+    --accent-soft: #fef9c3;
+    --danger: #b91c1c;
+    --danger-soft: #fef2f2;
+    --ok: #047857;
+    --ok-soft: #ecfdf5;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--text);
+    background: var(--bg);
+  }
+  a { color: var(--primary); }
+  :focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; border-radius: 4px; }
+  .skip { position: absolute; left: -9999px; }
+  .skip:focus { left: 16px; top: 8px; background: #fff; padding: 6px 12px; z-index: 10; }
+
+  header.hero {
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f766e 100%);
+    color: #fff;
+    padding: 48px 20px 40px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .hero .wrap { padding: 0; }
+  .hero .eyebrow {
+    display: inline-block; background: rgba(15,23,42,0.4); border: 1px solid rgba(255,255,255,0.35);
+    padding: 2px 12px; border-radius: 999px; font-size: 0.9rem; font-weight: 700;
+  }
+  .hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.3; margin: 14px 0 10px; font-weight: 900; }
+  .hero p { font-size: 1.1rem; max-width: 760px; margin: 0 0 20px; color: #f0f9ff; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px;
+    font-weight: 700; text-decoration: none; border: 2px solid transparent; font-size: 1rem; cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary { background: #fde047; color: #0f172a; }
+  .btn-primary:hover { background: #facc15; }
+  .btn-ghost { color: #fff; border-color: rgba(255,255,255,0.7); background: transparent; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.12); }
+  .facts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; padding: 0; list-style: none; }
+  .facts li { background: rgba(15,23,42,0.35); border-radius: 8px; padding: 4px 12px; font-size: 0.95rem; }
+
+  .layout { display: grid; grid-template-columns: 240px 1fr; gap: 32px; padding-top: 28px; padding-bottom: 60px; }
+  nav.toc { position: sticky; top: 16px; align-self: start; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  nav.toc h2 { font-size: 1rem; margin: 0 0 6px; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; font-size: 0.95rem; line-height: 1.9; }
+  nav.toc a { text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+  main { min-width: 0; }
+
+  section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin-bottom: 24px; scroll-margin-top: 16px; }
+  section > h2 { font-size: 1.5rem; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+  .num { display: inline-flex; width: 36px; height: 36px; border-radius: 9px; background: var(--primary-soft); color: var(--primary); align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; flex-shrink: 0; }
+  h3 { font-size: 1.15rem; margin: 20px 0 6px; }
+  p { margin: 8px 0; }
+  ul, ol { padding-left: 1.4em; margin: 8px 0; }
+  li { margin: 3px 0; }
+  .muted { color: var(--muted); }
+
+  .table-wrap { overflow-x: auto; margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.97rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  thead th { background: #e2e8f0; }
+  tbody th { background: #f1f5f9; font-weight: 700; }
+
+  .note { border-radius: 10px; padding: 12px 16px; margin: 12px 0; border: 1px solid; }
+  .note > strong:first-child { display: block; }
+  .note.warn { background: var(--danger-soft); border-color: #fca5a5; color: #7f1d1d; }
+  .note.tip { background: var(--ok-soft); border-color: #6ee7b7; color: #064e3b; }
+  .note.info { background: var(--accent-soft); border-color: #fde047; color: #713f12; }
+
+  .flow { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; counter-reset: flow; }
+  .flow li { counter-increment: flow; background: var(--primary-soft); border: 1px solid #7dd3fc; border-radius: 10px; padding: 8px 12px; flex: 1 1 150px; font-size: 0.95rem; position: relative; margin: 0; }
+  .flow li::before { content: counter(flow); display: inline-block; background: var(--primary); color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 0.8rem; font-weight: 700; margin-right: 6px; }
+  .flow li b { display: block; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .box { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: #f8fafc; }
+  .box h3 { margin-top: 0; }
+
+  pre, code { font-family: "JetBrains Mono", Consolas, monospace; }
+  code { background: #e2e8f0; padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-text); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 0.9rem; line-height: 1.6; margin: 8px 0; }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  .prompt { border: 1px solid var(--border); border-radius: 10px; margin: 12px 0; overflow: hidden; }
+  .prompt-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #f1f5f9; padding: 8px 12px; font-weight: 700; flex-wrap: wrap; }
+  .prompt pre { margin: 0; border-radius: 0; white-space: pre-wrap; }
+  .copy { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 4px 12px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+  .copy:hover { background: #075985; }
+
+  .check { list-style: none; padding-left: 0; }
+  .check li::before { content: "☐ "; font-weight: 700; color: var(--primary); }
+
+  footer { text-align: center; color: var(--muted); padding: 24px 16px 40px; font-size: 0.95rem; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static; }
+    .grid2 { grid-template-columns: 1fr; }
+    section { padding: 20px 16px; }
+    body { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    nav.toc, .hero .actions, .copy, .calc { display: none; }
+    .layout { display: block; }
+    section { break-inside: avoid; }
+  }
+  details { margin: 8px 0 16px; }
+  details summary { cursor: pointer; font-weight: 700; color: var(--primary); padding: 4px 0; }
+</style>
+<style>
+  .figure { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin: 12px 0; }
+  .figure svg { display: block; width: 100%; height: auto; max-width: 720px; margin: 0 auto; }
+  .figure figcaption { text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 6px; }
+  .svg-label { font: 500 14px "Noto Sans TC", sans-serif; fill: #0f172a; }
+  .svg-sub { font: 400 12px "Noto Sans TC", sans-serif; fill: #475569; }
+  .formula { font-family: "JetBrains Mono", Consolas, monospace; background: var(--primary-soft); border: 1px solid #7dd3fc; border-radius: 10px; padding: 10px 14px; margin: 10px 0; font-size: 1.05rem; overflow-x: auto; }
+  .calc { border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin: 14px 0; background: #f8fafc; }
+  .calc h3 { margin-top: 0; }
+  .calc-grid { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+  .calc label { display: flex; flex-direction: column; font-weight: 700; font-size: 0.95rem; }
+  .calc input { font: inherit; width: 130px; padding: 6px 8px; border: 1px solid #94a3b8; border-radius: 8px; background: #fff; color: var(--text); }
+  .calc-out { margin-top: 10px; padding: 8px 12px; border-radius: 8px; font-weight: 700; border: 1px solid var(--border); background: #fff; }
+  .calc-out.lv0 { border-color: #6ee7b7; background: var(--ok-soft); color: #064e3b; }
+  .calc-out.lv1 { border-color: #fde047; background: var(--accent-soft); color: #713f12; }
+  .calc-out.lv2 { border-color: #fca5a5; background: var(--danger-soft); color: #7f1d1d; }
+  kbd { font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.88em; background: #fff; border: 1px solid #94a3b8; border-bottom-width: 2px; border-radius: 5px; padding: 0 6px; }
+  table.nw1 tbody th, table.nw1 thead th:first-child, table.nw3 td:nth-child(3),
+  table.nw12 th:first-child, table.nw12 td:nth-child(2), table.nw12 thead th:nth-child(2) { white-space: nowrap; }
+  .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: middle; margin-right: 4px; border: 1px solid #334155; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要內容</a>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">專題製作・學生實作手冊</span>
+    <h1>自行車「後方來車」警示：<br>從車框變大的速度，算出還有幾秒</h1>
+    <p>騎單車時看不到後方逼近的大車。這個專題用朝後拍攝的影片，讓 YOLO 找出汽車、機車、公車、貨車，再從車框「變大得多快」估計車子還有幾秒會到，提早亮燈、發出嗶聲，並用語音說出「後方機車／汽車／大型車」。</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="bike_rear_alert_starter_pack.zip" download="bike_rear_alert_starter_pack.zip">⬇ 下載程式包（ZIP）</a>
+      <a class="btn btn-ghost" href="#design">看功能設計</a>
+      <a class="btn btn-ghost" href="#logic">看運作原理</a>
+    </div>
+    <ul class="facts">
+      <li>難度：挑戰 ★★★</li>
+      <li>建議人數：3～4 人</li>
+      <li>時程：約 12～16 週</li>
+      <li>核心技術：YOLO11 ＋ 追蹤 ＋ 到達時間估計</li>
+      <li>預算：約 2,200～7,500 元（不含筆電）</li>
+    </ul>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="本頁目錄">
+    <h2>目錄</h2>
+    <ol>
+      <li><a href="#overview">專題概要</a></li>
+      <li><a href="#layout">配置與架構</a></li>
+      <li><a href="#design">功能設計</a></li>
+      <li><a href="#hardware">硬體清單</a></li>
+      <li><a href="#wiring">桌上模型接線</a></li>
+      <li><a href="#software">軟體與安裝</a></li>
+      <li><a href="#filming">拍攝影片</a></li>
+      <li><a href="#flow">12 週製作流程</a></li>
+      <li><a href="#logic">運作原理</a></li>
+      <li><a href="#code">程式包使用說明</a></li>
+      <li><a href="#prompts">AI 助手提示語</a></li>
+      <li><a href="#verify">測試與驗證</a></li>
+      <li><a href="#ethics">安全、隱私與倫理</a></li>
+      <li><a href="#trouble">常見問題</a></li>
+      <li><a href="#v2">延伸：手機或樹莓派</a></li>
+      <li><a href="#report">書面報告與評分</a></li>
+    </ol>
+  </nav>
+
+  <main id="main">
+
+    <section id="overview">
+      <h2><span class="num">1</span>專題概要</h2>
+      <h3>定位</h3>
+      <p>市面上已有自行車用的後方雷達尾燈（例如 Garmin Varia），用雷達偵測後方車輛。這個專題改用<strong>一般鏡頭加上 AI 影像辨識</strong>，重點不是做出能上路的產品，而是弄懂「怎麼從影片判斷車子正在逼近」，並用數據證明方法有效。</p>
+      <h3>專題目標</h3>
+      <ol>
+        <li>在朝後拍攝的影片中，辨識汽車、機車、公車、貨車，並持續追蹤同一台車。</li>
+        <li>從車框寬度的變化，估計車子還有幾秒到達（到達時間 τ）。</li>
+        <li>τ 小於 4 秒亮黃燈（注意），小於 2 秒亮紅燈並連續嗶聲（危險）。</li>
+        <li>用人工標記的正確答案，計算<strong>平均提早幾秒警示</strong>、漏報與誤報次數，並能一次評估整批影片、比較不同參數。</li>
+        <li>對外的影片與截圖自動模糊行人與車牌，保護隱私。</li>
+        <li>用 ESP32 做成桌上模型：三色燈與蜂鳴器表示等級，<strong>DFPlayer 語音說出車種</strong>，<strong>TFT 螢幕顯示等級、車種與到達秒數</strong>。</li>
+      </ol>
+      <div class="note warn">
+        <strong>安全規則</strong>
+        請用錄好的影片或桌上模型測試，<strong>不要邊騎車邊測試或看螢幕</strong>。這是教學原型，不能取代後照鏡、車燈、安全帽與注意路況。
+      </div>
+    </section>
+
+    <section id="layout">
+      <h2><span class="num">2</span>配置與架構</h2>
+      <figure class="figure">
+        <svg viewBox="0 0 680 430" role="img" aria-labelledby="figTitle figDesc">
+          <title id="figTitle">後方來車警示俯視示意圖</title>
+          <desc id="figDesc">俯視道路，自行車靠右側往上行駛，座管上的鏡頭朝後拍攝，扇形拍攝範圍涵蓋後方車道；一台汽車在騎士左後方同向駛近，與自行車的距離標示為 d。右側說明各部分的用途。</desc>
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#1e3a8a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+            <marker id="tick" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M5 0L5 10" stroke="#475569" stroke-width="1.5"/></marker>
+          </defs>
+          <rect x="60" y="10" width="360" height="410" fill="#9ca3af"/>
+          <rect x="30" y="10" width="30" height="410" fill="#bbf7d0"/>
+          <rect x="420" y="10" width="20" height="410" fill="#e2e8f0"/>
+          <line x1="410" y1="10" x2="410" y2="420" stroke="#f8fafc" stroke-width="3"/>
+          <line x1="70" y1="10" x2="70" y2="420" stroke="#f8fafc" stroke-width="3"/>
+          <line x1="240" y1="10" x2="240" y2="420" stroke="#f8fafc" stroke-width="3" stroke-dasharray="22 18"/>
+          <polygon points="372,146 250,412 410,412" fill="#5eead4" fill-opacity="0.35" stroke="#0f766e" stroke-width="1" stroke-dasharray="4 3"/>
+          <ellipse cx="372" cy="70" rx="5" ry="16" fill="#1f2937"/>
+          <ellipse cx="372" cy="132" rx="5" ry="16" fill="#1f2937"/>
+          <rect x="369" y="70" width="6" height="62" fill="#1d4ed8"/>
+          <line x1="356" y1="74" x2="388" y2="74" stroke="#1f2937" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="372" cy="100" r="12" fill="#fde68a" stroke="#b45309"/>
+          <rect x="365" y="140" width="14" height="10" rx="2" fill="#99f6e4" stroke="#0f766e" stroke-width="1.5"/>
+          <line x1="372" y1="50" x2="372" y2="22" stroke="#1e3a8a" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="266" y="300" width="50" height="86" rx="10" fill="#bfdbfe" stroke="#1e3a8a" stroke-width="1.5"/>
+          <rect x="272" y="306" width="38" height="16" rx="3" fill="#e0f2fe" stroke="#1e3a8a"/>
+          <line x1="291" y1="296" x2="291" y2="258" stroke="#1e3a8a" stroke-width="2" marker-end="url(#arrow)"/>
+          <line x1="200" y1="150" x2="200" y2="300" stroke="#475569" stroke-width="1.5" marker-start="url(#tick)" marker-end="url(#tick)"/>
+          <line x1="200" y1="150" x2="362" y2="150" stroke="#475569" stroke-width="0.8" stroke-dasharray="3 3"/>
+          <line x1="200" y1="300" x2="266" y2="300" stroke="#475569" stroke-width="0.8" stroke-dasharray="3 3"/>
+          <rect x="186" y="212" width="28" height="24" rx="4" fill="#9ca3af"/>
+          <text class="svg-label" x="200" y="230" text-anchor="middle" style="fill:#fff;font-weight:700">d</text>
+          <g stroke="#64748b" stroke-width="0.7" stroke-dasharray="3 3">
+            <line x1="386" y1="100" x2="458" y2="90"/>
+            <line x1="380" y1="146" x2="458" y2="160"/>
+            <line x1="380" y1="300" x2="458" y2="250"/>
+            <line x1="318" y1="340" x2="458" y2="340"/>
+          </g>
+          <text class="svg-label" x="464" y="86">騎士與自行車</text>
+          <text class="svg-sub" x="464" y="104">靠右行駛，往上前進</text>
+          <text class="svg-label" x="464" y="156">朝後鏡頭</text>
+          <text class="svg-sub" x="464" y="174">手機、行車紀錄器或運動攝影機</text>
+          <text class="svg-label" x="464" y="246">拍攝範圍</text>
+          <text class="svg-sub" x="464" y="264">超車的車會出現在畫面右半邊</text>
+          <text class="svg-label" x="464" y="336">後方來車</text>
+          <text class="svg-sub" x="464" y="354">越靠近，畫面中的框越大</text>
+          <text class="svg-sub" x="464" y="372">距離 d ÷ 相對速度 ≈ 到達秒數</text>
+        </svg>
+        <figcaption>俯視示意：台灣靠右行駛，後方車輛會從騎士左側超車</figcaption>
+      </figure>
+
+      <h3>動作要求示意影片（71 秒，有聲音）</h3>
+      <p>先看這支影片，了解每種情境下系統應該怎麼反應：左邊是朝後鏡頭，右上是俯視圖，右下是 ESP32 的 TFT、三色燈、蜂鳴器與語音。車輛動作是事先安排的模擬動畫，警示與語音規則和程式包完全相同。</p>
+      <figure class="figure">
+        <video controls preload="metadata" playsinline width="1280" height="720" poster="bike_rear_alert_scenario_poster.jpg" style="width:100%;height:auto;border-radius:8px;background:#0f172a;color:#f8fafc" aria-describedby="scenarioText">
+          <source src="bike_rear_alert_scenario.mp4" type="video/mp4">
+          你的瀏覽器無法播放影片，請<a href="bike_rear_alert_scenario.mp4">下載影片</a>觀看。
+        </video>
+        <figcaption>字幕已燒錄在畫面下方；影片也可以用 <code>8_make_scenario_video.bat</code> 重新產生</figcaption>
+      </figure>
+      <details id="scenarioText">
+        <summary>影片文字稿（每個時間點的畫面與聲音）</summary>
+        <div class="table-wrap">
+          <table class="nw1">
+            <thead><tr><th scope="col">時間</th><th scope="col">情境與畫面</th><th scope="col">燈號、TFT、語音</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">0:05</th><td>情境 0：系統啟動，後方沒有來車</td><td>語音「警示系統啟動」；綠燈恆亮；TFT「安全」「後方無來車」</td></tr>
+              <tr><th scope="row">0:14</th><td>情境 1：機車從後方逼近，τ 約 3 秒</td><td>黃燈閃、每秒短嗶；TFT「注意」「後方機車」；語音「後方機車」</td></tr>
+              <tr><th scope="row">0:15</th><td>機車更近，τ 小於 2 秒</td><td>紅燈快閃、連續嗶聲；TFT「危險」；語音「危險，機車」</td></tr>
+              <tr><th scope="row">0:18</th><td>機車經過後再維持 1 秒</td><td>解除，回到綠燈與「安全」</td></tr>
+              <tr><th scope="row">0:23</th><td>情境 2：汽車跟在後面、速度差不多，接著慢慢退後</td><td>車框大小幾乎不變，τ 很大，不警示</td></tr>
+              <tr><th scope="row">0:36</th><td>情境 3：大貨車快速逼近，在較遠處就被偵測到</td><td>語音「後方大型車」；黃燈；TFT「後方大型車」</td></tr>
+              <tr><th scope="row">0:37</th><td>大貨車 τ 小於 2 秒</td><td>語音「危險，大型車」；紅燈與連續嗶聲</td></tr>
+              <tr><th scope="row">0:48</th><td>情境 4：汽車和機車同時進入注意</td><td>語音「後方多台車」</td></tr>
+              <tr><th scope="row">0:50</th><td>兩台車同時進入危險</td><td>語音「危險，注意」</td></tr>
+              <tr><th scope="row">0:58</th><td>情境 5：USB 線被拔掉</td><td>1.5 秒後綠燈慢閃、TFT「未連線」「請檢查電腦連線」</td></tr>
+              <tr><th scope="row">1:02</th><td>USB 線接回</td><td>自動回到「安全」</td></tr>
+              <tr><th scope="row">1:05</th><td>重點整理</td><td>規則摘要與安全提醒</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+
+      <h3>分兩個階段做</h3>
+      <div class="grid2">
+        <div class="box">
+          <h3>第一階段：影片分析（主要成果）</h3>
+          <ol class="flow" aria-label="影片分析流程">
+            <li><b>拍攝</b>朝後的道路影片</li>
+            <li><b>標記</b>每台車經過的時間</li>
+            <li><b>分析</b>程式找出警示時間</li>
+            <li><b>比對</b>算出提早秒數與誤報</li>
+          </ol>
+        </div>
+        <div class="box">
+          <h3>第二階段：桌上模型（展示用）</h3>
+          <ol class="flow" aria-label="桌上模型流程">
+            <li><b>鏡頭</b>拍玩具車或螢幕上的影片</li>
+            <li><b>筆電</b>即時辨識與估計</li>
+            <li><b>USB 線</b>送出狀態與語音編號</li>
+            <li><b>ESP32</b>燈號、蜂鳴器、TFT 文字、DFPlayer 語音</li>
+          </ol>
+        </div>
+      </div>
+      <div class="note info">
+        <strong>為什麼先分析影片，而不是直接裝在車上？</strong>
+        上路測試有危險，而且每次的路況都不一樣，沒辦法公平比較。錄好的影片可以反覆分析，改一個參數就能在同一批影片上比較成績，這才是可靠的實驗方法。
+      </div>
+    </section>
+
+    <section id="design">
+      <h2><span class="num">3</span>功能設計</h2>
+      <p>動手寫程式或接線之前，先把「系統要做到什麼、怎麼算做到」寫清楚。下面是程式包已經實作的設計，報告中的「研究方法」可以直接引用，改良時也要回來更新這份規格。</p>
+
+      <h3>3.1 功能清單與驗收標準</h3>
+      <div class="table-wrap">
+        <table class="nw12">
+          <thead><tr><th scope="col">編號</th><th scope="col">功能</th><th scope="col">說明</th><th scope="col">對應程式</th><th scope="col">驗收標準</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">F1</th><td>影像輸入</td><td>讀取影片檔（mp4、avi、mov、mkv）或 USB 鏡頭</td><td><code>rear_alert.py</code></td><td>兩種來源都能分析；鏡頭沒有畫面超過 1 秒會提示</td></tr>
+            <tr><th scope="row">F2</th><td>車輛辨識</td><td>YOLO11 找出 car、motorcycle、bus、truck；同一台車只保留一個框</td><td><code>rear_alert.py</code></td><td>練習影片的兩台逼近車輛都被辨識</td></tr>
+            <tr><th scope="row">F3</th><td>車輛追蹤</td><td>用 IoU 把前後兩次的框配對，給每台車一個編號</td><td><code>Tracker</code></td><td>同一台車逼近的過程中編號不變</td></tr>
+            <tr><th scope="row">F4</th><td>到達時間估計</td><td>用最近 0.8 秒「寬度倒數」的直線，估計還有幾秒到達（τ）</td><td><code>Track.estimate_ttc</code></td><td>等速逼近時，估計值和實際值相差 0.5 秒以內</td></tr>
+            <tr><th scope="row">F5</th><td>危險區域過濾</td><td>只看 <code>zone_x</code> 範圍內、寬度夠大的車</td><td><code>rear_alert.py</code></td><td>遠車道、太遠的車不會觸發警示</td></tr>
+            <tr><th scope="row">F6</th><td>警示狀態機</td><td>安全、注意、危險三級；連續確認才警示，降級要維持 1 秒</td><td><code>AlertState</code></td><td>燈號不會在同一台車逼近時忽亮忽滅</td></tr>
+            <tr><th scope="row">F7</th><td>警示輸出</td><td>ESP32 三色燈與蜂鳴器；沒接 ESP32 時用電腦嗶聲（播放語音時蜂鳴器暫停約 1.2 秒）</td><td><code>Esp32Link</code>、<code>PcBeeper</code>、<code>esp32_rear_alert.ino</code></td><td>三種等級的燈號與聲音都能分辨</td></tr>
+            <tr><th scope="row">F8</th><td>失效提示</td><td>ESP32 超過 1.5 秒沒收到訊號就顯示「離線」</td><td><code>esp32_rear_alert.ino</code></td><td>拔掉 USB 或關閉程式後，綠燈改為慢閃、TFT 顯示「未連線」</td></tr>
+            <tr><th scope="row">F9</th><td>畫面顯示</td><td>狀態列、車框顏色、編號、τ、危險區域線</td><td><code>draw_overlay</code></td><td>旁人看畫面就知道目前等級與原因</td></tr>
+            <tr><th scope="row">F10</th><td>紀錄與摘要</td><td>警示開始、升級、解除寫入 CSV；分析結束寫入摘要 JSON</td><td><code>rear_alert.py</code></td><td>每次分析都有 CSV 與 JSON，時間和影片一致</td></tr>
+            <tr><th scope="row">F11</th><td>隱私保護</td><td>輸出影片與警示截圖時，模糊行人與車輛下半部（車牌）</td><td><code>blur_privacy</code></td><td><code>output/</code> 裡看不清楚車牌與人臉</td></tr>
+            <tr><th scope="row">F12</th><td>警示截圖</td><td>每次警示開始或升級，存一張已模糊的截圖</td><td><code>rear_alert.py</code></td><td>截圖檔名有時間與等級，可直接放進報告</td></tr>
+            <tr><th scope="row">F13</th><td>正確答案標記</td><td>播放影片，按數字鍵記錄車輛經過時間與車種</td><td><code>label_events.py</code></td><td>可暫停、逐格、取消；答案存在影片旁邊</td></tr>
+            <tr><th scope="row">F14</th><td>單支成效評估</td><td>成功率、平均與最短提早秒數、紅燈提早、誤報、各車種、車種判斷正確率</td><td><code>evaluate.py</code></td><td>練習影片得到成功 2 次、誤報 0 次、車種 2/2 正確</td></tr>
+            <tr><th scope="row">F15</th><td>批次評估與參數實驗</td><td>一次分析整個資料夾；用 <code>--set</code> 暫時改參數，不動 <code>config.json</code></td><td><code>batch_run.py</code></td><td>輸出可用 Excel 開啟的成績表與當次設定</td></tr>
+            <tr><th scope="row">F16</th><td>練習資料</td><td>產生固定內容的練習影片與答案，每個人的結果都一樣</td><td><code>make_demo_video.py</code></td><td>不需要拍攝就能跑完整個流程</td></tr>
+            <tr><th scope="row">F17</th><td>車種語音提示</td><td>車子第一次進入注意時說「後方機車／汽車／大型車」，升到危險時說「危險，＋車種」；同一台車只說一次，兩段語音至少間隔 1.5 秒</td><td><code>voice.py</code>、<code>esp32_rear_alert.ino</code>（DFPlayer）</td><td>練習影片依序說「後方大型車」「危險，大型車」「危險，大型車」；<code>test_voice_logic.py</code> 全部通過</td></tr>
+            <tr><th scope="row">F18</th><td>TFT 文字顯示</td><td>1.8 吋 TFT 顯示等級色塊、車種中文、到達秒數；只有內容改變時才重畫</td><td><code>esp32_rear_alert.ino</code>、<code>make_tft_labels.py</code></td><td>四種狀態的畫面都正確，數字更新時不閃爍</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.2 非功能需求</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">項目</th><th scope="col">目標</th><th scope="col">怎麼量</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">處理速度</th><td>筆電每秒至少處理 10 張畫面（每 0.1 秒辨識一次）</td><td>分析結束印出的「處理速度」</td></tr>
+            <tr><th scope="row">反應時間</th><td>桌上模型從車輛開始逼近到亮燈，由組員自訂目標（例如 0.5 秒內）</td><td>手機慢動作錄影數影格</td></tr>
+            <tr><th scope="row">提早秒數</th><td>由組員訂目標，例如「平均提早 2 秒以上」</td><td><code>batch_run.py</code> 成績表</td></tr>
+            <tr><th scope="row">誤報</th><td>由組員訂目標，例如「每 10 分鐘不超過 1 次」</td><td>成績表的「每10分鐘誤報」</td></tr>
+            <tr><th scope="row">失效安全</th><td>系統沒在運作時一定看得出來</td><td>拔線、關程式測試離線燈號</td></tr>
+            <tr><th scope="row">隱私</th><td>對外的影像都已模糊；原始影片不上傳</td><td>發表前逐張檢查</td></tr>
+            <tr><th scope="row">易用性</th><td>不會寫程式的人也能操作：拖曳影片到 bat 檔即可</td><td>請其他同學照 README 操作一次</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.3 系統模組圖</h3>
+      <figure class="figure">
+        <svg viewBox="0 0 680 360" role="img" aria-labelledby="modTitle modDesc">
+          <title id="modTitle">系統模組圖</title>
+          <desc id="modDesc">影像輸入進入處理流程：車輛辨識、車輛追蹤、到達時間估計、區域過濾、警示狀態機依序相連。警示狀態機輸出到 ESP32（燈號、TFT、語音）、電腦語音與嗶聲、畫面疊圖、紀錄與摘要、影片與截圖。成效評估部分：標記答案與紀錄一起送到比對成效，再彙整成批次成績表。</desc>
+          <defs><marker id="arr3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <g font-family="Noto Sans TC, sans-serif">
+            <rect x="20" y="16" width="112" height="44" rx="8" fill="#e2e8f0" stroke="#64748b"/>
+            <text class="svg-label" x="76" y="35" text-anchor="middle">影像輸入</text>
+            <text class="svg-sub" x="76" y="52" text-anchor="middle">影片／USB 鏡頭</text>
+            <line x1="76" y1="60" x2="76" y2="98" stroke="#475569" stroke-width="1.5" marker-end="url(#arr3)"/>
+            <text class="svg-sub" x="148" y="84">處理流程（rear_alert.py）</text>
+
+            <g fill="#e0f2fe" stroke="#0369a1">
+              <rect x="20" y="100" width="112" height="56" rx="8"/><rect x="148" y="100" width="112" height="56" rx="8"/>
+              <rect x="276" y="100" width="112" height="56" rx="8"/><rect x="404" y="100" width="112" height="56" rx="8"/>
+              <rect x="532" y="100" width="112" height="56" rx="8"/>
+            </g>
+            <text class="svg-label" x="76" y="124" text-anchor="middle">車輛辨識</text><text class="svg-sub" x="76" y="143" text-anchor="middle">YOLO11</text>
+            <text class="svg-label" x="204" y="124" text-anchor="middle">車輛追蹤</text><text class="svg-sub" x="204" y="143" text-anchor="middle">IoU 配對</text>
+            <text class="svg-label" x="332" y="124" text-anchor="middle">到達時間</text><text class="svg-sub" x="332" y="143" text-anchor="middle">寬度倒數 → τ</text>
+            <text class="svg-label" x="460" y="124" text-anchor="middle">區域過濾</text><text class="svg-sub" x="460" y="143" text-anchor="middle">zone／寬度</text>
+            <text class="svg-label" x="588" y="124" text-anchor="middle">警示狀態機</text><text class="svg-sub" x="588" y="143" text-anchor="middle">安全／注意／危險</text>
+            <g stroke="#475569" stroke-width="1.5">
+              <line x1="132" y1="128" x2="146" y2="128" marker-end="url(#arr3)"/>
+              <line x1="260" y1="128" x2="274" y2="128" marker-end="url(#arr3)"/>
+              <line x1="388" y1="128" x2="402" y2="128" marker-end="url(#arr3)"/>
+              <line x1="516" y1="128" x2="530" y2="128" marker-end="url(#arr3)"/>
+              <line x1="588" y1="156" x2="588" y2="180"/>
+              <line x1="76" y1="180" x2="588" y2="180"/>
+              <line x1="76" y1="180" x2="76" y2="202" marker-end="url(#arr3)"/>
+              <line x1="204" y1="180" x2="204" y2="202" marker-end="url(#arr3)"/>
+              <line x1="332" y1="180" x2="332" y2="202" marker-end="url(#arr3)"/>
+              <line x1="460" y1="180" x2="460" y2="202" marker-end="url(#arr3)"/>
+              <line x1="588" y1="180" x2="588" y2="202" marker-end="url(#arr3)"/>
+            </g>
+
+            <g fill="#ccfbf1" stroke="#0f766e">
+              <rect x="20" y="204" width="112" height="56" rx="8"/><rect x="148" y="204" width="112" height="56" rx="8"/>
+              <rect x="276" y="204" width="112" height="56" rx="8"/><rect x="404" y="204" width="112" height="56" rx="8"/>
+              <rect x="532" y="204" width="112" height="56" rx="8"/>
+            </g>
+            <text class="svg-label" x="76" y="228" text-anchor="middle">ESP32</text><text class="svg-sub" x="76" y="247" text-anchor="middle">燈號、TFT、語音</text>
+            <text class="svg-label" x="204" y="228" text-anchor="middle">電腦語音與嗶聲</text><text class="svg-sub" x="204" y="247" text-anchor="middle">沒接 ESP32 時</text>
+            <text class="svg-label" x="332" y="228" text-anchor="middle">畫面疊圖</text><text class="svg-sub" x="332" y="247" text-anchor="middle">狀態列＋車框</text>
+            <text class="svg-label" x="460" y="228" text-anchor="middle">紀錄與摘要</text><text class="svg-sub" x="460" y="247" text-anchor="middle">logs/ CSV、JSON</text>
+            <text class="svg-label" x="588" y="228" text-anchor="middle">影片與截圖</text><text class="svg-sub" x="588" y="247" text-anchor="middle">output/（已模糊）</text>
+
+            <text class="svg-sub" x="20" y="290">成效評估</text>
+            <g fill="#fef9c3" stroke="#a16207">
+              <rect x="148" y="298" width="112" height="48" rx="8"/><rect x="404" y="298" width="112" height="48" rx="8"/>
+              <rect x="560" y="298" width="112" height="48" rx="8"/>
+            </g>
+            <text class="svg-label" x="204" y="318" text-anchor="middle">標記答案</text><text class="svg-sub" x="204" y="336" text-anchor="middle">label_events.py</text>
+            <text class="svg-label" x="460" y="318" text-anchor="middle">比對成效</text><text class="svg-sub" x="460" y="336" text-anchor="middle">evaluate.py</text>
+            <text class="svg-label" x="616" y="318" text-anchor="middle">批次成績表</text><text class="svg-sub" x="616" y="336" text-anchor="middle">batch_run.py</text>
+            <g stroke="#475569" stroke-width="1.5">
+              <line x1="460" y1="260" x2="460" y2="296" marker-end="url(#arr3)"/>
+              <line x1="260" y1="322" x2="402" y2="322" marker-end="url(#arr3)"/>
+              <line x1="516" y1="322" x2="558" y2="322" marker-end="url(#arr3)"/>
+            </g>
+          </g>
+        </svg>
+        <figcaption>藍色：即時處理；綠色：輸出；黃色：成效評估</figcaption>
+      </figure>
+
+      <h3>3.4 警示狀態機</h3>
+      <figure class="figure">
+        <svg viewBox="0 0 690 230" role="img" aria-labelledby="fsmTitle fsmDesc">
+          <title id="fsmTitle">警示狀態機</title>
+          <desc id="fsmDesc">四個狀態由左到右為離線、安全、注意、危險。離線收到訊號進入安全，1.5 秒沒訊號回到離線。安全在 τ 小於 4 秒時進入注意，注意在無逼近車輛維持 1 秒後回到安全。注意在 τ 小於 2 秒時進入危險，危險維持 1 秒後若 τ 大於等於 2 秒回到注意。安全也可以在 τ 小於 2 秒時直接進入危險，危險在無逼近車輛維持 1 秒後回到安全。</desc>
+          <defs><marker id="arr4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#334155" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <rect x="20" y="80" width="110" height="50" rx="10" fill="#e2e8f0" stroke="#64748b"/>
+          <rect x="200" y="80" width="110" height="50" rx="10" fill="#dcfce7" stroke="#15803d"/>
+          <rect x="380" y="80" width="110" height="50" rx="10" fill="#fef9c3" stroke="#a16207"/>
+          <rect x="560" y="80" width="110" height="50" rx="10" fill="#fee2e2" stroke="#b91c1c"/>
+          <text class="svg-label" x="75" y="102" text-anchor="middle">離線</text><text class="svg-sub" x="75" y="120" text-anchor="middle">綠燈慢閃</text>
+          <text class="svg-label" x="255" y="102" text-anchor="middle">安全 L0</text><text class="svg-sub" x="255" y="120" text-anchor="middle">綠燈恆亮</text>
+          <text class="svg-label" x="435" y="102" text-anchor="middle">注意 L1</text><text class="svg-sub" x="435" y="120" text-anchor="middle">黃燈閃＋短嗶</text>
+          <text class="svg-label" x="615" y="102" text-anchor="middle">危險 L2</text><text class="svg-sub" x="615" y="120" text-anchor="middle">紅燈快閃＋連續嗶</text>
+          <g stroke="#334155" stroke-width="1.5" fill="none">
+            <line x1="130" y1="97" x2="198" y2="97" marker-end="url(#arr4)"/>
+            <line x1="200" y1="113" x2="132" y2="113" marker-end="url(#arr4)"/>
+            <line x1="310" y1="97" x2="378" y2="97" marker-end="url(#arr4)"/>
+            <line x1="380" y1="113" x2="312" y2="113" marker-end="url(#arr4)"/>
+            <line x1="490" y1="97" x2="558" y2="97" marker-end="url(#arr4)"/>
+            <line x1="560" y1="113" x2="492" y2="113" marker-end="url(#arr4)"/>
+            <path d="M255 80 Q 435 -10 615 78" marker-end="url(#arr4)"/>
+            <path d="M615 130 Q 435 230 257 132" marker-end="url(#arr4)"/>
+          </g>
+          <text class="svg-sub" x="165" y="90" text-anchor="middle">收到訊號</text>
+          <text class="svg-sub" x="165" y="146" text-anchor="middle">1.5 秒沒訊號</text>
+          <text class="svg-sub" x="345" y="72" text-anchor="middle">τ&lt;4 秒</text>
+          <text class="svg-sub" x="345" y="146" text-anchor="middle">無逼近 1 秒</text>
+          <text class="svg-sub" x="525" y="72" text-anchor="middle">τ&lt;2 秒</text>
+          <text class="svg-sub" x="525" y="146" text-anchor="middle">1 秒後 τ≥2</text>
+          <text class="svg-sub" x="435" y="24" text-anchor="middle">τ&lt;2 秒（直接跳到危險）</text>
+          <text class="svg-sub" x="435" y="212" text-anchor="middle">無逼近 1 秒</text>
+        </svg>
+        <figcaption>進入注意或危險前，同一台車要連續 <code>confirm_count</code> 次符合條件；升級立刻生效，降級要維持 <code>hold_sec</code> 秒。「離線」由 ESP32 自己判斷</figcaption>
+      </figure>
+
+      <h3>3.5 介面規格</h3>
+      <div class="grid2">
+        <div class="box">
+          <h3>序列通訊（115200 bps）</h3>
+          <div class="table-wrap">
+            <table style="min-width:0">
+              <thead><tr><th scope="col">方向</th><th scope="col">內容</th><th scope="col">意義</th></tr></thead>
+              <tbody>
+                <tr><td>電腦 → ESP32</td><td><code>S1B25</code></td><td>每 0.2 秒送一次狀態：S＋等級（0／1／2）＋車種（M 機車、C 汽車、B 大型車、N 無）＋到達秒數×10</td></tr>
+                <tr><td>電腦 → ESP32</td><td><code>P1</code>～<code>P9</code></td><td>播放 microSD 卡 <code>01</code> 資料夾的 001～009 號語音</td></tr>
+                <tr><td>電腦 → ESP32</td><td><code>V0</code>～<code>V30</code></td><td>語音音量（程式開始時送一次）</td></tr>
+                <tr><td>電腦 → ESP32</td><td><code>L0</code>～<code>L2</code></td><td>舊版狀態（只有等級），仍然可以用</td></tr>
+                <tr><td>ESP32 → 電腦</td><td><code>I,ready</code></td><td>開機完成</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="muted">每行以換行結尾；其他內容一律忽略；每行最多 8 個字元，避免雜訊塞滿記憶體。</p>
+        </div>
+        <div class="box">
+          <h3>正確答案 <code>影片名_truth.csv</code></h3>
+          <div class="table-wrap">
+            <table style="min-width:0">
+              <thead><tr><th scope="col">欄位</th><th scope="col">意義</th></tr></thead>
+              <tbody>
+                <tr><td><code>pass_time</code></td><td>車輛經過的秒數</td></tr>
+                <tr><td><code>vehicle</code></td><td>car、motorcycle、bus、truck 或空白</td></tr>
+                <tr><td><code>note</code></td><td>備註（例如「車很近」）</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <caption class="muted" style="text-align:left;padding-bottom:4px">警示紀錄 <code>logs/影片名_時間.csv</code></caption>
+          <thead><tr><th scope="col">欄位</th><th scope="col">意義</th><th scope="col">範例</th></tr></thead>
+          <tbody>
+            <tr><td><code>time</code></td><td>影片中的秒數（鏡頭模式為開始後的秒數）</td><td>8.27</td></tr>
+            <tr><td><code>event</code></td><td><code>alert_on</code> 開始、<code>escalate</code> 升級、<code>alert_off</code> 解除、<code>voice</code> 語音</td><td>alert_on</td></tr>
+            <tr><td><code>level</code></td><td>1＝注意、2＝危險、0＝解除</td><td>1</td></tr>
+            <tr><td><code>vehicle</code>、<code>track</code></td><td>觸發警示的車種與編號</td><td>bus、2</td></tr>
+            <tr><td><code>ttc_sec</code></td><td>當下估計的到達秒數</td><td>2.22</td></tr>
+            <tr><td><code>width_ratio</code></td><td>車框寬度占畫面寬度的比例</td><td>0.203</td></tr>
+            <tr><td><code>voice</code></td><td><code>event</code> 為 <code>voice</code> 時，說出的語音內容</td><td>後方大型車</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>分析結束時另外寫入同名的 <code>.json</code> 摘要：影片長度、處理張數、處理速度、各車種出現台數、警示次數，以及這次使用的主要設定。<code>batch_run.py</code> 的成績表欄位為：經過次數、成功警示、漏報、成功率、平均／最短提早秒數、紅燈平均提早、車種正確、誤報、影片分鐘數、每 10 分鐘誤報、處理速度。</p>
+      <h3>語音清單（<code>sd_card/01/</code>）</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">編號</th><th scope="col">內容</th><th scope="col">什麼時候說</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">001～003</th><td>後方機車／後方汽車／後方大型車</td><td>一台車第一次進入「注意」（公車、貨車都算大型車）</td></tr>
+            <tr><th scope="row">004</th><td>後方多台車</td><td>同時出現兩台以上新的車（其中有大型車時改說「後方大型車」）</td></tr>
+            <tr><th scope="row">005</th><td>危險，注意</td><td>升到「危險」，而且危險的車不只一種</td></tr>
+            <tr><th scope="row">006</th><td>警示系統啟動</td><td>程式開始時</td></tr>
+            <tr><th scope="row">007～009</th><td>危險，機車／危險，汽車／危險，大型車</td><td>每次警示第一次升到「危險」，會打斷正在說的話</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.6 畫面、燈號與聲音設計</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">等級</th><th scope="col">畫面狀態列</th><th scope="col">車框</th><th scope="col">ESP32 燈號與蜂鳴器</th><th scope="col">TFT</th><th scope="col">電腦嗶聲</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">安全</th><td>綠色「SAFE」</td><td>綠框</td><td>綠燈恆亮</td><td>綠色「安全」、後方無來車</td><td>無</td></tr>
+            <tr><th scope="row">注意</th><td>黃色「CAUTION」</td><td>觸發的車為黃框，標示 τ</td><td>黃燈每 0.25 秒閃爍、每秒短嗶</td><td>黃色「注意」、黃字車種、到達秒數</td><td>每秒一聲低音</td></tr>
+            <tr><th scope="row">危險</th><td>紅色「DANGER」</td><td>觸發的車為紅框</td><td>紅燈快閃、嗶聲 0.1 秒響停</td><td>紅色「危險」、紅字車種、到達秒數</td><td>每 0.3 秒一聲高音</td></tr>
+            <tr><th scope="row">離線</th><td>—</td><td>—</td><td>綠燈每 2 秒閃一下</td><td>灰色「未連線」、請檢查電腦連線</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted">設計原則：顏色、文字與聲音同時變化，色弱或吵雜環境也能分辨；等級越高，閃爍與嗶聲越快。語音盡量短（每段約 1 秒），播放時蜂鳴器暫停，才聽得清楚。灰色直線框出危險區域 <code>zone_x</code>。</p>
+      <figure class="figure">
+        <img src="bike_rear_alert_tft_preview.png" width="1360" height="322" style="width:100%;height:auto" alt="TFT 畫面的四種狀態：安全時上方綠色「安全」、中間「後方無來車」；注意時上方黃色「注意」、中間黃字「後方機車」、下方「3.5 秒後到達」；危險時上方紅色「危險」、中間紅字「後方大型車」、下方「1.2 秒後到達」；離線時上方灰色「未連線」、中間「請檢查電腦連線」。">
+        <figcaption>TFT 畫面（160×128，依程式版面模擬）。中文是事先轉好的點陣圖，秒數用內建字型顯示</figcaption>
+      </figure>
+
+      <h3>3.7 例外處理</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">狀況</th><th scope="col">系統反應</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">影片或鏡頭打不開</th><td>顯示「無法開啟影片或鏡頭」並結束</td></tr>
+            <tr><th scope="row">鏡頭中途沒有畫面</th><td>提示檢查 USB 線，並停止送出燈號，讓 ESP32 顯示離線</td></tr>
+            <tr><th scope="row">找不到 ESP32 或沒裝 pyserial</th><td>提示原因，改用電腦嗶聲繼續執行</td></tr>
+            <tr><th scope="row">序列埠中途斷線</th><td>提示寫入失敗，ESP32 端 1.5 秒後顯示離線</td></tr>
+            <tr><th scope="row">程式結束（含 Ctrl+C）</th><td>補寫「解除警示」、送出安全狀態、存好紀錄與摘要</td></tr>
+            <tr><th scope="row">答案檔空白或找不到紀錄</th><td><code>evaluate.py</code> 說明要先標記或先分析</td></tr>
+            <tr><th scope="row">資料夾內影片沒有答案檔</th><td><code>batch_run.py</code> 列出並跳過，不會中斷</td></tr>
+            <tr><th scope="row"><code>--set</code> 打錯設定名稱</th><td>顯示「config.json 沒有這個設定」並結束，避免實驗白跑</td></tr>
+            <tr><th scope="row">找不到語音檔</th><td>沒接 ESP32 時改用電腦嗶聲，並提示執行 <code>6_make_voice_files.bat</code></td></tr>
+            <tr><th scope="row">DFPlayer 沒插卡或接線錯誤</th><td>沒有語音，但燈號、蜂鳴器、TFT 照常運作</td></tr>
+            <tr><th scope="row">標記時不小心覆蓋答案</th><td>舊檔自動改名為 <code>.bak</code>；重新開啟同一支影片會接續之前的標記</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>3.8 功能測試對照</h3>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">測試</th><th scope="col">對應功能</th><th scope="col">方法</th><th scope="col">通過標準</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">T1</th><td>F1、F2、F14、F16</td><td>執行 <code>0_demo_practice.bat</code></td><td>成功 2 次、誤報 0 次、車種 2/2 正確</td></tr>
+            <tr><th scope="row">T2</th><td>F3、F9</td><td>開視窗觀看練習影片</td><td>逼近過程中車輛編號不變</td></tr>
+            <tr><th scope="row">T3</th><td>F4</td><td>練習影片第一台車的速度是每秒 6 公尺，第 8.27 秒時距離約 13.4 公尺；比對紀錄中的 <code>ttc_sec</code></td><td>與 13.4 ÷ 6 ≈ 2.2 秒相差 0.5 秒以內</td></tr>
+            <tr><th scope="row">T4</th><td>F5、F6</td><td>練習影片 12～23 秒（跟車、遠離）</td><td>沒有警示</td></tr>
+            <tr><th scope="row">T5</th><td>F7、F8</td><td>執行 <code>1_test_lights.bat</code>，再拔掉 USB</td><td>四種燈號與 TFT 畫面都正確</td></tr>
+            <tr><th scope="row">T6</th><td>F10、F11、F12</td><td>用 <code>3_analyze_video.bat</code> 分析自己的影片</td><td>紀錄、摘要、影片、截圖齊全，車牌已模糊</td></tr>
+            <tr><th scope="row">T7</th><td>F13、F15</td><td>標記兩支影片後執行 <code>4_batch_evaluate.bat</code></td><td>成績表有兩支影片、合計與各車種</td></tr>
+            <tr><th scope="row">T8</th><td>例外處理</td><td>拔鏡頭、拔 ESP32、打錯 <code>--set</code> 名稱</td><td>都依 3.7 的方式反應，程式不當掉</td></tr>
+            <tr><th scope="row">T9</th><td>F17</td><td>執行 <code>7_test_voice_logic.bat</code>；再用 <code>1_test_lights.bat</code> 聽 9 段語音</td><td>規則測試全部通過；每段語音清楚、編號與內容一致</td></tr>
+            <tr><th scope="row">T10</th><td>F17、F18</td><td>桌上模型展示時，用手機慢動作錄影</td><td>黃燈亮起後 1 秒內聽到車種語音、TFT 顯示同一車種</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="hardware">
+      <h2><span class="num">4</span>硬體清單</h2>
+      <p class="muted">價格為參考價，依實際採購為準。用手機錄影就不必買攝影機。</p>
+      <div class="table-wrap">
+        <table class="nw3">
+          <thead><tr><th scope="col">項目</th><th scope="col">建議規格</th><th scope="col">數量</th><th scope="col">參考價</th></tr></thead>
+          <tbody>
+            <tr><th scope="row" colspan="4">第一階段：拍攝與分析</th></tr>
+            <tr><th scope="row">筆記型電腦</th><td>Windows 10／11、Intel i5 第 8 代或同級以上、8 GB 記憶體</td><td>1</td><td>學校既有</td></tr>
+            <tr><th scope="row">錄影設備</th><td>手機、行車紀錄器或運動攝影機，1080p、30fps，廣角</td><td>1</td><td>手機既有；攝影機 1,000～3,000 元</td></tr>
+            <tr><th scope="row">固定架</th><td>自行車座管用手機架或攝影機架，要能鎖緊不晃動</td><td>1</td><td>300～600 元</td></tr>
+            <tr><th scope="row">三腳架</th><td>在路邊定點拍攝用</td><td>1</td><td>300～800 元</td></tr>
+            <tr><th scope="row" colspan="4">第二階段：桌上模型</th></tr>
+            <tr><th scope="row">USB 網路攝影機</th><td>720p 以上</td><td>1</td><td>600～1,200 元</td></tr>
+            <tr><th scope="row">ESP32 開發板</th><td>ESP32 DevKit（含 USB 轉序列晶片 CP2102 或 CH340）</td><td>1</td><td>200～350 元</td></tr>
+            <tr><th scope="row">LED 與電阻</th><td>綠、黃、紅 LED 各 1 顆，220Ω 電阻 3 個</td><td>1 組</td><td>約 30 元</td></tr>
+            <tr><th scope="row">主動式蜂鳴器模組</th><td>3.3V 可用、<strong>高電位觸發</strong></td><td>1</td><td>30～60 元</td></tr>
+            <tr><th scope="row">ST7735 1.8 吋 TFT</th><td>160×128、SPI 介面（標示 1.8" TFT SPI）</td><td>1</td><td>150～300 元</td></tr>
+            <tr><th scope="row">DFPlayer Mini</th><td>MP3／WAV 播放模組，附 microSD 卡槽</td><td>1</td><td>80～150 元</td></tr>
+            <tr><th scope="row">microSD 卡</th><td>32 GB 以下、FAT32 格式</td><td>1</td><td>100～200 元</td></tr>
+            <tr><th scope="row">小喇叭</th><td>3W、4～8Ω</td><td>1</td><td>40～100 元</td></tr>
+            <tr><th scope="row">麵包板、杜邦線、1kΩ 電阻</th><td>—</td><td>1 組</td><td>100～200 元</td></tr>
+            <tr><th scope="row">模型材料</th><td>外型逼真的合金玩具車（越大越容易辨識）、紙板斜坡或軌道；也可以用平板播放影片給鏡頭看</td><td>1 組</td><td>200～500 元</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="wiring">
+      <h2><span class="num">5</span>桌上模型接線</h2>
+      <p>LED、蜂鳴器、TFT 使用 ESP32 的 <strong>3.3V</strong>；DFPlayer 接 <strong>5V（VIN 腳）</strong>，全部由筆電 USB 供電。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">元件</th><th scope="col">接法</th><th scope="col">ESP32 腳位</th><th scope="col">燈號意義</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><span class="dot" style="background:#22c55e" aria-hidden="true"></span>綠色 LED</th><td>長腳 → 220Ω → GPIO；短腳 → GND</td><td>GPIO25</td><td>恆亮＝安全；每 2 秒閃一下＝沒收到電腦訊號</td></tr>
+            <tr><th scope="row"><span class="dot" style="background:#facc15" aria-hidden="true"></span>黃色 LED</th><td>同上</td><td>GPIO26</td><td>閃爍＋每秒短嗶＝注意</td></tr>
+            <tr><th scope="row"><span class="dot" style="background:#ef4444" aria-hidden="true"></span>紅色 LED</th><td>同上</td><td>GPIO27</td><td>快閃＋連續嗶聲＝危險</td></tr>
+            <tr><th scope="row">主動式蜂鳴器模組</th><td>VCC → 3V3、GND → GND、I/O → GPIO</td><td>GPIO14</td><td>HIGH＝響；播放語音時暫停</td></tr>
+            <tr><th scope="row" rowspan="2">ST7735 TFT</th><td>SCK、SDA（MOSI）、CS、A0（DC）、RST</td><td>GPIO18、GPIO23、GPIO5、GPIO21、GPIO22</td><td rowspan="2">顯示等級、車種、到達秒數</td></tr>
+            <tr><td>VCC、GND、LED（背光）</td><td>3V3、GND、3V3</td></tr>
+            <tr><th scope="row" rowspan="2">DFPlayer Mini</th><td>VCC、GND</td><td>5V（VIN）、GND</td><td rowspan="2">播放車種語音</td></tr>
+            <tr><td>RX ← 1kΩ ← ESP32；TX → ESP32；SPK_1／SPK_2 → 喇叭</td><td>GPIO17（送）、GPIO16（收）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note tip">
+        <strong>「離線」燈號很重要</strong>
+        電腦每 0.2 秒送一次狀態，ESP32 超過 1.5 秒沒收到就改成綠燈慢閃、TFT 顯示「未連線」。警示裝置最怕「壞掉了卻看起來正常」，所以要讓使用者看得出系統沒在運作。
+      </div>
+      <div class="note info">
+        <strong>接線注意</strong>
+        <ul>
+          <li>DFPlayer 的 RX、TX 要和 ESP32 <strong>交叉</strong>接（ESP32 送出的 GPIO17 接 DFPlayer 的 RX），RX 前面串 1kΩ 電阻可以減少雜音。</li>
+          <li>喇叭直接接 DFPlayer 的 SPK_1、SPK_2，不要接到 GND。</li>
+          <li>TFT 顏色或邊緣不對時，把程式裡的 <code>INITR_BLACKTAB</code> 改成 <code>INITR_GREENTAB</code> 或 <code>INITR_REDTAB</code>。</li>
+          <li>把語音檔的 <code>01</code> 資料夾複製到 microSD 卡根目錄；資料夾與檔名（001.wav…）都不能改。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="software">
+      <h2><span class="num">6</span>軟體與安裝</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">軟體</th><th scope="col">用途</th><th scope="col">取得方式</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Python 3.10 以上</th><td>分析程式</td><td>python.org，勾選 <code>Add Python to PATH</code></td></tr>
+            <tr><th scope="row">ultralytics、opencv-python、numpy、pyserial、pyttsx3</th><td>YOLO 辨識、影片處理、與 ESP32 通訊、產生語音檔</td><td><code>pip install -r requirements.txt</code></td></tr>
+            <tr><th scope="row">Arduino IDE ＋ ESP32 開發板套件</th><td>上傳 <code>esp32_rear_alert.ino</code>，開發板選「ESP32 Dev Module」</td><td>arduino.cc</td></tr>
+            <tr><th scope="row">Adafruit ST7735 and ST7789 Library、Adafruit GFX Library</th><td>TFT 顯示（DFPlayer 用序列指令控制，不需要程式庫）</td><td>Arduino IDE 程式庫管理員</td></tr>
+            <tr><th scope="row">Windows 中文語音</th><td>重新產生語音檔時才需要（程式包已附語音檔）</td><td>設定 → 時間與語言 → 語音 → 新增「中文（台灣）」</td></tr>
+            <tr><th scope="row">Google Antigravity／Claude Code</th><td>AI 程式助手（擇一）</td><td>Antigravity 免費；Claude Code 需 Claude 付費方案</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>安裝完先執行 <code>0_demo_practice.bat</code>：程式會產生一段 31 秒的練習影片，分析後印出成績。看到「成功警示 2 次、誤報 0 次」就代表環境沒問題。</p>
+    </section>
+
+    <section id="filming">
+      <h2><span class="num">7</span>拍攝影片</h2>
+      <div class="grid2">
+        <div class="box">
+          <h3>方法 A：路邊定點拍攝（建議）</h3>
+          <ul>
+            <li>在人行道或騎樓等安全位置架三腳架，鏡頭沿著道路朝來車方向拍，高度約 1 公尺，模擬自行車後方的視角。</li>
+            <li><strong>人和腳架都不可以站在車道上</strong>，不要妨礙行人通行。</li>
+            <li>車輛從鏡頭旁邊經過的畫面，就等於「從騎士旁邊超車」。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h3>方法 B：裝在自行車上騎乘錄影</h3>
+          <ul>
+            <li>要<strong>先經老師同意</strong>，選車少的路段，戴安全帽，最好有同伴陪同。</li>
+            <li>鏡頭鎖在座管上朝後，出發前確認固定牢靠；騎車時<strong>不看手機、不操作鏡頭</strong>。</li>
+            <li>車身晃動會讓框跳動，這也是要寫進報告的限制。</li>
+          </ul>
+        </div>
+      </div>
+      <h3>拍攝檢查表</h3>
+      <ul class="check">
+        <li>鏡頭水平，畫面包含後方車道，地平線大約在畫面上方三分之一。</li>
+        <li>解析度 1080p、30fps；每段影片 3～10 分鐘，檔名寫上日期、地點、天氣，放進程式包的 <code>videos/</code> 資料夾。</li>
+        <li>拍不同情境：白天、傍晚、陰雨天；汽車、機車、公車貨車都要有。</li>
+        <li>總共至少要有 <strong>30 次</strong>車輛經過，數據才有參考價值。</li>
+        <li>影片裡有車牌和路人：<strong>原始影片不上傳網路</strong>，存在學校指定的位置，專題結束後刪除。</li>
+      </ul>
+    </section>
+
+    <section id="flow">
+      <h2><span class="num">8</span>12 週製作流程</h2>
+      <div class="table-wrap">
+        <table class="nw1">
+          <thead><tr><th scope="col">週次</th><th scope="col">工作內容</th><th scope="col">要交出的成果</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">第 1 週</th><td>問卷或訪談騎單車上學的同學，了解被後方車輛嚇到的經驗；比較市售後方雷達與本專題的差別</td><td>問卷結果、產品比較表</td></tr>
+            <tr><th scope="row">第 2 週</th><td>安裝環境，跑完練習影片；讀懂 <code>config.json</code>；分工</td><td>練習影片的成績截圖</td></tr>
+            <tr><th scope="row">第 3 週</th><td>規劃拍攝地點與安全規則，取得老師同意；試拍 1 段</td><td>拍攝計畫、試拍影片</td></tr>
+            <tr><th scope="row">第 4 週</th><td>正式拍攝，涵蓋不同時段、天氣、車種</td><td>影片清單（日期、地點、天氣、長度）</td></tr>
+            <tr><th scope="row">第 5 週</th><td>把影片拖到 <code>2_label_video.bat</code> 標記正確答案與車種；兩人各自標記再比對</td><td>每支影片的 <code>_truth.csv</code>、標記差異紀錄</td></tr>
+            <tr><th scope="row">第 6 週</th><td>執行 <code>4_batch_evaluate.bat</code>，用預設參數分析全部影片</td><td>基準成績表（提早秒數、漏報、誤報、各車種）</td></tr>
+            <tr><th scope="row">第 7 週</th><td>看 <code>output/snapshots/</code> 的警示截圖與標註影片，找出漏報與誤報的原因並分類</td><td>原因分類表與截圖</td></tr>
+            <tr><th scope="row">第 8 週</th><td>用 <code>batch_run.py --set</code> 調整參數或改良程式，<strong>每次只改一項</strong>，在同一批影片上比較</td><td>參數比較表</td></tr>
+            <tr><th scope="row">第 9 週</th><td>ESP32 接上燈號、TFT、DFPlayer，用 <code>1_test_lights.bat</code> 測試；（選做）錄自己的語音</td><td>接線照片、燈號與語音說明</td></tr>
+            <tr><th scope="row">第 10 週</th><td>完成桌上模型，用手機慢動作錄影量測反應時間</td><td>反應時間紀錄</td></tr>
+            <tr><th scope="row">第 11 週</th><td>請同學看展示，回饋燈號、TFT 文字與語音是否容易懂、會不會太吵；（選做）延伸到手機或樹莓派</td><td>回饋紀錄</td></tr>
+            <tr><th scope="row">第 12 週</th><td>製作成果影片（使用已模糊的標註影片）</td><td>成果影片</td></tr>
+            <tr><th scope="row">第 13 週以後</th><td>撰寫書面報告、練習上台報告</td><td>書面報告、簡報</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="logic">
+      <h2><span class="num">9</span>運作原理</h2>
+      <h3>步驟一：辨識與追蹤</h3>
+      <p>YOLO 每 0.1 秒找出畫面中的 <code>car</code>、<code>motorcycle</code>、<code>bus</code>、<code>truck</code>。程式把這次的框和上一次的框比對，<strong>重疊最多的就當成同一台車</strong>（重疊程度用 IoU 計算），這樣才能知道「同一台車」的框怎麼變化。</p>
+
+      <h3>步驟二：從框的寬度估計到達時間</h3>
+      <p>物體越近，在畫面上越大，而且<strong>寬度和距離成反比</strong>：距離變一半，寬度變兩倍。所以「寬度的倒數」和距離成正比。車子等速靠近時，距離隨時間直線減少，寬度的倒數也會直線下降。</p>
+      <figure class="figure">
+        <svg viewBox="0 0 680 260" role="img" aria-labelledby="fig2Title fig2Desc">
+          <title id="fig2Title">框寬度與寬度倒數隨時間的變化</title>
+          <desc id="fig2Desc">左圖：車子等速靠近時，框的寬度一開始變化很小，快到時急速變大，是一條彎曲的線。右圖：寬度的倒數隨時間直線下降，把最近幾點連成直線往後延伸，碰到零的地方就是預估到達時間，圖中標示現在到到達之間約 4 秒。</desc>
+          <g stroke="#475569" stroke-width="1">
+            <line x1="50" y1="30" x2="50" y2="210"/><line x1="50" y1="210" x2="310" y2="210"/>
+            <line x1="370" y1="30" x2="370" y2="210"/><line x1="370" y1="210" x2="630" y2="210"/>
+          </g>
+          <path d="M50.0 192.0 L56.5 191.5 L63.0 191.1 L69.5 190.5 L76.0 190.0 L82.5 189.4 L89.0 188.8 L95.5 188.2 L102.0 187.5 L108.5 186.8 L115.0 186.0 L121.5 185.2 L128.0 184.3 L134.5 183.3 L141.0 182.3 L147.5 181.2 L154.0 180.0 L160.5 178.7 L167.0 177.3 L173.5 175.7 L180.0 174.0 L186.5 172.1 L193.0 170.0 L199.5 167.6 L206.0 165.0 L212.5 162.0 L219.0 158.6 L225.5 154.6 L232.0 150.0 L238.5 144.5 L245.0 138.0 L251.5 130.0 L258.0 120.0 L264.5 107.1 L271.0 90.0 L277.5 66.0 L284.0 30.0" fill="none" stroke="#1d4ed8" stroke-width="2.5"/>
+          <g fill="#b45309"><circle cx="180" cy="174" r="4"/><circle cx="193" cy="170" r="4"/><circle cx="206" cy="165" r="4"/></g>
+          <line x1="370" y1="30" x2="526" y2="138" stroke="#0f766e" stroke-width="2.5"/>
+          <line x1="526" y1="138" x2="630" y2="210" stroke="#0f766e" stroke-width="2" stroke-dasharray="6 5"/>
+          <g fill="#b45309"><circle cx="500" cy="120" r="4"/><circle cx="513" cy="129" r="4"/><circle cx="526" cy="138" r="4"/></g>
+          <line x1="526" y1="138" x2="526" y2="226" stroke="#94a3b8" stroke-dasharray="3 3"/>
+          <line x1="630" y1="210" x2="630" y2="226" stroke="#94a3b8" stroke-dasharray="3 3"/>
+          <line x1="530" y1="222" x2="626" y2="222" stroke="#b45309" stroke-width="1.5" marker-start="url(#arrow2)" marker-end="url(#arrow2)"/>
+          <defs><marker id="arrow2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#b45309" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <text class="svg-label" x="578" y="244" text-anchor="middle" style="fill:#92400e">τ ≈ 4 秒</text>
+          <text class="svg-sub" x="526" y="244" text-anchor="middle">現在</text>
+          <text class="svg-label" x="180" y="22" text-anchor="middle">框的寬度</text>
+          <text class="svg-sub" x="180" y="232" text-anchor="middle">時間 →（快到時急速變大）</text>
+          <text class="svg-label" x="500" y="22" text-anchor="middle">寬度的倒數（∝ 距離）</text>
+          <text class="svg-sub" x="440" y="232" text-anchor="middle">時間 →</text>
+          <text class="svg-sub" x="560" y="100">延伸直線到 0</text>
+          <text class="svg-sub" x="560" y="116">＝預估到達</text>
+        </svg>
+        <figcaption>橘色點是最近幾次量到的框。左邊的曲線很難直接預測，換成倒數後就是一條直線</figcaption>
+      </figure>
+      <p>程式取最近 0.8 秒的框，把「寬度的倒數」用最小平方法畫成一條直線，看這條線還要多久降到 0：</p>
+      <div class="formula">τ（到達秒數）＝ 現在的寬度倒數 ÷ 每秒減少多少</div>
+      <p>只用兩個時間點也能算：寬度從 w₁ 變成 w₂，經過 Δt 秒，則</p>
+      <div class="formula">τ ＝ Δt × w₁ ÷ (w₂ − w₁)</div>
+      <p class="muted">程式用很多點一起算，比只用兩點更不容易被框的跳動影響。</p>
+
+      <div class="calc" id="calc">
+        <h3>動手算算看</h3>
+        <div class="calc-grid">
+          <label for="w1">之前的寬度 w₁（像素）<input id="w1" type="number" min="1" value="80" inputmode="decimal"></label>
+          <label for="w2">現在的寬度 w₂（像素）<input id="w2" type="number" min="1" value="100" inputmode="decimal"></label>
+          <label for="dt">間隔 Δt（秒）<input id="dt" type="number" min="0.05" step="0.1" value="0.5" inputmode="decimal"></label>
+        </div>
+        <div class="calc-out" id="calcOut" role="status" aria-live="polite"></div>
+      </div>
+
+      <h3>步驟三：決定警示等級</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">等級</th><th scope="col">條件</th><th scope="col">ESP32 輸出</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">安全（L0）</th><td>沒有車在逼近</td><td>綠燈恆亮</td></tr>
+            <tr><th scope="row">注意（L1）</th><td>τ &lt; <code>ttc_warn</code>（4 秒），且連續 <code>confirm_count</code>（2）次</td><td>黃燈閃爍、每秒短嗶</td></tr>
+            <tr><th scope="row">危險（L2）</th><td>τ &lt; <code>ttc_danger</code>（2 秒）</td><td>紅燈快閃、連續嗶聲</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>另外有三個過濾條件：車子的中心要在 <code>zone_x</code> 範圍內（排除其他方向的車道）、框寬度要超過畫面的 <code>min_width_ratio</code>（太遠的車不準）、警示至少維持 <code>hold_sec</code> 秒（避免燈號一直閃）。</p>
+      <p>停在路邊的車、比你慢的車、對向車道已經開過去的車，在朝後的畫面裡都是<strong>越來越小或大小不變</strong>，所以不會警示。</p>
+
+      <h3>步驟四：說出車種、顯示在 TFT</h3>
+      <ul>
+        <li><strong>什麼時候說：</strong>一台車第一次進入「注意」時說「後方機車／汽車／大型車」；同一台車只說一次。</li>
+        <li><strong>危險優先：</strong>每次警示第一次升到「危險」時，立刻說「危險，＋車種」，會打斷正在說的話，所以危險語音本身也帶車種。</li>
+        <li><strong>不要太吵：</strong>兩段語音至少間隔 <code>voice_cooldown_sec</code>（1.5 秒）；來不及說的車，等間隔到了再說。</li>
+        <li><strong>要夠短：</strong>危險時可能只剩 1～2 秒，所以每段語音剪掉前後靜音後只有約 1 秒。</li>
+        <li><strong>大型車：</strong>YOLO 分不出大卡車和小貨車，所以公車、貨車統稱「大型車」，報告中要說明這個限制。</li>
+        <li><strong>TFT：</strong>電腦每 0.2 秒送一次狀態（例如 <code>S1B25</code>），ESP32 只在內容改變時重畫，避免閃爍。</li>
+      </ul>
+
+      <div class="note warn">
+        <strong>方法的限制（要寫進報告）</strong>
+        <ul>
+          <li><strong>看得多遠決定能提早多久：</strong>汽車比單車快 35 km/h 時，相對速度約每秒 10 公尺，要提早 4 秒就得在 40 公尺外認出來。用視角約 100 度的廣角鏡頭拍 1080p，40 公尺外的汽車寬度只有約 35 像素，縮小成 640 給 YOLO 後更小，很容易漏掉。</li>
+          <li>夜間車燈眩光、雨天、彎道、上下坡、車身晃動，都會讓框不穩定。</li>
+          <li>τ 假設車子等速靠近；車子突然加速時，實際到達會比估計早。</li>
+          <li>程式只知道「多久後到」，不知道車子會不會靠得很近才超車。</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="code">
+      <h2><span class="num">10</span>程式包使用說明</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">檔案</th><th scope="col">用途</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>0_demo_practice.bat</code></th><td>產生練習影片 → 分析 → 計算成績</td></tr>
+            <tr><th scope="row"><code>1_test_lights.bat</code>／<code>test_lights.py</code></th><td>依序測試四種燈號與 TFT 畫面，再播放 9 段語音</td></tr>
+            <tr><th scope="row"><code>2_label_video.bat</code>／<code>label_events.py</code></th><td>把影片拖到 bat 上：車輛經過時按鍵，在影片旁邊存成「影片名_truth.csv」</td></tr>
+            <tr><th scope="row"><code>3_analyze_video.bat</code>／<code>rear_alert.py</code></th><td>把影片拖到 bat 上：開視窗分析一支影片，輸出標註影片與警示截圖；有答案檔就順便算成績</td></tr>
+            <tr><th scope="row"><code>4_batch_evaluate.bat</code>／<code>batch_run.py</code></th><td>分析 <code>videos/</code> 裡每支有答案檔的影片，輸出成績表；也能做參數實驗</td></tr>
+            <tr><th scope="row"><code>5_bench_demo.bat</code></th><td>桌上模型：鏡頭即時辨識，狀態與語音送到 ESP32（沒接會改用電腦播放語音與嗶聲）</td></tr>
+            <tr><th scope="row"><code>6_make_voice_files.bat</code>／<code>make_voice_files.py</code></th><td>用 Windows 中文語音重新產生 <code>sd_card/01/</code> 的語音檔（會剪掉前後靜音）</td></tr>
+            <tr><th scope="row"><code>7_test_voice_logic.bat</code>／<code>test_voice_logic.py</code></th><td>不用硬體，檢查語音規則與傳給 ESP32 的格式</td></tr>
+            <tr><th scope="row"><code>voice.py</code></th><td>語音規則（什麼時候說哪一段）、電腦播放、狀態格式</td></tr>
+            <tr><th scope="row"><code>make_tft_labels.py</code></th><td>把 TFT 的中文詞彙轉成點陣圖（<code>esp32_rear_alert/tft_labels.h</code>）；改了文字要重新執行再上傳</td></tr>
+            <tr><th scope="row"><code>evaluate.py</code></th><td>比對一支影片的紀錄與答案，其他程式也會呼叫它的函式</td></tr>
+            <tr><th scope="row"><code>make_demo_video.py</code></th><td>產生練習影片 <code>videos/demo.mp4</code> 與答案 <code>videos/demo_truth.csv</code></td></tr>
+            <tr><th scope="row"><code>esp32_rear_alert/</code></th><td>ESP32 燈號、蜂鳴器、TFT、DFPlayer 程式</td></tr>
+            <tr><th scope="row"><code>config.json</code></th><td>所有門檻與設定，說明見 <code>README_先看我.md</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>資料夾</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">位置</th><th scope="col">內容</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>videos/</code></th><td>自己拍的影片與答案檔。<strong>不要上傳到網路</strong></td></tr>
+            <tr><th scope="row"><code>logs/</code></th><td>每次分析的警示紀錄（CSV）與摘要（JSON）；批次分析在 <code>logs/batch_標籤_時間/</code>，裡面有當次設定</td></tr>
+            <tr><th scope="row"><code>sd_card/01/</code></th><td>語音檔 001～009.wav；電腦直接播放，也要複製到 microSD 卡根目錄。想用自己的聲音，照編號換檔即可</td></tr>
+            <tr><th scope="row"><code>output/</code></th><td>標註影片、成績表 <code>summary_*.csv</code>、警示截圖 <code>snapshots/</code>（都已模糊）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>標記正確答案的按鍵</h3>
+      <p>在車頭到達鏡頭旁邊、離開畫面的那一刻按：<kbd>1</kbd> 汽車、<kbd>2</kbd> 機車、<kbd>3</kbd> 公車、<kbd>4</kbd> 貨車、<kbd>空白鍵</kbd> 不分車種。其他按鍵：<kbd>u</kbd> 取消上一個、<kbd>p</kbd> 暫停、<kbd>a</kbd>／<kbd>d</kbd> 倒退／快轉 3 秒、暫停時 <kbd>,</kbd>／<kbd>.</kbd> 逐格移動、<kbd>q</kbd> 存檔離開。</p>
+      <h3>完整的資料流程</h3>
+      <ol class="flow" aria-label="資料處理流程">
+        <li><b>放影片</b>到 <code>videos/</code></li>
+        <li><b>標記</b>拖到 <code>2_label_video.bat</code></li>
+        <li><b>檢查</b>拖到 <code>3_analyze_video.bat</code> 看過程</li>
+        <li><b>成績</b>執行 <code>4_batch_evaluate.bat</code></li>
+        <li><b>改良</b><code>batch_run.py --set</code> 比較</li>
+      </ol>
+      <p>練習影片的預期結果：兩次逼近都有警示、沒有誤報，第一台車約提早 2 秒，第二台車開得快，只提早約 0.5 秒；車種判斷 2/2 正確，語音依序是「後方大型車」「危險，大型車」「危險，大型車」。想一想：為什麼開得越快，能提早的時間越少？</p>
+    </section>
+
+    <section id="prompts">
+      <h2><span class="num">11</span>AI 助手提示語（Antigravity／Claude Code）</h2>
+      <p>用 Antigravity 開啟程式包資料夾，或在 Claude 桌面版的「Code」分頁選擇資料夾，再貼上提示語。每次修改後，都要先用 <code>0_demo_practice.bat</code> 確認成績沒有變差。</p>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>① 讀懂原理</span><button type="button" class="copy" data-target="p1">複製</button></div>
+<pre id="p1">請閱讀 rear_alert.py，用高中生看得懂的繁體中文說明：
+1. Tracker 怎麼判斷兩次的框是同一台車？
+2. estimate_ttc 為什麼用「寬度的倒數」？請用距離 30、20、10 公尺的例子算給我看
+3. 警示等級怎麼決定？confirm_count 和 hold_sec 各自解決什麼問題？
+先不要修改任何檔案。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>② 只辨識右半邊，看得更遠</span><button type="button" class="copy" data-target="p2">複製</button></div>
+<pre id="p2">我們的影片是 1080p，遠方的車太小常常認不出來。請在 rear_alert.py 新增 config 選項 crop_zone（預設 false）：
+開啟時，只把 zone_x 範圍內的畫面裁切下來給 YOLO 辨識，再把框的座標換回原畫面。
+改完請先用 make_demo_video.py 的練習影片，分別在 crop_zone 開、關時執行 rear_alert.py 與 evaluate.py，
+把兩次的平均提早秒數、誤報次數、處理時間整理成表格給我。不要修改 config.json 的其他設定。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>③ 分析誤報與漏報</span><button type="button" class="copy" data-target="p3">複製</button></div>
+<pre id="p3">請讀取 output 資料夾中最新的 summary CSV，找出成功率最低與誤報最多的影片。
+再用 evaluate.py 的 load_truth、load_alerts、match 函式，比對 logs 裡最新 batch 資料夾中那支影片的紀錄，
+列出每一次漏報與誤報的時間、車種、當時估計的 ttc_sec，
+並告訴我應該去 output/snapshots 看哪些截圖，列出可能的原因。先不要修改程式。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>④ 參數比較圖表</span><button type="button" class="copy" data-target="p4">複製</button></div>
+<pre id="p4">請寫一個 compare_params.py：依序執行
+  python batch_run.py videos --set ttc_warn=3 --tag warn3
+  python batch_run.py videos --set ttc_warn=4 --tag warn4
+  python batch_run.py videos --set ttc_warn=5 --tag warn5
+然後讀取這三次產生的 output/summary_*.csv 的【合計】列，
+用 matplotlib 畫一張圖：橫軸是 ttc_warn，左邊縱軸是平均提早秒數、右邊縱軸是每 10 分鐘誤報，
+圖存成 output/compare_ttc_warn.png，並用繁體中文說明取捨。不要修改 config.json。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>⑤ 延伸：大車提早警示</span><button type="button" class="copy" data-target="p5">複製</button></div>
+<pre id="p5">公車和貨車比較寬、帶起的風也大，我們想讓它們提早警示。
+請在 config.json 加入 big_vehicle_extra_sec（預設 1.0），當車種是 bus 或 truck 時，
+注意與危險的門檻都加上這個秒數。改完請用練習影片測試，確認誤報沒有增加，再說明修改了哪些地方。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>⑥ 整理實驗結果</span><button type="button" class="copy" data-target="p6">複製</button></div>
+<pre id="p6">這是我們所有影片的成績表（貼上表格）。請整理成書面報告可用的表格，
+依時段、天氣、車種分組，計算成功率與平均提早秒數，並寫一段 150 字的分析，
+說明哪些情況效果最差、可能的原因，以及樣本數是否足夠。數字只能用我提供的資料。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>⑦ 延伸：語音說出方向</span><button type="button" class="copy" data-target="p7">複製</button></div>
+<pre id="p7">我們想讓語音也說出車子在左後方還是正後方。請閱讀 voice.py 與 rear_alert.py，
+提出做法：需要新增哪些語音檔（先列出編號與內容）、怎麼從車框位置判斷方向、要改哪些函式。
+改完後同步更新 test_voice_logic.py 的測試案例，執行後全部通過再回報；
+並提醒我要用 6_make_voice_files.bat 重新產生語音檔、把新檔案複製到 microSD 卡。</pre>
+      </div>
+    </section>
+
+    <section id="verify">
+      <h2><span class="num">12</span>測試與驗證</h2>
+      <h3>標記規則（全組要一致）</h3>
+      <ul>
+        <li><strong>「經過」的時間點：</strong>車頭到達鏡頭旁邊、從畫面右側離開的那一刻。</li>
+        <li><strong>哪些車要標記：</strong>從騎士左側約 2 公尺內經過的車（同一條車道或相鄰車道）。更遠車道的車不標記，如果程式對它們警示，就算誤報。</li>
+        <li>標記時按 <kbd>1</kbd>～<kbd>4</kbd> 記錄車種（汽車、機車、公車、貨車），成績表才能分車種比較。</li>
+        <li>兩人各自標記同一支影片（用 <code>--out</code> 存成不同檔名），時間差超過 0.5 秒或數量不同的地方，一起重看確認。</li>
+        <li>標記時只看影片，不要先看程式的警示結果。</li>
+      </ul>
+      <h3>評估指標</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">指標</th><th scope="col">算法</th><th scope="col">意義</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">成功率（召回率）</th><td>成功警示次數 ÷ 標記的經過次數</td><td>有多少台車被提前發現</td></tr>
+            <tr><th scope="row">平均提早秒數</th><td>經過時間 − 第一次警示時間，取平均</td><td>騎士有多少反應時間</td></tr>
+            <tr><th scope="row">危險燈提早秒數</th><td>經過時間 − 第一次紅燈時間</td><td>最後警告夠不夠早</td></tr>
+            <tr><th scope="row">車種判斷正確率</th><td>語音說的車種與標記一致的次數 ÷ 有標記車種的成功警示（公車、貨車都算大型車）</td><td>語音會不會說錯；說錯會讓騎士誤判</td></tr>
+            <tr><th scope="row">誤報率</th><td>誤報次數 ÷ 影片分鐘數 × 10</td><td>每 10 分鐘誤報幾次；誤報太多，使用者會不再理會警示</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>情境比較</h3>
+      <p>把成績依下列情境分組，找出方法在哪裡最弱：</p>
+      <ul>
+        <li>時段與天氣：白天、傍晚、陰雨天（夜間只在安全的定點拍攝）。</li>
+        <li>車種：汽車、機車、公車貨車。</li>
+        <li>道路：直路、彎道；車多、車少。</li>
+        <li>拍攝方式：路邊定點 vs 騎乘錄影（晃動的影響）。</li>
+      </ul>
+      <h3>參數實驗</h3>
+      <p>一次只改一個設定，在<strong>同一批影片</strong>上比較，例如 <code>imgsz</code> 640 vs 960、<code>confirm_count</code> 1 vs 2 vs 3、<code>ttc_warn</code> 3 vs 4 vs 5。要同時記錄處理速度，因為看得更遠通常也跑得更慢。</p>
+      <pre><code>python batch_run.py videos --tag base
+python batch_run.py videos --set imgsz=960 --tag img960
+python batch_run.py videos --set confirm_count=1 --tag confirm1</code></pre>
+      <p class="muted">每次的成績表存在 <code>output/summary_標籤_時間.csv</code>，<code>config.json</code> 不會被修改。</p>
+      <h3>桌上模型反應時間</h3>
+      <p>用手機慢動作錄下「玩具車開始移動」到「黃燈亮起」「開始說話」「TFT 顯示車種」的過程，數影格算出延遲。也可以比較 <code>detect_interval_sec</code> 0.1 與 0.3 的差別。</p>
+      <h3>語音與 TFT 的使用者測試</h3>
+      <p>請沒參與製作的同學看桌上模型展示，記錄：聽不聽得清楚語音、多久能看懂 TFT 的意思、會不會覺得太吵。可以比較「只有燈號」「燈號＋語音」「燈號＋語音＋TFT」三種組合，哪一種最容易理解。</p>
+    </section>
+
+    <section id="ethics">
+      <h2><span class="num">13</span>安全、隱私與倫理</h2>
+      <ul class="check">
+        <li>不邊騎車邊測試、不在騎車時看螢幕或操作手機。</li>
+        <li>拍攝時人和器材都不站在車道上，不妨礙交通與行人；騎乘錄影要經老師同意並戴安全帽。</li>
+        <li>原始影片有車牌與路人，不上傳網路、不外流；專題結束後刪除。</li>
+        <li>報告、簡報、成果影片只用 <code>output/</code> 中已模糊的畫面，並再次檢查車牌和人臉有沒有漏掉。</li>
+        <li>不針對特定人或特定車輛拍攝；在校內拍攝要先取得學校同意。</li>
+        <li>ESP32 只使用 3.3V 低壓元件。</li>
+        <li>報告與展示時清楚說明：這是教學原型，不能當作正式的安全裝置。</li>
+      </ul>
+    </section>
+
+    <section id="trouble">
+      <h2><span class="num">14</span>常見問題</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">狀況</th><th scope="col">可能原因</th><th scope="col">解決方式</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">車子很近才警示，甚至漏報</th><td>遠方的車太小，YOLO 認不出來；車不在 <code>zone_x</code> 範圍</td><td><code>imgsz</code> 改 960 或 1280；開啟視窗看灰色框線，調整 <code>zone_x</code>；參考提示語 ②</td></tr>
+            <tr><th scope="row">誤報很多</th><td>畫面晃動讓框忽大忽小；遠車道的車被算進去</td><td>加大 <code>confirm_count</code> 或 <code>size_window_sec</code>；縮小 <code>zone_x</code></td></tr>
+            <tr><th scope="row">同一台車編號一直變</th><td>中間有幾格沒認出來，追蹤斷掉</td><td>加大 <code>lost_sec</code>；降低 <code>confidence</code></td></tr>
+            <tr><th scope="row">分析速度很慢</th><td>電腦較慢、<code>imgsz</code> 太大</td><td><code>detect_interval_sec</code> 改 0.2；分析時不要加 <code>--window</code></td></tr>
+            <tr><th scope="row">成績表裡沒有我的影片</th><td>答案檔名稱或位置不對</td><td>答案檔要叫「影片名_truth.csv」並和影片放在同一個資料夾；用 <code>2_label_video.bat</code> 標記會自動命名</td></tr>
+            <tr><th scope="row">evaluate 比對到別支影片</th><td>沒指定紀錄時會用 <code>logs/</code> 最新的檔案</td><td>用 <code>--log logs/檔名.csv</code> 指定，或改用 <code>batch_run.py</code></td></tr>
+            <tr><th scope="row">ESP32 綠燈一直慢閃</th><td>電腦沒有送出訊號</td><td>確認沒有加 <code>--no-serial</code>；程式開頭是否顯示「已連線 ESP32」</td></tr>
+            <tr><th scope="row">找不到 ESP32 序列埠</th><td>沒裝 USB 驅動、USB 線只能充電</td><td>安裝 CP210x 或 CH340 驅動；換一條傳輸線；在 config.json 指定 COM 埠</td></tr>
+            <tr><th scope="row">蜂鳴器一直響</th><td>買到「低電位觸發」的模組</td><td>換成高電位觸發模組，或請 AI 助手把程式中蜂鳴器的 HIGH／LOW 反過來</td></tr>
+            <tr><th scope="row">DFPlayer 沒有聲音</th><td>卡片不是 FAT32、資料夾或檔名不對、RX／TX 沒交叉、喇叭沒接好</td><td>卡片格式化成 FAT32；根目錄要有 <code>01</code> 資料夾與 <code>001.wav</code>；對調 GPIO16／17 接線；先用 <code>1_test_lights.bat</code> 測試</td></tr>
+            <tr><th scope="row">播放語音時 ESP32 重開機</th><td>喇叭太大聲、USB 供電不足</td><td>把 <code>voice_volume</code> 調低到 15～20；換較短的 USB 線或接有外接電源的 USB 集線器</td></tr>
+            <tr><th scope="row">語音有雜音</th><td>DFPlayer 與 ESP32 共用電源的雜訊</td><td>RX 前串 1kΩ 電阻；DFPlayer 電源腳並聯 100µF 電容</td></tr>
+            <tr><th scope="row">TFT 全白、顏色錯或邊緣有雜點</th><td>接線錯誤、面板型號不同</td><td>檢查 CS、A0、RST；把 <code>INITR_BLACKTAB</code> 改成 <code>INITR_GREENTAB</code> 或 <code>INITR_REDTAB</code></td></tr>
+            <tr><th scope="row">電腦語音唸成英文或沒有聲音</th><td>沒有中文語音</td><td>Windows 設定新增「中文（台灣）」語音後，重新執行 <code>6_make_voice_files.bat</code></td></tr>
+            <tr><th scope="row">玩具車認不出來</th><td>玩具車太小、不夠逼真</td><td>換大一點的合金車，或改用平板播放錄好的影片給鏡頭看</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="v2">
+      <h2><span class="num">15</span>延伸：移植到手機或樹莓派（選做）</h2>
+      <p>第一階段完成後，可以挑戰讓程式在更小的裝置上即時執行，並和筆電比較。</p>
+      <ul>
+        <li><strong>模型轉換：</strong>Ultralytics 可以把 YOLO 模型匯出成其他格式，例如手機常用的 TFLite、樹莓派常用的 NCNN，詳細做法請查 Ultralytics 官方文件的 Export 說明。</li>
+        <li><strong>樹莓派：</strong>Raspberry Pi 5 搭配鏡頭模組與散熱外殼；先在桌上用行動電源供電測試，確認能穩定運作。</li>
+        <li><strong>要比較的項目：</strong>每秒處理幾張（FPS）、反應時間、同一批影片的成績、耗電量（用 USB 電流表量 30 分鐘）、溫度，和筆電做成對照表。</li>
+        <li>移植後仍然只在桌上或定點測試，不上路騎乘測試。</li>
+      </ul>
+    </section>
+
+    <section id="report">
+      <h2><span class="num">16</span>書面報告與評分</h2>
+      <h3>報告架構</h3>
+      <ol>
+        <li><strong>摘要：</strong>問題、方法、主要成績（用自己算出的數字）。</li>
+        <li><strong>研究動機：</strong>問卷或訪談結果。</li>
+        <li><strong>文獻與現況：</strong>後照鏡、後方雷達尾燈、行車紀錄器，說明本作品用影像辨識的優缺點。</li>
+        <li><strong>研究方法：</strong>功能清單與驗收標準、系統模組圖、狀態機、拍攝方式、標記規則、追蹤與到達時間的原理（附公式與圖）、參數。</li>
+        <li><strong>測試與結果：</strong>功能測試（T1～T10）、基準成績、情境與車種比較、參數實驗、桌上模型反應時間。</li>
+        <li><strong>討論：</strong>漏報與誤報原因、方法限制、安全與隱私措施。</li>
+        <li><strong>結論與未來展望：</strong>例如裁切辨識、手機或樹莓派版本。</li>
+      </ol>
+      <h3>評分參考</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">項目</th><th scope="col">比重</th><th scope="col">優秀的表現</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">問題定義與現況</th><td>10%</td><td>有真實使用者的意見，清楚說明和市售產品的差別</td></tr>
+            <tr><th scope="row">資料蒐集與標記</th><td>20%</td><td>影片涵蓋多種情境、至少 30 次經過，標記規則清楚且經過交叉確認</td></tr>
+            <tr><th scope="row">功能設計與原理</th><td>15%</td><td>功能與驗收標準清楚，能用自己的話和例子說明追蹤、狀態機與到達時間的計算</td></tr>
+            <tr><th scope="row">測試與改良</th><td>25%</td><td>有基準成績、一次改一項的參數實驗，能用影片說明誤報原因</td></tr>
+            <tr><th scope="row">桌上模型</th><td>15%</td><td>燈號、語音、TFT 清楚易懂，有離線提示，量測反應時間並做使用者測試</td></tr>
+            <tr><th scope="row">安全、隱私與報告</th><td>15%</td><td>拍攝過程安全、畫面確實模糊處理、數據真實、展示清楚</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note warn">
+        <strong>數據一定要是自己測的</strong>
+        練習影片的成績只能用來確認環境，報告中的所有數字都要來自自己拍攝、標記與分析的影片。
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  【專題實作】自行車後方來車警示 ・ 相關教材：<a href="ai_vision_course_guide.html">AI 視覺創客小學堂</a>・<a href="tactile_paving_project_guide.html">導盲磚占用偵測</a>・<a href="headgear_assist_project_guide.html">頭部障礙物警示帽</a>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = document.getElementById(btn.dataset.target).innerText;
+      const done = () => {
+        const old = btn.textContent;
+        btn.textContent = '已複製';
+        setTimeout(() => { btn.textContent = old; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => window.prompt('請手動複製：', text));
+      } else {
+        window.prompt('請手動複製：', text);
+      }
+    });
+  });
+
+  (() => {
+    const w1 = document.getElementById('w1');
+    const w2 = document.getElementById('w2');
+    const dt = document.getElementById('dt');
+    const out = document.getElementById('calcOut');
+    const update = () => {
+      const a = parseFloat(w1.value), b = parseFloat(w2.value), t = parseFloat(dt.value);
+      out.className = 'calc-out';
+      if (!(a > 0 && b > 0 && t > 0)) {
+        out.textContent = '請輸入大於 0 的數字';
+        return;
+      }
+      if (b <= a) {
+        out.classList.add('lv0');
+        out.textContent = '框沒有變大：車子沒有逼近 → 安全（綠燈）';
+        return;
+      }
+      const tau = t * a / (b - a);
+      const level = tau < 2 ? 2 : tau < 4 ? 1 : 0;
+      const name = ['安全（綠燈）', '注意（黃燈）', '危險（紅燈）'][level];
+      out.classList.add('lv' + level);
+      out.textContent = `τ ＝ ${t} × ${a} ÷ (${b} − ${a}) ≈ ${tau.toFixed(2)} 秒 → ${name}`;
+    };
+    [w1, w2, dt].forEach(el => el.addEventListener('input', update));
+    update();
+  })();
+</script>
+</body>
+</html>

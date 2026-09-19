@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ESET 端點防毒與中控代理：部署啟動、VPN 觸發與診斷 SOP 實戰指南</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(14, 165, 233, 0.3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(14, 165, 233, 0.6); }
+    .code-font { font-family: 'Consolas', 'Fira Code', 'Courier New', monospace; }
+    .glow-card:hover { border-color: rgba(14, 165, 233, 0.5); box-shadow: 0 10px 30px -10px rgba(14, 165, 233, 0.2); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-sky-500/30 selection:text-sky-200">
+
+  <!-- 頂部導航 Header -->
+  <header class="border-b border-slate-800 bg-slate-900/90 sticky top-0 z-50 backdrop-blur-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 via-teal-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-sky-500/20 text-2xl">
+          🛡️
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            ESET 端點防毒與中控代理：部署啟動與診斷 SOP
+            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">
+              Antigravity SKILL 規範
+            </span>
+          </h1>
+          <p class="text-xs text-slate-400">生命週期啟用 ｜ VPN 0 秒即時觸發 ｜ 四大階段架構診斷 ｜ 完整 SKILL 包下載</p>
+        </div>
+      </div>
+      
+      <!-- 操作按鈕 -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <a href="ESET端點防毒與中控代理_部署啟動與診斷SKILL全套打包.zip" download class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600 text-white shadow-md shadow-sky-600/30 hover:from-sky-500 hover:to-emerald-500 transition">
+          <span>📦</span> 下載 SKILL 全套打包 (ZIP)
+        </a>
+        <a href="ESET_端點防毒與中控服務快速啟動SOP.pdf" download class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/40 transition">
+          <span>📄</span> 下載完整 SOP (PDF)
+        </a>
+        <a href="index.html" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+          🏠 回首頁
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主內容 Main -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+
+    <!-- 1. 導論 Hero Section -->
+    <section class="bg-gradient-to-br from-slate-900 via-sky-950/20 to-slate-900 border border-sky-500/40 rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
+      <div class="absolute -right-20 -top-20 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div class="relative z-10 space-y-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-semibold">
+          ⚡ 企業與校園端點防毒部署與生命週期診斷
+        </div>
+        <h2 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+          ESET Endpoint Antivirus 與 Management Agent 快速啟用全指南
+        </h2>
+        <p class="text-sm md:text-base text-slate-300 leading-relaxed max-w-4xl">
+          本指南詳細說明校園與企業環境中 **ESET Management Agent (EraAgentSvc)** 與 **ESET Endpoint Antivirus (ekrn.exe)** 的最佳安裝順序、內外網 VPN 0 秒即時觸發啟用機制，以及 **四大階段自動化健康診斷流程**。<br>
+          已完整整理為 **Antigravity SKILL 技能規範** 與管理員批次腳本。
+        </p>
+      </div>
+
+      <!-- 快速卡片對照 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-800">
+        <div class="bg-slate-950/80 border border-sky-500/30 rounded-xl p-5 space-y-3 glow-card transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2.5 py-1 rounded bg-sky-500/20 text-sky-300 border border-sky-500/40">核心組件 1</span>
+            <span class="text-xs text-sky-400 font-mono">服務：EraAgentSvc</span>
+          </div>
+          <h3 class="text-base font-bold text-white">ESET Management Agent（中控代理）</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            負責與 ESET PROTECT 伺服器進行 TCP 2222 複寫、安全憑證註冊、政策接收與授權派發。為防毒軟體順利啟用的核心通訊橋樑。
+          </p>
+        </div>
+
+        <div class="bg-slate-950/80 border border-emerald-500/30 rounded-xl p-5 space-y-3 glow-card transition">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">核心組件 2</span>
+            <span class="text-xs text-emerald-400 font-mono">核心：ekrn.exe / egui.exe</span>
+          </div>
+          <h3 class="text-base font-bold text-white">ESET Endpoint Antivirus（防毒主程式）</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            提供本機檔案即時防護、網路攔截、病毒碼更新與掃描引擎。成功取得 Agent 派發之授權後即會轉為綠色「您受到完整保護」。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 適用情境表格 -->
+    <section class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 space-y-4">
+      <h3 class="text-lg font-bold text-white flex items-center gap-2">
+        <span>🎯</span> 適用情境與對照處置方式
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-slate-800 bg-slate-950 text-slate-300">
+              <th class="p-3 font-semibold">使用情境</th>
+              <th class="p-3 font-semibold">建議處置方式</th>
+              <th class="p-3 font-semibold">預期成果</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-800 text-slate-300">
+            <tr class="hover:bg-slate-800/40">
+              <td class="p-3 font-semibold text-sky-300">VPN 連線後防毒顯示未啟用 / 橘紅燈</td>
+              <td class="p-3">執行 <strong>一鍵重啟同步批次檔</strong>（或重啟 EraAgentSvc）</td>
+              <td class="p-3 text-emerald-400">1~2 分鐘內自動連通中控台取得授權，恢復綠色狀態</td>
+            </tr>
+            <tr class="hover:bg-slate-800/40">
+              <td class="p-3 font-semibold text-sky-300">開機後防毒圖示未出現 / 介面關閉</td>
+              <td class="p-3">執行 <strong>開啟 ESET 主程式介面 (egui.exe)</strong></td>
+              <td class="p-3 text-emerald-400">喚醒桌面操作視窗與托盤圖示</td>
+            </tr>
+            <tr class="hover:bg-slate-800/40">
+              <td class="p-3 font-semibold text-sky-300">防毒服務被關閉 / 無法即時防護</td>
+              <td class="p-3">執行 <strong>PowerShell 啟動核心服務 (ekrn & EraAgentSvc)</strong></td>
+              <td class="p-3 text-emerald-400">重新啟動即時防護與中控代理</td>
+            </tr>
+            <tr class="hover:bg-slate-800/40">
+              <td class="p-3 font-semibold text-sky-300">連線異常 / 授權持續無法派發</td>
+              <td class="p-3">執行 <strong>check_eset_phases.ps1 診斷腳本</strong></td>
+              <td class="p-3 text-amber-300">輸出四大階段（服務、憑證、TCP 2222、WMI）排錯報告</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3. 三大核心 SOP 操作 -->
+    <section class="space-y-6">
+      <h3 class="text-xl font-bold text-white flex items-center gap-2">
+        <span>🚀</span> 快速啟動與授權啟用操作 SOP
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- 步驟 1 -->
+        <div class="bg-slate-900 border border-sky-500/30 rounded-xl p-5 space-y-3">
+          <div class="flex items-center gap-2 text-sky-400 font-bold text-sm">
+            <span class="w-6 h-6 rounded-full bg-sky-500/20 flex items-center justify-center border border-sky-500/40 text-xs">1</span>
+            一鍵強制重啟與授權同步
+          </div>
+          <p class="text-xs text-slate-300">
+            在校外連上 VPN 後，右鍵點擊 <code class="text-sky-300">重啟ESET中控同步.bat</code> 選擇「以系統管理員身分執行」，或在 CMD 執行：
+          </p>
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 code-font text-xs text-sky-300 overflow-x-auto">
+            net stop EraAgentSvc && net start EraAgentSvc
+          </div>
+        </div>
+
+        <!-- 步驟 2 -->
+        <div class="bg-slate-900 border border-teal-500/30 rounded-xl p-5 space-y-3">
+          <div class="flex items-center gap-2 text-teal-400 font-bold text-sm">
+            <span class="w-6 h-6 rounded-full bg-teal-500/20 flex items-center justify-center border border-teal-500/40 text-xs">2</span>
+            開啟防毒桌面介面 (GUI)
+          </div>
+          <p class="text-xs text-slate-300">
+            若桌面圖示消失，按 <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-200">Win</kbd> + <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-200">R</kbd> 輸入並執行：
+          </p>
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 code-font text-xs text-teal-300 overflow-x-auto">
+            "C:\Program Files\ESET\ESET Security\egui.exe"
+          </div>
+        </div>
+
+        <!-- 步驟 3 -->
+        <div class="bg-slate-900 border border-emerald-500/30 rounded-xl p-5 space-y-3">
+          <div class="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+            <span class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/40 text-xs">3</span>
+            PowerShell 全套服務啟動
+          </div>
+          <p class="text-xs text-slate-300">
+            以系統管理員身分開啟 PowerShell，啟動本機核心與代理：
+          </p>
+          <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 code-font text-xs text-emerald-300 overflow-x-auto">
+            Start-Service ekrn<br>
+            Start-Service EraAgentSvc
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. 四大階段診斷說明 -->
+    <section class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>🩺</span> 四大階段生命週期與健康診斷 SOP
+          </h3>
+          <p class="text-xs text-slate-400 mt-1">使用 <code class="text-sky-400">check_eset_phases.ps1</code> 進行分層自動診斷</p>
+        </div>
+        <a href="ESET端點防毒與中控代理_部署啟動與診斷SKILL全套打包.zip" download class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold bg-sky-600 hover:bg-sky-500 text-white transition">
+          下載診斷腳本 (ZIP)
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+          <div class="text-xs font-bold text-sky-400">階段 1：架構與連線</div>
+          <p class="text-xs text-slate-300">檢測 ekrn.exe 與 EraAgentSvc 服務狀態，測試中控 TCP 2222 埠連通性。</p>
+        </div>
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+          <div class="text-xs font-bold text-teal-400">階段 2：憑證驗證</div>
+          <p class="text-xs text-slate-300">檢查 status.html 確信 Peer Certificate 載入成功且在有效期限內。</p>
+        </div>
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+          <div class="text-xs font-bold text-emerald-400">階段 3：排程複寫</div>
+          <p class="text-xs text-slate-300">查閱 trace.log 確認與 ESET PROTECT 伺服器保持正常 Replication 心跳。</p>
+        </div>
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+          <div class="text-xs font-bold text-amber-400">階段 4：授權與防護</div>
+          <p class="text-xs text-slate-300">確認 WebActivationState 狀態與 WMI 碼 266240 轉為綠色防護。</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+        <div class="text-xs font-bold text-slate-300">PowerShell 診斷指令：</div>
+        <div class="code-font text-xs text-sky-300">
+          powershell -ExecutionPolicy Bypass -File "check_eset_phases.ps1"
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. 檔案資源與下載 -->
+    <section class="bg-gradient-to-r from-sky-950/40 via-slate-900 to-emerald-950/40 border border-sky-500/30 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="space-y-2">
+        <h3 class="text-xl font-extrabold text-white">取得完整 ESET SKILL 知識包與 PDF 手冊</h3>
+        <p class="text-xs text-slate-300 max-w-2xl">
+          知識包內含 Antigravity SKILL 規範檔 (<code class="text-sky-300">SKILL.md</code>)、四大階段診斷腳本、即時監控腳本、一鍵批次檔及高畫質 PDF SOP 文件。
+        </p>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <a href="ESET端點防毒與中控代理_部署啟動與診斷SKILL全套打包.zip" download class="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-sky-600 via-teal-600 to-emerald-600 text-white shadow-lg shadow-sky-600/30 hover:from-sky-500 hover:to-emerald-500 transition">
+          <span>📦</span> 下載 SKILL 打包 (.zip)
+        </a>
+        <a href="ESET_端點防毒與中控服務快速啟動SOP.pdf" download class="inline-flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/40 transition">
+          <span>📄</span> 下載 SOP 手冊 (.pdf)
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+    &copy; 2026 簡老師的個人網站 &middot; ESET 端點防毒與中控代理 SOP 手冊
+  </footer>
+
+</body>
+</html>

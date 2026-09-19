@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>數位乙級 考題內容指定表設定</title>
+    <!-- PDF-Lib and Fontkit from CDNs -->
+    <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --border: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #0ea5e9;
+            --primary-glow: rgba(14, 165, 233, 0.15);
+            --accent-purple: #a855f7;
+            --accent-teal: #14b8a6;
+            --accent-gold: #eab308;
+            --font-display: "Outfit", "Noto Sans TC", sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: var(--font-display);
+            min-height: 100vh;
+            padding: 2rem 1.5rem 4rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: clamp(2.2rem, 5vw, 2.8rem);
+            font-weight: 900;
+            background: linear-gradient(135deg, #f8fafc 30%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1.15rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 700;
+            font-size: 1.15rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        /* Option buttons styling */
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .option-btn {
+            flex: 1;
+            min-width: 70px;
+            background-color: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.65rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.05rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+            color: var(--text-main);
+        }
+
+        .option-btn.selected {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+
+        .subject-btn {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        /* Input styling */
+        .input-control {
+            width: 100%;
+            background-color: rgba(0,0,0,0.2);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 1.15rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-control:focus {
+            border-color: var(--primary);
+        }
+
+        .row-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Submit button */
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            border: none;
+            color: #ffffff;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 14px rgba(14, 165, 233, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.6);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            background: var(--border);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            transition: color 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+        }
+
+        .loading-spinner {
+            border: 3px solid rgba(255,255,255,0.1);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border-left-color: #ffffff;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="index.html" target="_top" class="back-link">&larr; 返回首頁</a>
+    
+    <header>
+        <h1>數位乙級 評審表設定</h1>
+        <p>配置考試題目、CPLD 接腳、顯示組合，並匯出完整評審表 PDF</p>
+    </header>
+
+    <div class="card">
+        <!-- 考試題目 -->
+        <div class="form-group">
+            <span class="form-label">選擇考題：</span>
+            <div class="btn-group">
+                <button type="button" class="option-btn subject-btn selected" data-value="1" onclick="selectSubject(this)">第一題 11700-110201 四位數顯示裝置</button>
+                <button type="button" class="option-btn subject-btn" data-value="2" onclick="selectSubject(this)">第二題 11700-110202 鍵盤輸入顯示裝置</button>
+            </div>
+        </div>
+
+        <!-- CPLD -->
+        <div class="form-group">
+            <span class="form-label">CPLD 指定接腳組合：</span>
+            <div class="btn-group">
+                <button type="button" class="option-btn" data-type="cpld" data-value="A" onclick="selectOption(this)">A</button>
+                <button type="button" class="option-btn" data-type="cpld" data-value="B" onclick="selectOption(this)">B</button>
+                <button type="button" class="option-btn" data-type="cpld" data-value="C" onclick="selectOption(this)">C</button>
+                <button type="button" class="option-btn" data-type="cpld" data-value="D" onclick="selectOption(this)">D</button>
+                <button type="button" class="option-btn selected" data-type="cpld" data-value="E" onclick="selectOption(this)">E</button>
+            </div>
+        </div>
+
+        <!-- 七段顯示 -->
+        <div class="form-group">
+            <span class="form-label">七段顯示器顯示組合：</span>
+            <div class="btn-group">
+                <button type="button" class="option-btn" data-type="display" data-value="J" onclick="selectOption(this)">J</button>
+                <button type="button" class="option-btn" data-type="display" data-value="K" onclick="selectOption(this)">K</button>
+                <button type="button" class="option-btn" data-type="display" data-value="L" onclick="selectOption(this)">L</button>
+                <button type="button" class="option-btn" data-type="display" data-value="M" onclick="selectOption(this)">M</button>
+                <button type="button" class="option-btn selected" data-type="display" data-value="N" onclick="selectOption(this)">N</button>
+            </div>
+        </div>
+
+        <div class="row-grid">
+            <!-- 起始崗位 -->
+            <div class="form-group">
+                <label class="form-label" for="stationStart">起始崗位編號 (1~20)：</label>
+                <input type="number" id="stationStart" class="input-control" min="1" max="20" value="5">
+            </div>
+
+            <!-- 起始測試編號 -->
+            <div class="form-group">
+                <label class="form-label" for="testNoStart">起始測試編號：</label>
+                <input type="text" id="testNoStart" class="input-control" placeholder="例如: 07240001" value="07240001">
+            </div>
+        </div>
+
+        <!-- 考生人數 -->
+        <div class="form-group">
+            <label class="form-label" for="candidateCount">輸出考生人數：</label>
+            <input type="number" id="candidateCount" class="input-control" min="1" max="50" value="20">
+        </div>
+
+        <!-- 確定生成按鈕 -->
+        <button type="button" id="btnSubmit" class="submit-btn" onclick="generatePDF()">
+            <span class="loading-spinner" id="spinner"></span>
+            <span id="btnText">確認生成 PDF 下載</span>
+        </button>
+    </div>
+</div>
+
+<script>
+    let selectedSubject = "1";
+    let selectedCPLD = "E";
+    let selectedDisplay = "N";
+
+    function selectSubject(btn) {
+        document.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedSubject = btn.getAttribute('data-value');
+    }
+
+    function selectOption(btn) {
+        const type = btn.getAttribute('data-type');
+        document.querySelectorAll(`.option-btn[data-type="${type}"]`).forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        if (type === 'cpld') {
+            selectedCPLD = btn.getAttribute('data-value');
+        } else if (type === 'display') {
+            selectedDisplay = btn.getAttribute('data-value');
+        }
+    }
+
+    async function generatePDF() {
+        const stationStart = parseInt(document.getElementById('stationStart').value);
+        const testNoStart = document.getElementById('testNoStart').value.trim();
+        const candidateCount = parseInt(document.getElementById('candidateCount').value);
+
+        if (!stationStart || stationStart < 1 || stationStart > 20) {
+            alert('崗位編號需介於 1 到 20 之間！');
+            return;
+        }
+        if (!testNoStart || testNoStart.length !== 8) {
+            alert('起始測試編號格式有誤，應為 8 碼數字（如 07240001）！');
+            return;
+        }
+        if (!candidateCount || candidateCount < 1 || candidateCount > 100) {
+            alert('輸出考生人數需介於 1 到 100 之間！');
+            return;
+        }
+
+        const btnSubmit = document.getElementById('btnSubmit');
+        const spinner = document.getElementById('spinner');
+        const btnText = document.getElementById('btnText');
+
+        btnSubmit.disabled = true;
+        spinner.style.display = 'block';
+        btnText.innerText = 'PDF 產生中，請稍候...';
+
+        try {
+            // 1. 下載底圖範本與字型 (皆由當前網站目錄下載)
+            const page1Bytes = await fetch('數位電子乙級術科測試評審表.pdf').then(res => {
+                if (!res.ok) throw new Error("下載評審表底圖範本失敗，請確認檔案存在！");
+                return res.arrayBuffer();
+            });
+            const page2Bytes = await fetch('試題動作要求_排版.pdf').then(res => {
+                if (!res.ok) throw new Error("下載試題動作要求範本失敗，請確認檔案存在！");
+                return res.arrayBuffer();
+            });
+            const fontBytes = await fetch('DFT_YF3.ttf').then(res => {
+                if (!res.ok) throw new Error("下載簽名字型檔失敗，請確認檔案存在！");
+                return res.arrayBuffer();
+            });
+
+            // 2. 載入 PDF 與字型
+            const page1Doc = await PDFLib.PDFDocument.load(page1Bytes);
+            const page2Doc = await PDFLib.PDFDocument.load(page2Bytes);
+            
+            const newDoc = await PDFLib.PDFDocument.create();
+            newDoc.registerFontkit(fontkit);
+            const customFont = await newDoc.embedFont(fontBytes);
+
+            const HEIGHT = 841.89; // A4 高度 (點數)
+
+            const SUBJECT_BBOX = {
+                "1": [125.66, 106.5, 136.7, 117.54],
+                "2": [125.66, 123.18, 136.7, 134.22],
+            };
+            const CPLD_BBOX = {
+                "A": [125.66, 140.34, 136.7, 151.38],
+                "B": [218.45, 140.34, 229.49, 151.38],
+                "C": [125.66, 157.02, 136.7, 168.06],
+                "D": [218.33, 157.02, 229.37, 168.06],
+                "E": [125.66, 173.82, 136.7, 184.86],
+            };
+            const DISPLAY_BBOX = {
+                "J": [402.07, 140.34, 413.11, 151.38],
+                "K": [477.70, 140.34, 488.74, 151.38],
+                "L": [402.07, 157.02, 413.11, 168.06],
+                "M": [477.70, 157.02, 488.74, 168.06],
+                "N": [402.07, 173.82, 413.11, 184.86],
+            };
+
+            const prefix = testNoStart.substring(0, 4);
+            const startNum = parseInt(testNoStart.substring(4));
+
+            for (let i = 0; i < candidateCount; i++) {
+                const testNo = prefix + String(startNum + i).padStart(4, '0');
+                let stationVal = stationStart + i;
+                while (stationVal > 20) {
+                    stationVal -= 20;
+                }
+                const stationStr = String(stationVal).padStart(2, '0');
+
+                // 複製底圖第一頁
+                const [copiedPage1] = await newDoc.copyPages(page1Doc, [0]);
+                const page1 = newDoc.addPage(copiedPage1);
+
+                const helveticaFont = await newDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+
+                // 寫入術科測試編號 (Y 軸需要以底部起算轉換)
+                page1.drawText(testNo, {
+                    x: 140,
+                    y: HEIGHT - 96.0,
+                    size: 13.0,
+                    font: helveticaFont,
+                    color: PDFLib.rgb(0, 0, 0)
+                });
+
+                // 寫入崗位編號
+                page1.drawText(stationStr, {
+                    x: 370,
+                    y: HEIGHT - 71.5,
+                    size: 15.0,
+                    font: helveticaFont,
+                    color: PDFLib.rgb(0, 0, 0)
+                });
+
+                // 填黑勾選矩形
+                const sBbox = SUBJECT_BBOX[selectedSubject];
+                if (sBbox) {
+                    page1.drawRectangle({
+                        x: sBbox[0],
+                        y: HEIGHT - sBbox[3],
+                        width: sBbox[2] - sBbox[0],
+                        height: sBbox[3] - sBbox[1],
+                        color: PDFLib.rgb(0, 0, 0)
+                    });
+                }
+                const cBbox = CPLD_BBOX[selectedCPLD];
+                if (cBbox) {
+                    page1.drawRectangle({
+                        x: cBbox[0],
+                        y: HEIGHT - cBbox[3],
+                        width: cBbox[2] - cBbox[0],
+                        height: cBbox[3] - cBbox[1],
+                        color: PDFLib.rgb(0, 0, 0)
+                    });
+                }
+                const dBbox = DISPLAY_BBOX[selectedDisplay];
+                if (dBbox) {
+                    page1.drawRectangle({
+                        x: dBbox[0],
+                        y: HEIGHT - dBbox[3],
+                        width: dBbox[2] - dBbox[0],
+                        height: dBbox[3] - dBbox[1],
+                        color: PDFLib.rgb(0, 0, 0)
+                    });
+                }
+
+                // 寫入簽名「簡樹桐」
+                page1.drawText("簡樹桐", {
+                    x: 150,
+                    y: HEIGHT - 738,
+                    size: 26,
+                    font: customFont,
+                    color: PDFLib.rgb(0, 0, 0)
+                });
+
+                // 複製動作要求第二頁，直接加入
+                const [copiedPage2] = await newDoc.copyPages(page2Doc, [0]);
+                newDoc.addPage(copiedPage2);
+            }
+
+            // 儲存並自動下載
+            const pdfBytes = await newDoc.save();
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `數位電子乙級評審表_${testNoStart}_共${candidateCount}人.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+        } catch (error) {
+            console.error(error);
+            alert('產生 PDF 失敗：' + error.message);
+        } finally {
+            btnSubmit.disabled = false;
+            spinner.style.display = 'none';
+            btnText.innerText = '確認生成 PDF 下載';
+        }
+    }
+</script>
+</body>
+</html>

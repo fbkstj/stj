@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATmega328P 公告電路二(續) — 完整連線精確復刻版 v5</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --bg:#040710;--panel:#0d1524;--card:#172038;--border:#2a3a55;
+      --text:#f0f4ff;--muted:#7c8fab;
+      --vcc:#ef4444;--gnd:#94a3b8;--uart:#22d3ee;--wire:#d1d5db;
+      --exam:#f87171;--yellow:#facc15;--green:#4ade80;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+    header{background:#02040c;border-bottom:1px solid var(--border);padding:.6rem 1.4rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;position:sticky;top:0;z-index:100;}
+    .brand{display:flex;align-items:center;gap:.7rem;}
+    .brand i{font-size:1.7rem;color:var(--yellow);}
+    .brand h1{font-size:1.1rem;font-weight:900;}
+    .brand small{display:block;font-size:.75rem;color:var(--green);background:rgba(74,222,128,.1);padding:.15rem .5rem;border-radius:.3rem;border:1px solid rgba(74,222,128,.25);margin-top:.1rem;}
+    .hbtn{padding:.4rem .8rem;font-size:.85rem;font-weight:700;background:var(--card);border:1px solid var(--border);border-radius:.35rem;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:.4rem;text-decoration:none;transition:all .2s;}
+    .hbtn:hover{border-color:var(--uart);color:var(--uart);background:rgba(34,211,238,.1);}
+    .hbtn.on{background:var(--uart);color:#050c18;border-color:var(--uart);box-shadow:0 0 12px rgba(34,211,238,.4);}
+    main{flex:1;display:grid;grid-template-columns:1fr 340px;overflow:hidden;height:calc(100vh - 62px);}
+    @media(max-width:1100px){main{grid-template-columns:1fr;height:auto;overflow:auto;}}
+    .canvas{overflow:auto;background:#030609;display:flex;justify-content:center;align-items:flex-start;padding:1rem;}
+    svg.scm{width:100%;max-width:1400px;height:auto;background:#08101e;border:1px solid #1a2a40;border-radius:.6rem;box-shadow:0 8px 30px rgba(0,0,0,.8);}
+    .scm text{font-family:'Fira Code',monospace;}
+
+    .W {stroke:#ffffff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+    .WV{stroke:#ffffff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+    .WG{stroke:#ffffff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+    .WU{stroke:#ffffff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+    .WR{stroke:#ffffff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;fill:none;}
+    .WBUS{stroke:#ffffff;stroke-width:2.8;stroke-linecap:round;fill:none;}  /* thick VCC bus */
+
+    .JV{fill:#ffffff;}.JG{fill:#ffffff;}.JU{fill:#ffffff;}.JW{fill:#ffffff;}
+    .JRED{fill:#ffffff;}
+
+    .IC {fill:#0d1a2e;stroke:#ffffff;stroke-width:2;cursor:pointer;}
+    .IC:hover{fill:#162840;stroke:#ffffff;filter:drop-shadow(0 0 8px rgba(255,255,255,.4));}
+    .MOD{fill:#101c30;stroke:#ffffff;stroke-width:1.8;cursor:pointer;}
+    .MOD:hover{stroke:#ffffff;fill:#1a2e44;filter:drop-shadow(0 0 8px rgba(255,255,255,.4));}
+    .EXAM_BOX{fill:rgba(248,113,113,.04);stroke:#f87171;stroke-width:1.6;stroke-dasharray:4 3;}
+    .ET{fill:#f87171;font-size:11px;font-weight:bold;text-anchor:middle;}
+    .RES{stroke:#ffffff;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+    .CAP{stroke:#ffffff;stroke-width:2.0;fill:none;}
+    .SWL{stroke:#ffffff;stroke-width:2.0;stroke-linecap:round;}
+    .PN {font-size:10px;fill:#94a3b8;font-weight:600;}
+    .PNL{font-size:11px;fill:#e2e8f0;font-weight:600;}
+    .PNB{font-size:11px;fill:#ffffff;font-weight:700;}
+
+    .sidebar{background:var(--panel);border-left:1px solid var(--border);padding:1rem;display:flex;flex-direction:column;gap:.9rem;overflow-y:auto;}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:.55rem;padding:.9rem;}
+    .card h3{font-size:.95rem;font-weight:700;color:var(--yellow);margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem;}
+    .il{font-size:.84rem;line-height:1.55;color:var(--muted);}
+    .il strong{color:var(--text);}.il .hi{color:var(--green);font-weight:bold;}.il .er{color:#f87171;font-weight:bold;}
+  </style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <i class="fa-solid fa-microchip"></i>
+    <div>
+      <h1>ATmega328P 「公告電路二(續)」完整電路圖</h1>
+      <small>v5 — 按鍵矩陣/TFT/藍牙模組三圖對照精確版</small>
+    </div>
+  </div>
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+    <button class="hbtn on" id="btnExam" onclick="toggleExam()">
+      <i class="fa-solid fa-square-check"></i> 紅框: <span id="examTxt">顯示</span>
+    </button>
+    <a href="index.html" target="_top" class="hbtn" style="color:var(--yellow)"><i class="fa-solid fa-house"></i> 首頁</a>
+  </div>
+</header>
+
+<main>
+<div class="canvas">
+<!-- ============================================================
+     viewBox: 0 0 1320 1580
+
+     KEYPAD staggered junction coordinates (enlarged-image exact):
+       VCC bus: y=253, x=105→430
+       Resistors: each x center at 105, 210, 320, 430; body y=263-333
+       Junction dots (staggered, top→bottom per column left→right):
+         Enter (x=105): y=363    BUS dot at y=253
+         Back  (x=210): y=393
+         UP    (x=320): y=423
+         Down  (x=430): y=453
+       Red horizontal lines going LEFT from each junction:
+         y=363 from x=105 → x=30
+         y=393 from x=210 → x=30
+         y=423 from x=320 → x=30
+         y=453 from x=430 → x=30
+       Switches: y=488 (open circle top), y=508 (open circle bottom)
+       Labels in RED to LEFT of switch
+       GND symbols: y=530
+============================================================ -->
+<svg class="scm" viewBox="0 -195 1320 1540" id="svgMain">
+
+  <!-- ══════════════════════════════════ EXAM RED BOXES ══════════════════════════════════ -->
+  <g id="examGroup">
+    <!-- 1. RTC top pins red box (Height 58px, exactly matching TFT red box) -->
+    <rect class="EXAM_BOX" x="120" y="-153" width="112" height="58" rx="3"/>
+    <text class="ET" x="176" y="-129">考試電路</text>
+    <text class="ET" x="176" y="-113">僅母座排針</text>
+
+    <!-- 2. WS2812 red box (Shifted RIGHT 100px to x=445) -->
+    <rect class="EXAM_BOX" x="445" y="-65" width="125" height="55" rx="3"/>
+    <text class="ET" x="507" y="-41">考試電路</text>
+    <text class="ET" x="507" y="-25">僅母座排針</text>
+
+    <!-- 3. Keypad red box (left side of staggered junctions) -->
+    <rect class="EXAM_BOX" x="22" y="298" width="130" height="120" rx="3"/>
+    <text class="ET" x="87" y="323">考試電路</text>
+    <text class="ET" x="87" y="339">僅保留焊接點</text>
+    <text class="ET" x="87" y="355">(Enter/Back/UP/Down)</text>
+
+    <!-- 4. TFT red box (Shifted UP 30px to y=162) -->
+    <rect class="EXAM_BOX" x="612" y="162" width="140" height="58" rx="3"/>
+    <text class="ET" x="682" y="186">考試電路</text>
+    <text class="ET" x="682" y="202">僅母座排針</text>
+
+    <!-- 5. Red LED red box (Shifted UP 50px to y=572) -->
+    <rect class="EXAM_BOX" x="320" y="572" width="126" height="56" rx="3"/>
+    <text class="ET" x="383" y="596">考試電路</text>
+    <text class="ET" x="383" y="612">僅保留焊接點</text>
+  </g>
+
+  <!-- ══════════════════════════════════ ALL WIRES ══════════════════════════════════ -->
+  <g id="wires">
+
+    <!-- ─── A. RTC MODULE (Straight UPWARD extensions, zero turns, horizontal text, 180deg GND) ─── -->
+    <!-- VCC: pin(60,-45) extends straight UP to y=-95 → ○ VCC circle at (60, -95) -->
+    <line class="WV" x1="60" y1="-45" x2="60" y2="-95"/>
+    <circle cx="60" cy="-95" r="7" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <text x="60" y="-109" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">VCC</text>
+
+    <!-- GND: pin(90,-45) extends straight UP to y=-115 → Earth GND symbol (rotated 180 deg) -->
+    <line class="WG" x1="90" y1="-45" x2="90" y2="-115"/>
+    <line class="W"  x1="77" y1="-115" x2="103" y2="-115" stroke-width="2.2"/>
+    <line class="W"  x1="81" y1="-121" x2="99"  y2="-121"/>
+    <line class="W"  x1="85" y1="-127" x2="95"  y2="-127"/>
+    <text x="90" y="-139" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">GND</text>
+
+    <!-- SCL: pin(136,-45) → straight UP 50px to y=-95 into exam box, label 28 inside -->
+    <line class="W" x1="136" y1="-45" x2="136" y2="-95"/>
+    <text x="136" y="-101" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">28</text>
+
+    <!-- SDA: pin(162,-45) → straight UP 50px to y=-95 into exam box, label 27 inside -->
+    <line class="W" x1="162" y1="-45" x2="162" y2="-95"/>
+    <text x="162" y="-101" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">27</text>
+
+    <!-- SQW: pin(188,-45) → straight UP 50px to y=-95 into exam box -->
+    <line class="W" x1="188" y1="-45" x2="188" y2="-95"/>
+
+    <!-- 32K: pin(212,-45) → straight UP 50px to y=-95 into exam box -->
+    <line class="W" x1="212" y1="-45" x2="212" y2="-95"/>
+
+    <!-- RTC bottom stubs -->
+    <line class="W" x1="60"  y1="77" x2="60"  y2="98"/>
+    <line class="W" x1="90"  y1="77" x2="90"  y2="98"/>
+    <line class="W" x1="136" y1="77" x2="136" y2="98"/>
+    <line class="W" x1="162" y1="77" x2="162" y2="98"/>
+
+    <!-- ─── B. WS2812 (Shifted RIGHT 100px to x=558) ─── -->
+    <!-- VCC pin (y=-56): horizontal left to x=535 → up to ○ VCC circle at (535, -82) -->
+    <line class="WV" x1="558" y1="-56" x2="535" y2="-56"/>
+    <line class="WV" x1="535" y1="-56" x2="535" y2="-75"/>
+    <circle cx="535" cy="-82" r="7" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <text x="535" y="-92" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">VCC</text>
+
+    <!-- DIN pin (y=-38): straight horizontal left through red exam box, label 12 -->
+    <line class="WR" x1="558" y1="-38" x2="445" y2="-38"/>
+    <text x="415" y="-42" font-size="13" font-weight="bold" fill="#ffffff">12</text>
+
+    <!-- GND pin (y=-20): horizontal left to x=535 → down to Earth GND symbol (|||) -->
+    <line class="WG" x1="558" y1="-20" x2="535" y2="-20"/>
+    <line class="WG" x1="535" y1="-20" x2="535" y2="2"/>
+    <!-- Earth GND symbol (rotated 90deg) -->
+    <line class="W"  x1="522" y1="2"  x2="548" y2="2"  stroke-width="2.2"/>
+    <line class="W"  x1="526" y1="8"  x2="544" y2="8"  stroke-width="1.8"/>
+    <line class="W"  x1="530" y1="14" x2="540" y2="14" stroke-width="1.4"/>
+    <!-- VCC node circle -->
+    <circle cx="175" cy="178" r="8" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <text x="175" y="166" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">VCC</text>
+    <!-- VCC node → down to bus junction -->
+    <line class="WV"  x1="175" y1="186" x2="175" y2="203"/>
+    <!-- VCC BUS — thick horizontal line -->
+    <line class="WBUS" x1="175" y1="203" x2="400" y2="203"/>
+    <!-- bus junction dots -->
+    <circle cx="175" cy="203" r="4.5" class="JV"/>
+    <circle cx="250" cy="203" r="4.5" class="JV"/>
+    <circle cx="325" cy="203" r="4.5" class="JV"/>
+    <circle cx="400" cy="203" r="4.5" class="JV"/>
+    <!-- Drop wires from bus to resistor tops -->
+    <line class="WV" x1="175" y1="203" x2="175" y2="213"/>
+    <line class="WV" x1="250" y1="203" x2="250" y2="213"/>
+    <line class="WV" x1="325" y1="203" x2="325" y2="213"/>
+    <line class="WV" x1="400" y1="203" x2="400" y2="213"/>
+
+    <!-- Resistors: bottom at y=278, wire continues seamlessly to junctions -->
+    <line class="W" x1="175" y1="275" x2="175" y2="313"/>   <!-- Enter: short -->
+    <line class="W" x1="250" y1="275" x2="250" y2="343"/>  <!-- Back: medium -->
+    <line class="W" x1="325" y1="275" x2="325" y2="373"/>  <!-- UP: medium-long -->
+    <line class="W" x1="400" y1="275" x2="400" y2="403"/>  <!-- Down: long -->
+
+    <!-- JUNCTION DOTS (staggered) -->
+    <circle cx="175" cy="313" r="4" class="JRED"/>
+    <circle cx="250" cy="343" r="4" class="JRED"/>
+    <circle cx="325" cy="373" r="4" class="JRED"/>
+    <circle cx="400" cy="403" r="4" class="JRED"/>
+
+    <!-- RED SIGNAL LINES going LEFT from each junction, stopping at right border of exam box (x=152, deleting internal lines) -->
+    <line class="WR" x1="175" y1="313" x2="152" y2="313"/>
+    <line class="WR" x1="250" y1="343" x2="152" y2="343"/>
+    <line class="WR" x1="325" y1="373" x2="152" y2="373"/>
+    <line class="WR" x1="400" y1="403" x2="152" y2="403"/>
+
+    <!-- Wire: junction → switch top contact (y=438) -->
+    <line class="W" x1="175" y1="313" x2="175" y2="438"/>
+    <line class="W" x1="250" y1="343" x2="250" y2="438"/>
+    <line class="W" x1="325" y1="373" x2="325" y2="438"/>
+    <line class="W" x1="400" y1="403" x2="400" y2="438"/>
+
+    <!-- Switch symbols (Official Push-Button Symbol: 2 open circles, vertical bar + horizontal stem on right, label on left) -->
+    <!-- Enter (x=175) -->
+    <circle cx="175" cy="438" r="3.5" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="175" cy="462" r="3.5" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+    <line stroke="#ffffff" stroke-width="1.8" x1="187" y1="432" x2="187" y2="468"/>
+    <line stroke="#ffffff" stroke-width="1.8" x1="187" y1="450" x2="199" y2="450"/>
+    <text x="163" y="454" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="end">Enter</text>
+
+    <!-- Back (x=250) -->
+    <circle cx="250" cy="438" r="3.5" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="250" cy="462" r="3.5" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+    <line stroke="#ffffff" stroke-width="1.8" x1="262" y1="432" x2="262" y2="468"/>
+    <line stroke="#ffffff" stroke-width="1.8" x1="262" y1="450" x2="274" y2="450"/>
+    <text x="238" y="454" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="end">Back</text>
+
+    <!-- UP (x=325) -->
+    <circle cx="325" cy="438" r="3.5" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="325" cy="462" r="3.5" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+    <line stroke="#ffffff" stroke-width="1.8" x1="337" y1="432" x2="337" y2="468"/>
+    <line stroke="#ffffff" stroke-width="1.8" x1="337" y1="450" x2="349" y2="450"/>
+    <text x="313" y="454" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="end">UP</text>
+
+    <!-- Down (x=400) -->
+    <circle cx="400" cy="438" r="3.5" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="400" cy="462" r="3.5" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+    <line stroke="#ffffff" stroke-width="1.8" x1="412" y1="432" x2="412" y2="468"/>
+    <line stroke="#ffffff" stroke-width="1.8" x1="412" y1="450" x2="424" y2="450"/>
+    <text x="388" y="454" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="end">Down</text>
+
+    <!-- Switch bottom → GND (y=462 → y=492) -->
+    <line class="WG" x1="175" y1="462" x2="175" y2="492"/>
+    <line class="WG" x1="250" y1="462" x2="250" y2="492"/>
+    <line class="WG" x1="325" y1="462" x2="325" y2="492"/>
+    <line class="WG" x1="400" y1="462" x2="400" y2="492"/>
+    <!-- GND symbols ×4 -->
+    <line class="W" x1="163" y1="492" x2="187" y2="492" stroke-width="2.2"/>
+    <line class="W" x1="167" y1="498" x2="183" y2="498"/>
+    <line class="W" x1="171" y1="504" x2="179" y2="504"/>
+    <line class="W" x1="238" y1="492" x2="262" y2="492" stroke-width="2.2"/>
+    <line class="W" x1="242" y1="498" x2="258" y2="498"/>
+    <line class="W" x1="246" y1="504" x2="254" y2="504"/>
+    <line class="W" x1="313" y1="492" x2="337" y2="492" stroke-width="2.2"/>
+    <line class="W" x1="317" y1="498" x2="333" y2="498"/>
+    <line class="W" x1="321" y1="504" x2="329" y2="504"/>
+    <line class="W" x1="388" y1="492" x2="412" y2="492" stroke-width="2.2"/>
+    <line class="W" x1="392" y1="498" x2="408" y2="498"/>
+    <line class="W" x1="396" y1="504" x2="404" y2="504"/>
+
+    <!-- ─── D. TFT DISPLAY (Straight UPWARD extensions, zero turns, horizontal text) ─── -->
+    <!-- VCC: pin(572,270) extends straight UP to y=170 → ○ VCC circle at (572, 170) -->
+    <line class="WV" x1="572" y1="270" x2="572" y2="170"/>
+    <circle cx="572" cy="170" r="7" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <text x="572" y="156" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">VCC</text>
+
+    <!-- GND: pin(596,270) extends straight UP to y=190 → Earth GND symbol (rotated 180 deg) -->
+    <line class="WG" x1="596" y1="270" x2="596" y2="190"/>
+    <line class="W"  x1="583" y1="190" x2="609" y2="190" stroke-width="2.2"/>
+    <line class="W"  x1="587" y1="184" x2="605" y2="184"/>
+    <line class="W"  x1="591" y1="178" x2="601" y2="178"/>
+    <text x="596" y="166" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">GND</text>
+    <!-- BL,SCL,SDA,D/C,CS,RST straight up into exam box (extended by 30px to y=220) -->
+    <line class="W" x1="620" y1="270" x2="620" y2="220"/>
+    <line class="W" x1="644" y1="270" x2="644" y2="220"/>
+    <line class="W" x1="668" y1="270" x2="668" y2="220"/>
+    <line class="W" x1="692" y1="270" x2="692" y2="220"/>
+    <line class="W" x1="716" y1="270" x2="716" y2="220"/>
+    <line class="W" x1="740" y1="270" x2="740" y2="220"/>
+
+    <!-- ─── E. BLUETOOTH MODULE + S2 SWITCH (Straight DOWNWARD VCC & GND extensions, zero turns) ─── -->
+    <!-- EN pin: short vertical stub down (x=900, y=410 → y=428, 空接) -->
+    <line class="W" x1="900" y1="410" x2="900" y2="428"/>
+
+    <!-- VCC pin: vertical wire down from BT pin (x=924, y=410 → S2 top-left contact at y=440) -->
+    <line class="WV" x1="924" y1="410" x2="924" y2="440"/>
+
+    <!-- GND pin: vertical wire down from BT pin (x=948, y=410 → S2 top-right contact at y=440) -->
+    <line class="WG" x1="948" y1="410" x2="948" y2="440"/>
+
+    <!-- STATE pin: short vertical stub down (x=1020, y=410 → y=428, 空接) -->
+    <line class="W" x1="1020" y1="410" x2="1020" y2="428"/>
+
+    <!-- S2 bottom-left contact (x=924, y=466) → straight DOWN to ○ VCC circle node (924, 516) -->
+    <line class="WV" x1="924" y1="466" x2="924" y2="516"/>
+    <circle cx="924" cy="516" r="7" fill="none" stroke="#ffffff" stroke-width="2"/>
+    <text x="924" y="534" font-size="12" font-weight="bold" fill="#ffffff" text-anchor="middle">VCC</text>
+
+    <!-- S2 bottom-right contact (x=948, y=466) → straight DOWN to Earth GND symbol (rotated 90deg) -->
+    <line class="WG" x1="948" y1="466" x2="948" y2="505"/>
+    <line class="W"  x1="935" y1="505" x2="961" y2="505" stroke-width="2.2"/>
+    <line class="W"  x1="939" y1="511" x2="957" y2="511" stroke-width="1.8"/>
+    <line class="W"  x1="943" y1="517" x2="953" y2="517" stroke-width="1.4"/>
+
+    <!-- TX pin (x=972, y=410 → vertical stub down to y=470 with BT-TX label) -->
+    <line class="W" x1="972" y1="410" x2="972" y2="470"/>
+    <text x="978" y="454" font-size="11" font-weight="bold" fill="#ffffff">BT-TX</text>
+
+    <!-- RX pin (x=996, y=410 → vertical stub down to y=470 with BT-RX label) -->
+    <line class="W" x1="996" y1="410" x2="996" y2="470"/>
+    <text x="1002" y="454" font-size="11" font-weight="bold" fill="#ffffff">BT-RX</text>
+
+    <!-- ─── F. RED LED + 220Ω (GND - 220Ω - Red LED - Red Exam Box, y=598) ─── -->
+    <!-- Earth GND symbol on far left at x=60, y=598 (rotated 90deg upright) -->
+    <line class="W" x1="60" y1="584" x2="60" y2="612" stroke-width="2.2"/>
+    <line class="W" x1="53" y1="589" x2="53" y2="607" stroke-width="1.8"/>
+    <line class="W" x1="46" y1="594" x2="46" y2="602" stroke-width="1.4"/>
+    <!-- Wire from GND symbol (x=60) right to 220Ω resistor (x=100) -->
+    <line class="W" x1="60" y1="598" x2="100" y2="598"/>
+    <!-- Wire from 220Ω resistor right (x=180) to Red LED anode (x=220) -->
+    <line class="W" x1="180" y1="598" x2="220" y2="598"/>
+    <!-- Wire from Red LED cathode (x=238) right into exam red box (x=320) -->
+    <line class="WR" x1="238" y1="598" x2="320" y2="598"/>
+
+  </g><!-- end wires -->
+
+  <!-- ══════════════════════════════════ COMPONENT SYMBOLS ══════════════════════════════════ -->
+
+  <!-- RTC MODULE (Shifted UP 100px to y=-45) -->
+  <g id="compRTC" onclick="sel('RTC')" style="cursor:pointer">
+    <rect class="MOD" x="38" y="-45" width="202" height="122" rx="4"/>
+    <text x="139" y="23" font-size="17" font-weight="900" fill="#f8fafc" text-anchor="middle">RTC</text>
+    <text x="60"  y="-28" class="PN">VCC</text>
+    <text x="90"  y="-28" class="PN">GND</text>
+    <text x="136" y="-28" class="PN">SCL</text>
+    <text x="162" y="-28" class="PN">SDA</text>
+    <text x="188" y="-28" class="PN">SQW</text>
+    <text x="212" y="-28" class="PN">32K</text>
+    <text x="60"  y="70" class="PN">VCC</text>
+    <text x="90"  y="70" class="PN">GND</text>
+    <text x="136" y="70" class="PN">SCL</text>
+    <text x="162" y="70" class="PN">SDA</text>
+  </g>
+
+  <!-- WS2812 8-BIT STRIP (Shifted RIGHT 100px to x=558) -->
+  <g id="compWS" onclick="sel('WS2812')" style="cursor:pointer">
+    <rect class="MOD" x="558" y="-80" width="467" height="76" rx="4"/>
+    <text x="792" y="15" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">WS2812-8bits</text>
+    <text x="570" y="-56" class="PN" fill="#ffffff">VCC</text>
+    <text x="570" y="-38" class="PN" fill="#ffffff">DIN</text>
+    <text x="570" y="-20" class="PN" fill="#ffffff">GND</text>
+    <circle cx="658" cy="-42" r="15" fill="#1a2840" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="706" cy="-42" r="15" fill="#1a2840" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="754" cy="-42" r="15" fill="#1a2840" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="802" cy="-42" r="15" fill="#1a2840" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="850" cy="-42" r="15" fill="#1a2840" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="898" cy="-42" r="15" fill="#1a2840" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="946" cy="-42" r="15" fill="#1a2840" stroke="#ffffff" stroke-width="1.8"/>
+    <circle cx="994" cy="-42" r="15" fill="#1a2840" stroke="#ffffff" stroke-width="1.8"/>
+  </g>
+
+  <!-- 4-KEY RESISTORS (zigzag, above switch area, shifted RIGHT 100px) -->
+  <g id="compKeypad" onclick="sel('KEYPAD')" style="cursor:pointer">
+    <g transform="translate(175,248)"><path class="RES" d="M0-35 0-26-8-20 8-13-8-6 8 0-8 7 8 14 0 20 0 30"/><text x="12" y="-2" font-size="11" font-weight="700" fill="#f8fafc">220Ω</text></g>
+    <g transform="translate(250,248)"><path class="RES" d="M0-35 0-26-8-20 8-13-8-6 8 0-8 7 8 14 0 20 0 30"/><text x="12" y="-2" font-size="11" font-weight="700" fill="#f8fafc">220Ω</text></g>
+    <g transform="translate(325,248)"><path class="RES" d="M0-35 0-26-8-20 8-13-8-6 8 0-8 7 8 14 0 20 0 30"/><text x="12" y="-2" font-size="11" font-weight="700" fill="#f8fafc">220Ω</text></g>
+    <g transform="translate(400,248)"><path class="RES" d="M0-35 0-26-8-20 8-13-8-6 8 0-8 7 8 14 0 20 0 30"/><text x="12" y="-2" font-size="11" font-weight="700" fill="#f8fafc">220Ω</text></g>
+  </g>
+
+  <!-- TFT DISPLAY MODULE (Shifted UP 50px to y=270) -->
+  <g id="compTFT" onclick="sel('TFT')" style="cursor:pointer">
+    <rect class="MOD" x="558" y="270" width="190" height="167" rx="4"/>
+    <text x="653" y="418" font-size="15" font-weight="900" fill="#f8fafc" text-anchor="middle">TFT Display</text>
+    <text x="572" y="290" class="PN" fill="#ffffff">VCC</text>
+    <text x="596" y="290" class="PN" fill="#ffffff">GND</text>
+    <text x="620" y="290" class="PN">BL</text>
+    <text x="644" y="290" class="PN">SCL</text>
+    <text x="668" y="290" class="PN">SDA</text>
+    <text x="692" y="290" class="PN">D/C</text>
+    <text x="716" y="290" class="PN">CS</text>
+    <text x="740" y="290" class="PN">RST</text>
+  </g>
+
+  <!-- BLUETOOTH MODULE (Shifted UP 50px to y=215) -->
+  <g id="compBT" onclick="sel('BLUETOOTH')" style="cursor:pointer">
+    <rect class="MOD" x="880" y="215" width="156" height="195" rx="4"/>
+    <text x="958" y="298" font-size="16" font-weight="900" fill="#f8fafc" text-anchor="middle">Bluetooth</text>
+    <text x="958" y="320" font-size="16" font-weight="900" fill="#f8fafc" text-anchor="middle">Module</text>
+
+    <!-- Bottom pins (vertical text) -->
+    <text x="900" y="398" font-size="10" font-weight="bold" fill="#ffffff">EN</text>
+    <text x="924" y="398" font-size="10" font-weight="bold" fill="#ffffff">VCC</text>
+    <text x="948" y="398" font-size="10" font-weight="bold" fill="#ffffff">GND</text>
+    <text x="972" y="398" font-size="10" font-weight="bold" fill="#ffffff">TX</text>
+    <text x="996" y="398" font-size="10" font-weight="bold" fill="#ffffff">RX</text>
+    <text x="1020" y="398" font-size="10" font-weight="bold" fill="#ffffff">STATE</text>
+  </g>
+
+  <!-- S2 SWITCH (Shifted UP 50px to y=428) -->
+  <g id="compS2" onclick="sel('BLUETOOTH')" style="cursor:pointer">
+    <rect x="912" y="428" width="48" height="50" fill="#0d1a2e" stroke="#ffffff" stroke-width="1.8" rx="3"/>
+    <!-- 4 contact circles (2×2 layout: top-left 924, top-right 948, bottom-left 924, bottom-right 948) -->
+    <circle cx="924" cy="440" r="4" fill="none" stroke="#ffffff" stroke-width="1.6"/>
+    <circle cx="948" cy="440" r="4" fill="none" stroke="#ffffff" stroke-width="1.6"/>
+    <circle cx="924" cy="466" r="4" fill="none" stroke="#ffffff" stroke-width="1.6"/>
+    <circle cx="948" cy="466" r="4" fill="none" stroke="#ffffff" stroke-width="1.6"/>
+    <!-- 2 Single-Pole Switch levers -->
+    <line stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" x1="924" y1="440" x2="918" y2="454"/>
+    <line stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" x1="948" y1="440" x2="942" y2="454"/>
+    <text x="936" y="492" font-size="12" font-weight="bold" fill="#f8fafc" text-anchor="middle">S2</text>
+  </g>
+
+  <!-- RED LED + 220Ω COMPONENT SYMBOLS (Shifted UP 50px to y=598) -->
+  <g id="compLED" onclick="sel('LED')" style="cursor:pointer">
+    <!-- 220Ω Resistor (zigzag between x=100 and x=180) -->
+    <path class="RES" d="M 100 598 L 108 591 L 120 605 L 132 591 L 144 605 L 156 591 L 168 605 L 176 598 L 180 598"/>
+    <text x="140" y="622" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">220Ω</text>
+
+    <!-- Red LED (between x=220 and x=240) -->
+    <g transform="translate(220,598)">
+      <polygon points="0,-12 0,12 18,0" fill="#ffffff" stroke="#ffffff" stroke-width="1.5"/>
+      <line x1="18" y1="-12" x2="18" y2="12" stroke="#ffffff" stroke-width="2.2"/>
+      <!-- Emission arrows -->
+      <line stroke="#ffffff" stroke-width="1.4" x1="4" y1="14" x2="-2" y2="23"/>
+      <polygon points="-2,23 -4,19 0,20" fill="#ffffff"/>
+      <line stroke="#ffffff" stroke-width="1.4" x1="12" y1="14" x2="6" y2="23"/>
+      <polygon points="6,23 4,19 8,20" fill="#ffffff"/>
+      <text x="10" y="38" font-size="12" font-weight="700" fill="#ffffff" text-anchor="middle">Red LED</text>
+    </g>
+  </g>
+
+  <!-- USB TYPE-B (Shifted DOWN 100px) -->
+  <g id="compUSB" onclick="sel('USB')" style="cursor:pointer">
+    <rect class="MOD" x="28" y="818" width="62" height="98" rx="3"/>
+    <text x="59" y="808" font-size="12" font-weight="700" fill="#f8fafc" text-anchor="middle">USB</text>
+    <text x="95" y="832" class="PN" fill="#ffffff">1 VCC</text>
+    <text x="95" y="852" class="PN">2 D-</text>
+    <text x="95" y="872" class="PN">3 D+</text>
+    <text x="95" y="892" class="PN" fill="#ffffff">4 GND</text>
+    <text x="59" y="930" font-size="11" font-weight="700" fill="#ffffff" text-anchor="middle">Type-B</text>
+    <line class="WV" x1="90" y1="830" x2="50" y2="830"/>
+    <line class="W"  x1="90" y1="850" x2="50" y2="850"/>
+    <line class="W"  x1="90" y1="870" x2="50" y2="870"/>
+    <line class="WG" x1="90" y1="890" x2="50" y2="890"/>
+  </g>
+
+  <!-- 100uF/50V CAP (Shifted DOWN 100px) -->
+  <g onclick="sel('CAP')" style="cursor:pointer">
+    <line class="CAP" x1="150" y1="790" x2="150" y2="778" stroke-width="3.5"/>
+    <line class="CAP" x1="135" y1="778" x2="165" y2="778"/>
+    <path d="M 135 790 Q 150 780 165 790" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+    <text x="170" y="777" font-size="12" font-weight="700" fill="#ffffff">+</text>
+    <text x="170" y="792" font-size="12" font-weight="700" fill="#ffffff">100uF</text>
+    <text x="170" y="807" font-size="12" font-weight="700" fill="#ffffff">50V</text>
+  </g>
+
+  <!-- 6P SOCKET (Shifted DOWN 100px) -->
+  <g onclick="sel('SOCKET6P')" style="cursor:pointer">
+    <rect class="MOD" x="193" y="858" width="84" height="100" rx="3"/>
+    <text x="235" y="848" font-size="11" font-weight="700" fill="#f8fafc" text-anchor="middle">6P單排母座</text>
+    <text x="280" y="872" class="PN" fill="#ffffff">VCC</text>
+    <text x="280" y="892" class="PN" fill="#ffffff">RX</text>
+    <text x="280" y="912" class="PN" fill="#ffffff">TX</text>
+    <text x="280" y="932" class="PN" fill="#ffffff">GND</text>
+  </g>
+
+  <!-- 4P HEADER (Shifted DOWN 100px) -->
+  <g onclick="sel('HEADER4P')" style="cursor:pointer">
+    <rect class="MOD" x="193" y="1060" width="84" height="105" rx="3"/>
+    <text x="235" y="1050" font-size="11" font-weight="700" fill="#f8fafc" text-anchor="middle">4P排針</text>
+    <text x="280" y="1075" class="PN" fill="#ffffff">VCC</text>
+    <text x="280" y="1095" class="PN" fill="#ffffff">RX</text>
+    <text x="280" y="1115" class="PN" fill="#ffffff">TX</text>
+    <text x="280" y="1135" class="PN" fill="#ffffff">GND</text>
+  </g>
+
+  <!-- MCU U1 ATmega328P-PU (DIP-28, Shifted DOWN 100px, Reorganized DIP-28 Pins 1-14 Left, 28-15 Right) -->
+  <g id="compMCU" onclick="sel('MCU')" style="cursor:pointer">
+    <rect class="IC" x="470" y="688" width="290" height="530" rx="6"/>
+    <path d="M 598 688 A 17 17 0 0 0 632 688" fill="#08101e" stroke="#ffffff" stroke-width="1.8"/>
+    <text x="615" y="668" font-size="16" font-weight="900" fill="#f8fafc" text-anchor="middle">U1</text>
+    <text x="615" y="1205" font-size="14" font-weight="900" fill="#f8fafc" text-anchor="middle">ATMEGA328P-PU</text>
+
+    <!-- LEFT PINS: 1 to 14 (Top to Bottom, 35px spacing) -->
+    <text x="484" y="720" class="PN" text-anchor="end">1</text><text x="496" y="720" class="PNL">PC6 (~RESET)</text>
+    <text x="484" y="755" class="PN" text-anchor="end">2</text><text x="496" y="755" class="PNB">PD0 (RXD)</text>
+    <text x="484" y="790" class="PN" text-anchor="end">3</text><text x="496" y="790" class="PNB">PD1 (TXD)</text>
+    <text x="484" y="825" class="PN" text-anchor="end">4</text><text x="496" y="825" class="PNL">PD2 (INT0)</text>
+    <text x="484" y="860" class="PN" text-anchor="end">5</text><text x="496" y="860" class="PNL">PD3 (INT1/OC2B)</text>
+    <text x="484" y="895" class="PN" text-anchor="end">6</text><text x="496" y="895" class="PNL">PD4 (XCK/T0)</text>
+    <text x="484" y="930" class="PN" text-anchor="end">7</text><text x="496" y="930" font-size="11" fill="#ffffff" font-weight="700">VCC</text>
+    <text x="484" y="965" class="PN" text-anchor="end">8</text><text x="496" y="965" font-size="11" fill="#ffffff" font-weight="700">GND</text>
+    <text x="484" y="1000" class="PN" text-anchor="end">9</text><text x="496" y="1000" class="PNL">PB6 (XTAL1)</text>
+    <text x="484" y="1035" class="PN" text-anchor="end">10</text><text x="496" y="1035" class="PNL">PB7 (XTAL2)</text>
+    <text x="484" y="1070" class="PN" text-anchor="end">11</text><text x="496" y="1070" class="PNL">PD5 (T1)</text>
+    <text x="484" y="1105" class="PN" text-anchor="end">12</text><text x="496" y="1105" class="PNL">PD6 (AIN0)</text>
+    <text x="484" y="1140" class="PN" text-anchor="end">13</text><text x="496" y="1140" class="PNL">PD7 (AIN1)</text>
+    <text x="484" y="1175" class="PN" text-anchor="end">14</text><text x="496" y="1175" class="PNL">PB0 (ICP1)</text>
+
+    <!-- RIGHT PINS: 28 to 15 (Top to Bottom, 35px spacing) -->
+    <text x="746" y="720" class="PN" text-anchor="start">28</text><text x="734" y="720" class="PNL" text-anchor="end">PC5 (ADC5/SCL)</text>
+    <text x="746" y="755" class="PN" text-anchor="start">27</text><text x="734" y="755" class="PNL" text-anchor="end">PC4 (ADC4/SDA)</text>
+    <text x="746" y="790" class="PN" text-anchor="start">26</text><text x="734" y="790" class="PNL" text-anchor="end">PC3 (ADC3)</text>
+    <text x="746" y="825" class="PN" text-anchor="start">25</text><text x="734" y="825" class="PNL" text-anchor="end">PC2 (ADC2)</text>
+    <text x="746" y="860" class="PN" text-anchor="start">24</text><text x="734" y="860" class="PNL" text-anchor="end">PC1 (ADC1)</text>
+    <text x="746" y="895" class="PN" text-anchor="start">23</text><text x="734" y="895" class="PNL" text-anchor="end">PC0 (ADC0)</text>
+    <text x="746" y="930" class="PN" text-anchor="start">22</text><text x="734" y="930" font-size="11" fill="#ffffff" font-weight="700" text-anchor="end">AGND</text>
+    <text x="746" y="965" class="PN" text-anchor="start">21</text><text x="734" y="965" class="PNL" text-anchor="end">AREF</text>
+    <text x="746" y="1000" class="PN" text-anchor="start">20</text><text x="734" y="1000" font-size="11" fill="#ffffff" font-weight="700" text-anchor="end">AVCC</text>
+    <text x="746" y="1035" class="PN" text-anchor="start">19</text><text x="734" y="1035" class="PNL" text-anchor="end">PB5 (SCK)</text>
+    <text x="746" y="1070" class="PN" text-anchor="start">18</text><text x="734" y="1070" class="PNL" text-anchor="end">PB4 (MISO)</text>
+    <text x="746" y="1105" class="PN" text-anchor="start">17</text><text x="734" y="1105" class="PNL" text-anchor="end">PB3 (MOSI)</text>
+    <text x="746" y="1140" class="PN" text-anchor="start">16</text><text x="734" y="1140" class="PNL" text-anchor="end">PB2 (SS)</text>
+    <text x="746" y="1175" class="PN" text-anchor="start">15</text><text x="734" y="1175" class="PNL" text-anchor="end">PB1 (OC1A)</text>
+  </g>
+
+  <!-- CRYSTAL 16.000MHz (Shifted DOWN 100px) -->
+  <rect x="872" y="896" width="40" height="58" fill="#1a2a3a" stroke="#ffffff" stroke-width="1.6" rx="3"/>
+  <text x="892" y="969" font-size="9" font-weight="700" fill="#ffffff" text-anchor="middle">16.000MHz</text>
+
+  <!-- 20pF CAP 1 (XTAL1, y=1000) -->
+  <g transform="translate(965,1000)">
+    <line class="CAP" x1="0" y1="-12" x2="0" y2="-5"/>
+    <line class="CAP" x1="-9" y1="-5" x2="9" y2="-5"/>
+    <line class="CAP" x1="-9" y1="3"  x2="9" y2="3"/>
+    <line class="CAP" x1="0" y1="3"   x2="0" y2="15"/>
+    <text x="12" y="1" font-size="10" fill="#38bdf8">20pF</text>
+  </g>
+  <!-- 20pF CAP 2 (XTAL2, y=1035) -->
+  <g transform="translate(965,1035)">
+    <line class="CAP" x1="0" y1="-12" x2="0" y2="-5"/>
+    <line class="CAP" x1="-9" y1="-5" x2="9" y2="-5"/>
+    <line class="CAP" x1="-9" y1="3"  x2="9" y2="3"/>
+    <line class="CAP" x1="0" y1="3"   x2="0" y2="15"/>
+    <text x="12" y="1" font-size="10" fill="#38bdf8">20pF</text>
+  </g>
+  <!-- 0.1uF AREF CAP -->
+  <g transform="translate(875,1006)">
+    <line class="CAP" x1="0" y1="-12" x2="0" y2="-5"/>
+    <line class="CAP" x1="-9" y1="-5" x2="9" y2="-5"/>
+    <line class="CAP" x1="-9" y1="3"  x2="9" y2="3"/>
+    <line class="CAP" x1="0" y1="3"   x2="0" y2="15"/>
+    <text x="12" y="1" font-size="10" fill="#38bdf8">0.1uF</text>
+  </g>
+
+  <!-- 10KΩ RESET RESISTOR -->
+  <g transform="translate(918,1140)">
+    <path class="RES" d="M0-47 0-38-8-32 8-25-8-18 8-11-8-4 8 3 0 10 0 22"/>
+    <text x="12" y="-15" font-size="11" font-weight="700" fill="#f8fafc">10KΩ</text>
+  </g>
+
+  <!-- S1 RESET SWITCH -->
+  <g transform="translate(918,1246)">
+    <circle cx="0" cy="-24" r="4" fill="#38bdf8"/>
+    <circle cx="0" cy="24"  r="4" fill="#38bdf8"/>
+    <line stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" x1="-14" y1="-12" x2="14" y2="-12"/>
+    <line stroke="#ffffff" stroke-width="1.5" x1="0" y1="-24" x2="0" y2="-12"/>
+    <text x="18" y="6" font-size="13" font-weight="700" fill="#f8fafc">S1</text>
+  </g>
+
+</svg>
+</div><!-- end .canvas -->
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="card">
+    <h3><i class="fa-solid fa-microchip"></i> 元件資訊</h3>
+    <p id="selTitle" style="font-size:1rem;font-weight:bold;color:#22d3ee;margin-bottom:.4rem">點擊電路圖中任意元件</p>
+    <div class="il" id="selBody">在左側 SVG 電路圖中點選任意模組即可查看腳位定義。</div>
+  </div>
+  <div class="card">
+    <h3><i class="fa-solid fa-list-check"></i> v5 三圖對照修正</h3>
+    <div class="il">
+      <p>🔧 <strong>按鍵矩陣（放大圖3）：</strong></p>
+      <p>• 粗實線 VCC 匯流排</p>
+      <p>• 節點錯落（Enter最高→Down最低）</p>
+      <p>• 4條紅色水平線各在不同高度</p>
+      <p>• 開關符號：2 個空心圓 + 對角推動臂</p>
+      <p>• 紅色標籤：Enter, Back, UP, Down</p>
+      <hr style="border-color:var(--border);margin:.5rem 0"/>
+      <p>🔧 <strong>TFT（放大圖1）：</strong> VCC L型走線，GND 向左</p>
+      <p>🔧 <strong>藍牙+S2（放大圖2）：</strong> 高型矩形底部引腳，S2 四接點，BT-TX/BT-RX 右側引出，底部 GND</p>
+    </div>
+  </div>
+  <div class="card">
+    <h3><i class="fa-solid fa-graduation-cap"></i> 試題說明</h3>
+    <div class="il">
+      <p>🔴 <strong class="er">僅母座排針：</strong> RTC、WS2812、TFT 模組免焊</p>
+      <p>🔴 <strong class="er">僅保留焊接點：</strong> 4 鍵矩陣與 Red LED 留孔</p>
+    </div>
+  </div>
+</div>
+</main>
+
+<script>
+  let examOn = true;
+  function toggleExam() {
+    examOn = !examOn;
+    document.getElementById('examGroup').style.display = examOn ? '' : 'none';
+    document.getElementById('examTxt').textContent = examOn ? '顯示' : '隱藏';
+    document.getElementById('btnExam').classList.toggle('on', examOn);
+  }
+  const db = {
+    MCU:{t:'U1: ATmega328P-PU (DIP-28)',b:`<p>Pin2 PD0/RXD = <span class="hi">BT-TX</span></p><p>Pin3 PD1/TXD = <span class="hi">BT-RX</span></p><p>Pin7 VCC, Pin8 GND, Pin20 AVCC, Pin22 AGND</p><p>Pin9/10 晶振, Pin21 AREF 0.1uF, Pin1 RESET`},
+    RTC:{t:'RTC 即時時鐘模組',b:`<p>頂部：VCC GND SCL SDA SQW 32K</p><p class="er">考試電路 僅母座排針</p>`},
+    WS2812:{t:'WS2812 8-Bit RGB 燈條',b:`<p>VCC, DIN, GND</p><p class="er">考試電路 僅母座排針</p>`},
+    TFT:{t:'TFT 彩色顯示器',b:`<p>VCC(L型走線,左上節點), GND(向左接地)</p><p>BL SCL SDA D/C CS RST → 向上入紅框</p><p class="er">考試電路 僅母座排針</p>`},
+    BLUETOOTH:{t:'Bluetooth Module (高型矩形，底部引腳) + S2',b:`<p>底部引腳：EN VCC GND TX RX STATE</p><p>VCC：左側節點L型。S2在下方4接點。</p><p>BT-TX/BT-RX從S2右側引出，底部GND。</p>`},
+    KEYPAD:{t:'4鍵按鈕矩陣 (Enter/Back/UP/Down)',b:`<p>VCC粗匯流排 → 4×220Ω上拉</p><p>節點<strong>錯落分佈</strong>（Enter最高, Down最低）</p><p>4條紅色水平線各在不同高度→左側紅框</p><p>SPST-NO開關×4 + 各自GND</p><p class="er">考試電路 僅保留焊接點</p>`},
+    LED:{t:'Red LED 電路',b:`<p>220Ω 限流電阻串聯 Red LED</p><p class="er">考試電路 僅保留焊接點</p>`},
+    USB:{t:'USB Type-B',b:`<p>Pin1 VCC → 100uF/50V → 系統+5V</p>`},
+    CAP:{t:'100µF/50V 電解電容',b:`<p>跨接 VCC 與 GND，穩壓濾波。</p>`},
+    SOCKET6P:{t:'6P 單排母座',b:`<p>VCC, RX, TX, GND。RX/TX 接 BT-TX/BT-RX 幹線。</p>`},
+    HEADER4P:{t:'4P 排針',b:`<p>VCC, RX, TX, GND。RX/TX 接 BT-TX/BT-RX 幹線。</p>`}
+  };
+  function sel(k){const d=db[k];if(!d)return;document.getElementById('selTitle').textContent=d.t;document.getElementById('selBody').innerHTML=d.b;}
+</script>
+</body>
+</html>

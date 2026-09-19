@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【專題實作】頭部障礙物警示帽｜學生實作手冊</title>
+<meta name="description" content="高中職專題實作手冊：帽子裝上鏡頭與雷射測距、筆電放在背包裡，用 YOLO11、震動與骨傳導語音提醒頭部高度障礙物。含配置圖、硬體清單、接線、ESP32 與 Python 程式包、測試方法與評分表。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --border: #cbd5e1;
+    --text: #0f172a;
+    --muted: #475569;
+    --primary: #0369a1;
+    --primary-soft: #e0f2fe;
+    --accent: #a16207;
+    --accent-soft: #fef9c3;
+    --danger: #b91c1c;
+    --danger-soft: #fef2f2;
+    --ok: #047857;
+    --ok-soft: #ecfdf5;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    font-family: "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--text);
+    background: var(--bg);
+  }
+  a { color: var(--primary); }
+  :focus-visible { outline: 3px solid #f59e0b; outline-offset: 2px; border-radius: 4px; }
+  .skip { position: absolute; left: -9999px; }
+  .skip:focus { left: 16px; top: 8px; background: #fff; padding: 6px 12px; z-index: 10; }
+
+  header.hero {
+    background: linear-gradient(135deg, #0c4a6e 0%, #0f766e 100%);
+    color: #fff;
+    padding: 48px 20px 40px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  .hero .wrap { padding: 0; }
+  .hero .eyebrow {
+    display: inline-block; background: rgba(15,23,42,0.4); border: 1px solid rgba(255,255,255,0.35);
+    padding: 2px 12px; border-radius: 999px; font-size: 0.9rem; font-weight: 700;
+  }
+  .hero h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.3; margin: 14px 0 10px; font-weight: 900; }
+  .hero p { font-size: 1.1rem; max-width: 760px; margin: 0 0 20px; color: #f0f9ff; }
+  .hero .actions { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; border-radius: 10px;
+    font-weight: 700; text-decoration: none; border: 2px solid transparent; font-size: 1rem; cursor: pointer;
+    font-family: inherit;
+  }
+  .btn-primary { background: #fde047; color: #0f172a; }
+  .btn-primary:hover { background: #facc15; }
+  .btn-ghost { color: #fff; border-color: rgba(255,255,255,0.7); background: transparent; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.12); }
+  .facts { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; padding: 0; list-style: none; }
+  .facts li { background: rgba(15,23,42,0.35); border-radius: 8px; padding: 4px 12px; font-size: 0.95rem; }
+
+  .layout { display: grid; grid-template-columns: 240px 1fr; gap: 32px; padding-top: 28px; padding-bottom: 60px; }
+  nav.toc { position: sticky; top: 16px; align-self: start; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  nav.toc h2 { font-size: 1rem; margin: 0 0 6px; }
+  nav.toc ol { margin: 0; padding-left: 1.3em; font-size: 0.95rem; line-height: 1.9; }
+  nav.toc a { text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+  main { min-width: 0; }
+
+  section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px 28px; margin-bottom: 24px; scroll-margin-top: 16px; }
+  section > h2 { font-size: 1.5rem; margin: 0 0 12px; display: flex; align-items: center; gap: 10px; }
+  .num { display: inline-flex; width: 36px; height: 36px; border-radius: 9px; background: var(--primary-soft); color: var(--primary); align-items: center; justify-content: center; font-size: 1rem; font-weight: 900; flex-shrink: 0; }
+  h3 { font-size: 1.15rem; margin: 20px 0 6px; }
+  p { margin: 8px 0; }
+  ul, ol { padding-left: 1.4em; margin: 8px 0; }
+  li { margin: 3px 0; }
+  .muted { color: var(--muted); }
+
+  .table-wrap { overflow-x: auto; margin: 10px 0; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.97rem; }
+  th, td { border: 1px solid var(--border); padding: 8px 10px; text-align: left; vertical-align: top; }
+  thead th { background: #e2e8f0; }
+  tbody th { background: #f1f5f9; font-weight: 700; }
+
+  .note { border-radius: 10px; padding: 12px 16px; margin: 12px 0; border: 1px solid; }
+  .note strong:first-child { display: block; }
+  .note.warn { background: var(--danger-soft); border-color: #fca5a5; color: #7f1d1d; }
+  .note.tip { background: var(--ok-soft); border-color: #6ee7b7; color: #064e3b; }
+  .note.info { background: var(--accent-soft); border-color: #fde047; color: #713f12; }
+
+  .flow { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; counter-reset: flow; }
+  .flow li { counter-increment: flow; background: var(--primary-soft); border: 1px solid #7dd3fc; border-radius: 10px; padding: 8px 12px; flex: 1 1 150px; font-size: 0.95rem; position: relative; margin: 0; }
+  .flow li::before { content: counter(flow); display: inline-block; background: var(--primary); color: #fff; width: 22px; height: 22px; border-radius: 50%; text-align: center; line-height: 22px; font-size: 0.8rem; font-weight: 700; margin-right: 6px; }
+  .flow li b { display: block; }
+
+  .grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .box { border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; background: #f8fafc; }
+  .box h3 { margin-top: 0; }
+
+  pre, code { font-family: "JetBrains Mono", Consolas, monospace; }
+  code { background: #e2e8f0; padding: 1px 5px; border-radius: 4px; font-size: 0.92em; }
+  pre { background: var(--code-bg); color: var(--code-text); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 0.9rem; line-height: 1.6; margin: 8px 0; }
+  pre code { background: none; padding: 0; color: inherit; }
+
+  .prompt { border: 1px solid var(--border); border-radius: 10px; margin: 12px 0; overflow: hidden; }
+  .prompt-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #f1f5f9; padding: 8px 12px; font-weight: 700; flex-wrap: wrap; }
+  .prompt pre { margin: 0; border-radius: 0; white-space: pre-wrap; }
+  .copy { background: var(--primary); color: #fff; border: none; border-radius: 8px; padding: 4px 12px; font-weight: 700; cursor: pointer; font-family: inherit; font-size: 0.9rem; }
+  .copy:hover { background: #075985; }
+
+  .check { list-style: none; padding-left: 0; }
+  .check li::before { content: "☐ "; font-weight: 700; color: var(--primary); }
+
+  footer { text-align: center; color: var(--muted); padding: 24px 16px 40px; font-size: 0.95rem; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static; }
+    .grid2 { grid-template-columns: 1fr; }
+    section { padding: 20px 16px; }
+    body { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    nav.toc, .hero .actions, .copy { display: none; }
+    .layout { display: block; }
+    section { break-inside: avoid; }
+  }
+</style>
+<style>
+  .figure { background: #f8fafc; border: 1px solid var(--border); border-radius: 12px; padding: 12px; margin: 12px 0; }
+  .figure svg { display: block; width: 100%; height: auto; max-width: 720px; margin: 0 auto; }
+  .figure figcaption { text-align: center; color: var(--muted); font-size: 0.95rem; margin-top: 6px; }
+  .svg-label { font: 500 14px "Noto Sans TC", sans-serif; fill: #0f172a; }
+  .svg-sub { font: 400 12px "Noto Sans TC", sans-serif; fill: #475569; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要內容</a>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow">專題製作・學生實作手冊</span>
+    <h1>頭部障礙物警示帽：<br>補上白手杖探不到的高度</h1>
+    <p>白手杖能探到地面，卻探不到招牌、樹枝、貨車後照鏡這類頭部與胸口高度的障礙物。這個專題在帽子上裝鏡頭與雷射測距，筆電放在背包裡辨識前方物體，用帽簷震動與骨傳導耳機提醒使用者。</p>
+    <div class="actions">
+      <a class="btn btn-primary" href="headgear_assist_starter_pack.zip" download="headgear_assist_starter_pack.zip">⬇ 下載程式包（ZIP）</a>
+      <a class="btn btn-ghost" href="#layout">看配置圖</a>
+    </div>
+    <ul class="facts">
+      <li>難度：挑戰 ★★★</li>
+      <li>建議人數：3～4 人</li>
+      <li>時程：約 12～16 週</li>
+      <li>核心技術：ESP32 ＋ ToF 測距 ＋ YOLO11</li>
+      <li>預算：約 2,700～5,700 元（不含筆電）</li>
+    </ul>
+  </div>
+</header>
+
+<div class="wrap layout">
+  <nav class="toc" aria-label="本頁目錄">
+    <h2>目錄</h2>
+    <ol>
+      <li><a href="#overview">專題概要</a></li>
+      <li><a href="#layout">配置與架構</a></li>
+      <li><a href="#hardware">硬體清單</a></li>
+      <li><a href="#wiring">接線</a></li>
+      <li><a href="#software">軟體與安裝</a></li>
+      <li><a href="#build">帽子組裝與背包設定</a></li>
+      <li><a href="#flow">12 週製作流程</a></li>
+      <li><a href="#logic">運作原理</a></li>
+      <li><a href="#code">程式包使用說明</a></li>
+      <li><a href="#prompts">AI 助手提示語</a></li>
+      <li><a href="#verify">測試與驗證</a></li>
+      <li><a href="#ethics">安全、隱私與倫理</a></li>
+      <li><a href="#trouble">常見問題</a></li>
+      <li><a href="#v2">第二版：樹莓派</a></li>
+      <li><a href="#report">書面報告與評分</a></li>
+    </ol>
+  </nav>
+
+  <main id="main">
+
+    <section id="overview">
+      <h2><span class="num">1</span>專題概要</h2>
+      <h3>定位</h3>
+      <p>市面上已有很多「鏡頭辨識物體再念出來」的 App 與眼鏡，所以這個專題<strong>不做完整導航</strong>，而是專注在白手杖的缺口：<strong>頭部與胸口高度的障礙物</strong>。使用者照常用白手杖探地面，帽子負責上方。</p>
+      <h3>專題目標</h3>
+      <ol>
+        <li>前方 1.6 公尺內出現頭部高度障礙時，帽簷左右的震動馬達依距離與方向提醒。</li>
+        <li>障礙很近時，骨傳導耳機說出方向與是什麼（例如「右前方有人，很近，約 0.7 公尺」）。</li>
+        <li>人、腳踏車、機車快速靠近時提前提醒。</li>
+        <li>按下帽子上的按鈕，描述左、前、右各有什麼。</li>
+        <li>在安全的障礙路線中，比較「只用手杖」與「手杖＋帽子」的頭部碰撞次數。</li>
+      </ol>
+      <div class="note warn">
+        <strong>這是輔助原型，不是正式輔具</strong>
+        只能在封閉場地、有保護者陪同下測試，不能取代白手杖、導盲犬或定向行動訓練，也不要讓視障者帶上街使用。
+      </div>
+    </section>
+
+    <section id="layout">
+      <h2><span class="num">2</span>配置與架構</h2>
+      <figure class="figure">
+        <svg viewBox="0 0 680 520" role="img" aria-labelledby="figTitle figDesc">
+          <title id="figTitle">頭部障礙物警示帽配置示意圖</title>
+          <desc id="figDesc">使用者戴著帽子，帽簷前方有 USB 鏡頭與兩顆 ToF 測距感測器，帽子側邊有震動馬達、按鈕與 ESP32，耳朵前方戴骨傳導耳機，USB 線沿背帶連到背包裡的筆電；手持白手杖探測地面，帽子偵測前方頭部高度的招牌。</desc>
+          <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#b45309" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+          <line x1="40" y1="478" x2="640" y2="478" stroke="#64748b" stroke-width="1"/>
+          <rect x="60" y="40" width="150" height="8" rx="2" fill="#cbd5e1" stroke="#64748b" stroke-width="0.5"/>
+          <line x1="125" y1="48" x2="125" y2="86" stroke="#64748b"/>
+          <line x1="175" y1="48" x2="175" y2="86" stroke="#64748b"/>
+          <rect x="110" y="86" width="80" height="44" rx="4" fill="#fde68a" stroke="#b45309" stroke-width="1"/>
+          <text class="svg-label" x="150" y="160" text-anchor="middle">頭部高度的招牌</text>
+          <text class="svg-sub" x="150" y="178" text-anchor="middle">手杖探不到，靠帽子偵測</text>
+          <line x1="292" y1="104" x2="196" y2="96" stroke="#b45309" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+          <line x1="292" y1="104" x2="196" y2="122" stroke="#b45309" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+          <rect x="160" y="452" width="40" height="26" rx="3" fill="#cbd5e1" stroke="#64748b" stroke-width="0.5"/>
+          <text class="svg-sub" x="180" y="502" text-anchor="middle">地面障礙由手杖探測</text>
+          <line x1="322" y1="300" x2="306" y2="476" stroke="#94a3b8" stroke-width="10" stroke-linecap="round"/>
+          <line x1="344" y1="300" x2="366" y2="476" stroke="#94a3b8" stroke-width="10" stroke-linecap="round"/>
+          <rect x="356" y="162" width="46" height="118" rx="10" fill="#ddd6fe" stroke="#6d28d9" stroke-width="1"/>
+          <rect x="365" y="174" width="28" height="92" rx="2" fill="none" stroke="#6d28d9" stroke-width="1"/>
+          <line x1="369" y1="182" x2="389" y2="182" stroke="#6d28d9"/>
+          <rect x="308" y="154" width="50" height="146" rx="12" fill="#e2e8f0" stroke="#64748b" stroke-width="0.5"/>
+          <rect x="324" y="142" width="12" height="14" fill="#e2e8f0" stroke="#64748b" stroke-width="0.5"/>
+          <line x1="318" y1="172" x2="274" y2="260" stroke="#94a3b8" stroke-width="8" stroke-linecap="round"/>
+          <line x1="274" y1="258" x2="210" y2="462" stroke="#475569" stroke-width="3" stroke-linecap="round"/>
+          <line x1="210" y1="462" x2="205" y2="476" stroke="#dc2626" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="330" cy="122" r="24" fill="#e2e8f0" stroke="#64748b" stroke-width="0.5"/>
+          <ellipse cx="330" cy="106" rx="27" ry="14" fill="#fecaca" stroke="#b91c1c" stroke-width="0.8"/>
+          <rect x="282" y="104" width="34" height="5" rx="2" fill="#fecaca" stroke="#b91c1c" stroke-width="0.8"/>
+          <rect x="286" y="96" width="10" height="7" rx="1" fill="#99f6e4" stroke="#0f766e"/>
+          <rect x="284" y="110" width="14" height="10" rx="2" fill="#99f6e4" stroke="#0f766e"/>
+          <rect x="338" y="104" width="9" height="7" rx="1" fill="#fde68a" stroke="#b45309"/>
+          <circle cx="353" cy="100" r="3" fill="#fde68a" stroke="#b45309"/>
+          <rect x="337" y="124" width="6" height="13" rx="2" fill="#fde68a" stroke="#b45309"/>
+          <path d="M352 108 C 372 114, 382 132, 380 162" fill="none" stroke="#0f766e" stroke-width="2.5"/>
+          <g stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="3 3">
+            <line x1="298" y1="108" x2="462" y2="74"/>
+            <line x1="354" y1="102" x2="462" y2="122"/>
+            <line x1="343" y1="131" x2="462" y2="170"/>
+            <line x1="379" y1="142" x2="462" y2="218"/>
+            <line x1="402" y1="232" x2="462" y2="266"/>
+            <line x1="240" y1="368" x2="462" y2="404"/>
+          </g>
+          <text class="svg-label" x="470" y="72">帽簷前方</text>
+          <text class="svg-sub" x="470" y="90">USB 鏡頭＋ToF 測距 ×2</text>
+          <text class="svg-label" x="470" y="120">帽子側邊</text>
+          <text class="svg-sub" x="470" y="138">震動馬達、按鈕、ESP32</text>
+          <text class="svg-label" x="470" y="168">耳朵前方</text>
+          <text class="svg-sub" x="470" y="186">骨傳導耳機</text>
+          <text class="svg-label" x="470" y="216">USB 線</text>
+          <text class="svg-sub" x="470" y="234">沿背帶固定到背包</text>
+          <text class="svg-label" x="470" y="264">背包</text>
+          <text class="svg-sub" x="470" y="282">筆電跑 YOLO 與語音</text>
+          <text class="svg-label" x="470" y="402">白手杖</text>
+          <text class="svg-sub" x="470" y="420">照常使用，負責地面</text>
+        </svg>
+        <figcaption>配置示意：帽子只放輕量元件，運算交給背包裡的筆電</figcaption>
+      </figure>
+      <h3>分工與資料流</h3>
+      <ol class="flow" aria-label="系統處理流程">
+        <li><b>ToF ×2</b>量左前、右前距離</li>
+        <li><b>ESP32</b>立即控制兩側震動</li>
+        <li><b>USB 線</b>把距離與按鈕送到筆電</li>
+        <li><b>USB 鏡頭</b>拍攝前方</li>
+        <li><b>筆電 YOLO</b>辨識人、車、椅子等</li>
+        <li><b>骨傳導耳機</b>說出方向、物體與距離</li>
+      </ol>
+      <div class="note info">
+        <strong>為什麼震動交給 ESP32？</strong>
+        步行速度約每秒 1 公尺。距離警示如果要等筆電辨識完才發出，會慢上零點幾秒；由帽子上的 ESP32 直接控制震動，筆電當機或變慢時，最基本的警示仍然有效。
+      </div>
+    </section>
+
+    <section id="hardware">
+      <h2><span class="num">3</span>硬體清單</h2>
+      <p class="muted">價格為參考價，依實際採購為準。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">項目</th><th scope="col">建議規格</th><th scope="col">數量</th><th scope="col">參考價</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">筆記型電腦</th><td>Windows 10／11、Intel i5 第 8 代或同級以上、8 GB 記憶體、電池續航 2 小時以上</td><td>1</td><td>學校既有</td></tr>
+            <tr><th scope="row">透氣背包</th><td>有筆電隔層，能直立放置</td><td>1</td><td>既有</td></tr>
+            <tr><th scope="row">USB 網路攝影機</th><td>體積小、重量輕、720p 以上，廣角更好</td><td>1</td><td>600～1,200 元</td></tr>
+            <tr><th scope="row">ESP32 開發板</th><td>ESP32 DevKit（含 USB 轉序列晶片 CP2102 或 CH340）</td><td>1</td><td>200～350 元</td></tr>
+            <tr><th scope="row">VL53L1X 雷射測距模組</th><td>量程約 4 公尺，I2C 介面，<strong>要有 XSHUT 腳位</strong></td><td>2</td><td>每顆 200～400 元</td></tr>
+            <tr><th scope="row">震動馬達模組</th><td>含驅動電晶體，3.3V 可用（不要買單獨的馬達直接接 GPIO）</td><td>2</td><td>每個 50～100 元</td></tr>
+            <tr><th scope="row">按鈕、杜邦線、小洞洞板、熱縮套管</th><td>按鈕選大顆、摸得到的</td><td>1 組</td><td>150～300 元</td></tr>
+            <tr><th scope="row">骨傳導耳機</th><td>有線或藍牙皆可，不塞住耳朵</td><td>1</td><td>800～2,000 元</td></tr>
+            <tr><th scope="row">棒球帽</th><td>帽簷硬挺、可調尺寸</td><td>1</td><td>200～400 元</td></tr>
+            <tr><th scope="row">USB 延長線</th><td>1.5～2 公尺，鏡頭與 ESP32 各一條</td><td>2</td><td>200～400 元</td></tr>
+            <tr><th scope="row">測試路線材料</th><td>紙箱、泡棉、繩子、眼罩</td><td>1 組</td><td>100～300 元</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="wiring">
+      <h2><span class="num">4</span>接線</h2>
+      <p>全部使用 ESP32 的 <strong>3.3V</strong>，不接任何市電。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">元件</th><th scope="col">元件腳位</th><th scope="col">接到 ESP32</th><th scope="col">說明</th></tr></thead>
+          <tbody>
+            <tr><th scope="row" rowspan="5">VL53L1X（左、右兩顆）</th><td>VIN</td><td>3V3</td><td>兩顆並聯</td></tr>
+            <tr><td>GND</td><td>GND</td><td>兩顆並聯</td></tr>
+            <tr><td>SDA</td><td>GPIO21</td><td>兩顆共用 I2C</td></tr>
+            <tr><td>SCL</td><td>GPIO22</td><td>兩顆共用 I2C</td></tr>
+            <tr><td>XSHUT</td><td>左：GPIO16／右：GPIO17</td><td>開機時分別喚醒，設定成不同位址</td></tr>
+            <tr><th scope="row" rowspan="2">震動馬達模組（左、右）</th><td>VCC／GND</td><td>3V3／GND</td><td>模組內有驅動電晶體</td></tr>
+            <tr><td>IN</td><td>左：GPIO25／右：GPIO26</td><td>HIGH＝震動</td></tr>
+            <tr><th scope="row">按鈕</th><td>兩腳</td><td>GPIO27 與 GND</td><td>程式啟用內部上拉，按下＝LOW</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note tip">
+        <strong>安裝方向</strong>
+        兩顆 ToF 裝在帽簷前緣，左顆往左偏約 15 度、右顆往右偏約 15 度，稍微向上一點點，對準頭部與胸口高度；鏡頭裝在帽簷正下方，朝前稍微向下。
+      </div>
+    </section>
+
+    <section id="software">
+      <h2><span class="num">5</span>軟體與安裝</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">軟體</th><th scope="col">用途</th><th scope="col">取得方式</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Python 3.10 以上</th><td>筆電端程式</td><td>python.org，勾選 <code>Add Python to PATH</code></td></tr>
+            <tr><th scope="row">ultralytics、opencv-python、pyttsx3、pyserial</th><td>YOLO 辨識、鏡頭、語音、與 ESP32 通訊</td><td><code>pip install -r requirements.txt</code></td></tr>
+            <tr><th scope="row">Arduino IDE ＋ ESP32 開發板套件</th><td>上傳 <code>esp32_headgear.ino</code>，開發板選「ESP32 Dev Module」</td><td>arduino.cc</td></tr>
+            <tr><th scope="row">VL53L1X 程式庫（Pololu 版）</th><td>讀取雷射測距</td><td>Arduino IDE 程式庫管理員搜尋「VL53L1X」</td></tr>
+            <tr><th scope="row">Windows 中文語音</th><td>語音提醒</td><td>設定 → 時間與語言 → 語音 → 新增「中文（台灣）」</td></tr>
+            <tr><th scope="row">Google Antigravity／Claude Code</th><td>AI 程式助手（擇一）</td><td>Antigravity 免費；Claude Code 需 Claude 付費方案</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="build">
+      <h2><span class="num">6</span>帽子組裝與背包設定</h2>
+      <div class="grid2">
+        <div class="box">
+          <h3>帽子</h3>
+          <ul>
+            <li>元件總重控制在 200 克以內，左右對稱，戴起來不會往前傾。</li>
+            <li>用熱熔膠或魔術帶固定，不要讓電路板直接碰到頭皮；背面貼絕緣膠帶。</li>
+            <li>ESP32 放在帽子後側或側邊，按鈕放在手容易摸到的帽簷側邊。</li>
+            <li>線材不要垂在眼前或耳邊，避免勾到東西。</li>
+          </ul>
+        </div>
+        <div class="box">
+          <h3>背包裡的筆電</h3>
+          <ul>
+            <li>電源選項設定「闔上螢幕時不執行任何動作」，否則一闔上就睡眠。</li>
+            <li>先執行 <code>3_start_assist.bat</code>，聽到「系統啟動完成」再闔上螢幕。</li>
+            <li>背包要透氣，筆電直立放；每次測試後檢查是否過熱。</li>
+            <li>兩條 USB 線用魔術帶沿背帶固定，接頭處留鬆弛。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="flow">
+      <h2><span class="num">7</span>12 週製作流程</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">週次</th><th scope="col">工作內容</th><th scope="col">要交出的成果</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">第 1 週</th><td>需求訪談：請教特教老師、定向行動訓練師或視障團體，了解頭部高度障礙的真實困擾</td><td>訪談紀錄、常見障礙物清單</td></tr>
+            <tr><th scope="row">第 2 週</th><td>安裝環境，跑完練習影片；採購材料、分工</td><td>練習影片的紀錄檔、採購清單</td></tr>
+            <tr><th scope="row">第 3 週</th><td>ESP32 接上兩顆 ToF，用 <code>test_sensors.py</code> 確認距離</td><td>不同材質（紙箱、黑布、玻璃、細竿）的量測表</td></tr>
+            <tr><th scope="row">第 4 週</th><td>接上震動馬達與按鈕，調整震動距離門檻</td><td>震動節奏說明、門檻測試紀錄</td></tr>
+            <tr><th scope="row">第 5 週</th><td>用 <code>2_test_camera.bat</code> 測試鏡頭與辨識，調整鏡頭角度</td><td>辨識截圖、角度比較</td></tr>
+            <tr><th scope="row">第 6 週</th><td>組裝帽子，完成背包設定，第一次整合測試</td><td>成品照片、重量與配戴感受</td></tr>
+            <tr><th scope="row">第 7 週</th><td>調整語音內容與頻率（不要太吵），請同學試戴給回饋</td><td>語音設計說明、回饋紀錄</td></tr>
+            <tr><th scope="row">第 8 週</th><td>搭建障礙路線，練習白手杖基本使用與安全規則</td><td>路線平面圖、安全規則</td></tr>
+            <tr><th scope="row">第 9～10 週</th><td>比較實驗：只用手杖 vs 手杖＋帽子，各至少 10 趟</td><td><code>trials.csv</code>、分析結果</td></tr>
+            <tr><th scope="row">第 11 週</th><td>分析誤報與漏報（看 <code>logs/</code>），改良後再測</td><td>改良前後比較表</td></tr>
+            <tr><th scope="row">第 12 週</th><td>請視障者或專業人員在安全場地試戴給意見；拍攝成果影片</td><td>專家回饋、成果影片</td></tr>
+            <tr><th scope="row">第 13 週以後</th><td>撰寫書面報告、練習上台報告</td><td>書面報告、簡報</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="logic">
+      <h2><span class="num">8</span>運作原理</h2>
+      <h3>震動（ESP32 負責）</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">距離</th><th scope="col">震動方式</th><th scope="col">程式常數</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">小於 0.6 公尺</th><td>持續震動</td><td><code>DIST_NEAR</code></td></tr>
+            <tr><th scope="row">0.6～1.0 公尺</th><td>快速短震（每 0.2 秒一次）</td><td><code>DIST_MID</code></td></tr>
+            <tr><th scope="row">1.0～1.6 公尺</th><td>慢速短震（每 0.5 秒一次）</td><td><code>DIST_FAR</code></td></tr>
+            <tr><th scope="row">大於 1.6 公尺或量不到</th><td>不震動</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>左邊的 ToF 控制左邊的馬達、右邊控制右邊，使用者可以從震動的位置知道障礙在哪一側。</p>
+      <h3>語音（筆電負責）</h3>
+      <ul>
+        <li><strong>很近：</strong>任一側距離小於 <code>near_mm</code>（0.8 公尺）→ 說出方向；如果鏡頭在那個方向辨識到物體，就說出是什麼，例如「右前方有人，很近，約 0.7 公尺」。招牌、樹枝這類 YOLO 不認得的東西會說「障礙」。</li>
+        <li><strong>靠近：</strong>人、腳踏車、機車、汽車、狗在畫面中的面積 1 秒內變大 1.4 倍以上 →「注意，左前方有機車靠近」。</li>
+        <li><strong>按鈕：</strong>把畫面分成左、中、右三區，說出各區有什麼，以及最近的距離。</li>
+        <li><strong>不要太吵：</strong>同一種提醒至少間隔 4 秒；新的緊急提醒會取代還沒念完的舊訊息。</li>
+      </ul>
+      <div class="note warn">
+        <strong>感測器的限制（要寫進報告）</strong>
+        ToF 在強烈陽光下量程會變短，遇到透明玻璃、細桿子、黑色吸光材質可能量不到；YOLO 也不認得招牌、樹枝。第 3 週的材質量測表，就是要找出這些限制。
+      </div>
+    </section>
+
+    <section id="code">
+      <h2><span class="num">9</span>程式包使用說明</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">檔案</th><th scope="col">用途</th></tr></thead>
+          <tbody>
+            <tr><th scope="row"><code>esp32_headgear/esp32_headgear.ino</code></th><td>ESP32 韌體：讀取 ToF、控制震動、傳送距離與按鈕</td></tr>
+            <tr><th scope="row"><code>0_demo_practice.bat</code></th><td>沒有硬體時，用練習影片與模擬距離測試筆電程式</td></tr>
+            <tr><th scope="row"><code>1_test_sensors.bat</code>／<code>test_sensors.py</code></th><td>顯示左右距離，按 Enter 測試馬達</td></tr>
+            <tr><th scope="row"><code>2_test_camera.bat</code></th><td>不接 ESP32，開視窗測試鏡頭與辨識（按 b 描述前方）</td></tr>
+            <tr><th scope="row"><code>3_start_assist.bat</code>／<code>headgear_assist.py</code></th><td>正式使用（不開視窗）</td></tr>
+            <tr><th scope="row"><code>4_evaluate_trials.bat</code>／<code>evaluate_trials.py</code></th><td>分析障礙路線測試紀錄</td></tr>
+            <tr><th scope="row"><code>config.json</code></th><td>鏡頭編號、序列埠、語音距離門檻等設定</td></tr>
+            <tr><th scope="row"><code>logs/</code></th><td>每次執行的提醒紀錄（時間、距離、內容）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>練習影片的預期結果：約第 4 秒說「注意，前方有人靠近」，第 11 秒說「右前方有障礙，很近」，第 18 秒描述「前方有一個人」。</p>
+    </section>
+
+    <section id="prompts">
+      <h2><span class="num">10</span>AI 助手提示語（Antigravity／Claude Code）</h2>
+      <p>用 Antigravity 開啟程式包資料夾，或在 Claude 桌面版的「Code」分頁選擇資料夾，再貼上提示語。每次修改後，都要先用 <code>0_demo_practice.bat</code> 確認。</p>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>① 讀懂分工</span><button type="button" class="copy" data-target="p1">複製</button></div>
+<pre id="p1">請閱讀 esp32_headgear/esp32_headgear.ino 與 headgear_assist.py，用高中生看得懂的繁體中文說明：
+1. ESP32 和筆電各負責什麼？為什麼震動要放在 ESP32？
+2. 兩者之間傳送的資料格式（D、B、T）
+3. 語音在哪三種情況會說話？如何避免一直講話？
+先不要修改任何檔案。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>② 調整震動距離</span><button type="button" class="copy" data-target="p2">複製</button></div>
+<pre id="p2">我們的受測者覺得 1.6 公尺就開始震動太早了。請把 esp32_headgear.ino 的 DIST_FAR 改成 1300、DIST_MID 改成 900，
+並在程式註解說明這三個門檻的意義。改完告訴我怎麼用 Arduino IDE 重新上傳，不要幫我上傳。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>③ 分析誤報</span><button type="button" class="copy" data-target="p3">複製</button></div>
+<pre id="p3">請讀取 logs 資料夾中最新的 CSV，統計每種提醒（near、approach、button、sensor_lost）的次數，
+列出 near 提醒時的左右距離分布，並找出「兩次提醒間隔很短」的時段。
+根據結果建議 near_mm、repeat_cooldown_sec、approach_ratio 要怎麼調整。先不要修改程式。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>④ 延伸：導盲磚方向提示</span><button type="button" class="copy" data-target="p4">複製</button></div>
+<pre id="p4">請在 headgear_assist.py 新增「導盲磚模式」：在 config.json 加入 tactile_mode（預設 false）。
+開啟時，分析畫面下方 1/3 的黃色區域（HSV 色相 18～35），黃色重心偏左超過畫面寬度 15% 就說「導盲磚在左邊」，
+偏右就說「導盲磚在右邊」，同一句話至少間隔 5 秒。
+改完請用 make_demo_video.py 產生的影片執行 --no-voice 測試，確認原本的功能沒有壞掉再回報。</pre>
+      </div>
+
+      <div class="prompt">
+        <div class="prompt-head"><span>⑤ 整理實驗結果</span><button type="button" class="copy" data-target="p5">複製</button></div>
+<pre id="p5">請執行 python evaluate_trials.py，讀取 trials.csv，並把結果整理成書面報告可用的表格與一段 150 字的分析，
+說明頭部碰撞、完成時間、誤報的變化，以及趟數是否足夠、可能的誤差來源。數字只能用 trials.csv 裡的資料。</pre>
+      </div>
+    </section>
+
+    <section id="verify">
+      <h2><span class="num">11</span>測試與驗證</h2>
+      <h3>障礙路線</h3>
+      <ul>
+        <li>在走廊或空教室規劃 10～15 公尺的直線路線，地面平坦，<strong>不要有樓梯</strong>。</li>
+        <li>用繩子懸掛 3～5 個<strong>包泡棉的紙箱</strong>，高度 1.4～1.8 公尺（頭部與胸口）；地面放 2 個泡棉塊。</li>
+        <li>每一趟隨機改變障礙位置，避免受測者記住路線。</li>
+        <li>受測者戴眼罩、拿白手杖，保護者全程走在旁邊，喊「停」就立刻停下。</li>
+      </ul>
+      <h3>比較實驗</h3>
+      <ul>
+        <li>每位受測者「只用手杖」與「手杖＋帽子」各走至少 10 趟，兩種模式輪流交換順序。</li>
+        <li>每趟記錄到 <code>trials.csv</code>：完成秒數、頭部碰撞、地面碰撞、警示次數、誤報次數。</li>
+        <li>執行 <code>4_evaluate_trials.bat</code> 比較兩種模式。</li>
+      </ul>
+      <h3>感測器測試</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">測試</th><th scope="col">方法</th><th scope="col">記錄</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">警示距離</th><td>慢慢走向懸掛紙箱，用捲尺量第一次震動時的距離</td><td>每種材質 10 次的平均與誤差</td></tr>
+            <tr><th scope="row">材質</th><td>紙箱、黑布、透明塑膠板、細竿（直徑 2 公分）、樹葉</td><td>能否量到、量到的最遠距離</td></tr>
+            <tr><th scope="row">環境</th><td>室內、窗邊、戶外陰影、陽光下</td><td>量程變化</td></tr>
+            <tr><th scope="row">反應時間</th><td>用手機慢動作錄影，數「障礙出現」到「震動」的影格數</td><td>平均延遲（毫秒）</td></tr>
+            <tr><th scope="row">語音</th><td>比對 <code>logs/</code> 與錄影，檢查說的方向與物體是否正確</td><td>正確率、誤報次數</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="ethics">
+      <h2><span class="num">12</span>安全、隱私與倫理</h2>
+      <ul class="check">
+        <li>所有測試都在封閉場地進行，有老師在場，保護者全程陪同。</li>
+        <li>懸掛障礙物一律包泡棉；路線上沒有樓梯、尖角、玻璃。</li>
+        <li>受測者有身體不適、頭暈就立刻停止；戴眼罩前先確認路線與停止口令。</li>
+        <li>只使用 3.3V 低壓元件，電路板背面絕緣，避免接觸皮膚。</li>
+        <li>筆電在背包中要注意散熱，使用後檢查溫度。</li>
+        <li>程式不錄影、不存照片；拍攝成果影片要先取得入鏡者同意。</li>
+        <li>邀請視障者試戴前先說明用途與風險並取得同意，報告中不寫出可辨識身分的資料。</li>
+        <li>報告與展示時清楚說明：這是輔助原型，不能取代白手杖、導盲犬或定向行動訓練。</li>
+      </ul>
+    </section>
+
+    <section id="trouble">
+      <h2><span class="num">13</span>常見問題</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">狀況</th><th scope="col">可能原因</th><th scope="col">解決方式</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">ESP32 顯示 left=fail 或 right=fail</th><td>接線錯誤、XSHUT 沒接、模組沒有 XSHUT 腳</td><td>檢查 SDA／SCL／XSHUT；兩顆先各自單獨測試</td></tr>
+            <tr><th scope="row">找不到 ESP32 序列埠</th><td>沒裝 USB 驅動、USB 線只能充電</td><td>安裝 CP210x 或 CH340 驅動；換一條傳輸線；在 config.json 指定 COM 埠</td></tr>
+            <tr><th scope="row">距離一直是 -1</th><td>前方太空曠、材質吸光或透明</td><td>對著牆壁測試；參考材質量測表</td></tr>
+            <tr><th scope="row">馬達不震或 ESP32 重開機</th><td>馬達直接接在 GPIO、電流太大</td><td>改用有驅動電晶體的震動馬達模組</td></tr>
+            <tr><th scope="row">闔上筆電後程式停止</th><td>闔上螢幕會睡眠</td><td>電源選項改成「不執行任何動作」</td></tr>
+            <tr><th scope="row">鏡頭打開的是筆電內建鏡頭</th><td>鏡頭編號不對</td><td>config.json 的 <code>camera</code> 改成 1</td></tr>
+            <tr><th scope="row">語音是英文或沒有聲音</th><td>沒有中文語音、耳機沒連上</td><td>新增「中文（台灣）」語音；確認預設播放裝置是骨傳導耳機</td></tr>
+            <tr><th scope="row">語音太吵</th><td>冷卻時間太短、門檻太遠</td><td>加大 <code>repeat_cooldown_sec</code>、減小 <code>near_mm</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="v2">
+      <h2><span class="num">14</span>第二版：改用樹莓派（選做）</h2>
+      <p>第一版穩定後，可以把筆電換成樹莓派，讓整套設備更輕。</p>
+      <ul>
+        <li><strong>硬體：</strong>Raspberry Pi 5（8 GB）、Camera Module 3 Wide、AI 加速板（如 Raspberry Pi AI HAT+）、行動電源、散熱外殼，約再增加 5,000～8,000 元。</li>
+        <li><strong>電源：</strong>樹莓派 5 官方建議 5V 5A 電源；一般行動電源輸出較低，USB 周邊可用電流會受限制，要實測能不能穩定運作。</li>
+        <li><strong>要比較的項目：</strong>辨識速度（FPS）、反應時間、續航時間、重量、溫度，和第一版做成對照表。</li>
+      </ul>
+    </section>
+
+    <section id="report">
+      <h2><span class="num">15</span>書面報告與評分</h2>
+      <h3>報告架構</h3>
+      <ol>
+        <li><strong>摘要：</strong>問題、方法、比較實驗的主要結果（用自己測到的數字）。</li>
+        <li><strong>研究動機：</strong>白手杖的限制、訪談內容。</li>
+        <li><strong>文獻與現況：</strong>現有電子手杖、智慧眼鏡、辨識 App，說明本作品專注在頭部高度的差別。</li>
+        <li><strong>研究方法：</strong>配置圖、接線、震動與語音設計、參數。</li>
+        <li><strong>測試與結果：</strong>感測器限制、障礙路線比較、誤報分析、改良前後比較。</li>
+        <li><strong>討論：</strong>限制、安全措施、專家回饋。</li>
+        <li><strong>結論與未來展望：</strong>例如第二版樹莓派、導盲磚模式。</li>
+      </ol>
+      <h3>評分參考</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">項目</th><th scope="col">比重</th><th scope="col">優秀的表現</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">問題定義與訪談</th><td>15%</td><td>有專業人員或使用者的意見，清楚說明和現有產品的差別</td></tr>
+            <tr><th scope="row">硬體與整合</th><td>25%</td><td>接線整齊、配戴舒適、震動與語音都能穩定運作</td></tr>
+            <tr><th scope="row">測試與驗證</th><td>25%</td><td>感測器限制測試、足夠趟數的比較實驗、能分析誤報</td></tr>
+            <tr><th scope="row">使用者設計</th><td>15%</td><td>震動與語音不吵、容易理解，依回饋改良</td></tr>
+            <tr><th scope="row">安全與倫理</th><td>10%</td><td>測試安全措施完整，清楚說明原型的限制</td></tr>
+            <tr><th scope="row">報告與展示</th><td>10%</td><td>數據真實、展示影片清楚</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note warn">
+        <strong>數據一定要是自己測的</strong>
+        <code>trials_example.csv</code> 只是格式範例，報告中的所有數字都要來自自己的 <code>trials.csv</code> 與 <code>logs/</code>。
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  【專題實作】頭部障礙物警示帽 ・ 相關教材：<a href="ai_vision_course_guide.html">AI 視覺創客小學堂</a>・<a href="tactile_paving_project_guide.html">導盲磚占用偵測</a>
+</footer>
+
+<script>
+  document.querySelectorAll('.copy').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const text = document.getElementById(btn.dataset.target).innerText;
+      const done = () => {
+        const old = btn.textContent;
+        btn.textContent = '已複製';
+        setTimeout(() => { btn.textContent = old; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done).catch(() => window.prompt('請手動複製：', text));
+      } else {
+        window.prompt('請手動複製：', text);
+      }
+    });
+  });
+</script>
+</body>
+</html>

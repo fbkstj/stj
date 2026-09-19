@@ -1,0 +1,5 @@
+﻿tester,mode,trial,time_sec,head_hits,ground_hits,warnings,false_alarms
+範例A,cane,1,95,2,1,0,0
+範例A,cane+hat,2,104,0,1,3,1
+範例B,cane+hat,1,110,1,0,3,0
+範例B,cane,2,98,3,1,0,0

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPGA 矩陣鍵盤與七段顯示器模擬</title>
+    <style>
+        body {
+            background-color: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
+        h2 { margin-bottom: 5px; margin-top: 10px; }
+        .info { margin-bottom: 20px; color: #bdc3c7; font-size: 0.9em; text-align: center; line-height: 1.6; }
+        canvas {
+            background-color: #1a1a1a;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div style="margin-bottom: 10px;">
+        <a href="index.html" target="_top" style="display: inline-flex; align-items: center; gap: 8px; color: #bdc3c7; text-decoration: none; background-color: #34495e; padding: 10px 20px; border-radius: 6px; font-weight: bold; font-size: 0.9em; border: 1px solid #4f5d73; transition: all 0.2s;" onmouseover="this.style.backgroundColor='#415b76'; this.style.color='#fff'" onmouseout="this.style.backgroundColor='#34495e'; this.style.color='#bdc3c7'">
+            🏠 返回教學首頁
+        </a>
+    </div>
+
+    <h2>矩陣鍵盤掃描與顯示模擬</h2>
+    <div class="info">
+        模擬邏輯：按下按鍵 -> 觸發 OR Gate -> 鎖存器抓取數值 -> 七段顯示器更新<br>
+        (放開按鍵後，因為 Latch 的作用，數值會保持)
+    </div>
+    <canvas id="simCanvas" width="600" height="400"></canvas>
+
+<script>
+    const canvas = document.getElementById('simCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 電路狀態
+    let latchedValue = null; // 儲存鎖存器中的值
+    let pressedKey = null;   // 目前按下的鍵
+
+    // 鍵盤定義 (4 Rows x 3 Columns) - 對應電路圖的 R0-R3 和 C0-C2
+    // 這裡假設標準電話鍵盤配置，並對應到 16進位值以便顯示
+    const keypadMap = [
+        [1, 2, 3],  // R0
+        [4, 5, 6],  // R1
+        [7, 8, 9],  // R2
+        [10, 0, 11] // R3 (*用A代替, #用b代替) -> 對應顯示器的 10=A, 11=b
+    ];
+
+    const keys = [];
+    const keyWidth = 60;
+    const keyHeight = 50;
+    const keyGap = 15;
+    const startX = 50;
+    const startY = 100;
+
+    // 初始化鍵盤座標
+    for(let r=0; r<4; r++) {
+        for(let c=0; c<3; c++) {
+            keys.push({
+                row: r,
+                col: c,
+                val: keypadMap[r][c],
+                label: keypadMap[r][c] === 10 ? '*' : (keypadMap[r][c] === 11 ? '#' : keypadMap[r][c]),
+                x: startX + c * (keyWidth + keyGap),
+                y: startY + r * (keyHeight + keyGap),
+                w: keyWidth,
+                h: keyHeight
+            });
+        }
+    }
+
+    // 七段顯示器編碼 (共陽極/共陰極邏輯對應)
+    // index 對應 0-9, 10(A), 11(b)
+    const segmentCode = [
+        [1,1,1,1,1,1,0], // 0
+        [0,1,1,0,0,0,0], // 1
+        [1,1,0,1,1,0,1], // 2
+        [1,1,1,1,0,0,1], // 3
+        [0,1,1,0,0,1,1], // 4
+        [1,0,1,1,0,1,1], // 5
+        [1,0,1,1,1,1,1], // 6
+        [1,1,1,0,0,0,0], // 7
+        [1,1,1,1,1,1,1], // 8
+        [1,1,1,1,0,1,1], // 9
+        [1,1,1,0,1,1,1], // A (代表 *)
+        [0,0,1,1,1,1,1], // b (代表 #)
+    ];
+
+    // 繪圖函數
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // 1. 繪製標題與裝飾
+        ctx.fillStyle = "#bdc3c7";
+        ctx.font = "16px Arial";
+        ctx.fillText("4x3 Matrix Keypad", 80, 80);
+        ctx.fillText("7-Segment Display", 380, 80);
+
+        // 2. 繪製連接線 (示意圖)
+        ctx.strokeStyle = "#555";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(startX + 3 * (keyWidth + keyGap), startY + 75); // Keypad output
+        ctx.lineTo(350, startY + 75); // Latch
+        ctx.lineTo(400, startY + 75); // Display
+        ctx.stroke();
+
+        // 繪製 Latch 盒子
+        ctx.fillStyle = "#2ecc71";
+        ctx.strokeStyle = "white";
+        ctx.fillRect(340, 160, 40, 60);
+        ctx.strokeRect(340, 160, 40, 60);
+        ctx.fillStyle = "#000";
+        ctx.font = "12px Arial";
+        ctx.fillText("Latch", 345, 195);
+
+        // 3. 繪製鍵盤
+        keys.forEach(k => {
+            // 判斷是否被按下
+            let isPressed = (pressedKey && pressedKey.row === k.row && pressedKey.col === k.col);
+            
+            ctx.fillStyle = isPressed ? "#e74c3c" : "#34495e"; // 按下變紅，平時深藍
+            ctx.shadowBlur = isPressed ? 15 : 0;
+            ctx.shadowColor = "#e74c3c";
+            
+            ctx.fillRect(k.x, k.y, k.w, k.h);
+            ctx.shadowBlur = 0; // 重置陰影
+
+            // 邊框
+            ctx.strokeStyle = "#ecf0f1";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(k.x, k.y, k.w, k.h);
+
+            // 文字
+            ctx.fillStyle = "white";
+            ctx.font = "bold 20px Arial";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(k.label, k.x + k.w/2, k.y + k.h/2);
+        });
+
+        // 4. 繪製七段顯示器
+        drawSevenSegment(420, 120, latchedValue);
+    }
+
+    function drawSevenSegment(x, y, val) {
+        // 如果沒有值 (null)，則顯示 "-" 或全暗
+        let segs = (val === null) ? [0,0,0,0,0,0,0] : segmentCode[val];
+        
+        const w = 60; // 寬度
+        const h = 100; // 高度
+        const t = 8;  // 線條厚度
+        const gap = 2; 
+
+        // 定義每一段的位置 (a, b, c, d, e, f, g)
+        // 使用簡單矩形模擬
+        const segments = [
+            {x: x+t, y: y, w: w-2*t, h: t},       // a (top)
+            {x: x+w-t, y: y+t, w: t, h: h/2-t-gap}, // b (top-right)
+            {x: x+w-t, y: y+h/2+gap, w: t, h: h/2-t-gap}, // c (bottom-right)
+            {x: x+t, y: y+h-t, w: w-2*t, h: t},   // d (bottom)
+            {x: x, y: y+h/2+gap, w: t, h: h/2-t-gap}, // e (bottom-left)
+            {x: x, y: y+t, w: t, h: h/2-t-gap},   // f (top-left)
+            {x: x+t, y: y+h/2-t/2, w: w-2*t, h: t} // g (middle)
+        ];
+
+        // 繪製底色 (未亮起的顏色)
+        ctx.fillStyle = "#2c0505"; 
+        ctx.fillRect(x-5, y-5, w+10, h+10);
+
+        segments.forEach((seg, index) => {
+            if (segs[index] === 1) {
+                ctx.fillStyle = "#ff0000"; // 亮紅色
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "red";
+            } else {
+                ctx.fillStyle = "#4a0a0a"; // 暗紅色
+                ctx.shadowBlur = 0;
+            }
+            
+            // 繪製單個段
+            ctx.fillRect(seg.x, seg.y, seg.w, seg.h);
+        });
+        ctx.shadowBlur = 0;
+    }
+
+    // 事件監聽
+    function getMousePos(evt) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: evt.clientX - rect.left,
+            y: evt.clientY - rect.top
+        };
+    }
+
+    function handleInputStart(x, y) {
+        // 檢查是否點擊到按鍵
+        keys.forEach(k => {
+            if (x >= k.x && x <= k.x + k.w && y >= k.y && y <= k.y + k.h) {
+                pressedKey = k;
+                latchedValue = k.val; // 更新鎖存值 (模擬 Latch 行為)
+                draw();
+            }
+        });
+    }
+
+    function handleInputEnd() {
+        if (pressedKey) {
+            pressedKey = null; // 釋放按鍵視覺，但 latchedValue 保持不變
+            draw();
+        }
+    }
+
+    // 滑鼠事件
+    canvas.addEventListener('mousedown', (e) => {
+        const pos = getMousePos(e);
+        handleInputStart(pos.x, pos.y);
+    });
+    window.addEventListener('mouseup', handleInputEnd);
+
+    // 觸控事件 (支援手機)
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        const rect = canvas.getBoundingClientRect();
+        handleInputStart(touch.clientX - rect.left, touch.clientY - rect.top);
+    }, {passive: false});
+    window.addEventListener('touchend', handleInputEnd);
+
+    // 初始繪製
+    draw();
+
+</script>
+
+</body>
+</html>
