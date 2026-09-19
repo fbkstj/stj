@@ -24,6 +24,9 @@ https://fbkstj.github.io/www/bike_rear_alert_project_guide.html
 【專題實作】AI 守望：公共場所 AI 監控通報（學生實作手冊）：
 https://fbkstj.github.io/www/ai_guardian_project_guide.html
 
+【專題實作】智慧管家系統（開發手冊）：
+https://fbkstj.github.io/stj/smart_butler_project_guide.html
+
 【專題實作】AirTouch 無接觸手勢＋語音遙控（學生實作手冊）：
 https://fbkstj.github.io/www/airtouch_project_guide.html
 
@@ -75,6 +78,9 @@ https://stjwww.netlify.app/bike_rear_alert_project_guide.html
 【專題實作】AI 守望：公共場所 AI 監控通報（學生實作手冊）：
 https://stjwww.netlify.app/ai_guardian_project_guide.html
 
+【專題實作】智慧管家系統（開發手冊）：
+https://stjwww.netlify.app/smart_butler_project_guide.html
+
 【專題實作】AirTouch 無接觸手勢＋語音遙控（學生實作手冊）：
 https://stjwww.netlify.app/airtouch_project_guide.html
 
@@ -125,6 +131,9 @@ http://127.0.0.1:18456/bike_rear_alert_project_guide.html
 
 【專題實作】AI 守望：公共場所 AI 監控通報（學生實作手冊）：
 http://127.0.0.1:18456/ai_guardian_project_guide.html
+
+【專題實作】智慧管家系統（開發手冊）：
+http://127.0.0.1:18456/smart_butler_project_guide.html
 
 【專題實作】AirTouch 無接觸手勢＋語音遙控（學生實作手冊）：
 http://127.0.0.1:18456/airtouch_project_guide.html
