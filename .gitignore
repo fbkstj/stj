@@ -62,3 +62,10 @@ ai_guardian_starter/output/
 ai_guardian_starter/logs/
 ai_guardian_starter/videos/*
 !ai_guardian_starter/videos/把影片放在這裡.txt
+
+# 智慧管家程式包：執行產物
+smart_butler_starter/data/
+smart_butler_starter/demo/*.mp4
+smart_butler_starter/demo/*.db
+smart_butler_starter/**/__pycache__/
+smart_butler_starter/.env

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}訪客查詢{% endblock %}
+{% block content %}
+<h1>訪客查詢</h1>
+<form method="get" class="row">
+  <label>從 <input type="datetime-local" name="start" value="{{ start }}"></label>
+  <label>到 <input type="datetime-local" name="end" value="{{ end }}"></label>
+  <button class="btn">查詢</button>
+</form>
+<p>共 {{ rows|length }} 次來訪</p>
+<div class="visits">
+{% for r in rows %}
+  <figure class="visit {{ 'night' if r.night }}">
+    {% if r.img %}<img src="{{ url_for('snapshot', name=r.img) }}" alt="{{ r.start[11:19] }} 來訪截圖" loading="lazy">
+    {% else %}<div class="noimg">沒有截圖（隱私模式）</div>{% endif %}
+    <figcaption>{{ r.start[5:10] }} {{ r.start[11:19] }}～{{ r.end[11:19] }}，停留 {{ r.seconds }} 秒{% if r.night %}（深夜）{% endif %}</figcaption>
+  </figure>
+{% endfor %}
+</div>
+{% endblock %}

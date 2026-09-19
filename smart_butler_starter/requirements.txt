@@ -1,0 +1,11 @@
+# 必要套件
+PyYAML
+python-dotenv
+requests
+numpy
+opencv-python
+Flask
+# 選用：AI 閒聊（需要 .env 的 AI_API_KEY）
+anthropic
+# 選用：想用 pytest 跑測試再裝（tests/run_all_tests.py 不需要它）
+# pytest

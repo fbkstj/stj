@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}和管家說話{% endblock %}
+{% block content %}
+<h1>和管家說話</h1>
+{% if not enabled %}<p>AI 對話模組沒有開啟。</p>{% else %}
+<p class="hint">可以試試：打開客廳燈、客廳暗一點、電視有沒有開、打開電暖器（會要求確認）、我吃藥了、救命。</p>
+{% for who, text in log %}<p class="bubble {{ 'me' if who == '你' else 'bot' }}"><b>{{ who }}：</b>{{ text }}</p>{% endfor %}
+<form method="post" class="row">
+  <label for="text" class="sr">要說的話</label>
+  <input id="text" name="text" autofocus required placeholder="輸入要對管家說的話">
+  <button class="btn">送出</button>
+</form>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}留言板{% endblock %}
+{% block content %}
+<h1>留言板</h1>
+{% if not enabled %}<p>留言板模組沒有開啟。</p>{% else %}
+<form method="post" class="stack">
+  <label>稱呼 <input name="author" maxlength="20" placeholder="例如：女兒小美" required></label>
+  <label>留言 <textarea name="text" maxlength="500" rows="3" required></textarea></label>
+  <button class="btn">送出留言（會同步到 Discord）</button>
+</form>
+<ul class="messages">
+{% for m in rows %}
+  <li><b>{{ m.author }}</b> <small>{{ m.time[5:10] }} {{ m.time[11:16] }}・來自{{ '網頁' if m.source == 'web' else ' Discord' }}{% if m.source == 'web' and not m.discord_id %}・尚未同步{% endif %}</small>
+    <p>{{ m.text }}</p></li>
+{% else %}<li>還沒有留言</li>{% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

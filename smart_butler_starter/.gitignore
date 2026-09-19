@@ -1,0 +1,16 @@
+# 金鑰與 Webhook 只放在 .env（絕不上傳）
+.env
+
+# 執行時產生的資料（資料庫、截圖、待補送訊息）
+data/
+
+# 產生出來的示範資料（執行 1_make_demo.bat 就會重新產生）
+demo/*.mp4
+demo/*.db
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/

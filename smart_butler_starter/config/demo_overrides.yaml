@@ -1,0 +1,18 @@
+# 執行 python main.py --demo 時，這個檔案的值會覆蓋 settings.yaml
+# 目的：把時間縮短、資料分開存放，幾分鐘內就能看到每個功能
+
+system:
+  data_dir: data/demo     # 示範資料和正式資料分開
+  module_check_sec: 5
+  health_interval_sec: 30
+
+discord:
+  dry_run: true           # 示範模式預設不送 Discord；想送到測試頻道就改成 false
+  urgent_repeat_min: 0.5  # 緊急通報 30 秒重送一次
+
+care:
+  inactive_min: 0.2       # 12 秒沒動就算久未活動
+  activity_every_min: 0.2
+
+meds:
+  test_mode: true         # 啟動 30 秒後提醒「測試用藥」，1 分鐘沒確認就通報

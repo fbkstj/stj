@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ system_name }}{% endblock %}｜管理介面</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%231f5f8b'/%3E%3Cpath d='M3 8l5-4 5 4v5H3z' fill='white'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="top">
+  <strong class="brand">{{ system_name }}</strong>
+  {% if demo %}<span class="tag">示範模式</span>{% endif %}
+  {% if privacy %}<span class="tag tag-privacy">隱私模式</span>{% endif %}
+  <nav aria-label="主選單">
+    <a href="{{ url_for('dashboard') }}">儀表板</a>
+    <a href="{{ url_for('chat') }}">和管家說話</a>
+    <a href="{{ url_for('visits') }}">訪客查詢</a>
+    <a href="{{ url_for('board') }}">留言板</a>
+    <a href="{{ url_for('events') }}">事件紀錄</a>
+    <a href="{{ url_for('settings_page') }}">設定</a>
+  </nav>
+</header>
+<main>
+  {% for msg in get_flashed_messages() %}<p class="flash" role="status">{{ msg }}</p>{% endfor %}
+  {% for a in open_alerts %}
+  <section class="alert" role="alert">
+    <p>🚨 緊急 #{{ a.id }}：{{ a.message }}（{{ a.time[11:16] }}，已送 {{ a.sent_count }} 次）</p>
+    <form method="post" action="{{ url_for('ack', alert_id=a.id) }}"><button class="btn">已處理</button></form>
+  </section>
+  {% endfor %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

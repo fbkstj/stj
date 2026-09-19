@@ -198,6 +198,7 @@ td code,th code{white-space:nowrap}
   <div class="list">
     <a href="#howto"><span class="lv">00</span>怎麼使用這本手冊</a>
     <a class="sub" href="#antigravity"><span class="lv">＊</span>使用 Antigravity</a>
+    <a class="sub" href="#pack"><span class="lv">＊</span>參考程式包</a>
     <a href="#overview"><span class="lv">01</span>專題概要</a>
     <a href="#arch"><span class="lv">02</span>系統架構</a>
     <a href="#design"><span class="lv">03</span>功能規格</a>
@@ -253,7 +254,10 @@ td code,th code{white-space:nowrap}
     <div><small>建議時程</small><span>16 週</span></div>
     <div><small>AI 助手</small><span>Claude Code／Antigravity</span></div>
   </div>
-  <div class="actions"><button class="printbtn" id="printBtn" type="button">列印／存成 PDF</button></div>
+  <div class="actions">
+    <a class="dl" href="smart_butler_starter_pack.zip" download="smart_butler_starter_pack.zip">⬇ 下載參考程式包（ZIP）</a>
+    <button class="printbtn" id="printBtn" type="button">列印／存成 PDF</button>
+  </div>
 </header>
 
 <section id="howto">
@@ -298,6 +302,32 @@ td code,th code{white-space:nowrap}
 
 （以下貼上本關的提示語）</code></pre></div>
   <p class="sim-note" style="font-size:14px;color:var(--muted)">Antigravity 版本更新很快，實際的按鈕名稱與設定位置，請以你電腦上的版本為準。</p>
+  <h3 id="pack">參考程式包：L0～L15 可以直接執行的範例</h3>
+  <p><a class="dl" href="smart_butler_starter_pack.zip" download="smart_butler_starter_pack.zip">⬇ smart_butler_starter_pack.zip</a></p>
+  <p>程式包是老師依照本手冊寫好的<b>參考做法</b>：L0～L15 每一關都有一個能執行的版本，而且<b>不用開攝影機、不會送 Discord、不會碰真實家電</b>就能跑完整套系統。影像是程式畫的火柴人示範影片（不會拍到真人），Discord 預設是「模擬模式」，只把要送的訊息印在畫面上。</p>
+  <div class="cols">
+    <div class="box"><p><b>用法一：照關卡自己做</b></p><p>照 L0～L15 的提示語，讓 Claude Code 在<b>你們自己的資料夾</b>一步一步寫；卡住時打開程式包對照同一關的檔案，或把它的做法貼給 Claude Code 參考。</p></div>
+    <div class="box"><p><b>用法二：從程式包開始改</b></p><p>把程式包當成起點，在它的資料夾開 Claude Code，把你們的 Aina 功能（或真實攝影機、智慧插座）一項一項換進去。開頭先用 07 的「盤點既有專案」提示語。</p></div>
+  </div>
+  <h4>第一次使用（雙擊 bat 就好）</h4>
+  <div class="tbl" tabindex="0"><table>
+    <thead><tr><th>檔案</th><th>做什麼</th><th>預期結果</th></tr></thead>
+    <tbody>
+      <tr><td><code>0_install.bat</code></td><td>安裝套件（第一次）</td><td>PyYAML、OpenCV、Flask 等安裝完成</td></tr>
+      <tr><td><code>1_make_demo.bat</code></td><td>產生示範影片與 10 天假作息資料</td><td>長照影片 66 秒、門口影片 60 秒</td></tr>
+      <tr><td><code>2_run_tests.bat</code></td><td>自動測試 L1～L14 與金鑰檢查</td><td>通過 69 項，失敗 0 項（約 10 秒）</td></tr>
+      <tr><td><code>3_demo_run.bat</code></td><td>示範模式跑 3 分鐘，打開管理介面 <code>http://127.0.0.1:8765</code></td><td>跌倒緊急通報（附截圖）、久未活動、3 次來訪、Discord 留言同步、吃藥逾時通報</td></tr>
+      <tr><td><code>4_chat.bat</code></td><td>用文字和管家說話</td><td>「客廳暗一點」會調暗客廳燈；「打開電暖器」會先要求確認</td></tr>
+      <tr><td><code>5_notify_test.bat</code></td><td>檢查設定與 <code>.env</code>，送三種等級的測試通報</td><td>資訊、⚠️ 注意、🚨 緊急三種格式</td></tr>
+      <tr><td><code>6_analyze_videos.bat</code></td><td>直接分析兩支示範影片</td><td>第 26.7 秒跌倒、第 50 秒久未活動；共 3 次來訪</td></tr>
+      <tr><td><code>7_daily_and_routine.bat</code></td><td>每日平安回報；10 天假資料的作息檢查</td><td>只有 9/9 被提醒（晚起、下午活動偏少），其他日子 0 次誤報</td></tr>
+    </tbody>
+  </table></div>
+  <div class="warn"><p><strong>接真實環境前要知道的事</strong></p><ul>
+    <li>程式包的人物偵測用「和空場景相減」，<b>只適合示範影片</b>。接真實攝影機時，請依 L5、L8 的提示語改用 MediaPipe 或 YOLO；只要一樣輸出「人的外框」，後面的跌倒、來訪規則都不用改。</li>
+    <li>真實 Discord Webhook 與 Bot、Claude API 閒聊、Windows 語音、開機自動啟動只寫好程式，<b>還沒有在實機測過</b>，第一次使用請一項一項測試並記錄。</li>
+    <li>要送到 Discord：把 <code>.env.example</code> 複製成 <code>.env</code> 填入 Webhook，再把 <code>settings.yaml</code> 的 <code>dry_run</code> 改成 <code>false</code>，而且只送到練習伺服器的測試頻道。</li>
+  </ul></div>
 </section>
 
 <section id="overview" class="page">
@@ -474,7 +504,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l0" class="page">
   <h2><span class="tag lv">L0</span>專案骨架與規則</h2>
-  <dl class="goal"><dt>目標</dt><dd>建立資料夾結構、進度檔、專案規則檔，並用 Git 開始版本管理。</dd><dt>時間</dt><dd>約 1 節</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>建立資料夾結構、進度檔、專案規則檔，並用 Git 開始版本管理。</dd><dt>時間</dt><dd>約 1 節</dd><dt>參考程式</dt><dd><code>docs/專案規則.md</code>、<code>PROGRESS.md</code>、<code>.gitignore</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>規則檔</b>：把「不能做的事」寫成檔案，之後每一關都讓 AI 先讀，比每次重講更可靠。</li>
@@ -510,7 +540,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l1" class="page">
   <h2><span class="tag lv">L1</span>設定中心與 .env</h2>
-  <dl class="goal"><dt>目標</dt><dd>所有可調參數集中在 <code>settings.yaml</code>，金鑰集中在 <code>.env</code>；程式用同一個函式讀取。</dd><dt>時間</dt><dd>約 1 節</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>所有可調參數集中在 <code>settings.yaml</code>，金鑰集中在 <code>.env</code>；程式用同一個函式讀取。</dd><dt>時間</dt><dd>約 1 節</dd><dt>參考程式</dt><dd><code>config/settings.yaml</code>、<code>core/config.py</code>、<code>tests/test_config.py</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>設定和程式分開</b>：改門檻、改時間不需要改程式碼。</li>
@@ -537,7 +567,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l2" class="page">
   <h2><span class="tag lv">L2</span>事件匯流排與紀錄</h2>
-  <dl class="goal"><dt>目標</dt><dd>定義統一的事件格式；所有事件自動寫入 SQLite，可查詢、可匯出。</dd><dt>時間</dt><dd>約 2 節</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>定義統一的事件格式；所有事件自動寫入 SQLite，可查詢、可匯出。</dd><dt>時間</dt><dd>約 2 節</dd><dt>參考程式</dt><dd><code>core/events.py</code>、<code>core/store.py</code>、<code>tests/test_events.py</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>事件格式</b>：每個事件至少有「時間、來源模組、類型、等級、內容、附件路徑」。格式統一，後面的通報、查詢、每日摘要才寫得出來。</li>
@@ -566,7 +596,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l3" class="page">
   <h2><span class="tag lv">L3</span>Discord 通報器與分級</h2>
-  <dl class="goal"><dt>目標</dt><dd>所有通報都經過同一個通報器；依等級決定格式與提醒方式；緊急事件會重送直到有人處理。</dd><dt>時間</dt><dd>約 2 節</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>所有通報都經過同一個通報器；依等級決定格式與提醒方式；緊急事件會重送直到有人處理。</dd><dt>時間</dt><dd>約 2 節</dd><dt>參考程式</dt><dd><code>core/notify.py</code>、<code>tests/test_notify.py</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>Webhook 與 Bot 的差別</b>：Webhook 只能「送出」訊息，簡單可靠；Bot 可以「讀取」與「按按鈕」，留言板同步和「已處理」需要它。</li>
@@ -597,7 +627,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l4" class="page">
   <h2><span class="tag lv">L4</span>主程式與模組管理</h2>
-  <dl class="goal"><dt>目標</dt><dd>一個 <code>main.py</code> 啟動所有模組；模組可個別開關；某個模組當掉會自動重啟。</dd><dt>時間</dt><dd>約 2 節</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>一個 <code>main.py</code> 啟動所有模組；模組可個別開關；某個模組當掉會自動重啟。</dd><dt>時間</dt><dd>約 2 節</dd><dt>參考程式</dt><dd><code>main.py</code>、<code>core/module.py</code>、<code>core/supervisor.py</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>模組介面統一</b>：每個模組都有 <code>start()</code>、<code>stop()</code>、<code>health()</code>，主程式才能用同一套方式管理。</li>
@@ -626,7 +656,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l5" class="page">
   <h2><span class="tag lv">L5</span>長照監護模組</h2>
-  <dl class="goal"><dt>目標</dt><dd>從影像偵測「跌倒」與「長時間沒有活動」，發出對應等級的事件。</dd><dt>時間</dt><dd>約 2 週</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>從影像偵測「跌倒」與「長時間沒有活動」，發出對應等級的事件。</dd><dt>時間</dt><dd>約 2 週</dd><dt>參考程式</dt><dd><code>modules/care/</code>（判斷規則在 <code>monitor.py</code>）、<code>demo/make_demo_media.py</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>姿態偵測</b>：用人體關鍵點判斷身體是否從直立變成橫躺，且位置接近地面。</li>
@@ -658,7 +688,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l6" class="page">
   <h2><span class="tag lv">L6</span>AI 對話與家電控制</h2>
-  <dl class="goal"><dt>目標</dt><dd>用中文和系統對話；從對話中辨識家電指令並控制（先用模擬家電）。</dd><dt>時間</dt><dd>約 1 週</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>用中文和系統對話；從對話中辨識家電指令並控制（先用模擬家電）。</dd><dt>時間</dt><dd>約 1 週</dd><dt>參考程式</dt><dd><code>modules/chat/</code>（<code>intent.py</code>、<code>devices.py</code>、<code>chat.py</code>）（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>意圖辨識</b>：把「幫我開一下客廳的燈」轉成 <code>{裝置: 客廳燈, 動作: 開}</code>。</li>
@@ -687,7 +717,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l7" class="page">
   <h2><span class="tag lv">L7</span>留言板與 Discord 同步</h2>
-  <dl class="goal"><dt>目標</dt><dd>家人可以在網頁或 Discord 留言，兩邊內容同步。</dd><dt>時間</dt><dd>約 1 週</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>家人可以在網頁或 Discord 留言，兩邊內容同步。</dd><dt>時間</dt><dd>約 1 週</dd><dt>參考程式</dt><dd><code>modules/board/</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>雙向同步要避免迴圈</b>：網頁的留言送到 Discord 後，Bot 又讀到它，不能再送回網頁一次。要記錄每則留言的來源和編號。</li>
@@ -712,7 +742,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l8" class="page">
   <h2><span class="tag lv">L8</span>智慧監視器：訪客紀錄</h2>
-  <dl class="goal"><dt>目標</dt><dd>偵測門口有人出現，記錄時間與截圖；可以查詢「某段時間有誰來過」；支援隱私模式。</dd><dt>時間</dt><dd>約 2 週</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>偵測門口有人出現，記錄時間與截圖；可以查詢「某段時間有誰來過」；支援隱私模式。</dd><dt>時間</dt><dd>約 2 週</dd><dt>參考程式</dt><dd><code>modules/camera/</code>（合併規則在 <code>visits.py</code>）（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>一次來訪只記一筆</b>：人站在門口 3 分鐘，不能記成 180 筆。要把連續出現的畫面合併成一次「來訪」。</li>
@@ -739,7 +769,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l9" class="page">
   <h2><span class="tag lv">L9</span>本機管理介面</h2>
-  <dl class="goal"><dt>目標</dt><dd>用網頁看系統狀態、改設定、查訪客、看留言；只允許本機連線，手機版面可用。</dd><dt>時間</dt><dd>約 1 週</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>用網頁看系統狀態、改設定、查訪客、看留言；只允許本機連線，手機版面可用。</dd><dt>時間</dt><dd>約 1 週</dd><dt>參考程式</dt><dd><code>web/</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>只綁定 127.0.0.1</b>：代表只有這台電腦能打開，別人無法從網路連進來。這是最基本的保護。</li>
@@ -768,7 +798,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l10" class="page">
   <h2><span class="tag lv">L10</span>用藥提醒與確認</h2>
-  <dl class="goal"><dt>目標</dt><dd>時間到語音提醒吃藥；長輩確認後記錄；逾時未確認就通知家人。</dd><dt>時間</dt><dd>約 1 週</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>時間到語音提醒吃藥；長輩確認後記錄；逾時未確認就通知家人。</dd><dt>時間</dt><dd>約 1 週</dd><dt>參考程式</dt><dd><code>modules/meds/</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>提示語</h3>
   <div class="prompt"><button class="copy" type="button">複製</button><pre><code>先讀 PROGRESS.md 與 docs/專案規則.md，並遵守規則。本關是 L10：用藥提醒（modules/meds/）。
 
@@ -790,7 +820,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l11" class="page">
   <h2><span class="tag lv">L11</span>每日平安回報</h2>
-  <dl class="goal"><dt>目標</dt><dd>每天固定時間，把當天的活動、服藥、訪客、異常整理成一則摘要送到 Discord。</dd><dt>時間</dt><dd>約 3 節</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>每天固定時間，把當天的活動、服藥、訪客、異常整理成一則摘要送到 Discord。</dd><dt>時間</dt><dd>約 3 節</dd><dt>參考程式</dt><dd><code>modules/daily/</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <p>這一關完全不需要新的感測器，只是把 L2 資料庫裡的事件<b>統計整理</b>。這就是一開始統一事件格式的好處。</p>
   <h3>提示語</h3>
@@ -811,7 +841,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l12" class="page">
   <h2><span class="tag lv">L12</span>一鍵／語音求救</h2>
-  <dl class="goal"><dt>目標</dt><dd>按下按鈕或說出求救關鍵字，3 秒內發出緊急通報並附截圖。</dd><dt>時間</dt><dd>約 3 節</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>按下按鈕或說出求救關鍵字，3 秒內發出緊急通報並附截圖。</dd><dt>時間</dt><dd>約 3 節</dd><dt>參考程式</dt><dd><code>modules/sos/</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>提示語</h3>
   <div class="prompt"><button class="copy" type="button">複製</button><pre><code>先讀 PROGRESS.md 與 docs/專案規則.md，並遵守規則。本關是 L12：一鍵求救（modules/sos/）。
 
@@ -832,7 +862,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l13" class="page">
   <h2><span class="tag lv">L13</span>作息異常偵測</h2>
-  <dl class="goal"><dt>目標</dt><dd>從過去 7 天的紀錄學習平常作息，今天明顯不同時提醒家人。</dd><dt>時間</dt><dd>約 1 週</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>從過去 7 天的紀錄學習平常作息，今天明顯不同時提醒家人。</dd><dt>時間</dt><dd>約 1 週</dd><dt>參考程式</dt><dd><code>modules/routine/</code>、<code>demo/make_routine_data.py</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <ul>
     <li><b>先用簡單統計</b>：例如「平常最晚 8:30 起床，今天 10:00 還沒有活動」。用平均值和標準差就能做，不需要複雜的 AI。</li>
@@ -861,7 +891,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l14" class="page">
   <h2><span class="tag lv">L14</span>系統穩定</h2>
-  <dl class="goal"><dt>目標</dt><dd>開機自動啟動、定時健康檢查、斷網時先存後補、自動刪除過期資料。</dd><dt>時間</dt><dd>約 1 週</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>開機自動啟動、定時健康檢查、斷網時先存後補、自動刪除過期資料。</dd><dt>時間</dt><dd>約 1 週</dd><dt>參考程式</dt><dd><code>core/health.py</code>、<code>scripts/install_autostart.ps1</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>重點觀念</h3>
   <p>長照系統最怕的不是功能不夠，而是<b>壞掉了卻沒人發現</b>。這一關讓系統會照顧自己。</p>
   <h3>提示語</h3>
@@ -885,7 +915,7 @@ td code,th code{white-space:nowrap}
 
 <section id="l15" class="page">
   <h2><span class="tag lv">L15</span>整合驗收與交付</h2>
-  <dl class="goal"><dt>目標</dt><dd>跑完整驗收表、修正問題、寫好 README，準備實際環境測試與發表。</dd><dt>時間</dt><dd>約 1 週</dd></dl>
+  <dl class="goal"><dt>目標</dt><dd>跑完整驗收表、修正問題、寫好 README，準備實際環境測試與發表。</dd><dt>時間</dt><dd>約 1 週</dd><dt>參考程式</dt><dd><code>tests/run_all_tests.py</code>、<code>README_先看我.md</code>（<a href="#pack">程式包</a>）</dd></dl>
   <h3>提示語</h3>
   <div class="prompt"><button class="copy" type="button">複製</button><pre><code>先讀 PROGRESS.md 與 docs/專案規則.md，並遵守規則。本關是 L15：整合驗收。
 

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>儀表板</h1>
+<div class="actions">
+  <form method="post" action="{{ url_for('sos') }}"><button class="btn btn-sos">一鍵求救</button></form>
+  <form method="post" action="{{ url_for('meds_confirm') }}"><button class="btn">已服藥</button></form>
+  <form method="post" action="{{ url_for('privacy') }}"><button class="btn btn-light">{{ '關閉隱私模式' if privacy else '開啟隱私模式' }}</button></form>
+</div>
+<div class="cards">
+  <div class="card"><span class="num">{{ taken_today }}</span>今天已服藥</div>
+  <div class="card"><span class="num">{{ visits_today }}</span>今天訪客</div>
+  <div class="card"><span class="num">{{ pending }}</span>待補送通報</div>
+</div>
+<h2>模組狀態</h2>
+<table>
+  <thead><tr><th>模組</th><th>狀態</th><th>說明</th></tr></thead>
+  <tbody>
+  {% for s in status %}
+  <tr><td>{{ s.title }}</td><td><span class="st st-{{ s.state }}">{{ s.state }}</span></td><td>{{ s.reason }}</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% if health %}
+<h2>健康檢查</h2>
+<ul class="plain">{% for k, v in health.items() %}<li>{{ '✅' if v[0] else '⚠️' }} {{ k }}：{{ v[1] }}</li>{% endfor %}</ul>
+{% endif %}
+{% if meds %}
+<h2>今天的用藥</h2>
+<table><thead><tr><th>時間</th><th>藥名</th><th>狀態</th></tr></thead><tbody>
+{% for m in meds %}<tr><td>{{ m.time }}</td><td>{{ m.name }}</td><td>{{ m.state }}</td></tr>{% endfor %}
+</tbody></table>
+{% endif %}
+<h2>最近 20 筆事件</h2>
+{% include "_events_table.html" %}
+{% endblock %}

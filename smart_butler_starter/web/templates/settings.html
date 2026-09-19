@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}設定{% endblock %}
+{% block content %}
+<h1>設定</h1>
+<p class="hint">這裡只改 config/settings.yaml 的常用欄位；金鑰放在 .env，不會顯示在網頁上。存檔前會先檢查，有錯就不存。</p>
+{% if errors %}<div class="errors" role="alert"><p>沒有存檔，請修正：</p><ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+<form method="post" class="stack">
+{% for key, label, is_bool, value in fields %}
+  {% if is_bool %}
+  <label class="check"><input type="checkbox" name="{{ key }}" {{ 'checked' if value }}> {{ label }}</label>
+  {% else %}
+  <label>{{ label }} <input name="{{ key }}" value="{{ value }}"></label>
+  {% endif %}
+{% endfor %}
+  <button class="btn">檢查並存檔</button>
+</form>
+{% endblock %}

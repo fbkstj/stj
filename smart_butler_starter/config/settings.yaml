@@ -1,0 +1,92 @@
+# 智慧管家系統：所有可調參數都在這裡（不放任何金鑰；金鑰放 .env）
+# 改完可以執行 python -m core.config 檢查格式
+
+system:
+  name: 智慧管家          # 顯示在通報與管理介面的名稱
+  timezone: Asia/Taipei   # 時區（台灣沒有夏令時間，程式固定用 UTC+8）
+  data_dir: data          # 資料庫、截圖、待補送訊息存放的資料夾
+  retention_days: 30      # 截圖、對話紀錄保存天數，過期自動刪除
+  keep_events: true       # true：事件紀錄不刪除；false：事件也依保存天數刪除
+  privacy_mode: false     # 隱私模式：true 時不存任何影像與對話內容
+  voice: false            # true：用 Windows 內建語音念出提醒（false 只印在畫面上）
+  module_check_sec: 30    # 每幾秒檢查一次各模組是否正常
+  health_interval_sec: 300  # 每幾秒做一次系統健康檢查（攝影機、網路、硬碟）
+  min_free_gb: 2          # 硬碟剩餘空間低於幾 GB 就發「注意」
+  cleanup_time: "03:00"   # 每天幾點清除過期資料
+
+modules:                  # 各模組開關：true 開啟、false 關閉
+  care: true              # L5 長照監護（跌倒、久未活動）
+  chat: true              # L6 AI 對話與家電控制
+  board: true             # L7 留言板
+  camera: true            # L8 智慧監視器（訪客紀錄）
+  meds: true              # L10 用藥提醒
+  daily: true             # L11 每日平安回報
+  sos: true               # L12 一鍵求救
+  routine: true           # L13 作息異常偵測
+
+discord:
+  dry_run: true           # true：不真的送出，只寫到 data/discord_dryrun.log（練習用）
+  channels:               # 頻道用名稱對應，網址放 .env
+    notify: 測試通報      # 通報頻道 → .env 的 DISCORD_WEBHOOK_TEST
+    board: 留言板         # 留言板頻道 → .env 的 DISCORD_WEBHOOK_BOARD
+  board_channel_id: ""    # 留言板頻道 ID（要讀取 Discord 留言才需要，需搭配 Bot）
+  min_level: info         # 最低通報等級：info、warn、urgent
+  skip_kinds: [activity, chat, sos_request, meds_confirm, safe_confirm]   # 這些事件只存紀錄，不送 Discord
+  urgent_repeat_min: 5    # 緊急通報沒人按「已處理」，每幾分鐘重送
+  urgent_repeat_max: 6    # 最多送幾次（含第一次）
+  timeout_sec: 5          # 送出逾時秒數
+
+care:
+  source: demo/care_demo.mp4   # 影像來源：影片路徑，或攝影機編號（例如 0，需經同意）
+  loop: false             # 影片播完是否重播
+  fall_sec: 3             # 橫躺持續幾秒才算跌倒
+  inactive_min: 60        # 有人但幾分鐘幾乎沒移動，發「注意」
+  move_px: 25             # 移動超過幾個像素才算「有動」
+  activity_every_min: 5   # 有活動時，每幾分鐘記錄一筆活動（給作息分析用）
+
+camera:
+  source: demo/door_demo.mp4   # 門口影像來源
+  loop: false
+  merge_gap_sec: 3        # 人消失不超過幾秒，仍算同一次來訪
+  min_visit_sec: 1        # 來訪少於幾秒不記錄（避免雜訊）
+  night_start: "23:00"    # 深夜時段開始（這段時間有人來改發「注意」）
+  night_end: "05:00"      # 深夜時段結束
+
+chat:
+  ai_model: claude-opus-5   # AI 模型名稱，金鑰放 .env 的 AI_API_KEY；沒有金鑰也能控制家電
+  confirm_words: [確定, 對, 好, 是, 要]   # 危險設備二次確認時，說這些字才執行
+  devices:
+    - {name: 客廳燈, room: 客廳, type: light, aliases: [客廳的燈, 客廳電燈, 大燈], dangerous: false}
+    - {name: 臥室燈, room: 臥室, type: light, aliases: [房間燈, 房間的燈, 臥房燈], dangerous: false}
+    - {name: 電風扇, room: 客廳, type: fan, aliases: [風扇], dangerous: false}
+    - {name: 冷氣, room: 客廳, type: aircon, aliases: [冷氣機, 空調], dangerous: false}
+    - {name: 電視, room: 客廳, type: tv, aliases: [電視機], dangerous: false}
+    - {name: 電暖器, room: 臥室, type: heater, aliases: [暖氣, 電暖爐], dangerous: true}
+    - {name: 電熱水壺, room: 廚房, type: kettle, aliases: [熱水壺, 煮水壺], dangerous: true}
+
+meds:
+  timeout_min: 30         # 提醒後幾分鐘沒確認，發「注意」
+  test_mode: false        # 測試用：啟動 30 秒後多一次「測試用藥」提醒，逾時改為 1 分鐘
+  schedule:
+    - {time: "08:00", name: 血壓藥, say: 阿嬤，早上八點了，記得吃血壓藥喔}
+    - {time: "12:30", name: 胃藥, say: 吃飯後記得吃胃藥}
+    - {time: "20:00", name: 血壓藥, say: 晚上八點了，記得吃血壓藥}
+
+daily:
+  time: "20:00"           # 每天幾點送出平安回報
+
+sos:
+  key: F9                 # 在主程式視窗按這個鍵等於按下求救（模擬實體按鈕）
+  keywords: [救命, 跌倒了, 不舒服, 救我]   # 對管家說這些話也會求救
+  cooldown_sec: 10        # 幾秒內重複觸發只算一次
+
+routine:
+  days: 7                 # 用過去幾天學習作息；資料不足時只記錄、不判斷
+  wake_tolerance_min: 90  # 超過「平常第一次活動時間＋幾分鐘」仍無活動，發「注意」
+  low_ratio: 0.3          # 某時段活動量低於平常的幾成，發「注意」
+  blocks: ["08-12", "12-17", "17-21"]   # 檢查活動量的時段（幾點到幾點）
+  activity_kinds: [activity, device, chat, meds_taken, board]   # 算作「有活動」的事件
+
+web:
+  host: 127.0.0.1         # 只允許本機連線，不可改成 0.0.0.0
+  port: 8765              # 管理介面網址 http://127.0.0.1:8765

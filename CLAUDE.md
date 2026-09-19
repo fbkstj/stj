@@ -6,7 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 楊梅高中實習處主任簡樹桐的教學網站。純靜態 HTML，沒有建置流程，每個 `.html` 各自獨立（CSS/JS 大多內嵌）。
 
-- 正式站：https://fbkstj.github.io/www/ （GitHub Pages，repo `fbkstj/www`，分支 `main`）
+- 正式站：https://fbkstj.github.io/stj/ （GitHub Pages，repo `fbkstj/stj`，分支 `main`；本機 remote `origin`）。2026-09-19 從 www 整站複製過來。
+- 舊站：https://fbkstj.github.io/www/ （repo `fbkstj/www`，本機 remote `www`、追蹤分支 `www-main`）。使用者要把它縮減成只剩少數公開連結；要改舊站時在 `www-main` 上 commit 再 `git push www www-main:main`，不要把 main 推到 www。
+  - 2026-09-19 已從 www 下架：重補修（入口頁、自學系統、9 支影片）、首頁「教學影片」選單與 KiCad／ESP32 影片卡片、「專題製作」選單＋8 張卡片＋166 個專題檔案（含 `_src/`、`tools/airtouch_sim/`）。AMB82 兩份、筆電攝影機 1 份研習講義仍保留。下一步：使用者要再決定 www 只留哪幾個連結（尚未提供清單）。
+  - `www-main` 上的修改是用暫存 index（`GIT_INDEX_FILE`＋`read-tree`／`update-index`／`commit-tree`）做的，不會動到 main 的工作目錄；這樣做可以避免把 www 分支整個 checkout 出來。
 - 備用站：https://stjwww.netlify.app/
 - 本機測試：`python serve.py` → http://127.0.0.1:18456/ （Python 3.14 全域安裝於 `C:/Python314`，需 PyMuPDF）。`.claude/launch.json` 已設定好，在 Claude Code 用 `preview_start` 名稱 `stjweb` 即可啟動。
 
@@ -40,6 +43,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 直接執行 `git push` 可能卡住：Git Credential Manager 的登入視窗在背景跳不出來（詳見 `GIT_PUSH_NOTES.md`）。使用者要求推送時，改用 `GCM_INTERACTIVE=never GIT_TERMINAL_PROMPT=0 timeout 90 git push origin main`，已存好的憑證可以直接用（2026-09-16 驗證成功），失敗也不會卡住。失敗時再請使用者雙擊 `一鍵推送到GitHub.bat` 或 `deploy.bat`。不要用 `--force`。
 - 這兩個 bat 都會 `git add .` 並 `git push --force`。commit 之前先看 `git status`，確認沒有夾帶機密或不該上傳的檔案。
 
+## 智慧管家系統開發手冊（2026-09-19）
+
+- `smart_butler_project_guide.html`（網址 https://fbkstj.github.io/stj/#page/smart_butler_project_guide ）：**直接編輯這個檔案**，沒有範本或產生腳本；版面樣式沿用 `ai_guardian_project_guide.html`。已連到首頁「專題製作」選單與首頁卡片，並登記在 `遠端網址備忘.txt`。
+- 內容：00 使用方式（含「使用 Antigravity」注意要點與開頭段落）、01～05 概要／架構圖／規格 F1～F20／環境／16 週、06 關卡 L0～L15、延伸關卡 L16～L19（地震颱風平安確認、防詐提醒、醫療資訊卡與交班、毫米波雷達）、07 共通提示語（★ Aina 整合版提示語＋逐段說明表）、08 測試 T1～T20、09 隱私倫理、10 常見問題、11 延伸挑戰、12 報告評分、教師備註。
+- 情境動畫：`<figure class="sim">` 內的 SVG，元素用 `data-on="2"`／`"2-4"`／`"1,4-5"` 指定第幾步顯示，`data-shake` 指定第幾步搖晃；步驟文字寫在 `<ol class="sim-steps">`，播放器（播放／重播／分段按鈕）由頁尾 script 自動產生。新增動畫照這個格式寫即可。
+- 檢核點用 `localStorage` 鍵 `smart-butler-guide-checks` 記錄。
+- 這份手冊來自使用者「Aina」專題（長照監護＋Discord、AI 對話＋家電、留言板＋Discord、智慧監視器，Windows 平台）；老師接著可能要延伸更多功能或製作程式包。
+
 ## 注意事項
 
 - **機密檔**：`client_secrets.json`、`yt_token.json` 是 YouTube API 憑證，已列在 `.gitignore`，不可 commit，也不可寫進網頁。**打包 zip 時也要排除**：`.gitignore` 管不到 zip 裡面的檔案，2026-09 曾有兩個影片技能包夾帶這兩個檔案被公開，之後已重新打包並改附 `README_憑證請自行建立.txt`。
@@ -59,5 +70,5 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 筆電＋USB 攝影機版（兩天 12 單元，AMB82 課程的改寫）：`laptop_cam_course_guide.html`（**公開頁，不加密**；網站根目錄放講義與 `laptop_cam_starter_pack.zip`；程式資料夾 `laptop_cam_starter/` 在 `_private/`，改完程式要重新打包 zip 再複製到根目錄）。講義的情境動畫播放器（13 個情境、`#sim=d2_03@6` 可直接跳到某秒）原始碼在講義最後的 `<script>`。程式包驗收：`python tools/make_demo_media.py` 後 `python tests/run_all_tests.py` 應為 OK 13（約 1～3 分鐘；`--with-train` 另測訓練，練習資料集 15 輪約 5 分鐘、mAP50 約 0.97）。所有單元都能 `--source demo/*.mp4` 取代攝影機，時間用影片時間所以結果可重現；**這台電腦有鏡頭，測試一律用示範影片，不要跑 `--source 0` 或 `tools/list_cameras.py`**。重點：QR 不可鏡像；MediaPipe 先判斷再鏡像；MQTT 預設連 `tools/mini_broker.py`（127.0.0.1），同一個 client id 重複連線會互踢（`mqtt_check.py` 已改成隨機 id，AMB82 第 2 天包也同步修正）；腳本文字不可用 cp950 印不出的字（`・`、`✗` 曾讓 `--help` 當掉）。模型（YOLO11n、YuNet、SFace、pose）與示範影片不進 zip，由 `tools/download_models.py`、`tools/make_demo_media.py` 產生。
 - `ai_vision_course_guide.html` 的專題庫（11 題，第 09 題是 AI 守望）與下載包講義單元六內容要一致。
 - 新增頁面時，要一起更新 `index.html` 的導覽連結和 `遠端網址備忘.txt`。
-- 專案之前放在 `antigravity\stjweb`，舊文件裡如果還看到這個路徑，現在的位置是 Google 雲端硬碟的 `我的雲端硬碟\claude\stjweb`。磁碟代號會變（目前是 `H:`，`遠端網址備忘.txt` 裡寫的還是 `J:`），不要把磁碟代號寫死在腳本裡。雲端硬碟上的 `du`、`find` 之類大量掃描很慢，盡量避免。
+- 專案之前放在 `antigravity\stjweb`，舊文件裡如果還看到這個路徑，現在的位置是 Google 雲端硬碟的 `我的雲端硬碟\claude\stjweb`。使用者會在不同電腦上開這個專案，每台電腦的雲端硬碟磁碟代號不一樣（`H:`、`J:` 都出現過），以當次工作目錄為準，不要把磁碟代號寫死在腳本或文件裡。雲端硬碟上的 `du`、`find` 之類大量掃描很慢，盡量避免。
 - 教學影片後製技能包（`teaching_video_pipeline_guide.html`＋`teaching_video_pipeline_master_pack.zip`，公開）：原始碼在 `_private/teaching_video_pipeline_pack/`（`_old/` 是 115-09-18 改版前的舊腳本，不進 zip）。改完要重新打包 zip，並把講義同步複製一份進 zip。驗收：`python tests/test_subtitles.py`（21 項）、`python tests/smoke_test.py`（用 Windows SAPI 中文語音自製假課程影片，跑裁切→辨識→字幕→壓製→上傳試跑，11 項，約 30 秒）。重點：字幕 SRT 已加片頭秒數、ASS 不加且在接片頭前燒；`condition_on_previous_text=False`＋逐字時間；OAuth 手動授權要用同一個 flow 物件（PKCE）。zip 不可含 `client_secrets.json`、`yt_token.json`、`config.json`（`D:\影片編輯` 的工作副本裡有真的憑證）。

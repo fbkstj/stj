@@ -1,0 +1,9 @@
+<table class="events">
+  <thead><tr><th>時間</th><th>等級</th><th>來源</th><th>內容</th></tr></thead>
+  <tbody>
+  {% for e in events %}
+  <tr class="lv-{{ e.level }}"><td>{{ e.time[5:10] }} {{ e.time[11:19] }}</td><td>{{ LEVEL_NAMES[e.level] }}</td>
+    <td>{{ e.source }}</td><td class="msg">{{ e.message }}</td></tr>
+  {% else %}<tr><td colspan="4">還沒有事件</td></tr>{% endfor %}
+  </tbody>
+</table>

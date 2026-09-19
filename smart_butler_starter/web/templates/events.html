@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}事件紀錄{% endblock %}
+{% block content %}
+<h1>事件紀錄</h1>
+<form method="get" class="row">
+  <label>等級 <select name="level"><option value="">全部</option>
+    {% for k, v in LEVEL_NAMES.items() %}<option value="{{ k }}" {{ 'selected' if level == k }}>{{ v }}</option>{% endfor %}</select></label>
+  <label>模組 <select name="source"><option value="">全部</option>
+    {% for s in sources %}<option {{ 'selected' if source == s }}>{{ s }}</option>{% endfor %}</select></label>
+  <button class="btn">篩選</button>
+  <a class="btn btn-light" href="{{ url_for('events_csv', level=level or '', source=source or '') }}">匯出 CSV</a>
+</form>
+{% set events = rows %}
+{% include "_events_table.html" %}
+{% endblock %}
