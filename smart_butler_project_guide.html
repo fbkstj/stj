@@ -146,6 +146,44 @@ td code,th code{white-space:nowrap}
 </style>
 
 <style>
+/* 情境動畫播放器 */
+.sim{margin:14px 0 18px;border:1px solid var(--line);background:var(--sheet)}
+.sim svg{width:100%;height:auto;display:block;background:var(--paper)}
+.sim svg text{font-family:var(--sans);fill:var(--ink);font-size:14px}
+.sim svg text.sm{font-size:12px;fill:var(--muted)}
+.sim svg text.b{font-weight:700}
+.sim svg text.on-hi{fill:var(--sheet);font-weight:700}
+.sim svg .bg{fill:var(--sheet);stroke:var(--line);stroke-width:1.5}
+.sim svg .ln{stroke:var(--ink);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.sim svg .head{fill:var(--sheet);stroke:var(--ink);stroke-width:2.5}
+.sim svg .ink{fill:var(--ink)}
+.sim svg .mute{fill:var(--muted)}
+.sim svg .ac{fill:var(--accent)}
+.sim svg .hi{fill:var(--high)}
+.sim svg .dot{fill:var(--accent)}
+.sim svg .s-ac{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.sim svg .s-hi{fill:var(--high-soft);stroke:var(--high);stroke-width:1.5}
+.sim svg .s-mid{fill:var(--mid-soft);stroke:var(--mid);stroke-width:1.5}
+.sim svg .s-lo{fill:var(--low-soft);stroke:var(--low);stroke-width:1.5}
+.sim svg .wave{stroke:var(--accent);stroke-width:2;fill:none}
+.sim svg .quake{stroke:var(--high);stroke-width:2.5;fill:none}
+.sim [data-on]{opacity:0;transition:opacity .45s ease}
+.sim [data-on].show{opacity:1}
+.sim .shaking{animation:shake .18s linear infinite}
+.sim .pulse.show{animation:pulse 1.2s ease-in-out infinite}
+@keyframes shake{0%,100%{transform:translate(0,0)}25%{transform:translate(-4px,1px)}75%{transform:translate(4px,-1px)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.sim [data-on]{transition:none}.sim .shaking,.sim .pulse.show{animation:none}}
+.sim-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.sim-bar button{font:inherit;font-size:14px;border:1px solid var(--ink);background:var(--sheet);color:var(--ink);padding:4px 12px;cursor:pointer;min-height:36px}
+.sim-bar button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sim-bar .dots{display:flex;gap:4px;margin-left:auto}
+.sim-bar .dots button{min-width:36px;padding:4px 0;font-family:var(--mono);font-size:13px}
+.sim-bar .dots button[aria-current="step"]{background:var(--accent);color:var(--sheet);border-color:var(--accent)}
+.sim-cap{margin:0;padding:10px 14px 12px;font-weight:700;min-height:3.2em;max-width:none}
+.sim-steps{margin:0;padding:0 14px 12px 2.2em;font-size:14px;color:var(--muted)}
+.sim-steps li.now{color:var(--ink);font-weight:700}
+@media print{.sim-bar,.sim-cap{display:none}.sim [data-on]{opacity:1}}
 .check label{cursor:pointer}
 .box ul{margin-bottom:0}
 .cols .box{margin:0}
@@ -185,7 +223,14 @@ td code,th code{white-space:nowrap}
     <span class="grp">穩定與交付</span>
     <a class="sub" href="#l14"><span class="lv">L14</span>系統穩定</a>
     <a class="sub" href="#l15"><span class="lv">L15</span>整合驗收</a>
+    <span class="grp">延伸關卡</span>
+    <a class="sub" href="#ext"><span class="lv">＋</span>延伸關卡總覽</a>
+    <a class="sub" href="#l16"><span class="lv">L16</span>地震颱風平安確認</a>
+    <a class="sub" href="#l17"><span class="lv">L17</span>防詐提醒</a>
+    <a class="sub" href="#l18"><span class="lv">L18</span>醫療資訊卡與交班</a>
+    <a class="sub" href="#l19"><span class="lv">L19</span>毫米波雷達</a>
     <a href="#prompts"><span class="lv">07</span>共通提示語</a>
+    <a class="sub" href="#p-aina"><span class="lv">★</span>Aina 整合版提示語</a>
     <a href="#test"><span class="lv">08</span>測試與驗收表</a>
     <a href="#ethics"><span class="lv">09</span>隱私、安全與倫理</a>
     <a href="#debug"><span class="lv">10</span>常見問題</a>
@@ -203,7 +248,7 @@ td code,th code{white-space:nowrap}
   <div class="meta">
     <div><small>適用</small><span>高中職專題（3～4 人一組）</span></div>
     <div><small>平台</small><span>Windows 10／11＋Python</span></div>
-    <div><small>開發關卡</small><span>L0～L15，共 16 關</span></div>
+    <div><small>開發關卡</small><span>L0～L15＋延伸 L16～L19</span></div>
     <div><small>建議時程</small><span>16 週</span></div>
     <div><small>AI 助手</small><span>Claude Code</span></div>
   </div>
@@ -228,7 +273,7 @@ td code,th code{white-space:nowrap}
       <li><b>它說「完成」不算數，你測過才算。</b>每一關都要求它附上實際執行結果；你也要親手照檢核點再測一次。</li>
     </ul>
   </div>
-  <div class="challenge"><b>已經有 Aina 系統的組別：</b>請先用 <a href="#p-inventory">07 共通提示語的「盤點既有專案」</a>，讓 Claude Code 列出現有程式哪些可以沿用，再從 L0 開始把它們整理進新的架構。</div>
+  <div class="challenge"><b>已經有 Aina 系統的組別：</b>可以用 <a href="#p-aina">07 的「整合版提示語」</a>一次規劃整個升級（附逐段說明）；想一步一步學的，就先用<a href="#p-inventory">「盤點既有專案」</a>，再從 L0 開始把現有程式整理進新的架構。</div>
 </section>
 
 <section id="overview" class="page">
@@ -252,6 +297,7 @@ td code,th code{white-space:nowrap}
       <tr><td>四大模組</td><td>長照監護、AI 對話與家電控制、留言板、智慧監視器、本機管理介面</td><td>L5～L9</td></tr>
       <tr><td>照護加值</td><td>用藥提醒、每日平安回報、一鍵求救、作息異常偵測</td><td>L10～L13</td></tr>
       <tr><td>穩定與交付</td><td>自動啟動、健康檢查、斷網備援、清除舊資料、整合驗收</td><td>L14～L15</td></tr>
+      <tr><td>延伸關卡</td><td>地震颱風平安確認、防詐提醒、緊急醫療資訊卡與交班紀錄、毫米波雷達（選做）</td><td>L16～L19</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -328,6 +374,10 @@ td code,th code{white-space:nowrap}
       <tr><td>F14</td><td>作息異常偵測</td><td>依過去 7 天學習作息，明顯偏離時發「注意」通報</td><td>L13</td></tr>
       <tr><td>F15</td><td>系統穩定</td><td>開機自動啟動、健康檢查、斷網補送、舊資料自動刪除</td><td>L14</td></tr>
       <tr><td>F16</td><td>隱私模式</td><td>開啟後不再儲存任何影像與錄音</td><td>L8・L9</td></tr>
+      <tr><td>F17</td><td>地震颱風平安確認</td><td>設定地區震度達門檻才詢問；逾時未回應升級為緊急</td><td>L16</td></tr>
+      <tr><td>F18</td><td>防詐提醒</td><td>高風險詞或兩個可疑詞才提醒；通知只含關鍵字</td><td>L17</td></tr>
+      <tr><td>F19</td><td>醫療資訊卡與交班</td><td>可列印 A6 資訊卡；交班通知不含醫療數值</td><td>L18</td></tr>
+      <tr><td>F20</td><td>毫米波雷達跌倒偵測</td><td>倒地持續 10 秒發緊急通報，不含任何影像</td><td>L19</td></tr>
     </tbody>
   </table></div>
   <h3>通報分級</h3>
@@ -349,7 +399,7 @@ td code,th code{white-space:nowrap}
     <tbody>
       <tr><td>Python 3.11 以上</td><td>安裝時勾選「Add python.exe to PATH」</td></tr>
       <tr><td>Git</td><td>每一關做完都要 commit，出錯才能退回</td></tr>
-      <tr><td>VS Code</td><td>看程式、開終端機</td></tr>
+      <tr><td>VS Code（選用）</td><td>方便看程式與改設定檔；不熟悉也沒關係，Claude Code 會回報改了哪些檔案，也可以請它解說</td></tr>
       <tr><td>Claude Code</td><td>在專案資料夾開啟，貼上每一關的提示語</td></tr>
       <tr><td>Discord</td><td>建立一個<b>練習用</b>伺服器，開兩個頻道：<code>#測試通報</code>、<code>#留言板</code></td></tr>
     </tbody>
@@ -388,6 +438,7 @@ td code,th code{white-space:nowrap}
       <tr><td>14</td><td>L14 系統穩定</td><td>重開機後自動運作</td></tr>
       <tr><td>15</td><td>L15 整合驗收、實際環境測試</td><td>驗收表全部通過</td></tr>
       <tr><td>16</td><td>書面報告、成果發表</td><td>報告與展示影片完成</td></tr>
+      <tr><td>選做</td><td>延伸關卡 L16～L19（進度超前的組別，可與第 12～15 週並行）</td><td>各關檢核點通過</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -831,9 +882,497 @@ td code,th code{white-space:nowrap}
   </ul>
 </section>
 
+<section id="ext" class="page">
+  <h2><span class="tag">06+</span>延伸關卡（L16～L19）</h2>
+  <p>完成 L15 之後，有餘力的組別可以選做下面四關。它們都接在既有的平台上：新功能一樣只要<b>發出事件</b>，存檔、通報、顯示都交給 L2、L3、L9，這就是一開始把平台做好的好處。每一關都附有<b>情境動畫</b>，按「播放」或點數字，一步一步看功能怎麼運作。</p>
+  <div class="tbl" tabindex="0"><table>
+    <thead><tr><th>關卡</th><th>功能</th><th>難度</th><th>需要的器材</th></tr></thead>
+    <tbody>
+      <tr><td>L16</td><td>地震、颱風平安確認</td><td><span class="lvl m">中</span></td><td>不需要（使用中央氣象署開放資料）</td></tr>
+      <tr><td>L17</td><td>防詐提醒</td><td><span class="lvl l">低～中</span></td><td>不需要（接在 L6 對話上）</td></tr>
+      <tr><td>L18</td><td>緊急醫療資訊卡＋照顧交班紀錄</td><td><span class="lvl l">低</span></td><td>不需要（管理介面新增頁面）</td></tr>
+      <tr><td>L19</td><td>毫米波雷達偵測跌倒（進階）</td><td><span class="lvl h">高</span></td><td>60GHz 毫米波跌倒偵測模組</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="l16" class="page">
+  <h2><span class="tag lv">L16</span>地震、颱風平安確認</h2>
+  <dl class="goal"><dt>目標</dt><dd>地震過後主動詢問長輩是否平安；颱風、豪雨特報時提醒準備；沒有回應就通知家人。</dd><dt>時間</dt><dd>約 1 週</dd></dl>
+  <figure class="sim">
+    <svg viewBox="0 0 640 290" role="img" aria-labelledby="s16t s16d">
+      <title id="s16t">地震後平安確認情境動畫</title>
+      <desc id="s16d">地震發生後，中央氣象署發布地震報告；管家詢問阿嬤是否平安，阿嬤回答平安時通知家人；三分鐘沒有回應則發出緊急通報。</desc>
+      <line class="ln" x1="10" y1="250" x2="630" y2="250"/>
+      <g data-shake="2">
+        <polygon class="bg" points="20,110 170,42 320,110"/>
+        <rect class="bg" x="40" y="110" width="260" height="140"/>
+        <circle class="head" cx="110" cy="176" r="11"/>
+        <path class="ln" d="M110,187 V219 M110,219 L101,248 M110,219 L119,248 M110,196 L98,211 M110,196 L122,211"/>
+        <rect class="bg" x="205" y="212" width="70" height="38"/>
+        <rect class="s-ac" x="222" y="184" width="36" height="28" rx="4"/>
+        <text class="sm" x="240" y="203" text-anchor="middle">管家</text>
+      </g>
+      <text class="sm" x="110" y="270" text-anchor="middle">阿嬤</text>
+      <g data-on="2" class="pulse">
+        <path class="quake" d="M40,262 l12,-8 12,8 12,-8 12,8 12,-8 12,8 12,-8 12,8 12,-8 12,8 12,-8 12,8 12,-8 12,8 12,-8 12,8 12,-8 12,8 12,-8 12,8"/>
+        <text x="170" y="96" text-anchor="middle" class="b" style="fill:var(--high);font-size:22px">地震！</text>
+      </g>
+      <g data-on="3-6">
+        <rect class="s-ac" x="360" y="18" width="262" height="60" rx="10"/>
+        <text class="b" x="491" y="42" text-anchor="middle">中央氣象署　地震報告</text>
+        <text class="sm" x="491" y="64" text-anchor="middle">桃園市　震度 4 級（超過門檻 3 級）</text>
+        <path class="wave" stroke-dasharray="6 5" d="M360,64 C300,80 280,130 258,180"/>
+      </g>
+      <rect class="bg" x="468" y="98" width="154" height="182" rx="14"/>
+      <text class="sm" x="545" y="120" text-anchor="middle">家人手機・Discord</text>
+      <g data-on="4-6">
+        <rect class="s-ac" x="186" y="118" width="178" height="54" rx="8"/>
+        <text x="275" y="140" text-anchor="middle">剛剛有地震，</text>
+        <text x="275" y="161" text-anchor="middle">你平安嗎？</text>
+      </g>
+      <g data-on="5">
+        <rect class="s-lo" x="46" y="126" width="110" height="34" rx="8"/>
+        <text class="b" x="101" y="148" text-anchor="middle">我平安！</text>
+        <rect class="s-lo" x="480" y="134" width="130" height="70" rx="6"/>
+        <text class="b" x="545" y="156" text-anchor="middle" style="fill:var(--low)">資訊</text>
+        <text x="545" y="176" text-anchor="middle">阿嬤回報平安</text>
+        <text class="sm" x="545" y="195" text-anchor="middle">14:05</text>
+      </g>
+      <g data-on="6">
+        <text class="sm" x="110" y="146" text-anchor="middle">（沒有回應）</text>
+        <rect class="s-hi" x="480" y="134" width="130" height="112" rx="6"/>
+        <text class="b" x="545" y="156" text-anchor="middle" style="fill:var(--high)">緊急 @everyone</text>
+        <text x="545" y="180" text-anchor="middle">地震後 3 分鐘</text>
+        <text x="545" y="200" text-anchor="middle">沒有回應</text>
+        <text x="545" y="222" text-anchor="middle">請立即聯絡阿嬤</text>
+      </g>
+    </svg>
+    <ol class="sim-steps">
+      <li>平常：阿嬤在家，管家系統在客廳待命。</li>
+      <li>發生地震，房子搖晃。這時要先靠手機的國家級警報避難，管家不負責預警。</li>
+      <li>地震後幾分鐘，中央氣象署發布地震報告：桃園市震度 4 級，超過設定的門檻 3 級。</li>
+      <li>管家用語音詢問：「剛剛有地震，你平安嗎？平安請說『我平安』或按按鈕。」</li>
+      <li>阿嬤回答「我平安」，家人的 Discord 收到「資訊」通知，安心了。</li>
+      <li>如果 3 分鐘都沒有回應，管家改發「緊急」通報，@所有人請家人立刻聯絡。</li>
+    </ol>
+  </figure>
+  <h3>重點觀念</h3>
+  <ul>
+    <li><b>這是「震後平安確認」，不是地震預警。</b>氣象署的地震報告在地震後幾分鐘才發布，來不及預警；預警請依靠手機的國家級警報。</li>
+    <li><b>開放資料要申請授權碼</b>：到中央氣象署開放資料平臺註冊，取得授權碼，放在 <code>.env</code>。</li>
+    <li><b>只關心自己的地區</b>：全台灣每天都有小地震，只在「設定地區的震度達到門檻」時才詢問，才不會一直打擾長輩。</li>
+    <li><b>颱風、豪雨</b>：讀取天氣特報，設定地區有颱風警報或豪雨特報時，以「資訊」提醒準備手電筒、藥品、飲水。</li>
+  </ul>
+  <h3>提示語</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>先讀 PROGRESS.md 與 docs/專案規則.md，並遵守規則。本關是 L16：地震、颱風平安確認（modules/disaster/）。
+
+背景：使用中央氣象署開放資料平臺，授權碼從 .env 的 CWA_API_KEY 讀取。這是「震後平安確認」，不是地震預警。
+
+請完成：
+1. 先查閱中央氣象署開放資料平臺的文件，找出「地震報告」與「天氣特報」的資料集編號與欄位，列給我確認後再寫程式；不要憑記憶猜資料集編號
+2. 每 N 分鐘（設定，預設 2）讀取最新地震報告；同一筆報告只處理一次
+3. settings.yaml 設定居住地區（例如桃園市）與震度門檻（預設 3）；該地區震度達到門檻時：
+   - 發出 info 事件，並用語音詢問：「剛剛有地震，你平安嗎？平安請說『我平安』或按按鈕。」
+   - 確認方式：管理介面按鈕、對 L6 說「我平安」、或按求救鍵以外的指定按鍵
+   - 確認後發 info「阿嬤回報平安」；超過 M 分鐘（預設 3）沒確認，發 urgent 事件
+4. 天氣特報：設定地區有颱風警報、豪雨特報時發 info，並提醒準備事項；同一則特報只提醒一次
+5. demo/ 準備幾份範例 JSON（有門檻以上的地震、門檻以下的地震、其他縣市的地震、颱風警報），測試一律使用範例檔
+6. tests/test_disaster.py：門檻以上才詢問、同一筆不重複、逾時會升級為緊急
+
+真正呼叫氣象署 API 前先問我。完成後回報測試輸出；更新 PROGRESS.md，然後停下來。</code></pre></div>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c-l16-1"><label for="c-l16-1">用範例檔測試：只有「設定地區、震度達門檻」的地震會詢問平安</label></li>
+    <li><input type="checkbox" id="c-l16-2"><label for="c-l16-2">不確認平安（縮短時間測試），測試頻道收到緊急通報</label></li>
+    <li><input type="checkbox" id="c-l16-3"><label for="c-l16-3">能向別人說明：為什麼這個功能不是「地震預警」</label></li>
+  </ul>
+</section>
+
+<section id="l17" class="page">
+  <h2><span class="tag lv">L17</span>防詐提醒</h2>
+  <dl class="goal"><dt>目標</dt><dd>長輩和管家對話時，若出現詐騙常見說法，立刻提醒並建議撥 165，同時通知家人。</dd><dt>時間</dt><dd>約 3～4 節</dd></dl>
+  <figure class="sim">
+    <svg viewBox="0 0 640 290" role="img" aria-labelledby="s17t s17d">
+      <title id="s17t">防詐提醒情境動畫</title>
+      <desc id="s17d">阿嬤接到自稱銀行的電話，告訴管家要去 ATM 解除分期；管家比對到詐騙關鍵字，提醒撥 165，並通知家人回撥確認。</desc>
+      <line class="ln" x1="10" y1="250" x2="630" y2="250"/>
+      <polygon class="bg" points="20,110 170,42 320,110"/>
+      <rect class="bg" x="40" y="110" width="260" height="140"/>
+      <circle class="head" cx="110" cy="176" r="11"/>
+      <path class="ln" d="M110,187 V219 M110,219 L101,248 M110,219 L119,248 M110,196 L98,211 M110,196 L124,184"/>
+      <text class="sm" x="110" y="270" text-anchor="middle">阿嬤</text>
+      <rect class="bg" x="150" y="222" width="44" height="28"/>
+      <rect class="ink" x="156" y="208" width="32" height="14" rx="4"/>
+      <text class="sm" x="172" y="270" text-anchor="middle">電話</text>
+      <rect class="bg" x="225" y="212" width="60" height="38"/>
+      <rect class="s-ac" x="237" y="184" width="36" height="28" rx="4"/>
+      <text class="sm" x="255" y="203" text-anchor="middle">管家</text>
+      <g data-on="1" class="pulse">
+        <path class="wave" d="M196,206 q8,-8 0,-16 M204,212 q14,-14 0,-28"/>
+        <text class="b" x="230" y="160" text-anchor="middle">鈴鈴鈴…</text>
+      </g>
+      <g data-on="2-3">
+        <rect class="s-mid" x="30" y="116" width="262" height="54" rx="8"/>
+        <text x="161" y="138" text-anchor="middle">銀行說我帳戶被盜用，</text>
+        <text x="161" y="159" text-anchor="middle">要我去 ATM 解除分期…</text>
+      </g>
+      <g data-on="3-4">
+        <text class="sm" x="330" y="146">比對到詐騙關鍵字</text>
+        <rect class="s-hi" x="330" y="154" width="62" height="28" rx="14"/>
+        <text class="b" x="361" y="173" text-anchor="middle" style="fill:var(--high)">ATM</text>
+        <rect class="s-hi" x="330" y="188" width="96" height="28" rx="14"/>
+        <text class="b" x="378" y="207" text-anchor="middle" style="fill:var(--high)">解除分期</text>
+      </g>
+      <g data-on="4">
+        <rect class="s-ac" x="30" y="116" width="262" height="54" rx="8"/>
+        <text x="161" y="138" text-anchor="middle">這很像詐騙！先不要去 ATM，</text>
+        <text x="161" y="159" text-anchor="middle">可以撥 165 反詐騙專線問問。</text>
+      </g>
+      <rect class="bg" x="468" y="98" width="154" height="182" rx="14"/>
+      <text class="sm" x="545" y="120" text-anchor="middle">家人手機・Discord</text>
+      <g data-on="5-6">
+        <rect class="s-mid" x="480" y="134" width="130" height="92" rx="6"/>
+        <text class="b" x="545" y="156" text-anchor="middle" style="fill:var(--mid)">注意</text>
+        <text x="545" y="178" text-anchor="middle">阿嬤可能接到</text>
+        <text x="545" y="198" text-anchor="middle">詐騙電話</text>
+        <text class="sm" x="545" y="217" text-anchor="middle">關鍵字：ATM、解除分期</text>
+      </g>
+      <g data-on="6">
+        <rect class="s-lo" x="480" y="234" width="130" height="34" rx="6"/>
+        <text class="b" x="545" y="256" text-anchor="middle" style="fill:var(--low)">女兒回撥中…</text>
+      </g>
+    </svg>
+    <ol class="sim-steps">
+      <li>家裡電話響了，阿嬤接起來，對方自稱是銀行。</li>
+      <li>阿嬤跟管家說：「銀行說我的帳戶被盜用，要我去 ATM 解除分期。」</li>
+      <li>管家比對到兩個詐騙常見關鍵字：「ATM」「解除分期」，組合起來風險很高。</li>
+      <li>管家立刻提醒：「這很像詐騙！先不要去 ATM，可以撥 165 反詐騙專線問問。」</li>
+      <li>家人收到「注意」通知。只附上關鍵字，不附完整對話，保護阿嬤的隱私。</li>
+      <li>女兒回撥給阿嬤確認，避免被騙。</li>
+    </ol>
+  </figure>
+  <h3>重點觀念</h3>
+  <ul>
+    <li><b>組合判斷，降低誤報</b>：只說「今天去 ATM 領錢買菜」不應該觸發。要「高風險詞」或「兩個以上的可疑詞同時出現」才提醒。</li>
+    <li><b>它只是提醒，不是判定</b>：系統不能確定是不是詐騙，所以用「很像詐騙，先問問看」的說法，並把判斷交給 165 與家人。</li>
+    <li><b>只聽和管家的對話</b>：管家不偷聽電話內容；只有長輩主動跟管家說的話才會被分析。</li>
+  </ul>
+  <h3>提示語</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>先讀 PROGRESS.md 與 docs/專案規則.md，並遵守規則。本關是 L17：防詐提醒（modules/antifraud/）。
+
+背景：只分析長輩主動對管家（L6）說的話，不錄製、不監聽電話。
+
+請完成：
+1. settings.yaml 加入詐騙關鍵字，分成兩類：
+   - 高風險詞（出現一個就提醒）：解除分期、監管帳戶、公證帳戶、猜猜我是誰、帳戶被凍結 等
+   - 可疑詞（兩個以上同時出現才提醒）：ATM、匯款、轉帳、保證金、中獎、點數卡、加 LINE、檢察官、警察 等
+   長輩的口語、台語常見說法也要考慮（例如「提款機」）
+2. 訂閱 L6 的對話事件，符合條件時：
+   - 語音提醒：「這很像詐騙！先不要去 ATM 或匯款，可以撥 165 反詐騙專線問問。」
+   - 發 warn 事件給家人，內容只有時間與比對到的關鍵字，不附完整對話
+   - 同一段對話 10 分鐘內只提醒一次
+3. tests/test_antifraud.py：至少 30 句測試，包含詐騙說法、正常生活用語（例如「去 ATM 領錢買菜」），列出誤報與漏報數量
+
+完成後回報測試結果與誤報、漏報的句子；更新 PROGRESS.md，然後停下來。</code></pre></div>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c-l17-1"><label for="c-l17-1">「去 ATM 領錢買菜」不會觸發；「要去 ATM 解除分期」會觸發</label></li>
+    <li><input type="checkbox" id="c-l17-2"><label for="c-l17-2">家人收到的通知只有關鍵字，沒有完整對話</label></li>
+    <li><input type="checkbox" id="c-l17-3"><label for="c-l17-3">到 165 全民防騙網查最新詐騙手法，補充關鍵字</label></li>
+  </ul>
+</section>
+
+<section id="l18" class="page">
+  <h2><span class="tag lv">L18</span>緊急醫療資訊卡＋照顧交班紀錄</h2>
+  <dl class="goal"><dt>目標</dt><dd>建立一張隨時可以給救護人員看的醫療資訊卡；家人和看護輪流照顧時，用交班紀錄交接重點。</dd><dt>時間</dt><dd>約 1 週</dd></dl>
+  <figure class="sim">
+    <svg viewBox="0 0 640 290" role="img" aria-labelledby="s18t s18d">
+      <title id="s18t">緊急醫療資訊卡與交班紀錄情境動畫</title>
+      <desc id="s18d">冰箱上貼著緊急醫療資訊卡；阿嬤倒下時救護人員看卡片得知病史與過敏；平常看護寫交班紀錄，家人手機同步看到。</desc>
+      <line class="ln" x1="10" y1="250" x2="630" y2="250"/>
+      <polygon class="bg" points="20,110 170,42 320,110"/>
+      <rect class="bg" x="40" y="110" width="260" height="140"/>
+      <rect class="bg" x="52" y="140" width="52" height="110"/>
+      <line class="ln" x1="52" y1="178" x2="104" y2="178"/>
+      <rect class="s-ac" x="60" y="150" width="36" height="22" rx="2"/>
+      <text class="sm" x="78" y="270" text-anchor="middle">冰箱</text>
+      <g data-on="1" class="pulse"><rect x="56" y="146" width="44" height="30" rx="3" fill="none" stroke="var(--high)" stroke-width="2.5"/></g>
+      <g data-on="1,4-5">
+        <circle class="head" cx="150" cy="176" r="11"/>
+        <path class="ln" d="M150,187 V219 M150,219 L141,248 M150,219 L159,248 M150,196 L138,211 M150,196 L162,211"/>
+        <text class="sm" x="150" y="270" text-anchor="middle">阿嬤</text>
+      </g>
+      <g data-on="2-3">
+        <circle class="head" cx="128" cy="236" r="10"/>
+        <path class="ln" d="M138,238 H175 M175,238 L192,232 M175,238 L192,246"/>
+        <text class="sm" x="150" y="270" text-anchor="middle">阿嬤倒下</text>
+        <circle class="head" cx="250" cy="176" r="11"/>
+        <path class="ln" d="M250,187 V219 M250,219 L241,248 M250,219 L259,248 M250,196 L238,211 M250,196 L262,211"/>
+        <rect class="hi" x="245" y="195" width="10" height="10"/>
+        <text class="sm" x="250" y="150" text-anchor="middle">119 救護人員</text>
+      </g>
+      <g data-on="4-5">
+        <circle class="head" cx="245" cy="176" r="11"/>
+        <path class="ln" d="M245,187 V219 M245,219 L236,248 M245,219 L254,248 M245,196 L230,204"/>
+        <rect class="s-lo" x="214" y="196" width="18" height="24" rx="2"/>
+        <text class="sm" x="245" y="150" text-anchor="middle">看護</text>
+      </g>
+      <g data-on="3">
+        <rect class="s-ac" x="340" y="18" width="282" height="172" rx="8"/>
+        <text class="b" x="356" y="44">緊急醫療資訊</text>
+        <text x="356" y="72">病史：高血壓、糖尿病</text>
+        <text x="356" y="96" style="fill:var(--high);font-weight:700">過敏：盤尼西林</text>
+        <text x="356" y="120">用藥：降血壓藥（早、晚）</text>
+        <text x="356" y="144">緊急聯絡人：女兒</text>
+        <text class="sm" x="356" y="172">資料只存在家裡電腦與紙卡</text>
+      </g>
+      <g data-on="4-5">
+        <rect class="s-lo" x="340" y="18" width="282" height="150" rx="8"/>
+        <text class="b" x="356" y="44">交班紀錄　9/20 15:00</text>
+        <text x="356" y="72">午餐：吃了半碗</text>
+        <text x="356" y="96">血壓：135／85</text>
+        <text x="356" y="120">精神：不錯，下午有散步</text>
+        <text class="sm" x="356" y="148">記錄：看護</text>
+      </g>
+      <g data-on="5">
+        <rect class="bg" x="440" y="180" width="182" height="96" rx="12"/>
+        <text class="sm" x="531" y="202" text-anchor="middle">家人手機・Discord</text>
+        <rect class="s-lo" x="452" y="212" width="158" height="52" rx="6"/>
+        <text class="b" x="531" y="234" text-anchor="middle" style="fill:var(--low)">資訊</text>
+        <text x="531" y="254" text-anchor="middle">交班紀錄已更新</text>
+      </g>
+    </svg>
+    <ol class="sim-steps">
+      <li>冰箱上貼著「緊急醫療資訊卡」，管理介面也有同一份資料。</li>
+      <li>阿嬤身體不舒服倒下，119 救護人員到場。</li>
+      <li>救護人員看資訊卡，馬上知道病史、過敏藥物與正在吃的藥，不用等家人趕到。</li>
+      <li>平常的日子：看護在平板寫下交班紀錄——吃了多少、血壓、精神狀況。</li>
+      <li>家人手機同步收到交班紀錄，接手照顧的人不會漏掉重點。</li>
+    </ol>
+  </figure>
+  <h3>重點觀念</h3>
+  <ul>
+    <li><b>紙本最可靠</b>：救護人員不會去操作你的電腦。所以資訊卡要能<b>印出來貼在冰箱</b>，管理介面只是方便更新。</li>
+    <li><b>醫療資料很敏感</b>：只存在本機、只在 127.0.0.1 的管理介面顯示，不上傳雲端；卡片上不要放身分證字號。</li>
+    <li><b>交班紀錄接上既有功能</b>：服藥狀況可以直接從 L10 帶入，每日平安回報（L11）也可以附上當天最後一則交班紀錄。</li>
+  </ul>
+  <h3>提示語</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>先讀 PROGRESS.md 與 docs/專案規則.md，並遵守規則。本關是 L18：緊急醫療資訊卡＋照顧交班紀錄（modules/carelog/ 與 web/）。
+
+背景：醫療資料只存在本機，只在 127.0.0.1 的管理介面顯示，不上傳、不發到 Discord。
+
+請完成：
+1. 緊急醫療資訊（存本機 SQLite）：姓名、年齡、血型（可空）、病史、過敏、目前用藥、常去的醫院、緊急聯絡人稱謂與電話；不可有身分證字號欄位
+2. 管理介面新增「緊急醫療資訊」頁：可編輯；提供「列印」按鈕，印出 A6 大小、字大清楚的卡片，方便貼在冰箱
+3. 用藥欄位可以一鍵帶入 L10 的用藥時間表
+4. 照顧交班紀錄：時間、記錄者稱謂、飲食、服藥（自動帶入 L10 今天的狀況）、血壓（可空）、精神狀況、注意事項
+5. 新增交班紀錄時發 info 事件：Discord 只送「交班紀錄已更新＋注意事項」，不送血壓等醫療數值
+6. L11 每日平安回報附上當天最後一則交班的注意事項
+7. tests/test_carelog.py：新增、修改、列印頁面產生、通報內容不含醫療數值
+
+完成後回報測試輸出，並說明列印卡片的樣子；更新 PROGRESS.md，然後停下來。</code></pre></div>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c-l18-1"><label for="c-l18-1">印出來的卡片，家人不戴眼鏡也看得清楚</label></li>
+    <li><input type="checkbox" id="c-l18-2"><label for="c-l18-2">Discord 收到的交班通知沒有血壓等醫療數值</label></li>
+    <li><input type="checkbox" id="c-l18-3"><label for="c-l18-3">每日平安回報附上了當天的交班注意事項</label></li>
+  </ul>
+</section>
+
+<section id="l19" class="page">
+  <h2><span class="tag lv">L19</span>毫米波雷達偵測跌倒（進階挑戰）</h2>
+  <dl class="goal"><dt>目標</dt><dd>在浴室這類不能裝攝影機的地方，用毫米波雷達偵測倒地與呼吸，需要時發出緊急通報。</dd><dt>時間</dt><dd>約 2～3 週（含器材熟悉）</dd></dl>
+  <figure class="sim">
+    <svg viewBox="0 0 640 290" role="img" aria-labelledby="s19t s19d">
+      <title id="s19t">毫米波雷達偵測跌倒情境動畫</title>
+      <desc id="s19d">浴室天花板的雷達偵測到有人站立與呼吸；阿嬤滑倒後，雷達判斷為倒地，持續十秒且仍有呼吸，發出緊急通報，全程沒有影像。</desc>
+      <rect class="bg" x="30" y="30" width="330" height="220"/>
+      <text class="sm" x="44" y="52">浴室（不裝攝影機）</text>
+      <rect class="s-ac" x="175" y="30" width="40" height="14" rx="3"/>
+      <text class="sm" x="228" y="42">毫米波雷達</text>
+      <rect class="bg" x="50" y="200" width="46" height="50" rx="6"/>
+      <rect class="bg" x="290" y="120" width="54" height="130"/>
+      <g data-on="2-5" class="pulse">
+        <path class="wave" d="M170,52 q25,18 50,0 M160,64 q35,26 70,0 M150,76 q45,34 90,0"/>
+      </g>
+      <g data-on="2">
+        <circle class="dot" cx="200" cy="176" r="3.5"/><circle class="dot" cx="195" cy="185" r="3.5"/><circle class="dot" cx="205" cy="185" r="3.5"/>
+        <circle class="dot" cx="200" cy="194" r="3.5"/><circle class="dot" cx="193" cy="202" r="3.5"/><circle class="dot" cx="207" cy="202" r="3.5"/>
+        <circle class="dot" cx="200" cy="210" r="3.5"/><circle class="dot" cx="200" cy="218" r="3.5"/><circle class="dot" cx="195" cy="226" r="3.5"/>
+        <circle class="dot" cx="205" cy="226" r="3.5"/><circle class="dot" cx="193" cy="236" r="3.5"/><circle class="dot" cx="207" cy="236" r="3.5"/>
+        <circle class="dot" cx="191" cy="245" r="3.5"/><circle class="dot" cx="209" cy="245" r="3.5"/>
+      </g>
+      <g data-on="3-5">
+        <circle class="dot" cx="172" cy="238" r="3.5"/><circle class="dot" cx="180" cy="243" r="3.5"/><circle class="dot" cx="188" cy="238" r="3.5"/>
+        <circle class="dot" cx="196" cy="243" r="3.5"/><circle class="dot" cx="204" cy="238" r="3.5"/><circle class="dot" cx="212" cy="243" r="3.5"/>
+        <circle class="dot" cx="220" cy="238" r="3.5"/><circle class="dot" cx="228" cy="243" r="3.5"/><circle class="dot" cx="236" cy="239" r="3.5"/>
+        <circle class="dot" cx="244" cy="236" r="3.5"/><circle class="dot" cx="178" cy="233" r="3.5"/><circle class="dot" cx="226" cy="233" r="3.5"/>
+      </g>
+      <text class="sm" x="195" y="272" text-anchor="middle">畫面只有雷達點，沒有影像</text>
+      <rect class="bg" x="390" y="30" width="232" height="118" rx="8"/>
+      <text class="b" x="406" y="54">雷達讀值</text>
+      <g data-on="1"><text x="406" y="84">無人</text></g>
+      <g data-on="2"><text x="406" y="84">有人｜站立</text><text x="406" y="108">呼吸 16 次／分</text></g>
+      <g data-on="3-5"><text x="406" y="84" style="fill:var(--high);font-weight:700">有人｜倒地</text><text x="406" y="108">呼吸 18 次／分</text></g>
+      <g data-on="4-5"><text x="406" y="132" style="fill:var(--high);font-weight:700">倒地已持續 10 秒</text></g>
+      <g data-on="5">
+        <rect class="s-hi" x="390" y="162" width="232" height="96" rx="8"/>
+        <text class="b" x="506" y="186" text-anchor="middle" style="fill:var(--high)">緊急 @everyone</text>
+        <text x="506" y="210" text-anchor="middle">浴室偵測到跌倒</text>
+        <text x="506" y="232" text-anchor="middle">已持續 10 秒，呼吸仍在</text>
+      </g>
+    </svg>
+    <ol class="sim-steps">
+      <li>浴室天花板裝了毫米波雷達。它不拍影像，只量測距離與動作。</li>
+      <li>阿嬤走進浴室：雷達偵測到「有人、站立」，連呼吸的起伏都量得到。</li>
+      <li>阿嬤滑倒：雷達看到身體高度突然變低，判斷為「倒地」。</li>
+      <li>倒地持續 10 秒還沒起來，而且還有呼吸，判斷需要協助。</li>
+      <li>家人收到「緊急」通報。全程沒有任何影像，浴室的隱私被保護。</li>
+    </ol>
+  </figure>
+  <h3>重點觀念</h3>
+  <ul>
+    <li><b>毫米波雷達</b>：發射頻率很高的電波，從反射量出人的距離、高度和細微的胸口起伏，所以能判斷姿勢和呼吸，卻拍不出長相。</li>
+    <li><b>先讀模組的通訊協定文件</b>：不同廠牌的資料格式完全不同。一定要先拿到你們那一款模組的規格書，再請 Claude Code 寫解析程式。</li>
+    <li><b>先模擬再接實機</b>：先依規格書做出「假的雷達資料」，把判斷邏輯測好，再接上真正的模組。</li>
+    <li><b>浴室溼氣與安裝位置</b>：模組要防水、裝在天花板或高處；金屬與水氣會影響訊號，要實際測試誤報情況。</li>
+  </ul>
+  <h3>提示語</h3>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code>先讀 PROGRESS.md 與 docs/專案規則.md，並遵守規則。本關是 L19：毫米波雷達跌倒偵測（modules/radar/）。
+
+器材：[模組型號，例如某廠牌 60GHz 跌倒偵測模組]，透過 USB 轉序列埠接到電腦，規格書在 docs/radar_datasheet.pdf。
+
+請依序完成，每一步完成都要停下來回報：
+1. 讀規格書，整理：序列埠設定（鮑率等）、資料封包格式、代表「有人／無人、姿態、跌倒、呼吸、心率」的欄位；看不懂或規格書沒寫的地方列出來問我，不要自行猜測
+2. 寫 modules/radar/protocol.py 解析封包；再寫 demo/fake_radar.py，依規格書產生「無人→站立→倒地→持續倒地」的假封包
+3. 判斷邏輯：倒地持續 N 秒（設定，預設 10）→ urgent 事件「浴室偵測到跌倒」，附呼吸次數；呼吸讀不到時在訊息中特別標示；不附任何影像
+4. 序列埠斷線時發 warn，並自動重連
+5. tests/test_radar.py：用假封包測試解析正確、倒地未滿 N 秒不通報、滿 N 秒通報一次
+6. 接上實體模組前先問我；實測時請我們站立、坐下、慢慢躺下，記錄誤報情況
+
+完成後回報測試輸出；更新 PROGRESS.md，然後停下來。</code></pre></div>
+  <h3>檢核點</h3>
+  <ul class="check">
+    <li><input type="checkbox" id="c-l19-1"><label for="c-l19-1">用假封包測試：倒地滿 10 秒只通報一次</label></li>
+    <li><input type="checkbox" id="c-l19-2"><label for="c-l19-2">接上實機，站立、坐下、躺下的讀值和規格書描述一致</label></li>
+    <li><input type="checkbox" id="c-l19-3"><label for="c-l19-3">記錄 10 次「慢慢坐到地上」有幾次誤報，並調整參數</label></li>
+  </ul>
+  <div class="warn"><p style="margin:0"><strong>安全提醒：</strong>雷達是輔助工具，不能保證每次都偵測到。浴室仍應加裝扶手、防滑墊，並保留一鍵求救（L12）。</p></div>
+</section>
+
 <section id="prompts" class="page">
   <h2><span class="tag">07</span>共通提示語</h2>
   <p>下面這些提示語不屬於特定關卡，隨時都可以用。</p>
+
+  <h3 id="p-aina">整合版提示語：一次規劃整個 Aina 升級（已有 Aina 系統的組別）</h3>
+  <p>如果你們已經有一套在運作的 Aina 系統，可以用這一段<b>整合版提示語</b>，讓 Claude Code 從盤點開始，分 4 個階段把它升級成智慧管家。它和 L0～L15 的差別是：</p>
+  <div class="tbl" tabindex="0"><table>
+    <thead><tr><th></th><th>L0～L15 逐關提示語</th><th>整合版提示語</th></tr></thead>
+    <tbody>
+      <tr><td>適合</td><td>從零開始、想一步一步學會每個觀念</td><td>已經有 Aina 程式，要整理、升級</td></tr>
+      <tr><td>一次給多少</td><td>一關一段，約 15～20 行</td><td>整份計畫一次給，約 90 行</td></tr>
+      <tr><td>停下來的時機</td><td>每一關結束</td><td>每一個階段結束（共 4 次），階段 2 每項也要回報</td></tr>
+      <tr><td>學習效果</td><td>較好，每關都能消化</td><td>較快，但要更認真看每次回報</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prompt"><button class="copy" type="button">複製</button><pre><code># 任務：把 Aina 系統升級為「智慧管家系統」（Windows）
+
+## 目標
+在現有 Aina 系統上建立統一的智慧管家平台（單一主程式、設定中心、本機管理介面），整合 4 個既有模組，並新增長照與系統穩定相關功能。分階段進行，每個階段完成後停下來等我確認。
+
+## 現況（Context）
+- 平台：Windows 10/11，專案路徑：[AINA_專案路徑，例如 D:\Aina]
+- 既有模組：
+  1. 長照監護：偵測異常（跌倒、久未活動），自動通報 Discord
+  2. AI 對話＋智慧控制：語音或文字對話，控制家電
+  3. 留言板：家人留言，並同步 Discord
+  4. 智慧監視器：記錄訪客，可查詢「特定時段有誰來訪」
+- 已知限制或曾失敗的做法：[沒有的話寫「無」]
+
+## 範圍與限制（最重要，全程都要遵守）
+- 只能修改 [AINA_專案路徑] 內的檔案；不可修改 `.env`、虛擬環境、模型檔、既有錄影資料。
+- 沿用現有語言與套件；要新增套件時，先列出名稱與用途，等我同意再安裝。
+- 機密（Discord Token、Webhook、API Key）**只從 `.env` 讀取**，另外提供 `.env.example`；程式與設定檔中不可出現任何金鑰明碼。
+- 相容 Windows：路徑用 `pathlib`，檔案一律 UTF-8，中文路徑要能正常運作。
+- **隱私**：影像、人臉、對話紀錄只存本機，可設定保存天數並自動刪除；提供「隱私模式」可暫停錄影與錄音。
+- **測試**：未經我同意，不可開啟攝影機、麥克風，不可發訊息到正式 Discord 頻道，不可控制真實家電；一律使用示範影片、模擬資料和測試頻道。
+- 只做本文件列出的功能，不額外加帳號系統、雲端部署或其他功能。
+
+## 階段 0：盤點（完成後停下來）
+讀完整個專案，用表格列出每個模組的檔案、進入點、使用的套件、目前的設定方式、已知問題。
+
+## 階段 1：平台整合（完成後停下來）
+1. **單一入口** `main.py`：啟動全部模組，每個模組可以在設定中個別開關；單一模組出錯時自動重啟該模組，不影響其他模組。
+2. **設定中心** `config/settings.yaml`：通報門檻、攝影機來源、家電清單、Discord 頻道對應、AI 模型、模組開關、資料保存天數。
+3. **共用服務**：
+   - 事件匯流排：所有模組發出同一種格式的事件
+   - 統一的 Discord 通報器
+   - SQLite 紀錄檔 `data/aina.db`，可匯出 CSV
+4. **通報分級**：分成資訊、注意、緊急三級。緊急通報會 @所有人，並每 5 分鐘重送一次，直到有人在 Discord 按「已處理」為止。
+5. **本機管理介面**：網頁，只綁定 127.0.0.1，手機版面也要能用。包含：儀表板、設定頁（存檔前檢查格式）、訪客查詢、留言板、事件紀錄。
+
+## 階段 2：新增照護功能（逐項完成，每項都要回報）
+1. **用藥提醒＋確認**：依設定的時間語音提醒；長輩說「吃了」或按確認即完成；30 分鐘沒確認就發「注意」級通報。
+2. **每日平安回報**：每天在設定的時間，送一則摘要到 Discord：活動量、服藥狀況、訪客、異常事件。
+3. **一鍵／語音求救**：偵測到「救命」等關鍵字，或按下實體按鈕（先用鍵盤按鍵模擬），立即發「緊急」通報並附上當下截圖。
+4. **作息異常偵測**：從過去 7 天的紀錄學習平常的起床時間與活動頻率，明顯偏離時發「注意」通報。門檻寫在設定檔裡。
+
+## 階段 3：系統穩定（完成後停下來）
+1. **開機自動啟動**：提供 Windows 工作排程器的安裝與移除腳本（`.ps1`，存成 UTF-8 with BOM）。
+2. **健康檢查**：每 5 分鐘檢查攝影機、網路、硬碟空間、各模組是否還在運作；異常時發通報。
+3. **斷網備援**：Discord 送不出去時先存在本機佇列，網路恢復後依序補送。
+4. **自動清除舊資料**：依保存天數刪除舊的影像、截圖、對話紀錄。
+
+## 之後再做（這次不要實作，只在 README 列為未來規劃）
+行事曆與回診提醒、天氣提醒、情境模式、家人語音留言、陌生人辨識、環境感測器、門窗與夜間離家偵測。
+
+## 驗收標準
+- [ ] 執行 `python main.py --demo`，全部模組能以模擬資料啟動，沒有錯誤
+- [ ] 在設定中關閉任一模組後重新啟動，其他模組照常運作；故意讓一個模組出錯，它會自動重啟
+- [ ] 用示範影片查詢一個時間區間，能正確列出訪客與截圖
+- [ ] 模擬跌倒：Discord 測試頻道收到「緊急」通報；沒按「已處理」會重送
+- [ ] 模擬漏吃藥：30 分鐘後發出「注意」通報（測試時可用設定把時間縮短）
+- [ ] 手動觸發每日平安回報，摘要內容和資料庫中的紀錄一致
+- [ ] 模擬斷網：事件存入佇列，恢復後補送成功
+- [ ] 管理介面只能從本機開啟；開啟隱私模式後，不再存任何影像
+- [ ] 全專案搜尋不到任何 Token 或金鑰明碼
+
+## 行動界線
+- 可以直接做：讀取專案、在範圍內修改程式、用模擬資料執行測試。
+- 必須先停下來問我：刪除檔案、安裝套件、變更資料庫結構、開啟攝影機或麥克風、發訊息到正式 Discord 頻道、控制真實家電、建立排程工作。
+
+## 回報方式
+- 每完成一項就回報：✅ 完成了什麼、改了哪些檔案、測試指令與實際輸出。不要只說「已完成」，要附上執行結果作為依據。
+- 全部完成後，更新 `README.md`（安裝、設定、啟動、疑難排解、未來規劃），並列出全部變更過的檔案清單。</code></pre></div>
+
+  <h3>整合版提示語逐段說明</h3>
+  <p>一段好的提示語，每一段都有它的工作。了解每段在做什麼，之後你們就能自己改寫、加新功能。</p>
+  <div class="tbl" tabindex="0"><table>
+    <thead><tr><th>段落</th><th>在告訴 AI 什麼</th><th>為什麼要這樣寫</th></tr></thead>
+    <tbody>
+      <tr><td>任務標題</td><td>一句話說明要做什麼、在哪個平台</td><td>AI 讀到第一行就知道方向；標明 Windows，它才會注意路徑、編碼等 Windows 特有問題。</td></tr>
+      <tr><td>目標</td><td>最後要得到什麼，以及「分階段、每階段停下來」</td><td>先說結果，AI 才能判斷哪些工作有必要；「停下來等確認」是整份提示語最重要的安全機制。</td></tr>
+      <tr><td>現況</td><td>專案在哪裡、已經有哪些功能、試過什麼失敗了</td><td>AI 不知道你電腦裡有什麼。說清楚現況，它才會「在既有程式上改」，而不是從頭重寫；寫出失敗經驗，避免它重蹈覆轍。<b>方括號要換成你們的實際內容。</b></td></tr>
+      <tr><td>範圍與限制</td><td>能改哪裡、不能碰什麼；金鑰、隱私、測試的規則</td><td>放在前面，是因為 AI 對開頭的內容最重視。這些是「做錯就很難挽回」的事（外洩金鑰、刪掉錄影、真的去開家電），所以寫成硬性規定。</td></tr>
+      <tr><td>階段 0：盤點</td><td>先讀懂整個專案，用表格回報，不要改任何東西</td><td>先確認 AI 看懂的和你們認知的一樣。如果盤點就錯了，後面全部會跟著錯；在這裡修正方向，成本最低。</td></tr>
+      <tr><td>階段 1：平台整合</td><td>主程式、設定中心、事件、通報、管理介面</td><td>先把共用的「地基」打好，之後每個新功能都只要發出事件；地基不穩，後面每加一個功能都要重改。</td></tr>
+      <tr><td>階段 2：照護功能</td><td>4 項新功能，每項都要回報</td><td>一次做 4 項，出錯時很難知道是哪一項造成的，所以要求逐項完成、逐項回報。</td></tr>
+      <tr><td>階段 3：系統穩定</td><td>自動啟動、健康檢查、斷網備援、清除舊資料</td><td>放在最後，因為這些是在「功能都正常」之後，確保系統能長時間運作的保險。</td></tr>
+      <tr><td>之後再做</td><td>明確列出這次<b>不要</b>做的功能</td><td>AI 常會「順手」多做很多功能，讓程式變複雜。寫出來並說只列在 README，範圍就被鎖住了。</td></tr>
+      <tr><td>驗收標準</td><td>9 個可以打勾的測試項目</td><td>「做好」要有明確標準。每一項都是「做某件事 → 應該看到某個結果」，AI 和你們都能用同一套標準檢查。</td></tr>
+      <tr><td>行動界線</td><td>哪些事可以直接做、哪些一定要先問</td><td>讓 AI 在安全的範圍內自己工作，遇到有風險的事（刪檔、裝套件、開攝影機、建排程）就停下來問人。</td></tr>
+      <tr><td>回報方式</td><td>回報要附改了哪些檔案、測試指令和實際輸出</td><td>AI 有時會說「完成了」但其實沒測。要求附上實際執行結果，你們才有依據判斷真假。</td></tr>
+    </tbody>
+  </table></div>
+  <div class="box">
+    <p><b>使用前要換掉的地方</b></p>
+    <ul>
+      <li><code>[AINA_專案路徑…]</code>：換成你們專案的實際資料夾（「現況」與「範圍與限制」各有一處）。</li>
+      <li><code>[沒有的話寫「無」]</code>：寫下曾經失敗的做法，例如「用 face_recognition 在 Windows 裝不起來」。</li>
+      <li>如果還想加入 L16～L19 的延伸功能，把它們加在「階段 2」的最後，或另外開一個「階段 4」。</li>
+    </ul>
+  </div>
 
   <h3 id="p-inventory">盤點既有專案（已有 Aina 系統的組別先用）</h3>
   <div class="prompt"><button class="copy" type="button">複製</button><pre><code>請閱讀目前資料夾的整個專案，但先不要修改任何檔案。
@@ -892,6 +1431,10 @@ td code,th code{white-space:nowrap}
       <tr><td>T14</td><td>拔網路線後觸發事件，再接回</td><td>恢復後補送</td><td></td></tr>
       <tr><td>T15</td><td>重新開機</td><td>系統自動啟動</td><td></td></tr>
       <tr><td>T16</td><td>全專案搜尋金鑰</td><td>找不到任何明碼</td><td></td></tr>
+      <tr><td>T17</td><td>地震範例檔（門檻上下、其他縣市）</td><td>只有設定地區達門檻才詢問平安</td><td></td></tr>
+      <tr><td>T18</td><td>30 句防詐測試句</td><td>記錄誤報與漏報數量</td><td></td></tr>
+      <tr><td>T19</td><td>新增交班紀錄</td><td>Discord 通知不含醫療數值</td><td></td></tr>
+      <tr><td>T20</td><td>雷達假封包：倒地 10 秒</td><td>只通報一次，不含影像</td><td></td></tr>
     </tbody>
   </table></div>
   <h3>實際環境測試紀錄（連續 3 天）</h3>
@@ -935,7 +1478,7 @@ td code,th code{white-space:nowrap}
 
 <section id="more" class="page">
   <h2><span class="tag">11</span>延伸挑戰</h2>
-  <p>完成 L15 之後，可以依興趣選做：</p>
+  <p>除了 <a href="#ext">L16～L19 延伸關卡</a>，還可以依興趣挑戰：</p>
   <div class="cols">
     <div class="box"><b>生活助理</b><ul><li>串 Google 日曆：回診、繳費、生日提醒</li><li>早上播報天氣，寒流或空品差時提醒</li><li>情境模式：「我要睡了」→ 關燈、開夜燈、啟動夜間監護</li></ul></div>
     <div class="box"><b>居家安全</b><ul><li>陌生人久留門口才通報（需家人同意建立辨識資料）</li><li>接溫濕度、煙霧、瓦斯、漏水感測器</li><li>半夜開門或長時間離家提醒</li></ul></div>
@@ -1008,6 +1551,51 @@ td code,th code{white-space:nowrap}
   });
   var btn = document.getElementById("printBtn");
   if (btn) btn.addEventListener("click", function(){ window.print(); });
+
+  // 情境動畫：data-on="2"、"2-4" 或 "2,5" 表示在第幾步顯示；data-shake 表示第幾步搖晃
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function inSteps(spec, k){
+    return spec.split(",").some(function(part){
+      var r = part.split("-").map(Number);
+      return r.length === 2 ? (k >= r[0] && k <= r[1]) : k === r[0];
+    });
+  }
+  document.querySelectorAll(".sim").forEach(function(sim){
+    var svg = sim.querySelector("svg");
+    var items = [].slice.call(sim.querySelectorAll(".sim-steps li"));
+    var n = items.length, cur = 1, timer = null;
+    var cap = document.createElement("p"); cap.className = "sim-cap"; cap.setAttribute("aria-live", "polite");
+    var bar = document.createElement("div"); bar.className = "sim-bar";
+    var playBtn = document.createElement("button"); playBtn.type = "button";
+    var againBtn = document.createElement("button"); againBtn.type = "button"; againBtn.textContent = "↺ 重播";
+    var dots = document.createElement("div"); dots.className = "dots"; dots.setAttribute("role", "group"); dots.setAttribute("aria-label", "分段");
+    items.forEach(function(li, j){
+      var d = document.createElement("button"); d.type = "button"; d.textContent = j + 1;
+      d.setAttribute("aria-label", "第 " + (j + 1) + " 步");
+      d.addEventListener("click", function(){ stop(); show(j + 1); });
+      dots.appendChild(d);
+    });
+    bar.appendChild(playBtn); bar.appendChild(againBtn); bar.appendChild(dots);
+    svg.parentNode.insertBefore(cap, svg.nextSibling);
+    cap.parentNode.insertBefore(bar, cap.nextSibling);
+    function show(k){
+      cur = k;
+      svg.querySelectorAll("[data-on]").forEach(function(g){ g.classList.toggle("show", inSteps(g.getAttribute("data-on"), k)); });
+      svg.querySelectorAll("[data-shake]").forEach(function(g){ g.classList.toggle("shaking", !reduce && inSteps(g.getAttribute("data-shake"), k)); });
+      items.forEach(function(li, j){ li.classList.toggle("now", j === k - 1); });
+      [].forEach.call(dots.children, function(d, j){ if (j === k - 1) d.setAttribute("aria-current", "step"); else d.removeAttribute("aria-current"); });
+      cap.textContent = k + "／" + n + "　" + items[k - 1].textContent;
+    }
+    function stop(){ if (timer) { clearInterval(timer); timer = null; } playBtn.textContent = "▶ 播放"; }
+    function play(){
+      stop(); if (cur >= n) show(1);
+      playBtn.textContent = "⏸ 暫停";
+      timer = setInterval(function(){ if (cur >= n) { stop(); return; } show(cur + 1); }, 3600);
+    }
+    playBtn.addEventListener("click", function(){ if (timer) stop(); else play(); });
+    againBtn.addEventListener("click", function(){ show(1); if (!reduce) play(); });
+    stop(); show(1);
+  });
 })();
 </script>
 </body>
