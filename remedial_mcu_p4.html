@@ -88,46 +88,11 @@
   </section>
 
   <section class="card">
-    <div class="codehead"><h2 style="margin:0">等效的 Arduino 程式</h2>
-      <button class="ghost" id="copy" type="button">複製程式</button></div>
-    <pre id="code"><code>const int POT = A0;     // 電位器滑桿（中間腳接 A0）
-
-// 16 顆 LED 的腳位（每顆都要串一個限流電阻）
-// 0、1 腳留給序列埠不要用；A1～A4 當數位腳輸出是可以的
-const int LED[16] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, A1, A2, A3, A4};
-
-int pos = 0;            // 現在亮的是第幾顆（0～15）
-int dir = 1;            // 移動方向：+1 往右、-1 往左
-
-void setup() {
-  for (int i = 0; i &lt; 16; i++) pinMode(LED[i], OUTPUT);
-}
-
-void loop() {
-  // 每次迴圈都重新讀滑桿，所以拖曳時速度立刻改變
-  int pot = analogRead(POT);              // 0～1023
-
-  // 滑桿最左 → 每格等 300 毫秒（慢）；最右 → 每格等 20 毫秒（快）
-  int gap = map(pot, 0, 1023, 300, 20);
-
-  for (int i = 0; i &lt; 16; i++) {          // 只讓 pos 這一顆亮
-    digitalWrite(LED[i], i == pos ? HIGH : LOW);
-  }
-
-  delay(gap);                             // 間隔時間就是速度
-
-  pos += dir;                             // 移到下一格
-  if (pos == 15 || pos == 0) dir = -dir;  // 碰到兩端就折返
-}</code></pre>
-    <p class="hint">換算方式和上面的動畫完全一樣：<code>map(pot, 0, 1023, 300, 20)</code>。想再進階，就用 <code>millis()</code> 取代 <code>delay()</code>，滑動滑桿時反應更即時。</p>
-  </section>
-
-  <section class="card">
-    <h2>課堂操作方式</h2>
+    <h2>課堂操作方式與觀察重點</h2>
     <ol>
-      <li>先把滑桿拉到<b>最左邊</b>，請學生看清楚亮點是一格一格移動的，並記住「每格間隔 300 毫秒」。</li>
-      <li>慢慢往右拖曳，讓學生同時注意：亮點跑得越來越快、間隔數字越來越小，但<b>亮的永遠只有一顆</b>。</li>
-      <li>對照程式：滑桿只影響 <code>delay(gap)</code> 這一行，<code>pos</code> 的加減和折返判斷完全沒變——速度和移動邏輯是分開的兩件事。</li>
+      <li>先把滑桿拉到<b>最左邊</b>，觀察亮點是一格一格移動的，並注意「每格間隔 300 毫秒」。</li>
+      <li>慢慢往右拖曳，觀察亮點跑得越來越快、間隔數字越來越小，但<b>亮的永遠只有一顆</b>。</li>
+      <li>觀察「滑桿讀值（0～1023）→ 每格間隔（300ms～20ms）」的換算關係，並思考亮點碰到底端時該如何控制折返。</li>
     </ol>
   </section>
 </main>

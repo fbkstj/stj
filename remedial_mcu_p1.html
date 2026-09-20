@@ -100,46 +100,11 @@
   </section>
 
   <section class="card">
-    <div class="codehead"><h2 style="margin:0">等效的 Arduino 程式</h2>
-      <button class="ghost" id="copy" type="button">複製程式</button></div>
-    <pre id="code"><code>const int POT = A0;     // 電位器滑桿（中間腳接 A0）
-const int LED = 9;      // LED 接可輸出 PWM 的腳位，記得串限流電阻
-
-int brightness = 0;     // 目前亮度 0～255
-int step = 1;           // 每次變化的方向：+1 變亮、-1 變暗
-
-void setup() {
-  pinMode(LED, OUTPUT);
-  Serial.begin(9600);
-}
-
-void loop() {
-  // 每次迴圈都重新讀滑桿，所以拖曳時速度立刻改變
-  int pot = analogRead(POT);              // 0～1023
-
-  // 滑桿最左 → 一次呼吸 6000 毫秒；最右 → 600 毫秒
-  int period = map(pot, 0, 1023, 6000, 600);
-
-  // 一次呼吸要走 510 步（0→255→0），算出每一步要等多久
-  int wait = period / 510;
-  if (wait < 1) wait = 1;
-
-  analogWrite(LED, brightness);           // 用 PWM 控制亮度
-  brightness += step;
-  if (brightness >= 255 || brightness <= 0) step = -step;   // 到頂或到底就換方向
-
-  Serial.println(pot);
-  delay(wait);
-}</code></pre>
-    <p class="hint">這段程式的換算方式和上面的動畫完全一樣：<code>map(pot, 0, 1023, 6000, 600)</code>。</p>
-  </section>
-
-  <section class="card">
-    <h2>課堂操作方式</h2>
+    <h2>課堂操作方式與觀察重點</h2>
     <ol>
-      <li>先把滑桿拉到<b>最左邊</b>，請學生數一次呼吸要幾秒（約 6 秒），並看「呼吸週期」變成 6000 毫秒。</li>
-      <li>再慢慢往右拖曳，讓學生同時注意三件事：燈呼吸變快、週期數字變小、下方波形變密。</li>
-      <li>最後對照程式裡的 <code>map(pot, 0, 1023, 6000, 600)</code>，說明「滑桿位置 → 週期 → 每一步的等待時間」這條換算鏈。</li>
+      <li>先把滑桿拉到<b>最左邊</b>，觀察一次呼吸要幾秒（約 6 秒），並看「呼吸週期」變成 6000 毫秒。</li>
+      <li>再慢慢往右拖曳，觀察三件事：燈呼吸變快、週期數字變小、下方波形變密。</li>
+      <li>觀察「滑桿讀值（0～1023）→ 呼吸週期（6000ms～600ms）」的換算關係，思考在 Arduino 中如何撰寫對應的換算邏輯。</li>
     </ol>
   </section>
 </main>
