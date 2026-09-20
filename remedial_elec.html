@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>基本電學重補修自學系統</title>
+<meta name="description" content="楊梅高中 115 學年度基本電學重補修：4 關教學影片與測驗的線上自學系統入口。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f7f7;
+    --card: #ffffff;
+    --ink: #13262b;
+    --muted: #4c6166;
+    --line: #d4e1e2;
+    --accent: #00696b;
+    --accent-ink: #ffffff;
+    --tint: #e3f1f1;
+    --warn-bg: #fff6e0;
+    --warn-ink: #5c4200;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1a1c;
+      --card: #172629;
+      --ink: #e6f0f0;
+      --muted: #a9bcbf;
+      --line: #2b3f43;
+      --accent: #4fd1c5;
+      --accent-ink: #062224;
+      --tint: #1d3336;
+      --warn-bg: #3a2f12;
+      --warn-ink: #f5dc9a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.75 'Noto Sans TC', system-ui, sans-serif;
+  }
+  main { max-width: 880px; margin: 0 auto; padding: 32px 16px 56px; }
+  .eyebrow { font-family: 'Outfit', 'Noto Sans TC', sans-serif; color: var(--accent); font-weight: 700; letter-spacing: .04em; margin: 0; }
+  h1 { font-size: clamp(1.6rem, 4.5vw, 2.3rem); line-height: 1.3; margin: 4px 0 8px; }
+  h2 { font-size: 1.25rem; margin: 0 0 12px; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+  .entry { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: center; }
+  .entry p { margin: 0 0 16px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; font-size: 1.1rem; text-decoration: none;
+    padding: 14px 24px; border-radius: 12px; min-height: 48px;
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:focus-visible, a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .qr { width: 168px; text-align: center; color: var(--muted); font-size: .9rem; }
+  .qr svg { width: 168px; height: 168px; display: block; border-radius: 8px; border: 1px solid var(--line); }
+  ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 12px; }
+  ol.steps li { counter-increment: s; display: grid; grid-template-columns: 36px 1fr; gap: 12px; align-items: start; }
+  ol.steps li::before {
+    content: counter(s); width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    display: grid; place-items: center; font-family: 'Outfit', sans-serif;
+  }
+  ol.steps b { display: block; }
+  ul.rules { margin: 0; padding-left: 1.2em; }
+  ul.rules li { margin-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--tint); white-space: nowrap; }
+  .nb { display: inline-block; }
+  .note { background: var(--warn-bg); color: var(--warn-ink); border-radius: 12px; padding: 14px 16px; margin: 0; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .two .card { margin-bottom: 0; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  footer { color: var(--muted); font-size: .9rem; margin-top: 28px; }
+  @media (max-width: 640px) {
+    .entry { grid-template-columns: 1fr; }
+    .qr { justify-self: center; }
+    .two { grid-template-columns: 1fr; gap: 20px; }
+    .card { padding: 20px 16px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">楊梅高中 115 學年度重補修</p>
+  <h1><span class="nb">基本電學</span> <span class="nb">線上自學</span></h1>
+  <p class="lead">4 關教學影片與測驗（共 20 題，就是重補修考卷的題目）：依序看完影片、通過測驗就能解鎖下一關，學習時間會自動記錄成上課時數。</p>
+
+  <section class="card entry" aria-labelledby="entryTitle">
+    <div>
+      <h2 id="entryTitle">進入自學系統</h2>
+      <p>學生和老師都從這裡進入：學生在「學生」分頁用學號和登入碼登入；老師切到「教師」分頁登入後台。</p>
+      <a class="btn" href="remedial_elec_app.html" target="_blank" rel="noopener">開啟自學系統<span aria-hidden="true">↗</span><span class="sr-only">（另開新分頁）</span></a>
+    </div>
+    <div class="qr">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 41 41" shape-rendering="crispEdges" role="img" aria-labelledby="qrTitle"><title id="qrTitle">基本電學自學系統網址 QR Code</title><rect width="41" height="41" fill="#fff"/><path fill="#000" d="M4 4h1v1h-1zM5 4h1v1h-1zM6 4h1v1h-1zM7 4h1v1h-1zM8 4h1v1h-1zM9 4h1v1h-1zM10 4h1v1h-1zM13 4h1v1h-1zM14 4h1v1h-1zM19 4h1v1h-1zM22 4h1v1h-1zM23 4h1v1h-1zM24 4h1v1h-1zM26 4h1v1h-1zM27 4h1v1h-1zM30 4h1v1h-1zM31 4h1v1h-1zM32 4h1v1h-1zM33 4h1v1h-1zM34 4h1v1h-1zM35 4h1v1h-1zM36 4h1v1h-1zM4 5h1v1h-1zM10 5h1v1h-1zM14 5h1v1h-1zM15 5h1v1h-1zM19 5h1v1h-1zM21 5h1v1h-1zM25 5h1v1h-1zM27 5h1v1h-1zM30 5h1v1h-1zM36 5h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM7 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM14 6h1v1h-1zM15 6h1v1h-1zM18 6h1v1h-1zM19 6h1v1h-1zM21 6h1v1h-1zM23 6h1v1h-1zM26 6h1v1h-1zM27 6h1v1h-1zM30 6h1v1h-1zM32 6h1v1h-1zM33 6h1v1h-1zM34 6h1v1h-1zM36 6h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1zM7 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM13 7h1v1h-1zM14 7h1v1h-1zM15 7h1v1h-1zM16 7h1v1h-1zM17 7h1v1h-1zM21 7h1v1h-1zM23 7h1v1h-1zM26 7h1v1h-1zM27 7h1v1h-1zM28 7h1v1h-1zM30 7h1v1h-1zM32 7h1v1h-1zM33 7h1v1h-1zM34 7h1v1h-1zM36 7h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM7 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM14 8h1v1h-1zM17 8h1v1h-1zM20 8h1v1h-1zM21 8h1v1h-1zM23 8h1v1h-1zM25 8h1v1h-1zM27 8h1v1h-1zM30 8h1v1h-1zM32 8h1v1h-1zM33 8h1v1h-1zM34 8h1v1h-1zM36 8h1v1h-1zM4 9h1v1h-1zM10 9h1v1h-1zM12 9h1v1h-1zM14 9h1v1h-1zM16 9h1v1h-1zM18 9h1v1h-1zM21 9h1v1h-1zM22 9h1v1h-1zM24 9h1v1h-1zM30 9h1v1h-1zM36 9h1v1h-1zM4 10h1v1h-1zM5 10h1v1h-1zM6 10h1v1h-1zM7 10h1v1h-1zM8 10h1v1h-1zM9 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM14 10h1v1h-1zM16 10h1v1h-1zM18 10h1v1h-1zM20 10h1v1h-1zM22 10h1v1h-1zM24 10h1v1h-1zM26 10h1v1h-1zM28 10h1v1h-1zM30 10h1v1h-1zM31 10h1v1h-1zM32 10h1v1h-1zM33 10h1v1h-1zM34 10h1v1h-1zM35 10h1v1h-1zM36 10h1v1h-1zM15 11h1v1h-1zM21 11h1v1h-1zM23 11h1v1h-1zM24 11h1v1h-1zM25 11h1v1h-1zM26 11h1v1h-1zM27 11h1v1h-1zM4 12h1v1h-1zM7 12h1v1h-1zM9 12h1v1h-1zM10 12h1v1h-1zM12 12h1v1h-1zM14 12h1v1h-1zM17 12h1v1h-1zM18 12h1v1h-1zM19 12h1v1h-1zM20 12h1v1h-1zM23 12h1v1h-1zM25 12h1v1h-1zM26 12h1v1h-1zM29 12h1v1h-1zM31 12h1v1h-1zM4 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM14 13h1v1h-1zM16 13h1v1h-1zM24 13h1v1h-1zM28 13h1v1h-1zM29 13h1v1h-1zM30 13h1v1h-1zM31 13h1v1h-1zM35 13h1v1h-1zM36 13h1v1h-1zM4 14h1v1h-1zM5 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM11 14h1v1h-1zM12 14h1v1h-1zM13 14h1v1h-1zM15 14h1v1h-1zM16 14h1v1h-1zM21 14h1v1h-1zM23 14h1v1h-1zM26 14h1v1h-1zM30 14h1v1h-1zM31 14h1v1h-1zM32 14h1v1h-1zM34 14h1v1h-1zM36 14h1v1h-1zM4 15h1v1h-1zM6 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM15 15h1v1h-1zM16 15h1v1h-1zM18 15h1v1h-1zM21 15h1v1h-1zM23 15h1v1h-1zM25 15h1v1h-1zM26 15h1v1h-1zM27 15h1v1h-1zM30 15h1v1h-1zM32 15h1v1h-1zM33 15h1v1h-1zM36 15h1v1h-1zM5 16h1v1h-1zM6 16h1v1h-1zM10 16h1v1h-1zM11 16h1v1h-1zM12 16h1v1h-1zM13 16h1v1h-1zM15 16h1v1h-1zM19 16h1v1h-1zM25 16h1v1h-1zM28 16h1v1h-1zM29 16h1v1h-1zM30 16h1v1h-1zM33 16h1v1h-1zM35 16h1v1h-1zM36 16h1v1h-1zM4 17h1v1h-1zM6 17h1v1h-1zM8 17h1v1h-1zM14 17h1v1h-1zM16 17h1v1h-1zM17 17h1v1h-1zM19 17h1v1h-1zM20 17h1v1h-1zM26 17h1v1h-1zM28 17h1v1h-1zM30 17h1v1h-1zM32 17h1v1h-1zM35 17h1v1h-1zM36 17h1v1h-1zM5 18h1v1h-1zM7 18h1v1h-1zM8 18h1v1h-1zM10 18h1v1h-1zM12 18h1v1h-1zM14 18h1v1h-1zM15 18h1v1h-1zM17 18h1v1h-1zM18 18h1v1h-1zM21 18h1v1h-1zM22 18h1v1h-1zM24 18h1v1h-1zM25 18h1v1h-1zM27 18h1v1h-1zM28 18h1v1h-1zM29 18h1v1h-1zM30 18h1v1h-1zM31 18h1v1h-1zM33 18h1v1h-1zM34 18h1v1h-1zM35 18h1v1h-1zM7 19h1v1h-1zM8 19h1v1h-1zM12 19h1v1h-1zM13 19h1v1h-1zM17 19h1v1h-1zM19 19h1v1h-1zM21 19h1v1h-1zM22 19h1v1h-1zM23 19h1v1h-1zM25 19h1v1h-1zM28 19h1v1h-1zM30 19h1v1h-1zM32 19h1v1h-1zM35 19h1v1h-1zM4 20h1v1h-1zM5 20h1v1h-1zM10 20h1v1h-1zM11 20h1v1h-1zM12 20h1v1h-1zM13 20h1v1h-1zM14 20h1v1h-1zM15 20h1v1h-1zM21 20h1v1h-1zM23 20h1v1h-1zM25 20h1v1h-1zM26 20h1v1h-1zM27 20h1v1h-1zM30 20h1v1h-1zM32 20h1v1h-1zM35 20h1v1h-1zM5 21h1v1h-1zM7 21h1v1h-1zM8 21h1v1h-1zM9 21h1v1h-1zM14 21h1v1h-1zM16 21h1v1h-1zM20 21h1v1h-1zM27 21h1v1h-1zM28 21h1v1h-1zM29 21h1v1h-1zM31 21h1v1h-1zM33 21h1v1h-1zM35 21h1v1h-1zM4 22h1v1h-1zM6 22h1v1h-1zM8 22h1v1h-1zM10 22h1v1h-1zM12 22h1v1h-1zM13 22h1v1h-1zM15 22h1v1h-1zM16 22h1v1h-1zM20 22h1v1h-1zM22 22h1v1h-1zM24 22h1v1h-1zM29 22h1v1h-1zM34 22h1v1h-1zM35 22h1v1h-1zM36 22h1v1h-1zM4 23h1v1h-1zM5 23h1v1h-1zM7 23h1v1h-1zM8 23h1v1h-1zM11 23h1v1h-1zM14 23h1v1h-1zM18 23h1v1h-1zM19 23h1v1h-1zM21 23h1v1h-1zM22 23h1v1h-1zM25 23h1v1h-1zM26 23h1v1h-1zM31 23h1v1h-1zM35 23h1v1h-1zM5 24h1v1h-1zM6 24h1v1h-1zM7 24h1v1h-1zM10 24h1v1h-1zM11 24h1v1h-1zM12 24h1v1h-1zM13 24h1v1h-1zM17 24h1v1h-1zM18 24h1v1h-1zM20 24h1v1h-1zM21 24h1v1h-1zM22 24h1v1h-1zM23 24h1v1h-1zM26 24h1v1h-1zM28 24h1v1h-1zM29 24h1v1h-1zM31 24h1v1h-1zM32 24h1v1h-1zM35 24h1v1h-1zM36 24h1v1h-1zM5 25h1v1h-1zM7 25h1v1h-1zM8 25h1v1h-1zM11 25h1v1h-1zM12 25h1v1h-1zM13 25h1v1h-1zM18 25h1v1h-1zM19 25h1v1h-1zM20 25h1v1h-1zM22 25h1v1h-1zM23 25h1v1h-1zM24 25h1v1h-1zM25 25h1v1h-1zM29 25h1v1h-1zM30 25h1v1h-1zM33 25h1v1h-1zM34 25h1v1h-1zM35 25h1v1h-1zM36 25h1v1h-1zM4 26h1v1h-1zM5 26h1v1h-1zM7 26h1v1h-1zM8 26h1v1h-1zM9 26h1v1h-1zM10 26h1v1h-1zM12 26h1v1h-1zM13 26h1v1h-1zM14 26h1v1h-1zM15 26h1v1h-1zM16 26h1v1h-1zM17 26h1v1h-1zM18 26h1v1h-1zM19 26h1v1h-1zM21 26h1v1h-1zM24 26h1v1h-1zM25 26h1v1h-1zM26 26h1v1h-1zM30 26h1v1h-1zM33 26h1v1h-1zM34 26h1v1h-1zM36 26h1v1h-1zM5 27h1v1h-1zM6 27h1v1h-1zM7 27h1v1h-1zM13 27h1v1h-1zM15 27h1v1h-1zM16 27h1v1h-1zM18 27h1v1h-1zM20 27h1v1h-1zM22 27h1v1h-1zM25 27h1v1h-1zM26 27h1v1h-1zM27 27h1v1h-1zM29 27h1v1h-1zM32 27h1v1h-1zM33 27h1v1h-1zM4 28h1v1h-1zM6 28h1v1h-1zM7 28h1v1h-1zM9 28h1v1h-1zM10 28h1v1h-1zM13 28h1v1h-1zM14 28h1v1h-1zM19 28h1v1h-1zM21 28h1v1h-1zM22 28h1v1h-1zM23 28h1v1h-1zM24 28h1v1h-1zM25 28h1v1h-1zM28 28h1v1h-1zM29 28h1v1h-1zM30 28h1v1h-1zM31 28h1v1h-1zM32 28h1v1h-1zM35 28h1v1h-1zM12 29h1v1h-1zM15 29h1v1h-1zM17 29h1v1h-1zM18 29h1v1h-1zM23 29h1v1h-1zM24 29h1v1h-1zM26 29h1v1h-1zM27 29h1v1h-1zM28 29h1v1h-1zM32 29h1v1h-1zM33 29h1v1h-1zM36 29h1v1h-1zM4 30h1v1h-1zM5 30h1v1h-1zM6 30h1v1h-1zM7 30h1v1h-1zM8 30h1v1h-1zM9 30h1v1h-1zM10 30h1v1h-1zM13 30h1v1h-1zM16 30h1v1h-1zM17 30h1v1h-1zM25 30h1v1h-1zM28 30h1v1h-1zM30 30h1v1h-1zM32 30h1v1h-1zM33 30h1v1h-1zM34 30h1v1h-1zM35 30h1v1h-1zM4 31h1v1h-1zM10 31h1v1h-1zM12 31h1v1h-1zM17 31h1v1h-1zM18 31h1v1h-1zM23 31h1v1h-1zM24 31h1v1h-1zM28 31h1v1h-1zM32 31h1v1h-1zM4 32h1v1h-1zM6 32h1v1h-1zM7 32h1v1h-1zM8 32h1v1h-1zM10 32h1v1h-1zM13 32h1v1h-1zM14 32h1v1h-1zM16 32h1v1h-1zM17 32h1v1h-1zM20 32h1v1h-1zM23 32h1v1h-1zM26 32h1v1h-1zM28 32h1v1h-1zM29 32h1v1h-1zM30 32h1v1h-1zM31 32h1v1h-1zM32 32h1v1h-1zM33 32h1v1h-1zM36 32h1v1h-1zM4 33h1v1h-1zM6 33h1v1h-1zM7 33h1v1h-1zM8 33h1v1h-1zM10 33h1v1h-1zM12 33h1v1h-1zM13 33h1v1h-1zM14 33h1v1h-1zM17 33h1v1h-1zM19 33h1v1h-1zM21 33h1v1h-1zM23 33h1v1h-1zM24 33h1v1h-1zM28 33h1v1h-1zM30 33h1v1h-1zM32 33h1v1h-1zM35 33h1v1h-1zM4 34h1v1h-1zM6 34h1v1h-1zM7 34h1v1h-1zM8 34h1v1h-1zM10 34h1v1h-1zM13 34h1v1h-1zM16 34h1v1h-1zM17 34h1v1h-1zM21 34h1v1h-1zM26 34h1v1h-1zM28 34h1v1h-1zM32 34h1v1h-1zM33 34h1v1h-1zM34 34h1v1h-1zM36 34h1v1h-1zM4 35h1v1h-1zM10 35h1v1h-1zM16 35h1v1h-1zM19 35h1v1h-1zM20 35h1v1h-1zM21 35h1v1h-1zM22 35h1v1h-1zM25 35h1v1h-1zM27 35h1v1h-1zM28 35h1v1h-1zM29 35h1v1h-1zM4 36h1v1h-1zM5 36h1v1h-1zM6 36h1v1h-1zM7 36h1v1h-1zM8 36h1v1h-1zM9 36h1v1h-1zM10 36h1v1h-1zM12 36h1v1h-1zM13 36h1v1h-1zM14 36h1v1h-1zM15 36h1v1h-1zM17 36h1v1h-1zM24 36h1v1h-1zM25 36h1v1h-1zM28 36h1v1h-1zM29 36h1v1h-1zM32 36h1v1h-1zM33 36h1v1h-1zM35 36h1v1h-1z"/></svg>
+      手機掃描開啟
+    </div>
+  </section>
+
+  <div class="two">
+    <section class="card" aria-labelledby="stuTitle">
+      <h2 id="stuTitle">學生操作步驟</h2>
+      <ol class="steps">
+        <li><div><b>登入</b>在「學生」分頁輸入學號和登入碼。不需要 Google 帳號。</div></li>
+        <li><div><b>看影片</b>點關卡 1 →「開始這一關」，影片依序看到 90%。每關的影片是該關每一題的講解。</div></li>
+        <li><div><b>作答</b>按「開始測驗」，5 題單選題，60 分以上通過。計算題每次作答的數字都不一樣，答錯會顯示計算過程。</div></li>
+        <li><div><b>過關</b>通過後解鎖下一關，每關可作答 3 次，以最高分計算。</div></li>
+      </ol>
+    </section>
+    <section class="card" aria-labelledby="teaTitle">
+      <h2 id="teaTitle">老師後台</h2>
+      <ul class="rules">
+        <li>同一個網址，切到「教師」分頁，用教師密碼登入。</li>
+        <li>可以看到每位學生每一關的觀看進度、測驗分數與上課紀錄。</li>
+        <li>學期結束按「產生成績單分頁」，依修別算出建議填寫的成績。</li>
+      </ul>
+    </section>
+  </div>
+
+  <section class="card" aria-labelledby="ruleTitle" style="margin-top:20px">
+    <h2 id="ruleTitle">學習時間怎麼算</h2>
+    <table>
+      <thead><tr><th scope="col">狀態</th><th scope="col">觀看進度</th><th scope="col">學習時間</th></tr></thead>
+      <tbody>
+        <tr><td>影片播放中</td><td>增加</td><td>增加</td></tr>
+        <tr><td>影片暫停</td><td>停止</td><td>停止</td></tr>
+        <tr><td>作答測驗中</td><td>—</td><td>增加</td></tr>
+        <tr><td>切到其他 App、關掉螢幕</td><td>停止</td><td>停止</td></tr>
+      </tbody>
+    </table>
+    <ul class="rules" style="margin-top:12px">
+      <li>影片不能往前快轉（可以往回看），也不能加速播放。</li>
+      <li>下次進入關卡，會從上次看到的地方繼續。</li>
+    </ul>
+  </section>
+
+  <p class="note">登入碼每人不同，請向簡樹桐老師（實習處，工科大樓 2 樓）個別索取，不要把登入碼給別人。</p>
+
+  <footer>任課教師：簡樹桐　・　楊梅高中實習處</footer>
+</main>
+</body>
+</html>
