@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>霹靂燈 × 滑桿</title>
-<meta name="description" content="互動展示：電位器滑桿的位置如何決定霹靂燈亮點的移動間隔時間，含即時數值與等效 Arduino 程式。">
+<meta name="robots" content="noindex">
+<meta name="description" content="互動展示：拖曳滑桿改變霹靂燈亮點的移動間隔，楊梅高中單晶片重補修術科 P4。">
 <style>
   :root{
     --bg:#f4f6f7; --card:#fff; --ink:#15232a; --muted:#5a6b73; --line:#d8e0e3;
@@ -123,7 +124,7 @@
   var pos = 0, dir = 1, playing = true, acc = 0, last = 0;
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-  function gapOf() {                 // 和 Arduino 的 map 一樣
+  function gapOf() {
     return Math.round(SLOW + (FAST - SLOW) * (pot.value / 1023));
   }
   function label(ms) {
@@ -160,7 +161,7 @@
     if (playing) {
       acc += dt;
       var gap = gapOf(), moved = false;
-      while (acc >= gap) {           // 時間到才走一格，和 delay(gap) 同一個意思
+      while (acc >= gap) {           // 時間到才走一格
         acc -= gap;
         pos += dir;
         if (pos >= N - 1) { pos = N - 1; dir = -1; }
@@ -182,16 +183,6 @@
   });
   document.getElementById('slow').addEventListener('click', function () { pot.value = 0; showNumbers(); });
   document.getElementById('fast').addEventListener('click', function () { pot.value = 1023; showNumbers(); });
-  var copyBtn = document.getElementById('copy');
-  if (copyBtn) copyBtn.addEventListener('click', function (e) {
-    var t = document.getElementById('code').textContent;
-    var b = e.currentTarget;
-    if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () {
-      b.textContent = '已複製'; setTimeout(function () { b.textContent = '複製程式'; }, 1500);
-    }, function () { b.textContent = '請手動選取'; });
-    else b.textContent = '請手動選取';
-  });
-
   if (reduce) {                      // 系統關閉動畫效果時先暫停，按播放仍可觀看
     playing = false;
     playBtn.textContent = '▶ 播放';
