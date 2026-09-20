@@ -330,19 +330,17 @@ function renderFix(p) {
   if (!box) return;
   const f = p.fix;
   if (!p.needFix && !(f && f.status)) { box.innerHTML = ''; return; }
-  if (p.passed && f && f.status === '通過') {
-    box.innerHTML = `<div class="fixbox"><h3>訂正已通過 ✓</h3>
-      <p class="hint">老師已確認你的訂正${f.comment ? '：' + esc(f.comment) : ''}，下一關已經開了。</p></div>`;
+  const back = f && f.status === '需補做';
+  if (p.passed && f && f.status && !back) {
+    box.innerHTML = `<div class="fixbox"><h3>訂正已收到 ✓</h3>
+      <p class="hint">${esc(f.time)} 上傳，下一關已經開了。老師之後會看你的訂正${f.comment ? '：' + esc(f.comment) : '，有問題會再告訴你'}。</p></div>`;
     return;
   }
-  const waiting = f && f.status === '待確認';
-  const back = f && f.status === '退回';
   box.innerHTML = `<div class="fixbox">
-    <h3>訂正上傳${waiting ? '<span class="pill warn">等老師確認</span>' : (back ? '<span class="pill bad">老師請你重做</span>' : '')}</h3>
+    <h3>訂正上傳${back ? '<span class="pill bad">老師請你補做</span>' : ''}</h3>
     <p class="hint">測驗 3 次都沒有全對。請把<b>答錯的題目</b>抄在紙上訂正：題目、算式、答案都要寫，
-      然後拍一張清楚的照片上傳。老師確認後才會開下一關。</p>
-    ${back && f.comment ? `<p class="hint">老師的意見：${esc(f.comment)}</p>` : ''}
-    ${waiting ? `<p class="hint">已於 ${esc(f.time)} 上傳，等老師確認。要重拍可以直接再上傳一次。</p>` : ''}
+      然後拍一張清楚的照片上傳。<b>上傳完就可以直接進下一關</b>，老師之後會看。</p>
+    ${back && f.comment ? `<p class="hint">老師的意見：${esc(f.comment)}　請重新訂正後再上傳一次。</p>` : ''}
     <div class="field"><label for="fixFile">選擇照片（手機可直接拍照）</label>
       <input id="fixFile" type="file" accept="image/*" capture="environment"></div>
     <img class="shot" id="fixPrev" alt="" hidden>
@@ -365,7 +363,7 @@ function renderFix(p) {
     btn.disabled = true; err.textContent = '上傳中…';
     try {
       await api('submitCorrection', TOKEN, LEVEL.id, dataUrl);
-      toast('已上傳，等老師確認');
+      toast('已上傳，下一關開了');
       showHome();
     } catch (e) { err.textContent = e.message; btn.disabled = false; }
   };
@@ -754,7 +752,7 @@ function renderQuizBox() {
   else if (!p.videoDone) html += '<p class="muted">看完影片後就能作答。</p>';
   else if (p.passed) html += `<p>已通過，最高 <b class="mono">${p.best}</b> 分。</p><div class="row"><button class="btn" id="nextBtn">回關卡列表</button>${p.attemptsLeft !== 0 ? '<button class="btn ghost" id="quizBtn">再考一次</button>' : ''}</div>`;
   else if (p.attemptsLeft === 0) html += p.needFix
-    ? `<p>最高 <b class="mono">${p.best}</b> 分，3 次都沒有全對。請依照下方說明訂正並上傳照片，老師確認後就能進下一關。</p>`
+    ? `<p>最高 <b class="mono">${p.best}</b> 分，3 次都沒有全對。請依照下方說明訂正並拍照上傳，上傳完就能進下一關。</p>`
     : `<p>最高 <b class="mono">${p.best}</b> 分，作答次數已經用完，請找老師。</p>`;
   else html += `${p.quizCount ? `<p>目前最高 <b class="mono">${p.best}</b> 分，還沒通過。</p>` : ''}<div><button class="btn" id="quizBtn">開始測驗</button></div>`;
   box.innerHTML = html;
@@ -903,24 +901,24 @@ async function showTeacher() {
 function renderFixGrade(d) {
   const box = $('#fixGrade');
   if (!box || !d.fixMode || !d.corrections || !d.corrections.length) { if (box) box.innerHTML = ''; return; }
-  const wait = d.corrections.filter(c => c.status === '待確認');
-  const done = d.corrections.filter(c => c.status !== '待確認');
+  const wait = d.corrections.filter(c => c.status === '已上傳');
+  const done = d.corrections.filter(c => c.status !== '已上傳');
   const card = (c, i) => `
-    <section class="pcard${c.status === '通過' ? ' done' : ''}" data-sid="${esc(c.sid)}" data-lv="${esc(c.level)}" data-file="${esc(c.fileId)}">
+    <section class="pcard${c.status === '老師已確認' ? ' done' : ''}" data-sid="${esc(c.sid)}" data-lv="${esc(c.level)}" data-file="${esc(c.fileId)}">
       <div class="row"><h3>${esc(c.name)}｜關卡 ${esc(c.level)} 訂正</h3>
-        <span class="pill ${c.status === '通過' ? 'ok' : (c.status === '退回' ? 'bad' : 'warn')}">${esc(c.status)}</span></div>
+        <span class="pill ${c.status === '老師已確認' ? 'ok' : (c.status === '需補做' ? 'bad' : 'warn')}">${esc(c.status)}</span></div>
       <p class="hint">上傳 ${esc(c.time)}　<button class="link showShot" type="button">看照片</button>
         <a class="link" href="${esc(c.link)}" target="_blank" rel="noopener">在雲端硬碟開啟 ↗</a></p>
       <div class="shotBox"></div>
-      <div class="field"><label for="fc${i}">給學生的話（退回時務必寫）</label>
+      <div class="field"><label for="fc${i}">給學生的話（要補做時務必寫）</label>
         <input id="fc${i}" class="fcomment" type="text" value="${esc(c.comment || '')}" placeholder="例如：第 3 題的算式再寫清楚一點"></div>
       <div class="row"><span class="err"></span>
-        <span style="display:flex;gap:8px"><button class="btn ghost sm fback" type="button">退回重做</button>
-          <button class="btn sm fpass" type="button">確認通過</button></span></div>
+        <span style="display:flex;gap:8px"><button class="btn ghost sm fback" type="button">要補做</button>
+          <button class="btn sm fpass" type="button">看過了，沒問題</button></span></div>
     </section>`;
   box.innerHTML = `
     <div class="section-title"><h2>訂正確認</h2>
-      <span class="hint">待確認 ${wait.length} 件 · 學生測驗 3 次沒全對時要上傳訂正，確認後才會開下一關</span></div>
+      <span class="hint">還沒看過 ${wait.length} 件 · 學生測驗 3 次沒全對就要上傳訂正；上傳當下系統已放行，這裡是事後查看</span></div>
     ${wait.map(card).join('') + done.map((c, i) => card(c, wait.length + i)).join('')}`;
   box.querySelectorAll('.pcard').forEach(c => {
     c.querySelector('.showShot').onclick = async ev => {
@@ -939,12 +937,12 @@ function renderFixGrade(d) {
       err.textContent = ''; btns.forEach(b => { b.disabled = true; });
       try {
         await api('gradeCorrection', TOKEN, c.dataset.sid, c.dataset.lv, status, c.querySelector('.fcomment').value);
-        toast(status === '通過' ? '已確認，學生可以進下一關' : '已退回，學生可以重新上傳');
+        toast(status === '老師已確認' ? '已標記看過' : '已標記需補做，學生在那一關會看到你的意見');
         showTeacher();
       } catch (e) { err.textContent = e.message; btns.forEach(b => { b.disabled = false; }); }
     };
-    c.querySelector('.fpass').onclick = () => send('通過');
-    c.querySelector('.fback').onclick = () => send('退回');
+    c.querySelector('.fpass').onclick = () => send('老師已確認');
+    c.querySelector('.fback').onclick = () => send('需補做');
   });
 }
 
