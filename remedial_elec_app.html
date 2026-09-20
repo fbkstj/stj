@@ -221,7 +221,7 @@ tr.detail td{background:var(--bg);white-space:normal}
   </div>
 </div>
 
-<script>window.RP_API_URL = 'https://script.google.com/macros/s/AKfycbzR5eGS8hLEKJoYn18rozcr9D-AcqOqKr5j7OZrbDZlKFslJGPWBb1MR-9Yy5RIZBsEQw/exec';</script>
+<script>window.RP_API_URL = 'https://script.google.com/macros/s/AKfycbzR5eGS8hLEKJoYn18rozcr9D-AcqOqKr5j7OZrbDZlKFslJGPWBb1MR-9Yy5RIZBsEQw/exec';window.RP_INFO = {"school": "楊梅高中", "year": 115, "subject": "基本電學", "teacher": "簡樹桐", "periods": 9};</script>
 <script>
 const $ = s => document.querySelector(s);
 const app = $('#app');
@@ -243,8 +243,12 @@ function api(fn, ...args) {
       return;
     }
     // text/plain 是「簡單請求」，不會觸發 CORS 預檢；credentials: 'omit' 不帶 Google 登入 cookie
-    fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn, args }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', keepalive: fn === 'heartbeat' || fn === 'logout' })
-      .then(r => { if (!r.ok) throw new Error('連線失敗（' + r.status + '），請稍後再試'); return r.json(); })
+    const send = () => fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn, args }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', keepalive: fn === 'heartbeat' || fn === 'logout' })
+      .then(r => { if (!r.ok) throw new Error('連線失敗（' + r.status + '），請稍後再試'); return r.json(); });
+    // Google 偶爾會回傳錯誤頁（不是程式的錯），只讀資料的呼叫自動重試一次，交卷、計時這種會寫入的不重試
+    const readOnly = ['bootstrap', 'getHome', 'getLevel', 'getQuiz', 'getDashboard', 'getPracticals', 'getSolutions'].indexOf(fn) >= 0;
+    send()
+      .catch(e => (readOnly ? new Promise(r => setTimeout(r, 600)).then(send) : Promise.reject(e)))
       .then(d => (d.ok ? resolve(d.result) : fail(d.error)))
       .catch(e => fail(e && e.name === 'TypeError' ? '網路連線失敗，請檢查網路後再試' : e));
   });
@@ -308,7 +312,7 @@ function showLogin(msg) {
         ? await api('login', $('#sid').value, $('#code').value)
         : await api('teacherLogin', $('#pw').value);
       TOKEN = r.token; ROLE = r.role; store(r);
-      ROLE === 'teacher' ? showTeacher() : showHome();
+      ROLE === 'teacher' ? showTeacher() : showHome(r.home);
     } catch (e) { $('#err').textContent = e.message; btn.disabled = false; }
   };
 }
@@ -325,11 +329,13 @@ function levelState(l) {
   return { cls: 'active', pill: '<span class="pill info">開始這一關</span>' };
 }
 
-async function showHome() {
+async function showHome(pre) {
   stopStudy(true);
   app.innerHTML = '<div class="loading">載入關卡…</div>';
-  let d;
-  try { d = await api('getHome', TOKEN); } catch (e) { if (TOKEN) app.innerHTML = `<p class="loading">${esc(e.message)}</p>`; return; }
+  let d = pre || null;          // 登入時已經順便拿到首頁資料就直接用
+  if (!d) {
+    try { d = await api('getHome', TOKEN); } catch (e) { if (TOKEN) app.innerHTML = `<p class="loading">${esc(e.message)}</p>`; return; }
+  }
   setUser(`${d.student.cls} ${d.student.seat} 號 ${d.student.name}`);
   const passed = d.levels.filter(l => l.progress.passed).length;
   app.innerHTML = `
@@ -871,7 +877,7 @@ function renderPracGrade(d) {
 /* ───── 啟動 ───── */
 (async function boot() {
   try {
-    INFO = await api('bootstrap');
+    INFO = window.RP_INFO || await api('bootstrap');   // 網站版已把科目資訊寫進網頁，可以少打一次
     $('#hdrTitle').textContent = INFO.subject;
     $('#hdrSub').textContent = `${INFO.school} ${INFO.year} 學年度重補修自學`;
   } catch (e) { app.innerHTML = `<p class="loading">${esc(e.message)}</p>`; return; }
