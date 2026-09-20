@@ -136,6 +136,16 @@ button,input{font:inherit;color:inherit}
 .live.on::before{background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft)}
 
 /* 測驗 */
+/* 術科 */
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:8px;margin-bottom:10px}
+.pcard.done{border-color:var(--ok)}
+.pcard h3{font-size:1rem}
+.pcard .req{font-size:.92rem}
+.pcard .rubric{font-size:.86rem;color:var(--muted);white-space:pre-line}
+.pcard .field{gap:6px}
+.pcard input[type=url],.pcard input[type=text],.pcard input[type=number],.pcard textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--bg);font-family:inherit}
+.pcard .link{word-break:break-all}
+.locked{background:var(--sunk);border:1px dashed var(--line);border-radius:12px;padding:16px;color:var(--muted)}
 .q{border:0;margin:0;padding:14px 0;border-top:1px solid var(--line);display:grid;gap:8px}
 .q:first-child{border-top:0}
 .q legend{padding:0;font-weight:500;display:flex;gap:10px}
@@ -319,7 +329,7 @@ async function showHome() {
     <section class="stats" aria-label="學習概況">
       <div class="stat"><span>已通過關卡</span><b>${passed}<small>/ ${d.levels.length} 關</small></b></div>
       <div class="stat"><span>累計學習時間</span><b>${d.minutes}<small>分鐘 · 約 ${d.periods} / ${d.periodsNeeded} 節</small></b></div>
-      <div class="stat"><span>目前成績</span><b>${d.grade}<small>分</small></b></div>
+      <div class="stat"><span>目前成績</span><b>${d.grade}<small>分${d.practical && d.practical.tasks.length ? `（測驗 ${d.quizGrade}・術科 ${d.practical.grade}）` : ''}</small></b></div>
     </section>
     <div class="section-title"><h2>關卡</h2><span class="hint">通過一關才會開放下一關</span></div>
     <ol class="trace">${d.levels.map(l => {
@@ -332,8 +342,50 @@ async function showHome() {
           ${l.unlocked && l.hasVideo ? `<div class="meter" aria-label="影片觀看進度 ${pct}%"><i style="width:${pct}%"></i></div>` : ''}
           <div class="lvmeta">${l.hasVideo ? `<span>影片 ${mmss(l.duration)}</span>` : ''}${l.unlocked ? `<span>影片 ${pct}%</span><span>測驗 ${p.quizCount} 次${p.attemptsLeft != null ? `（剩 ${p.attemptsLeft} 次）` : ''}</span>` : ''}</div>
         </button></li>`;
-    }).join('') || '<li><p class="muted">老師還沒有開放關卡。</p></li>'}</ol>`;
+    }).join('') || '<li><p class="muted">老師還沒有開放關卡。</p></li>'}</ol>
+    <div id="pracBox"></div>`;
   app.querySelectorAll('.lvcard:not(:disabled)').forEach(b => b.onclick = () => showLevel(b.dataset.id));
+  renderPractical(d.practical);
+}
+
+/* ───── 術科（Tinkercad） ───── */
+function pracPill(sub) {
+  if (!sub) return '<span class="pill">尚未繳交</span>';
+  if (sub.status === '通過') return `<span class="pill ok">通過 ${sub.score != null ? sub.score : ''}</span>`;
+  if (sub.status === '退回') return '<span class="pill bad">退回重做</span>';
+  return '<span class="pill warn">待老師評分</span>';
+}
+function renderPractical(pr) {
+  const box = $('#pracBox');
+  if (!box || !pr || !pr.tasks.length) return;
+  const pct = Math.round(pr.weight * 100);
+  box.innerHTML = `
+    <div class="section-title"><h2>術科實作</h2><span class="hint">用 Tinkercad 完成功能，貼上連結給老師評分（占學期成績 ${pct}%）</span></div>
+    ${!pr.unlocked ? `<div class="locked">9 關全部通過後才會開放術科。還沒通過：關卡 ${pr.levelsLeft.join('、')}</div>` : pr.tasks.map(t => {
+      const sub = t.submission, done = sub && sub.status === '通過';
+      return `<section class="pcard${done ? ' done' : ''}">
+        <div class="row"><h3>${esc(t.id)}｜${esc(t.title)}</h3>${pracPill(sub)}</div>
+        <p class="req">${esc(t.req)}</p>
+        <details><summary>評分重點（${t.points} 分）</summary><p class="rubric">${esc(t.rubric)}</p></details>
+        ${sub ? `<p class="hint">已繳交 ${esc(sub.time)}：<a class="link" href="${esc(sub.link)}" target="_blank" rel="noopener">${esc(sub.link)}</a></p>` : ''}
+        ${sub && sub.comment ? `<p class="hint">老師評語：${esc(sub.comment)}</p>` : ''}
+        ${done ? '' : `<form class="field pform" data-id="${esc(t.id)}">
+          <label for="pl${esc(t.id)}">Tinkercad 連結</label>
+          <input id="pl${esc(t.id)}" type="url" inputmode="url" placeholder="${'https:' + '/' + '/'}www.tinkercad.com/things/..." value="${sub ? esc(sub.link) : ''}" required>
+          <div class="row"><span class="err"></span><button class="btn" type="submit">${sub ? '重新繳交' : '繳交'}</button></div>
+        </form>`}
+      </section>`;
+    }).join('')}
+    ${pr.unlocked ? '<p class="note">在 Tinkercad 按右上角「Share」→「Invite people」→ 複製連結，確認老師打得開再貼上來。</p>' : ''}`;
+  box.querySelectorAll('form.pform').forEach(f => {
+    f.onsubmit = async ev => {
+      ev.preventDefault();
+      const btn = f.querySelector('button'), err = f.querySelector('.err');
+      btn.disabled = true; err.textContent = '';
+      try { renderPractical(await api('submitPractical', TOKEN, f.dataset.id, f.querySelector('input').value)); toast('已繳交，等老師評分'); }
+      catch (e) { err.textContent = e.message; btn.disabled = false; }
+    };
+  });
 }
 
 /* ───── 關卡頁：影片＋計時＋測驗 ───── */
@@ -653,20 +705,23 @@ async function showTeacher() {
       <div class="row"><button class="btn ghost" id="refBtn">重新整理</button><button class="btn" id="expBtn">產生成績單分頁</button></div>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>學生</th>${d.levels.map(l => `<th title="${esc(l.title)}">關卡 ${esc(l.id)}</th>`).join('')}<th class="num">學習分鐘</th><th class="num">節數</th><th class="num">學期成績</th><th class="num">建議填寫</th></tr></thead>
+      <thead><tr><th>學生</th>${d.levels.map(l => `<th title="${esc(l.title)}">關卡 ${esc(l.id)}</th>`).join('')}<th class="num">學習分鐘</th><th class="num">節數</th><th class="num">測驗</th><th class="num">術科</th><th class="num">學期成績</th><th class="num">建議填寫</th></tr></thead>
       <tbody>${d.students.map((s, i) => `
         <tr class="st" data-i="${i}" tabindex="0" aria-expanded="false">
           <td class="name"><b>${esc(s.name)}</b><small>${esc(s.cls)} ${esc(s.seat)} 號 · ${esc(s.sid)}${s.type ? ' · ' + esc(s.type) : ''}</small></td>
           ${s.levels.map(l => `<td>${cellOf(l, d.info.pass)}</td>`).join('')}
           <td class="num">${s.minutes}</td>
           <td class="num">${s.periods}<span class="muted"> / ${d.info.periods}</span></td>
+          <td class="num">${s.quizGrade}</td>
+          <td class="num">${d.practicals.length ? s.practicalGrade : '—'}</td>
           <td class="num">${s.grade}</td>
           <td class="num"><b>${s.suggested}</b></td>
         </tr>
-        <tr class="detail" data-for="${i}" hidden><td colspan="${d.levels.length + 5}">
+        <tr class="detail" data-for="${i}" hidden><td colspan="${d.levels.length + 7}">
           ${s.sessions.length ? `<div class="sess">${s.sessions.map(x => `<span class="mono">${esc(x.date)} ${esc(x.start)}–${esc(x.end)}　${Math.round(x.minutes)} 分</span>`).join('')}</div>` : '<span class="muted">還沒有上課紀錄。</span>'}
-        </td></tr>`).join('') || `<tr><td colspan="${d.levels.length + 5}" class="muted">「學生名單」分頁還沒有學生。</td></tr>`}
+        </td></tr>`).join('') || `<tr><td colspan="${d.levels.length + 7}" class="muted">「學生名單」分頁還沒有學生。</td></tr>`}
       </tbody></table></div>
+    <div id="pracGrade"></div>
     <section class="panel" id="mailBox" aria-labelledby="mailTitle">
       <div class="row"><h2 id="mailTitle">寄送登入碼</h2><span class="hint">勾選要寄的學生，登入碼會寄到學生的學校信箱</span></div>
       <div style="display:grid;gap:6px">${d.students.map(s => `
@@ -680,6 +735,7 @@ async function showTeacher() {
     const toggle = () => { const det = app.querySelector(`tr.detail[data-for="${tr.dataset.i}"]`); det.hidden = !det.hidden; tr.setAttribute('aria-expanded', String(!det.hidden)); };
     tr.onclick = toggle; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } };
   });
+  renderPracGrade(d);
   $('#refBtn').onclick = showTeacher;
   const boxes = () => [...app.querySelectorAll('input[name="mailSid"]:not(:disabled)')];
   $('#mailAll').onclick = () => { const all = boxes().every(b => b.checked); boxes().forEach(b => { b.checked = !all; }); };
@@ -706,6 +762,50 @@ async function showTeacher() {
     catch (e) { toast(e.message); }
     finally { b.disabled = false; }
   };
+}
+
+/** 教師後台：術科評分 */
+function renderPracGrade(d) {
+  const box = $('#pracGrade');
+  if (!box || !d.practicals.length) return;
+  const rows = [];
+  d.students.forEach(s => s.practicals.forEach(t => { if (t.status) rows.push({ s, t }); }));
+  const wait = rows.filter(r => r.t.status === '待評分');
+  const done = rows.filter(r => r.t.status !== '待評分');
+  const card = (r, idx) => `
+    <section class="pcard${r.t.status === '通過' ? ' done' : ''}" data-sid="${esc(r.s.sid)}" data-pid="${esc(r.t.id)}">
+      <div class="row"><h3>${esc(r.s.name)}｜${esc(r.t.id)} ${esc(r.t.title)}</h3>
+        <span class="pill ${r.t.status === '通過' ? 'ok' : (r.t.status === '退回' ? 'bad' : 'warn')}">${esc(r.t.status)}${r.t.status === '通過' && r.t.score != null ? ' ' + r.t.score : ''}</span></div>
+      <p class="hint">繳交 ${esc(r.t.time)}　<a class="link" href="${esc(r.t.link)}" target="_blank" rel="noopener">開啟 Tinkercad 作品 ↗</a></p>
+      <div class="row" style="gap:8px;align-items:flex-end">
+        <div class="field" style="flex:0 0 110px"><label for="sc${idx}">分數（滿分 ${r.t.points}）</label>
+          <input id="sc${idx}" class="pscore" type="number" min="0" max="${r.t.points}" step="1" value="${r.t.score != null ? r.t.score : ''}"></div>
+        <div class="field" style="flex:1 1 220px"><label for="cm${idx}">評語</label>
+          <input id="cm${idx}" class="pcomment" type="text" value="${esc(r.t.comment || '')}" placeholder="例如：遲滯做得好，記得加註解"></div>
+      </div>
+      <div class="row"><span class="err"></span>
+        <span style="display:flex;gap:8px"><button class="btn ghost sm pback" type="button">退回重做</button><button class="btn sm ppass" type="button">通過並給分</button></span></div>
+    </section>`;
+  box.innerHTML = `
+    <div class="section-title"><h2>術科評分</h2><span class="hint">待評分 ${wait.length} 件 · 術科占學期成績 ${Math.round(d.practicalWeight * 100)}%</span></div>
+    ${rows.length ? wait.map(card).join('') + done.map((r, i) => card(r, wait.length + i)).join('')
+      : '<div class="locked">還沒有人繳交術科。學生要 9 關全部通過才會開放繳交。</div>'}
+    <details style="margin-top:10px"><summary>術科題目（共 ${d.practicals.length} 題，可在試算表「術科題目」分頁修改）</summary>
+      ${d.practicals.map(t => `<p class="hint"><b>${esc(t.id)} ${esc(t.title)}</b>（${t.points} 分）：${esc(t.req)}</p>`).join('')}</details>`;
+  box.querySelectorAll('.pcard').forEach(c => {
+    const send = async status => {
+      const err = c.querySelector('.err'), btns = c.querySelectorAll('button');
+      err.textContent = ''; btns.forEach(b => { b.disabled = true; });
+      try {
+        await api('gradePractical', TOKEN, c.dataset.sid, c.dataset.pid,
+          Number(c.querySelector('.pscore').value || 0), c.querySelector('.pcomment').value, status);
+        toast(status === '通過' ? '已評分' : '已退回，學生可以重交');
+        showTeacher();
+      } catch (e) { err.textContent = e.message; btns.forEach(b => { b.disabled = false; }); }
+    };
+    c.querySelector('.ppass').onclick = () => send('通過');
+    c.querySelector('.pback').onclick = () => send('退回');
+  });
 }
 
 /* ───── 啟動 ───── */
