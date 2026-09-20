@@ -142,6 +142,13 @@ button,input{font:inherit;color:inherit}
 .pcard h3{font-size:1rem}
 .pcard .req{font-size:.92rem}
 .pcard .rubric{font-size:.86rem;color:var(--muted);white-space:pre-line}
+.fixbox{margin-top:14px;padding:16px;border-radius:12px;background:var(--soft);border:1px solid var(--line)}
+.fixbox h3{margin:0 0 6px;font-size:1.05rem}
+.fixbox .pill{margin-left:6px}
+.shot{display:block;max-width:min(320px,100%);border-radius:10px;border:1px solid var(--line);margin:10px 0}
+.fixbox .row{gap:10px;align-items:center;flex-wrap:wrap}
+.fixbox input[type=file]{font:inherit;max-width:100%}
+.solve .ans{display:block;margin:6px 0 0;font-weight:700;color:var(--ok, #1d7a45)}
 .solve{margin:8px 0 2px;padding:10px 12px;border-radius:8px;background:var(--soft);border-left:3px solid var(--accent);font-size:.9rem}
 .solve b{display:block;margin-bottom:4px;color:var(--accent)}
 .solve pre{margin:0;white-space:pre-wrap;font:13px/1.7 var(--sans);color:var(--ink)}
@@ -315,6 +322,74 @@ function showLogin(msg) {
       ROLE === 'teacher' ? showTeacher() : showHome(r.home);
     } catch (e) { $('#err').textContent = e.message; btn.disabled = false; }
   };
+}
+
+/* ───── 訂正上傳（測驗 3 次沒全對時） ───── */
+function renderFix(p) {
+  const box = $('#fixBox');
+  if (!box) return;
+  const f = p.fix;
+  if (!p.needFix && !(f && f.status)) { box.innerHTML = ''; return; }
+  if (p.passed && f && f.status === '通過') {
+    box.innerHTML = `<div class="fixbox"><h3>訂正已通過 ✓</h3>
+      <p class="hint">老師已確認你的訂正${f.comment ? '：' + esc(f.comment) : ''}，下一關已經開了。</p></div>`;
+    return;
+  }
+  const waiting = f && f.status === '待確認';
+  const back = f && f.status === '退回';
+  box.innerHTML = `<div class="fixbox">
+    <h3>訂正上傳${waiting ? '<span class="pill warn">等老師確認</span>' : (back ? '<span class="pill bad">老師請你重做</span>' : '')}</h3>
+    <p class="hint">測驗 3 次都沒有全對。請把<b>答錯的題目</b>抄在紙上訂正：題目、算式、答案都要寫，
+      然後拍一張清楚的照片上傳。老師確認後才會開下一關。</p>
+    ${back && f.comment ? `<p class="hint">老師的意見：${esc(f.comment)}</p>` : ''}
+    ${waiting ? `<p class="hint">已於 ${esc(f.time)} 上傳，等老師確認。要重拍可以直接再上傳一次。</p>` : ''}
+    <div class="field"><label for="fixFile">選擇照片（手機可直接拍照）</label>
+      <input id="fixFile" type="file" accept="image/*" capture="environment"></div>
+    <img class="shot" id="fixPrev" alt="" hidden>
+    <div class="row"><span class="err" id="fixErr"></span>
+      <button class="btn" id="fixBtn" type="button" disabled>上傳訂正</button></div>
+  </div>`;
+
+  let dataUrl = '';
+  const prev = $('#fixPrev'), btn = $('#fixBtn'), err = $('#fixErr');
+  $('#fixFile').onchange = ev => {
+    const file = ev.target.files && ev.target.files[0];
+    err.textContent = ''; btn.disabled = true; prev.hidden = true;
+    if (!file) return;
+    shrinkImage(file).then(url => {
+      dataUrl = url; prev.src = url; prev.hidden = false; btn.disabled = false;
+    }).catch(e => { err.textContent = '讀不到這張照片，請換一張'; });
+  };
+  btn.onclick = async () => {
+    if (!dataUrl) return;
+    btn.disabled = true; err.textContent = '上傳中…';
+    try {
+      await api('submitCorrection', TOKEN, LEVEL.id, dataUrl);
+      toast('已上傳，等老師確認');
+      showHome();
+    } catch (e) { err.textContent = e.message; btn.disabled = false; }
+  };
+}
+
+/** 照片縮到最長邊 1400 像素再轉 JPG，手機直拍的大照片才傳得上去 */
+function shrinkImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => { img.src = reader.result; };
+    img.onerror = reject;
+    img.onload = () => {
+      const max = 1400;
+      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+      const c = document.createElement('canvas');
+      c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(c.toDataURL('image/jpeg', 0.82));
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
 /* ───── 學生首頁 ───── */
@@ -635,7 +710,8 @@ async function showLevel(id) {
       <div class="meter"><i id="wbar" style="width:0"></i></div>
       <div class="row"><span class="live" id="live"></span><span class="hint" id="whint"></span></div>
     </div>` : '<div class="panel"><span class="live" id="live"></span></div>'}
-    <section class="panel" id="quizBox"></section>`;
+    <section class="panel" id="quizBox"></section>
+    <div id="fixBox"></div>`;
   $('#backBtn').onclick = () => showHome();
   if (d.video) mountVideo(d.video);
   renderProgress(d.progress);
@@ -666,6 +742,7 @@ function renderProgress(p) {
   }
   if (!wasDone && p.videoDone && wasDone !== undefined) toast('影片看完了，測驗已解鎖');
   if (!$('#quizForm')) renderQuizBox();
+  renderFix(p);
 }
 
 function renderQuizBox() {
@@ -676,7 +753,9 @@ function renderQuizBox() {
   if (!LEVEL.questionCount) html += '<p class="muted">這一關老師還沒出題，請稍後再回來。</p>';
   else if (!p.videoDone) html += '<p class="muted">看完影片後就能作答。</p>';
   else if (p.passed) html += `<p>已通過，最高 <b class="mono">${p.best}</b> 分。</p><div class="row"><button class="btn" id="nextBtn">回關卡列表</button>${p.attemptsLeft !== 0 ? '<button class="btn ghost" id="quizBtn">再考一次</button>' : ''}</div>`;
-  else if (p.attemptsLeft === 0) html += `<p>最高 <b class="mono">${p.best}</b> 分，作答次數已經用完，請找老師。</p>`;
+  else if (p.attemptsLeft === 0) html += p.needFix
+    ? `<p>最高 <b class="mono">${p.best}</b> 分，3 次都沒有全對。請依照下方說明訂正並上傳照片，老師確認後就能進下一關。</p>`
+    : `<p>最高 <b class="mono">${p.best}</b> 分，作答次數已經用完，請找老師。</p>`;
   else html += `${p.quizCount ? `<p>目前最高 <b class="mono">${p.best}</b> 分，還沒通過。</p>` : ''}<div><button class="btn" id="quizBtn">開始測驗</button></div>`;
   box.innerHTML = html;
   if ($('#quizBtn')) $('#quizBtn').onclick = startQuiz;
@@ -713,7 +792,8 @@ async function startQuiz() {
         const d = document.createElement('div');
         d.className = 'solve';
         const from = x.orig ? (x.varied ? `本題由原卷第 ${esc(x.orig)} 題改編（數字每次不同）` : `本題出自原卷第 ${esc(x.orig)} 題`) : '';
-        d.innerHTML = (from ? `<b>${from}</b>` : '') + (x.steps ? `<pre>${esc(x.steps)}</pre>` : '');
+        d.innerHTML = (from ? `<b>${from}</b>` : '') + (x.steps ? `<pre>${esc(x.steps)}</pre>` : '')
+          + (x.right ? `<span class="ans">正確答案：${esc(x.right)}</span>` : '');
         f.appendChild(d);
       });
       box.querySelectorAll('#quizForm input').forEach(i => { i.disabled = true; });
@@ -774,6 +854,7 @@ async function showTeacher() {
           ${s.sessions.length ? `<div class="sess">${s.sessions.map(x => `<span class="mono">${esc(x.date)} ${esc(x.start)}–${esc(x.end)}　${Math.round(x.minutes)} 分</span>`).join('')}</div>` : '<span class="muted">還沒有上課紀錄。</span>'}
         </td></tr>`).join('') || `<tr><td colspan="${d.levels.length + 7}" class="muted">「學生名單」分頁還沒有學生。</td></tr>`}
       </tbody></table></div>
+    <div id="fixGrade"></div>
     <div id="pracGrade"></div>
     <section class="panel" id="mailBox" aria-labelledby="mailTitle">
       <div class="row"><h2 id="mailTitle">寄送登入碼</h2><span class="hint">勾選要寄的學生，登入碼會寄到學生的學校信箱</span></div>
@@ -788,6 +869,7 @@ async function showTeacher() {
     const toggle = () => { const det = app.querySelector(`tr.detail[data-for="${tr.dataset.i}"]`); det.hidden = !det.hidden; tr.setAttribute('aria-expanded', String(!det.hidden)); };
     tr.onclick = toggle; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } };
   });
+  renderFixGrade(d);
   renderPracGrade(d);
   $('#refBtn').onclick = showTeacher;
   const boxes = () => [...app.querySelectorAll('input[name="mailSid"]:not(:disabled)')];
@@ -815,6 +897,55 @@ async function showTeacher() {
     catch (e) { toast(e.message); }
     finally { b.disabled = false; }
   };
+}
+
+/** 教師後台：訂正確認 */
+function renderFixGrade(d) {
+  const box = $('#fixGrade');
+  if (!box || !d.fixMode || !d.corrections || !d.corrections.length) { if (box) box.innerHTML = ''; return; }
+  const wait = d.corrections.filter(c => c.status === '待確認');
+  const done = d.corrections.filter(c => c.status !== '待確認');
+  const card = (c, i) => `
+    <section class="pcard${c.status === '通過' ? ' done' : ''}" data-sid="${esc(c.sid)}" data-lv="${esc(c.level)}" data-file="${esc(c.fileId)}">
+      <div class="row"><h3>${esc(c.name)}｜關卡 ${esc(c.level)} 訂正</h3>
+        <span class="pill ${c.status === '通過' ? 'ok' : (c.status === '退回' ? 'bad' : 'warn')}">${esc(c.status)}</span></div>
+      <p class="hint">上傳 ${esc(c.time)}　<button class="link showShot" type="button">看照片</button>
+        <a class="link" href="${esc(c.link)}" target="_blank" rel="noopener">在雲端硬碟開啟 ↗</a></p>
+      <div class="shotBox"></div>
+      <div class="field"><label for="fc${i}">給學生的話（退回時務必寫）</label>
+        <input id="fc${i}" class="fcomment" type="text" value="${esc(c.comment || '')}" placeholder="例如：第 3 題的算式再寫清楚一點"></div>
+      <div class="row"><span class="err"></span>
+        <span style="display:flex;gap:8px"><button class="btn ghost sm fback" type="button">退回重做</button>
+          <button class="btn sm fpass" type="button">確認通過</button></span></div>
+    </section>`;
+  box.innerHTML = `
+    <div class="section-title"><h2>訂正確認</h2>
+      <span class="hint">待確認 ${wait.length} 件 · 學生測驗 3 次沒全對時要上傳訂正，確認後才會開下一關</span></div>
+    ${wait.map(card).join('') + done.map((c, i) => card(c, wait.length + i)).join('')}`;
+  box.querySelectorAll('.pcard').forEach(c => {
+    c.querySelector('.showShot').onclick = async ev => {
+      const btn = ev.currentTarget, holder = c.querySelector('.shotBox');
+      if (holder.firstChild) { holder.innerHTML = ''; btn.textContent = '看照片'; return; }
+      btn.disabled = true; btn.textContent = '載入中…';
+      try {
+        const url = await api('getCorrectionImage', TOKEN, c.dataset.file);
+        holder.innerHTML = `<img class="shot" src="${url}" alt="訂正照片">`;
+        btn.textContent = '收起照片';
+      } catch (e) { holder.innerHTML = `<p class="hint">${esc(e.message)}</p>`; btn.textContent = '看照片'; }
+      btn.disabled = false;
+    };
+    const send = async status => {
+      const err = c.querySelector('.err'), btns = c.querySelectorAll('.fpass,.fback');
+      err.textContent = ''; btns.forEach(b => { b.disabled = true; });
+      try {
+        await api('gradeCorrection', TOKEN, c.dataset.sid, c.dataset.lv, status, c.querySelector('.fcomment').value);
+        toast(status === '通過' ? '已確認，學生可以進下一關' : '已退回，學生可以重新上傳');
+        showTeacher();
+      } catch (e) { err.textContent = e.message; btns.forEach(b => { b.disabled = false; }); }
+    };
+    c.querySelector('.fpass').onclick = () => send('通過');
+    c.querySelector('.fback').onclick = () => send('退回');
+  });
 }
 
 /** 教師後台：術科評分 */
