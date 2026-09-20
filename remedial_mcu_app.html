@@ -142,6 +142,7 @@ button,input{font:inherit;color:inherit}
 .pcard h3{font-size:1rem}
 .pcard .req{font-size:.92rem}
 .pcard .rubric{font-size:.86rem;color:var(--muted);white-space:pre-line}
+pre.sol{background:#10201f;color:#dbe7e4;border-radius:10px;padding:12px;margin:0 0 10px;overflow-x:auto;font:12.5px/1.55 Consolas,monospace;white-space:pre}
 .pcard .field{gap:6px}
 .pcard input[type=url],.pcard input[type=text],.pcard input[type=number],.pcard textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--bg);font-family:inherit}
 .pcard .link{word-break:break-all}
@@ -826,7 +827,20 @@ function renderPracGrade(d) {
     ${rows.length ? wait.map(card).join('') + done.map((r, i) => card(r, wait.length + i)).join('')
       : '<div class="locked">還沒有人繳交術科。學生要 9 關全部通過才會開放繳交。</div>'}
     <details style="margin-top:10px"><summary>術科題目（共 ${d.practicals.length} 題，可在試算表「術科題目」分頁修改）</summary>
-      ${d.practicals.map(t => `<p class="hint"><b>${esc(t.id)} ${esc(t.title)}</b>（${t.points} 分）：${esc(t.req)}</p>`).join('')}</details>`;
+      ${d.practicals.map(t => `<p class="hint"><b>${esc(t.id)} ${esc(t.title)}</b>（${t.points} 分）：${esc(t.req)}</p>`).join('')}</details>
+    <details id="solBox" style="margin-top:6px"><summary>參考程式（只有老師看得到）</summary>
+      <div id="solBody"><p class="hint">展開後才會載入。</p></div></details>`;
+  const solBox = $('#solBox');
+  if (solBox) solBox.ontoggle = async () => {
+    if (!solBox.open || solBox.dataset.loaded === '1') return;
+    solBox.dataset.loaded = '1';
+    const body = $('#solBody');
+    body.innerHTML = '<p class="hint">載入中…</p>';
+    try {
+      const list = await api('getSolutions', TOKEN);
+      body.innerHTML = list.map(x => `<p class="hint"><b>${esc(x.id)}｜${esc(x.title)}</b>　${esc(x.note || '')}</p><pre class="sol">${esc(x.code)}</pre>`).join('');
+    } catch (e) { solBox.dataset.loaded = ''; body.innerHTML = `<p class="hint">${esc(e.message)}</p>`; }
+  };
   box.querySelectorAll('.pcard').forEach(c => {
     const send = async status => {
       const err = c.querySelector('.err'), btns = c.querySelectorAll('button');
