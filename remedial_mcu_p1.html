@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>呼吸燈 × 滑桿</title>
+<meta name="description" content="互動展示：電位器滑桿的位置如何決定呼吸燈的呼吸速度，含即時數值、波形與等效 Arduino 程式。">
+<style>
+  :root{
+    --bg:#f4f6f7; --card:#fff; --ink:#15232a; --muted:#5a6b73; --line:#d8e0e3;
+    --accent:#00696b; --accent-ink:#fff; --led:#ffb300; --led-soft:#ffd97a;
+    --code-bg:#11202400; --code:#0f1c20; --code-ink:#dbe7e4;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0e1618; --card:#152125; --ink:#e6eef0; --muted:#9fb2b8; --line:#26383e;
+      --accent:#4fd1c5; --accent-ink:#06211f; --led:#ffc23d; --led-soft:#7a5a12; --code:#0a1416;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.7 "Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+  main{max-width:880px;margin:0 auto;padding:24px 16px 56px}
+  h1{font-size:clamp(1.4rem,4vw,2rem);margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  .stage{display:grid;place-items:center;gap:8px;padding:22px 12px}
+  .ledwrap{position:relative;width:180px;height:180px;display:grid;place-items:center}
+  .glow{position:absolute;inset:0;border-radius:50%;background:var(--led);filter:blur(18px);opacity:0}
+  .bulb{position:relative;width:96px;height:96px;border-radius:50%;background:var(--led);
+    border:3px solid rgba(0,0,0,.18);opacity:.1}
+  .legs{width:40px;height:34px;border-left:3px solid var(--muted);border-right:3px solid var(--muted);opacity:.6}
+  .ctl{display:grid;gap:10px}
+  .ctl label{font-weight:700}
+  input[type=range]{width:100%;height:36px;accent-color:var(--accent);background:transparent}
+  .ends{display:flex;justify-content:space-between;color:var(--muted);font-size:.88rem}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  button{font:inherit;cursor:pointer;border-radius:10px;padding:9px 16px;min-height:44px;
+    border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:700}
+  button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .num{background:var(--card);padding:12px 14px}
+  .num span{display:block;font-size:.82rem;color:var(--muted)}
+  .num b{font-size:1.5rem;font-variant-numeric:tabular-nums}
+  .num b small{font-size:.8rem;color:var(--muted);font-weight:500;margin-left:3px}
+  canvas{width:100%;height:150px;display:block;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+  h2{font-size:1.1rem;margin:0 0 8px}
+  pre{background:var(--code);color:var(--code-ink);border-radius:10px;padding:14px;overflow-x:auto;
+    font:13.5px/1.6 "JetBrains Mono",Consolas,monospace;margin:0}
+  .codehead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+  .hint{color:var(--muted);font-size:.9rem}
+  ol{padding-left:1.3em}
+  @media (max-width:420px){.ledwrap{width:150px;height:150px}.bulb{width:78px;height:78px}}
+</style>
+</head>
+<body>
+<main>
+  <h1>呼吸燈 × 滑桿</h1>
+  <p class="sub">拖曳滑桿就是在 Tinkercad 裡拖曳電位器：<b>滑桿越靠左，呼吸越慢；越靠右，呼吸越快。</b></p>
+
+  <section class="card">
+    <div class="stage">
+      <div class="ledwrap">
+        <div class="glow" id="glow"></div>
+        <div class="bulb" id="bulb"></div>
+      </div>
+      <div class="legs"></div>
+      <p class="hint" id="state">目前：中速（約 3.3 秒呼吸一次）</p>
+    </div>
+
+    <div class="ctl">
+      <label for="pot">電位器滑桿（analogRead 讀值 0～1023）</label>
+      <input id="pot" type="range" min="0" max="1023" step="1" value="512"
+             aria-describedby="potHint" aria-valuetext="512，呼吸週期 3300 毫秒">
+      <div class="ends"><span>◀ 最左：最慢（6 秒）</span><span>最右：最快（0.6 秒）▶</span></div>
+      <p class="hint" id="potHint">可以用滑鼠拖曳，或先點一下滑桿再用鍵盤左右方向鍵微調。</p>
+      <div class="row">
+        <button id="play" type="button">⏸ 暫停</button>
+        <button class="ghost" id="slow" type="button">滑到最左（最慢）</button>
+        <button class="ghost" id="fast" type="button">滑到最右（最快）</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>即時數值</h2>
+    <div class="nums">
+      <div class="num"><span>電位器讀值</span><b id="vRead">512</b></div>
+      <div class="num"><span>呼吸週期</span><b id="vPeriod">3300<small>ms</small></b></div>
+      <div class="num"><span>目前亮度</span><b id="vBright">0<small>/ 255</small></b></div>
+      <div class="num"><span>analogWrite 值</span><b id="vPwm">0</b></div>
+    </div>
+    <p class="hint">亮度就是寫進腳位的 analogWrite 值：0 是全暗，255 是最亮。</p>
+  </section>
+
+  <section class="card">
+    <h2>亮度隨時間的變化</h2>
+    <canvas id="wave" width="1200" height="300" aria-label="亮度波形圖，滑桿越往右波形越密"></canvas>
+    <p class="hint">滑桿往右時，波峰之間變窄，代表同樣時間內呼吸的次數變多。</p>
+  </section>
+
+  <section class="card">
+    <div class="codehead"><h2 style="margin:0">等效的 Arduino 程式</h2>
+      <button class="ghost" id="copy" type="button">複製程式</button></div>
+    <pre id="code"><code>const int POT = A0;     // 電位器滑桿（中間腳接 A0）
+const int LED = 9;      // LED 接可輸出 PWM 的腳位，記得串限流電阻
+
+int brightness = 0;     // 目前亮度 0～255
+int step = 1;           // 每次變化的方向：+1 變亮、-1 變暗
+
+void setup() {
+  pinMode(LED, OUTPUT);
+  Serial.begin(9600);
+}
+
+void loop() {
+  // 每次迴圈都重新讀滑桿，所以拖曳時速度立刻改變
+  int pot = analogRead(POT);              // 0～1023
+
+  // 滑桿最左 → 一次呼吸 6000 毫秒；最右 → 600 毫秒
+  int period = map(pot, 0, 1023, 6000, 600);
+
+  // 一次呼吸要走 510 步（0→255→0），算出每一步要等多久
+  int wait = period / 510;
+  if (wait < 1) wait = 1;
+
+  analogWrite(LED, brightness);           // 用 PWM 控制亮度
+  brightness += step;
+  if (brightness >= 255 || brightness <= 0) step = -step;   // 到頂或到底就換方向
+
+  Serial.println(pot);
+  delay(wait);
+}</code></pre>
+    <p class="hint">這段程式的換算方式和上面的動畫完全一樣：<code>map(pot, 0, 1023, 6000, 600)</code>。</p>
+  </section>
+
+  <section class="card">
+    <h2>課堂操作方式</h2>
+    <ol>
+      <li>先把滑桿拉到<b>最左邊</b>，請學生數一次呼吸要幾秒（約 6 秒），並看「呼吸週期」變成 6000 毫秒。</li>
+      <li>再慢慢往右拖曳，讓學生同時注意三件事：燈呼吸變快、週期數字變小、下方波形變密。</li>
+      <li>最後對照程式裡的 <code>map(pot, 0, 1023, 6000, 600)</code>，說明「滑桿位置 → 週期 → 每一步的等待時間」這條換算鏈。</li>
+    </ol>
+  </section>
+</main>
+
+<script>
+(function () {
+  var pot = document.getElementById('pot');
+  var bulb = document.getElementById('bulb');
+  var glow = document.getElementById('glow');
+  var playBtn = document.getElementById('play');
+  var canvas = document.getElementById('wave');
+  var ctx = canvas.getContext('2d');
+  var vRead = document.getElementById('vRead'), vPeriod = document.getElementById('vPeriod');
+  var vBright = document.getElementById('vBright'), vPwm = document.getElementById('vPwm');
+  var state = document.getElementById('state');
+
+  var SLOW = 6000, FAST = 600;      // 最慢、最快的一次呼吸（毫秒）
+  var playing = true, phase = 0, last = 0;
+  var history = [];                  // 波形資料
+
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function period() {               // 和 Arduino 的 map 一樣
+    return Math.round(SLOW + (FAST - SLOW) * (pot.value / 1023));
+  }
+  function brightnessOf(p) {        // 三角波：0→255→0，和程式的加減一步一致
+    var t = p < 0.5 ? p * 2 : (1 - p) * 2;
+    return Math.round(t * 255);
+  }
+  function label(ms) {
+    var s = (ms / 1000).toFixed(1);
+    if (ms >= 4500) return '慢速（約 ' + s + ' 秒呼吸一次）';
+    if (ms >= 2000) return '中速（約 ' + s + ' 秒呼吸一次）';
+    return '快速（約 ' + s + ' 秒呼吸一次）';
+  }
+  function paint(b) {
+    var ratio = b / 255;
+    bulb.style.opacity = (0.1 + ratio * 0.9).toFixed(3);
+    glow.style.opacity = (ratio * 0.55).toFixed(3);
+    vBright.innerHTML = b + '<small>/ 255</small>';
+    vPwm.textContent = b;
+  }
+  function showNumbers() {
+    var ms = period();
+    vRead.textContent = pot.value;
+    vPeriod.innerHTML = ms + '<small>ms</small>';
+    state.textContent = '目前：' + label(ms);
+    pot.setAttribute('aria-valuetext', pot.value + '，呼吸週期 ' + ms + ' 毫秒');
+  }
+  function drawWave() {
+    var w = canvas.width, h = canvas.height;
+    var css = getComputedStyle(document.body);
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = css.getPropertyValue('--line');
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, h - 12); ctx.lineTo(w, h - 12); ctx.stroke();
+    if (history.length < 2) return;
+    ctx.strokeStyle = css.getPropertyValue('--led');
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    var n = history.length, stepX = w / (n - 1);
+    for (var i = 0; i < n; i++) {
+      var y = h - 12 - (history[i] / 255) * (h - 30);
+      if (i === 0) ctx.moveTo(0, y); else ctx.lineTo(i * stepX, y);
+    }
+    ctx.stroke();
+  }
+  function tick(now) {
+    if (!last) last = now;
+    var dt = now - last; last = now;
+    if (playing) {
+      phase = (phase + dt / period()) % 1;
+      var b = brightnessOf(phase);
+      paint(b);
+      history.push(b);
+      if (history.length > 600) history.shift();   // 保留最近約 10 秒
+      drawWave();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  pot.addEventListener('input', showNumbers);
+  playBtn.addEventListener('click', function () {
+    playing = !playing;
+    playBtn.textContent = playing ? '⏸ 暫停' : '▶ 播放';
+    last = 0;
+  });
+  document.getElementById('slow').addEventListener('click', function () { pot.value = 0; showNumbers(); });
+  document.getElementById('fast').addEventListener('click', function () { pot.value = 1023; showNumbers(); });
+  var copyBtn = document.getElementById('copy');
+  if (copyBtn) copyBtn.addEventListener('click', function (e) {
+    var t = document.getElementById('code').textContent;
+    var b = e.currentTarget;
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () {
+      b.textContent = '已複製'; setTimeout(function () { b.textContent = '複製程式'; }, 1500);
+    }, function () { b.textContent = '請手動選取'; });
+    else b.textContent = '請手動選取';
+  });
+
+  if (reduce) {                    // 系統關閉動畫效果時先暫停，按播放仍可觀看
+    playing = false;
+    playBtn.textContent = '▶ 播放';
+    paint(255);
+  }
+  showNumbers();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

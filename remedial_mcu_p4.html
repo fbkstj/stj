@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>霹靂燈 × 滑桿</title>
+<meta name="description" content="互動展示：電位器滑桿的位置如何決定霹靂燈亮點的移動間隔時間，含即時數值與等效 Arduino 程式。">
+<style>
+  :root{
+    --bg:#f4f6f7; --card:#fff; --ink:#15232a; --muted:#5a6b73; --line:#d8e0e3;
+    --accent:#00696b; --accent-ink:#fff; --led:#ff3b30; --off:#c9d3d6; --code:#0f1c20; --code-ink:#dbe7e4;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{--bg:#0e1618; --card:#152125; --ink:#e6eef0; --muted:#9fb2b8; --line:#26383e;
+      --accent:#4fd1c5; --accent-ink:#06211f; --led:#ff5449; --off:#2c3f45; --code:#0a1416;}
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:16px/1.7 "Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif}
+  main{max-width:880px;margin:0 auto;padding:24px 16px 56px}
+  h1{font-size:clamp(1.4rem,4vw,2rem);margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  .strip{display:flex;gap:2.2%;align-items:center;justify-content:center;padding:26px 4px 10px}
+  .led{flex:1 1 0;aspect-ratio:1/1;max-width:36px;border-radius:50%;background:var(--off);
+    border:2px solid rgba(0,0,0,.12);transition:none}
+  .led.on{background:var(--led);box-shadow:0 0 14px 4px var(--led)}
+  .marks{display:flex;gap:2.2%;justify-content:center;color:var(--muted);font-size:.72rem}
+  .marks span{flex:1 1 0;max-width:36px;text-align:center;font-variant-numeric:tabular-nums}
+  .ctl{display:grid;gap:10px;margin-top:6px}
+  .ctl label{font-weight:700}
+  input[type=range]{width:100%;height:36px;accent-color:var(--accent);background:transparent}
+  .ends{display:flex;justify-content:space-between;color:var(--muted);font-size:.88rem}
+  .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  button{font:inherit;cursor:pointer;border-radius:10px;padding:9px 16px;min-height:44px;
+    border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:700}
+  button.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+  button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+  .nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;background:var(--line);
+    border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .num{background:var(--card);padding:12px 14px}
+  .num span{display:block;font-size:.82rem;color:var(--muted)}
+  .num b{font-size:1.5rem;font-variant-numeric:tabular-nums}
+  .num b small{font-size:.8rem;color:var(--muted);font-weight:500;margin-left:3px}
+  h2{font-size:1.1rem;margin:0 0 8px}
+  pre{background:var(--code);color:var(--code-ink);border-radius:10px;padding:14px;overflow-x:auto;
+    font:13.5px/1.6 "JetBrains Mono",Consolas,monospace;margin:0}
+  .codehead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+  .hint{color:var(--muted);font-size:.9rem}
+  ol{padding-left:1.3em}
+  .sw{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.92rem}
+</style>
+</head>
+<body>
+<main>
+  <h1>霹靂燈 × 滑桿</h1>
+  <p class="sub">滑桿就是 Tinkercad 裡的電位器：<b>滑桿越靠左，亮點移動的間隔時間越長（跑得越慢）；越靠右，間隔越短（跑得越快）。</b></p>
+
+  <section class="card">
+    <div class="strip" id="strip" aria-label="16 顆 LED，亮點左右來回移動"></div>
+    <div class="marks" id="marks"></div>
+    <p class="hint" style="text-align:center" id="state">目前：中速（每格 160 毫秒）</p>
+
+    <div class="ctl">
+      <label for="pot">電位器滑桿（analogRead 讀值 0～1023）</label>
+      <input id="pot" type="range" min="0" max="1023" step="1" value="512"
+             aria-describedby="potHint" aria-valuetext="512，每格間隔 160 毫秒">
+      <div class="ends"><span>◀ 最左：最慢（每格 300 ms）</span><span>最右：最快（每格 20 ms）▶</span></div>
+      <p class="hint" id="potHint">可以用滑鼠拖曳，或先點一下滑桿再用鍵盤左右方向鍵微調。</p>
+      <div class="row">
+        <button id="play" type="button">⏸ 暫停</button>
+        <button class="ghost" id="slow" type="button">滑到最左（最慢）</button>
+        <button class="ghost" id="fast" type="button">滑到最右（最快）</button>
+        <label class="sw"><input type="checkbox" id="tail"> 顯示尾巴變暗（加分項）</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>即時數值</h2>
+    <div class="nums">
+      <div class="num"><span>電位器讀值</span><b id="vRead">512</b></div>
+      <div class="num"><span>每格間隔</span><b id="vGap">160<small>ms</small></b></div>
+      <div class="num"><span>目前亮的是第幾顆</span><b id="vIdx">1</b></div>
+      <div class="num"><span>來回一趟</span><b id="vCycle">4.8<small>秒</small></b></div>
+    </div>
+    <p class="hint">來回一趟＝走 30 格（左到右 15 格、右回左 15 格）× 每格間隔。</p>
+  </section>
+
+  <section class="card">
+    <div class="codehead"><h2 style="margin:0">等效的 Arduino 程式</h2>
+      <button class="ghost" id="copy" type="button">複製程式</button></div>
+    <pre id="code"><code>const int POT = A0;     // 電位器滑桿（中間腳接 A0）
+
+// 16 顆 LED 的腳位（每顆都要串一個限流電阻）
+// 0、1 腳留給序列埠不要用；A1～A4 當數位腳輸出是可以的
+const int LED[16] = {2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, A1, A2, A3, A4};
+
+int pos = 0;            // 現在亮的是第幾顆（0～15）
+int dir = 1;            // 移動方向：+1 往右、-1 往左
+
+void setup() {
+  for (int i = 0; i &lt; 16; i++) pinMode(LED[i], OUTPUT);
+}
+
+void loop() {
+  // 每次迴圈都重新讀滑桿，所以拖曳時速度立刻改變
+  int pot = analogRead(POT);              // 0～1023
+
+  // 滑桿最左 → 每格等 300 毫秒（慢）；最右 → 每格等 20 毫秒（快）
+  int gap = map(pot, 0, 1023, 300, 20);
+
+  for (int i = 0; i &lt; 16; i++) {          // 只讓 pos 這一顆亮
+    digitalWrite(LED[i], i == pos ? HIGH : LOW);
+  }
+
+  delay(gap);                             // 間隔時間就是速度
+
+  pos += dir;                             // 移到下一格
+  if (pos == 15 || pos == 0) dir = -dir;  // 碰到兩端就折返
+}</code></pre>
+    <p class="hint">換算方式和上面的動畫完全一樣：<code>map(pot, 0, 1023, 300, 20)</code>。想再進階，就用 <code>millis()</code> 取代 <code>delay()</code>，滑動滑桿時反應更即時。</p>
+  </section>
+
+  <section class="card">
+    <h2>課堂操作方式</h2>
+    <ol>
+      <li>先把滑桿拉到<b>最左邊</b>，請學生看清楚亮點是一格一格移動的，並記住「每格間隔 300 毫秒」。</li>
+      <li>慢慢往右拖曳，讓學生同時注意：亮點跑得越來越快、間隔數字越來越小，但<b>亮的永遠只有一顆</b>。</li>
+      <li>對照程式：滑桿只影響 <code>delay(gap)</code> 這一行，<code>pos</code> 的加減和折返判斷完全沒變——速度和移動邏輯是分開的兩件事。</li>
+    </ol>
+  </section>
+</main>
+
+<script>
+(function () {
+  var N = 16, SLOW = 300, FAST = 20;
+  var strip = document.getElementById('strip');
+  var marks = document.getElementById('marks');
+  var pot = document.getElementById('pot');
+  var playBtn = document.getElementById('play');
+  var tail = document.getElementById('tail');
+  var vRead = document.getElementById('vRead'), vGap = document.getElementById('vGap');
+  var vIdx = document.getElementById('vIdx'), vCycle = document.getElementById('vCycle');
+  var state = document.getElementById('state');
+
+  var leds = [];
+  for (var i = 0; i < N; i++) {
+    var d = document.createElement('div');
+    d.className = 'led';
+    strip.appendChild(d);
+    leds.push(d);
+    var m = document.createElement('span');
+    m.textContent = (i + 1);
+    marks.appendChild(m);
+  }
+
+  var pos = 0, dir = 1, playing = true, acc = 0, last = 0;
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function gapOf() {                 // 和 Arduino 的 map 一樣
+    return Math.round(SLOW + (FAST - SLOW) * (pot.value / 1023));
+  }
+  function label(ms) {
+    if (ms >= 200) return '慢速（每格 ' + ms + ' 毫秒）';
+    if (ms >= 90) return '中速（每格 ' + ms + ' 毫秒）';
+    return '快速（每格 ' + ms + ' 毫秒）';
+  }
+  function paint() {
+    for (var i = 0; i < N; i++) {
+      var on = i === pos;
+      leds[i].classList.toggle('on', on);
+      if (tail.checked && !on) {     // 尾巴：離亮點越遠越暗
+        var far = Math.abs(i - pos);
+        leds[i].style.opacity = far <= 3 ? (0.7 - far * 0.2).toFixed(2) : '';
+        leds[i].style.background = far <= 3 ? 'var(--led)' : '';
+      } else {
+        leds[i].style.opacity = '';
+        leds[i].style.background = '';
+      }
+    }
+    vIdx.textContent = pos + 1;
+  }
+  function showNumbers() {
+    var ms = gapOf();
+    vRead.textContent = pot.value;
+    vGap.innerHTML = ms + '<small>ms</small>';
+    vCycle.innerHTML = ((ms * (N - 1) * 2) / 1000).toFixed(1) + '<small>秒</small>';
+    state.textContent = '目前：' + label(ms);
+    pot.setAttribute('aria-valuetext', pot.value + '，每格間隔 ' + ms + ' 毫秒');
+  }
+  function tick(now) {
+    if (!last) last = now;
+    var dt = now - last; last = now;
+    if (playing) {
+      acc += dt;
+      var gap = gapOf(), moved = false;
+      while (acc >= gap) {           // 時間到才走一格，和 delay(gap) 同一個意思
+        acc -= gap;
+        pos += dir;
+        if (pos >= N - 1) { pos = N - 1; dir = -1; }
+        else if (pos <= 0) { pos = 0; dir = 1; }
+        moved = true;
+        gap = gapOf();
+      }
+      if (moved) paint();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  pot.addEventListener('input', showNumbers);
+  tail.addEventListener('change', paint);
+  playBtn.addEventListener('click', function () {
+    playing = !playing;
+    playBtn.textContent = playing ? '⏸ 暫停' : '▶ 播放';
+    last = 0;
+  });
+  document.getElementById('slow').addEventListener('click', function () { pot.value = 0; showNumbers(); });
+  document.getElementById('fast').addEventListener('click', function () { pot.value = 1023; showNumbers(); });
+  var copyBtn = document.getElementById('copy');
+  if (copyBtn) copyBtn.addEventListener('click', function (e) {
+    var t = document.getElementById('code').textContent;
+    var b = e.currentTarget;
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () {
+      b.textContent = '已複製'; setTimeout(function () { b.textContent = '複製程式'; }, 1500);
+    }, function () { b.textContent = '請手動選取'; });
+    else b.textContent = '請手動選取';
+  });
+
+  if (reduce) {                      // 系統關閉動畫效果時先暫停，按播放仍可觀看
+    playing = false;
+    playBtn.textContent = '▶ 播放';
+  }
+  showNumbers();
+  paint();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
