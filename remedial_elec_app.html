@@ -113,15 +113,19 @@ button,input{font:inherit;color:inherit}
 .player{position:relative;aspect-ratio:16/9;max-width:100%;background:#000;border-radius:12px;overflow:hidden}
 .player iframe,.player video,.player>#yt{position:absolute;inset:0;width:100%;height:100%;border:0}
 .player:fullscreen{border-radius:0}
-/* 自製影片控制列：時間軸只顯示、不能拖曳 */
+/* 自製影片控制列：時間軸只能在看過的範圍內拖曳 */
 .vbar{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;align-items:center;gap:6px;padding:18px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff}
 .vbar button,.vbig{background:none;border:0;color:#fff;cursor:pointer;display:grid;place-items:center;border-radius:8px}
 .vbar button{min-width:40px;height:40px;padding:0 6px;font:700 .8rem var(--sans);white-space:nowrap}
 .vbar button:hover{background:rgba(255,255,255,.16)}
 .vbar svg,.vbig svg{width:22px;height:22px;fill:currentColor}
 .vtime{font:500 .8rem var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
-.vtrack{flex:1;min-width:40px;height:6px;border-radius:3px;background:rgba(255,255,255,.25);position:relative;overflow:hidden}
+.vtrack{flex:1;min-width:40px;height:28px;position:relative;cursor:pointer;touch-action:none;display:flex;align-items:center}
+.vtrack:focus-visible{outline:2px solid #35b8b4;outline-offset:2px;border-radius:4px}
+.vtrack .rail{position:relative;width:100%;height:6px;border-radius:3px;background:rgba(255,255,255,.25);overflow:hidden}
+.vtrack:hover .rail,.vtrack.drag .rail{height:8px}
 .vtrack i{position:absolute;top:0;bottom:0;left:0;width:0}
+.vtrack .knob{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(53,184,180,.55);pointer-events:none;left:0}
 .vtrack .seen{background:rgba(255,255,255,.4)}
 .vtrack .cur{background:#35b8b4}
 .vbig{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2;width:72px;height:72px;border-radius:50%;background:rgba(0,0,0,.55)}
@@ -651,14 +655,15 @@ const IC = {
   mute: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2"/></svg>',
   full: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
 };
-/** 自製控制列：播放／暫停、倒退 10 秒、靜音、全螢幕；時間軸只顯示進度，不能拖曳 */
+/** 自製控制列：播放／暫停、倒退 10 秒、靜音、全螢幕；時間軸可以拖曳，但只能在已經看過的範圍內 */
 function addControls(box, vid) {
   const bar = document.createElement('div');
   bar.className = 'vbar';
   bar.innerHTML = `<button type="button" data-a="play"></button>
     <button type="button" data-a="back" aria-label="倒退 10 秒">−10 秒</button>
     <span class="vtime">0:00 / 0:00</span>
-    <div class="vtrack" aria-hidden="true"><i class="seen"></i><i class="cur"></i></div>
+    <div class="vtrack" role="slider" tabindex="0" aria-label="播放位置（只能拉到已經看過的地方）" aria-valuemin="0">
+      <div class="rail"><i class="seen"></i><i class="cur"></i></div><b class="knob"></b></div>
     <button type="button" data-a="mute"></button>
     <button type="button" data-a="full" aria-label="全螢幕">${IC.full}</button>`;
   const big = document.createElement('button');
@@ -674,10 +679,47 @@ function addControls(box, vid) {
     else if (box.requestFullscreen) box.requestFullscreen().catch(() => {});
     else if (vid.webkitEnterFullscreen) vid.webkitEnterFullscreen(); // iPhone 只能讓影片本身全螢幕
   };
+  // 時間軸：點或拖曳到看過的地方；超過看過的最遠處就停在那裡
+  const track = bar.querySelector('.vtrack');
+  let warned = false;
+  const seekTo = (sec, fromUser) => {
+    const d = vid.duration || 0;
+    if (!d) return;
+    const limit = Math.min(d, study.mode === 'player' ? study.pos : d);
+    if (sec > limit + 0.5 && fromUser && !warned) { warned = true; toast('還沒看過的部分不能快轉，可以往回看'); }
+    vid.currentTime = Math.max(0, Math.min(sec, limit));
+    sync();
+  };
+  const secAt = ev => {
+    const r = track.getBoundingClientRect();
+    return Math.max(0, Math.min(1, (ev.clientX - r.left) / r.width)) * (vid.duration || 0);
+  };
+  track.addEventListener('pointerdown', ev => {
+    ev.preventDefault();
+    warned = false;
+    track.setPointerCapture(ev.pointerId);
+    track.classList.add('drag');
+    seekTo(secAt(ev), true);
+  });
+  track.addEventListener('pointermove', ev => { if (track.classList.contains('drag')) seekTo(secAt(ev), true); });
+  const endDrag = () => track.classList.remove('drag');
+  track.addEventListener('pointerup', endDrag);
+  track.addEventListener('pointercancel', endDrag);
+  track.addEventListener('keydown', ev => {
+    const step = { ArrowLeft: -5, ArrowDown: -5, ArrowRight: 5, ArrowUp: 5, PageDown: -30, PageUp: 30 }[ev.key];
+    if (ev.key === 'Home') { ev.preventDefault(); warned = false; return seekTo(0, true); }
+    if (ev.key === 'End') { ev.preventDefault(); warned = false; return seekTo(Infinity, true); }
+    if (step) { ev.preventDefault(); warned = false; seekTo((vid.currentTime || 0) + step, true); }
+  });
+
   const sync = () => {
     const d = vid.duration || 0, t = vid.currentTime || 0;
     bar.querySelector('.vtime').textContent = `${mmss(t)} / ${mmss(d)}`;
     bar.querySelector('.cur').style.width = d ? Math.min(100, t / d * 100) + '%' : '0';
+    bar.querySelector('.knob').style.left = d ? Math.min(100, t / d * 100) + '%' : '0';
+    track.setAttribute('aria-valuemax', String(Math.round(d)));
+    track.setAttribute('aria-valuenow', String(Math.round(t)));
+    track.setAttribute('aria-valuetext', `${mmss(t)}，已看到 ${mmss(Math.min(d, study.pos))}`);
     bar.querySelector('.seen').style.width = d ? Math.min(100, study.pos / d * 100) + '%' : '0';
     btn('play').innerHTML = vid.paused ? IC.play : IC.pause;
     btn('play').setAttribute('aria-label', vid.paused ? '播放' : '暫停');
