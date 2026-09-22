@@ -857,12 +857,20 @@
             const daysCount = getDaysInMonth(year, month);
             const weekDayNames = ['日','一','二','三','四','五','六'];
             
-            // 依當月天數計算每列高度（A4 高 297mm − 列印邊距 16mm − 標題區約 26mm，再預留安全空間 → 表格約 235mm）
-            const rowH = Math.min(9, 235 / (daysCount + 1));
-            // 字級依列高等比縮放（31 天時約 0.87 倍）
-            const fs = (pt) => `${(pt * Math.min(1, rowH / 8.4)).toFixed(1)}pt`;
-            // 原生網頁列印使用標準 border 樣式，不再需要偏移補償
-            const tdBase = `border:1px solid #1f2937; text-align:center; vertical-align:middle; padding:0 2px; height:${rowH.toFixed(2)}mm; line-height:1.1; overflow:hidden;`;
+            // 版面固定填滿一張 A4：297mm − 上下列印邊距 16mm − 標題區 22mm − 安全空間 3mm = 表格 256mm
+            // 表格含表頭共 (天數 + 1) 列平均分配；每列格線與像素進位約多佔 0.3mm，故先扣除
+            const rowH = (256 - 0.3 * (daysCount + 1)) / (daysCount + 1) - 0.1;
+            // 字級依列高等比縮放（31 天時約 0.95 倍）
+            const scale = Math.min(1, rowH / 8.4);
+            const fs = (pt) => `${(pt * scale).toFixed(1)}pt`;
+            // 文字過長時自動縮小字級，確保不換行（中文字約 1em 寬、英數約 0.55em）
+            const fitFs = (text, pt, colMM) => {
+              const em = [...String(text || '')].reduce((w, ch) => w + (ch.charCodeAt(0) > 255 ? 1 : 0.55), 0);
+              const maxPt = em > 0 ? (colMM - 2) / (em * 0.3528) : pt;
+              return `${Math.max(6, Math.min(pt * scale, maxPt)).toFixed(1)}pt`;
+            };
+            // 每格固定高度、不換行，列高不會被內容撐開
+            const tdBase = `border:1px solid #1f2937; text-align:center; vertical-align:middle; padding:0 2px; height:${rowH.toFixed(2)}mm; line-height:1; white-space:nowrap; overflow:hidden;`;
             let rowsHTML = '';
             
             for (let d = 1; d <= daysCount; d++) {
@@ -876,7 +884,7 @@
               
               let nameCell = '';
               if (isHoliday) {
-                nameCell = `<td style="${tdBase}color:#ef4444; font-weight:bold; font-size:${fs(12)}; white-space:nowrap; letter-spacing:-0.5px;">(${TaiwanHolidays[dateKey]})</td>`;
+                nameCell = `<td style="${tdBase}color:#ef4444; font-weight:bold; font-size:${fitFs('(' + TaiwanHolidays[dateKey] + ')', 12, 43)};">(${TaiwanHolidays[dateKey]})</td>`;
               } else if (isWeekend) {
                 nameCell = `<td style="${tdBase}color:#9ca3af; font-size:${fs(14)};">-</td>`;
               } else {
@@ -891,12 +899,12 @@
                 <td style="${tdBase}color:${dateColor}; font-weight:500; font-size:${fs(14)};">${dateKey}</td>
                 <td style="${tdBase}color:${dateColor}; font-weight:bold; font-size:${fs(14)};">${weekDayNames[dayIdx]}</td>
                 ${nameCell}
-                <td style="${tdBase}color:${noteColor}; font-weight:bold; font-size:${fs(12)};">${cellData.note || ''}</td>
-                <td style="${tdBase}color:${note2Color}; font-weight:bold; font-size:${fs(12)};">${cellData.note2 || ''}</td>
+                <td style="${tdBase}color:${noteColor}; font-weight:bold; font-size:${fitFs(cellData.note, 12, 49)};">${cellData.note || ''}</td>
+                <td style="${tdBase}color:${note2Color}; font-weight:bold; font-size:${fitFs(cellData.note2, 12, 49)};">${cellData.note2 || ''}</td>
               </tr>`;
             }
             
-            const thBase = `border:1px solid #1f2937; text-align:center; vertical-align:middle; color:#1f2937; font-size:${fs(15)}; font-weight:bold; background:#fef9c3;`;
+            const thBase = `border:1px solid #1f2937; text-align:center; vertical-align:middle; color:#1f2937; font-size:${fs(15)}; font-weight:bold; background:#fef9c3; height:${rowH.toFixed(2)}mm; line-height:1; padding:0;`;
             
             return `<!DOCTYPE html>
 <html lang="zh-TW">
@@ -925,6 +933,11 @@
             page-break-before: avoid;
         }
         .header {
+            height: 20mm;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             text-align: center;
             margin-bottom: 2mm; /* 減少下邊距，釋放空間 */
             background: #fefce8;
@@ -938,6 +951,7 @@
             color: #111827;
             letter-spacing: 4px;
             margin: 0 0 4px 0;
+            line-height: 1.2;
         }
         .subtitle {
             font-size: 13pt;
@@ -945,6 +959,7 @@
             color: #4b5563;
             letter-spacing: 2px;
             margin: 0;
+            line-height: 1.2;
         }
         .table-container {
             width: 100%;
@@ -1000,18 +1015,6 @@
     <script>
         // 頁面載入後自動彈出瀏覽器的列印對話框
         window.onload = function() {
-            // 保險：若內容仍超出一頁可列印高度（例如備註文字換行），整體等比縮小直到放得下
-            var page = document.querySelector('.a4-page');
-            var probe = document.createElement('div');
-            probe.style.cssText = 'position:absolute;visibility:hidden;height:275mm;width:190mm;';
-            document.body.appendChild(probe);
-            var availH = probe.offsetHeight;
-            document.body.removeChild(probe);
-            var box = document.querySelector('.table-container');
-            var contentH = box.offsetTop - page.offsetTop + box.offsetHeight;
-            if (contentH > availH) {
-                page.style.zoom = (availH / contentH).toFixed(3);
-            }
             setTimeout(function() {
                 window.print();
             }, 300);
