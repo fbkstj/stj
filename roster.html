@@ -857,8 +857,12 @@
             const daysCount = getDaysInMonth(year, month);
             const weekDayNames = ['日','一','二','三','四','五','六'];
             
+            // 依當月天數計算每列高度（A4 高 297mm − 上下邊距 10mm − 標題區約 25mm = 表格可用約 260mm）
+            const rowH = Math.min(9, 260 / (daysCount + 1));
+            // 字級依列高等比縮放（31 天時約 0.91 倍）
+            const fs = (pt) => `${(pt * Math.min(1, rowH / 8.4)).toFixed(1)}pt`;
             // 原生網頁列印使用標準 border 樣式，不再需要偏移補償
-            const tdBase = `border:1px solid #1f2937; text-align:center; vertical-align:middle; padding:0;`;
+            const tdBase = `border:1px solid #1f2937; text-align:center; vertical-align:middle; padding:0 2px; height:${rowH.toFixed(2)}mm; line-height:1.1; overflow:hidden;`;
             let rowsHTML = '';
             
             for (let d = 1; d <= daysCount; d++) {
@@ -872,27 +876,27 @@
               
               let nameCell = '';
               if (isHoliday) {
-                nameCell = `<td style="${tdBase}color:#ef4444; font-weight:bold; font-size:14pt;">(${TaiwanHolidays[dateKey]})</td>`;
+                nameCell = `<td style="${tdBase}color:#ef4444; font-weight:bold; font-size:${fs(12)}; white-space:nowrap; letter-spacing:-0.5px;">(${TaiwanHolidays[dateKey]})</td>`;
               } else if (isWeekend) {
-                nameCell = `<td style="${tdBase}color:#9ca3af; font-size:14pt;">-</td>`;
+                nameCell = `<td style="${tdBase}color:#9ca3af; font-size:${fs(14)};">-</td>`;
               } else {
                 const nameColor = cellData.name ? '#1e3a8a' : '#9ca3af';
-                nameCell = `<td style="${tdBase}color:${nameColor}; font-weight:bold; font-size:18pt;">${cellData.name || ''}</td>`;
+                nameCell = `<td style="${tdBase}color:${nameColor}; font-weight:bold; font-size:${fs(18)};">${cellData.name || ''}</td>`;
               }
               
               const noteColor = (cellData.note || isHoliday) ? '#dc2626' : '#4b5563';
               const note2Color = cellData.note2 ? '#dc2626' : '#4b5563';
               
               rowsHTML += `<tr style="background:${bgColor};">
-                <td style="${tdBase}color:${dateColor}; font-weight:500; font-size:14pt;">${dateKey}</td>
-                <td style="${tdBase}color:${dateColor}; font-weight:bold; font-size:14pt;">${weekDayNames[dayIdx]}</td>
+                <td style="${tdBase}color:${dateColor}; font-weight:500; font-size:${fs(14)};">${dateKey}</td>
+                <td style="${tdBase}color:${dateColor}; font-weight:bold; font-size:${fs(14)};">${weekDayNames[dayIdx]}</td>
                 ${nameCell}
-                <td style="${tdBase}color:${noteColor}; font-weight:bold; font-size:12pt;">${cellData.note || ''}</td>
-                <td style="${tdBase}color:${note2Color}; font-weight:bold; font-size:12pt;">${cellData.note2 || ''}</td>
+                <td style="${tdBase}color:${noteColor}; font-weight:bold; font-size:${fs(12)};">${cellData.note || ''}</td>
+                <td style="${tdBase}color:${note2Color}; font-weight:bold; font-size:${fs(12)};">${cellData.note2 || ''}</td>
               </tr>`;
             }
             
-            const thBase = `border:1px solid #1f2937; text-align:center; vertical-align:middle; color:#1f2937; font-size:15pt; font-weight:bold; background:#fef9c3;`;
+            const thBase = `border:1px solid #1f2937; text-align:center; vertical-align:middle; color:#1f2937; font-size:${fs(15)}; font-weight:bold; background:#fef9c3;`;
             
             return `<!DOCTYPE html>
 <html lang="zh-TW">
@@ -957,7 +961,6 @@
         }
         table {
             width: 100%;
-            height: 210mm;
             border-collapse: collapse;
             border: 2px solid #1f2937;
             table-layout: fixed;
@@ -988,11 +991,11 @@
             <table>
                 <thead>
                     <tr>
-                        <th style="${thBase}width:20%;">日期</th>
-                        <th style="${thBase}width:8%;">星期</th>
-                        <th style="${thBase}width:16%;">值日人員</th>
-                        <th style="${thBase}width:28%;">備註一</th>
-                        <th style="${thBase}width:28%;">備註二</th>
+                        <th style="${thBase}width:18%;">日期</th>
+                        <th style="${thBase}width:7%;">星期</th>
+                        <th style="${thBase}width:23%;">值日人員</th>
+                        <th style="${thBase}width:26%;">備註一</th>
+                        <th style="${thBase}width:26%;">備註二</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1004,6 +1007,14 @@
     <script>
         // 頁面載入後自動彈出瀏覽器的列印對話框
         window.onload = function() {
+            // 保險：若內容仍超出一頁（例如備註文字換行），整體等比縮小直到放得下
+            var page = document.querySelector('.a4-page');
+            var box = document.querySelector('.table-container');
+            var z = 1;
+            while (page.scrollHeight > page.clientHeight + 1 && z > 0.6) {
+                z -= 0.02;
+                box.style.zoom = z;
+            }
             setTimeout(function() {
                 window.print();
             }, 300);
