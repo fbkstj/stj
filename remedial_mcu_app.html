@@ -246,7 +246,7 @@ function api(fn, ...args) {
     const send = () => fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn, args }), headers: { 'Content-Type': 'text/plain;charset=utf-8' }, credentials: 'omit', keepalive: fn === 'heartbeat' || fn === 'logout' })
       .then(r => { if (!r.ok) throw new Error('連線失敗（' + r.status + '），請稍後再試'); return r.json(); });
     // Google 偶爾會回傳錯誤頁（不是程式的錯），只讀資料的呼叫自動重試一次，交卷、計時這種會寫入的不重試
-    const readOnly = ['bootstrap', 'getHome', 'getLevel', 'getQuiz', 'getDashboard', 'getPracticals', 'getSolutions'].indexOf(fn) >= 0;
+    const readOnly = ['bootstrap', 'login', 'teacherLogin', 'getHome', 'getLevel', 'getQuiz', 'getDashboard', 'getPracticals', 'getSolutions'].indexOf(fn) >= 0;
     send()
       .catch(e => (readOnly ? new Promise(r => setTimeout(r, 600)).then(send) : Promise.reject(e)))
       .then(d => (d.ok ? resolve(d.result) : fail(d.error)))
@@ -274,8 +274,11 @@ function signOut(tellServer) {
 }
 
 /* ───── 登入 ───── */
+let warmed = false;
 function showLogin(msg) {
   let mode = 'student';
+  // 學生、老師輸入帳密的這幾秒，先讓伺服器醒過來
+  if (API_URL && !warmed) { warmed = true; api('bootstrap').catch(() => {}); }
   app.innerHTML = `
     <form class="login" id="loginForm" autocomplete="off">
       <div><div class="eyebrow">${esc(INFO.school || '')} ${esc(INFO.year || '')} 學年度重補修</div><h1>${esc(INFO.subject || '')}</h1></div>
@@ -307,13 +310,16 @@ function showLogin(msg) {
   $('#loginForm').onsubmit = async ev => {
     ev.preventDefault();
     const btn = $('#goBtn'); btn.disabled = true; $('#err').textContent = '';
+    const oldLabel = btn.textContent; btn.textContent = '登入中…';
+    const slow = setTimeout(() => { $('#err').textContent = '系統剛從休眠中醒來，第一次會比較久（約 10～20 秒），請稍候…'; }, 5000);
     try {
       const r = mode === 'student'
         ? await api('login', $('#sid').value, $('#code').value)
         : await api('teacherLogin', $('#pw').value);
-      TOKEN = r.token; ROLE = r.role; store(r);
-      ROLE === 'teacher' ? showTeacher() : showHome(r.home);
-    } catch (e) { $('#err').textContent = e.message; btn.disabled = false; }
+      clearTimeout(slow);
+      TOKEN = r.token; ROLE = r.role; store({ token: r.token, role: r.role });
+      ROLE === 'teacher' ? showTeacher(r.dashboard) : showHome(r.home);
+    } catch (e) { clearTimeout(slow); $('#err').textContent = e.message; btn.disabled = false; btn.textContent = oldLabel; }
   };
 }
 
@@ -772,12 +778,14 @@ function cellOf(l, pass) {
   return '<span class="muted">—</span>';
 }
 
-async function showTeacher() {
+async function showTeacher(pre) {
   stopStudy(false);
   setUser('教師後台');
   app.innerHTML = '<div class="loading">彙整學生資料…</div>';
-  let d;
-  try { d = await api('getDashboard', TOKEN); } catch (e) { if (TOKEN) app.innerHTML = `<p class="loading">${esc(e.message)}</p>`; return; }
+  let d = pre || null;          // 登入時已經順便拿到後台資料就直接用
+  if (!d) {
+    try { d = await api('getDashboard', TOKEN); } catch (e) { if (TOKEN) app.innerHTML = `<p class="loading">${esc(e.message)}</p>`; return; }
+  }
   const n = d.students.length;
   const allPass = d.students.filter(s => s.levels.length && s.levels.every(l => l.passed)).length;
   const avgMin = n ? Math.round(d.students.reduce((a, s) => a + s.minutes, 0) / n) : 0;
