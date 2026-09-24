@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>地下室鐵捲門</title>
+<style>
+  :root {
+    --bg: #0b1020; --card: #141c33; --line: #24304f; --text: #f1f5f9; --muted: #94a3b8;
+    --open: #16a34a; --pause: #d97706; --close: #ea580c; --ok: #22c55e; --off: #64748b; --err: #ef4444;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; padding: 16px; background: var(--bg); color: var(--text);
+    font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+    max-width: 640px; margin-inline: auto;
+  }
+  header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+  h1 { font-size: 20px; margin: 0; flex: 1; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--off); flex: none; }
+  .dot.on { background: var(--ok); box-shadow: 0 0 10px var(--ok); }
+  .dot.err { background: var(--err); }
+  #availText { font-size: 13px; color: var(--muted); }
+
+  .cam {
+    position: relative; background: #000; border: 1px solid var(--line); border-radius: 14px;
+    overflow: hidden; aspect-ratio: 16 / 9; display: flex; align-items: center; justify-content: center;
+  }
+  .cam img { width: 100%; height: 100%; object-fit: contain; display: none; }
+  .cam.live img { display: block; }
+  .cam .msg { color: var(--muted); font-size: 14px; padding: 16px; text-align: center; line-height: 1.7; }
+  .cam.live .msg { display: none; }
+
+  .buttons { display: grid; gap: 12px; margin-top: 16px; }
+  button.act {
+    border: 0; border-radius: 14px; padding: 22px; font-size: 22px; font-weight: 700;
+    color: #fff; cursor: pointer; transition: transform .08s, filter .15s;
+  }
+  button.act:active { transform: scale(.98); }
+  button.act:disabled { filter: grayscale(.7) brightness(.6); cursor: not-allowed; }
+  .open { background: var(--open); } .pause { background: var(--pause); } .close { background: var(--close); }
+
+  #toast {
+    margin-top: 14px; min-height: 22px; font-size: 14px; color: var(--muted); text-align: center;
+  }
+  footer { margin-top: 18px; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.8; }
+</style>
+</head>
+<body>
+
+<header>
+  <span id="dot" class="dot"></span>
+  <h1>地下室鐵捲門</h1>
+  <span id="availText">連線中…</span>
+</header>
+
+<div class="cam" id="cam">
+  <img id="video" alt="地下室即時畫面">
+  <div class="msg" id="camMsg">攝影機連線中…</div>
+</div>
+
+<div class="buttons">
+  <button class="act open"  data-cmd="open">▲ 開門</button>
+  <button class="act pause" data-cmd="pause">■ 停止</button>
+  <button class="act close" data-cmd="close">▼ 關門</button>
+</div>
+
+<div id="toast"></div>
+
+<footer>
+  指令送出後繼電器點動 0.5 秒，等同按一下牆上按鈕<br>
+  影像與指令都由這台電腦中轉，帳號密碼不會出現在這個頁面
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+let busyUntil = 0;
+
+// 直接開檔案是不會動的，要連 door_web.py 提供的網址
+if (location.protocol === 'file:') {
+  document.body.innerHTML = '<p style="padding:24px;line-height:2">這是直接開啟檔案，按鈕不會動。<br>請改開 <b>http://localhost:8000</b></p>';
+}
+
+async function send(cmd) {
+  if (Date.now() < busyUntil) return;
+  busyUntil = Date.now() + 2000;                       // 與韌體的去彈跳一致，避免連點
+  setButtons(false);
+  toast('送出中…');
+  try {
+    const r = await fetch('/cmd/' + cmd, { method: 'POST' });
+    if (r.status === 401) { location.href = '/login'; return; }
+    const j = await r.json();
+    toast(j.msg);
+  } catch (e) {
+    toast('送不出去，電腦端的程式可能沒在跑');
+  }
+  setTimeout(() => setButtons(true), 2000);
+}
+
+function setButtons(on) {
+  document.querySelectorAll('button.act').forEach(b => b.disabled = !on);
+}
+
+function toast(msg) { $('toast').textContent = msg; }
+
+document.querySelectorAll('button.act').forEach(b =>
+  b.addEventListener('click', () => send(b.dataset.cmd)));
+
+// 狀態輪詢：控制器在不在線上、攝影機有沒有畫面
+async function poll() {
+  try {
+    const r = await fetch('/status');
+    if (r.status === 401) { location.href = '/login'; return; }
+    const s = await r.json();
+
+    const online = s.avail === 'online';
+    $('dot').className = 'dot ' + (online ? 'on' : 'err');
+    $('availText').textContent = online ? '控制器已上線' : '控制器離線';
+    setButtons(online && Date.now() >= busyUntil);
+
+    const cam = $('cam');
+    if (s.camera_ok) {
+      if (!cam.classList.contains('live')) {
+        $('video').src = '/stream.mjpg?t=' + Date.now();  // 有畫面才開串流
+        cam.classList.add('live');
+      }
+    } else {
+      cam.classList.remove('live');
+      $('video').removeAttribute('src');
+      $('camMsg').textContent = s.camera_error || '攝影機沒有畫面';
+    }
+  } catch (e) {
+    $('dot').className = 'dot err';
+    $('availText').textContent = '電腦端沒有回應';
+  }
+}
+poll();
+setInterval(poll, 3000);
+</script>
+</body>
+</html>

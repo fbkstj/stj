@@ -1,0 +1,398 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 980" width="920" height="980">
+  <defs>
+    <!-- 列印友善淺陰影 -->
+    <filter id="print-shadow" x="-3%" y="-3%" width="106%" height="106%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+
+    <!-- 螺絲頭質感 (淺色底) -->
+    <radialGradient id="screwHeadLight" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="50%" stop-color="#cbd5e1"/>
+      <stop offset="100%" stop-color="#64748b"/>
+    </radialGradient>
+
+    <!-- 格來得 PCB 淺綠底紋漸層 -->
+    <linearGradient id="pcbGradLight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+
+    <!-- 綠色端子座 -->
+    <linearGradient id="termGreenPrint" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="50%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+
+    <!-- PCB 微點格紋 -->
+    <pattern id="dotPatternLight" width="16" height="16" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.2" fill="#a7f3d0" opacity="0.8"/>
+    </pattern>
+  </defs>
+
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans TC", sans-serif; }
+  </style>
+
+  <!-- 純白背景 (列印省墨) -->
+  <rect width="920" height="980" fill="#ffffff"/>
+
+  <!-- 頂部標題 (高對比深色字體) -->
+  <g transform="translate(40, 20)">
+    <text x="420" y="24" fill="#0f172a" font-size="21" font-weight="900" text-anchor="middle" letter-spacing="1">格來得 (Gliderol G+) 控制主機板 · 實體 PIN 腳配置圖</text>
+    <text x="420" y="46" fill="#475569" font-size="12" text-anchor="middle">【A4 列印版 · 依原廠電路板 1:1 實體方位繪製】</text>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 主機外框與綠色 PCB 主板本體 (X: 180, Y: 75, W: 560, H: 860)                  -->
+  <!-- ========================================================================= -->
+  <g transform="translate(180, 75)" filter="url(#print-shadow)">
+    <!-- 淺灰主機外框凹槽 -->
+    <rect x="-14" y="-14" width="588" height="888" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>
+    
+    <!-- 淺綠色 PCB 主板 -->
+    <rect width="560" height="860" rx="8" fill="url(#pcbGradLight)" stroke="#059669" stroke-width="2.5"/>
+    <rect width="560" height="860" fill="url(#dotPatternLight)" rx="8"/>
+
+    <!-- 螺絲定位孔 (四角) -->
+    <circle cx="25" cy="25" r="7" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+    <circle cx="535" cy="25" r="7" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+    <circle cx="25" cy="835" r="7" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+    <circle cx="535" cy="835" r="7" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+
+    <!-- 1. 射頻接收子板 MD315-R3 (左上) -->
+    <g transform="translate(20, 20)">
+      <rect width="240" height="120" rx="5" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.8"/>
+      <text x="120" y="18" fill="#0369a1" font-size="11" font-weight="bold" text-anchor="middle">MD315-R3.PCB (315MHz 接收子板)</text>
+      
+      <!-- 天線出線點 -->
+      <circle cx="15" cy="18" r="4" fill="#b45309"/>
+      <path d="M 15 18 C -20 10, -50 0, -80 5" fill="none" stroke="#92400e" stroke-width="2.5"/>
+      <text x="-35" y="-5" fill="#b45309" font-size="10" font-weight="bold">棕色天線</text>
+
+      <!-- 315-10碼 晶片貼紙 -->
+      <rect x="155" y="30" width="70" height="60" rx="2" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+      <text x="190" y="65" fill="#0f172a" font-size="12" font-weight="900" text-anchor="middle">315-10碼</text>
+
+      <!-- SW1 學習鍵 -->
+      <circle cx="190" cy="102" r="7" fill="#ef4444" stroke="#b91c1c"/>
+      <text x="190" y="118" fill="#b91c1c" font-size="9" font-weight="bold" text-anchor="middle">SW1 學習鍵</text>
+    </g>
+
+    <!-- 2. DOOR SIZE 與旋鈕 -->
+    <g transform="translate(30, 165)">
+      <rect width="75" height="35" rx="4" fill="#ffffff" stroke="#059669" stroke-width="1.5"/>
+      <text x="37" y="14" fill="#065f46" font-size="9" font-weight="bold" text-anchor="middle">DOOR SIZE</text>
+      <rect x="12" y="18" width="18" height="12" rx="2" fill="#047857"/>
+      <text x="21" y="27" fill="#ffffff" font-size="8" font-weight="bold" text-anchor="middle">S</text>
+      <text x="50" y="27" fill="#64748b" font-size="8" font-weight="bold" text-anchor="middle">L</text>
+    </g>
+
+    <!-- OPEN F↑ -->
+    <g transform="translate(130, 160)">
+      <circle cx="22" cy="22" r="18" fill="#f8fafc" stroke="#334155" stroke-width="2"/>
+      <circle cx="22" cy="22" r="14" fill="#e2e8f0"/>
+      <line x1="22" y1="12" x2="22" y2="32" stroke="#0f172a" stroke-width="2"/>
+      <line x1="12" y1="22" x2="32" y2="22" stroke="#0f172a" stroke-width="2"/>
+      <text x="22" y="54" fill="#065f46" font-size="10" font-weight="bold" text-anchor="middle">OPEN F ↑</text>
+      <text x="22" y="66" fill="#64748b" font-size="8" text-anchor="middle">開門力道</text>
+    </g>
+
+    <!-- CLOSE F↓ -->
+    <g transform="translate(200, 160)">
+      <circle cx="22" cy="22" r="18" fill="#f8fafc" stroke="#334155" stroke-width="2"/>
+      <circle cx="22" cy="22" r="14" fill="#e2e8f0"/>
+      <line x1="22" y1="12" x2="22" y2="32" stroke="#0f172a" stroke-width="2"/>
+      <line x1="12" y1="22" x2="32" y2="22" stroke="#0f172a" stroke-width="2"/>
+      <text x="22" y="54" fill="#065f46" font-size="10" font-weight="bold" text-anchor="middle">CLOSE F ↓</text>
+      <text x="22" y="66" fill="#64748b" font-size="8" text-anchor="middle">防夾靈敏度</text>
+    </g>
+
+    <!-- 2011 LED 子板 -->
+    <g transform="translate(270, 160)">
+      <rect width="70" height="50" rx="4" fill="#ffffff" stroke="#059669" stroke-width="1.5"/>
+      <text x="35" y="13" fill="#065f46" font-size="8" font-weight="bold" text-anchor="middle">2011 LED</text>
+      <circle cx="35" cy="24" r="6" fill="#e2e8f0" stroke="#475569" stroke-width="1.5"/>
+      <circle cx="22" cy="39" r="6" fill="#e2e8f0" stroke="#475569" stroke-width="1.5"/>
+      <circle cx="48" cy="39" r="6" fill="#e2e8f0" stroke="#475569" stroke-width="1.5"/>
+    </g>
+
+    <!-- 3. AUTOCLOSE & 蜂鳴器 (右上) -->
+    <g transform="translate(370, 20)">
+      <rect width="90" height="60" rx="4" fill="#ffffff" stroke="#b91c1c" stroke-width="1.5"/>
+      <text x="45" y="14" fill="#b91c1c" font-size="9" font-weight="bold" text-anchor="middle">AUTOCLOSE</text>
+      <rect x="20" y="20" width="50" height="24" rx="2" fill="#ef4444" stroke="#991b1b"/>
+      <rect x="25" y="23" width="10" height="9" fill="#ffffff"/>
+      <rect x="40" y="32" width="10" height="9" fill="#ffffff"/>
+      <rect x="55" y="32" width="10" height="9" fill="#ffffff"/>
+      <text x="45" y="55" fill="#475569" font-size="8" font-weight="bold" text-anchor="middle">10" 20" 40" 秒</text>
+    </g>
+
+    <!-- 蜂鳴器 BZ -->
+    <g transform="translate(485, 25)">
+      <circle cx="25" cy="25" r="22" fill="#334155" stroke="#0f172a" stroke-width="2"/>
+      <circle cx="25" cy="25" r="6" fill="#0f172a"/>
+      <text x="25" y="57" fill="#0f172a" font-size="9" font-weight="bold" text-anchor="middle">BZ 蜂鳴器</text>
+    </g>
+
+    <!-- ALARM / DISP (2-Pin 白色插座) -->
+    <g id="socket-alarm" transform="translate(480, 95)">
+      <rect width="50" height="28" rx="3" fill="#ffffff" stroke="#ca8a04" stroke-width="2"/>
+      <circle cx="16" cy="14" r="3" fill="#854d0e"/>
+      <circle cx="34" cy="14" r="3" fill="#854d0e"/>
+      <text x="25" y="-5" fill="#854d0e" font-size="10" font-weight="bold" text-anchor="middle">ALARM/DISP</text>
+    </g>
+
+    <!-- MCU -->
+    <g transform="translate(370, 95)">
+      <rect width="65" height="170" rx="3" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
+      <rect x="8" y="25" width="49" height="120" rx="2" fill="#ffffff"/>
+      <text x="32" y="85" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle" transform="rotate(-90, 32, 85)">140512-V2011C</text>
+      <!-- MODE 2-Pin 跳線 -->
+      <g transform="translate(15, 185)">
+        <rect width="35" height="18" rx="2" fill="#ffffff" stroke="#059669" stroke-width="1.5"/>
+        <text x="17" y="13" fill="#065f46" font-size="8" font-weight="bold" text-anchor="middle">MODE</text>
+      </g>
+    </g>
+
+    <!-- ======================================================================= -->
+    <!-- 4. 【核心控制】EXCON 綠色 7-PIN 端子台 (X: 470, Y: 145)                   -->
+    <!-- ======================================================================= -->
+    <g id="terminal-excon" transform="translate(470, 145)">
+      <rect width="70" height="310" rx="5" fill="url(#termGreenPrint)" stroke="#15803d" stroke-width="2"/>
+      <text x="35" y="-8" fill="#15803d" font-size="13" font-weight="900" text-anchor="middle">EXCON</text>
+
+      <!-- 7 個螺絲孔 -->
+      <!-- PIN 1 -->
+      <g transform="translate(10, 8)">
+        <rect width="50" height="36" rx="3" fill="#14532d" opacity="0.3"/>
+        <circle cx="25" cy="18" r="10" fill="url(#screwHeadLight)" stroke="#1e293b" stroke-width="1.2"/>
+        <path d="M 19 18 H 31 M 25 12 V 24" stroke="#0f172a" stroke-width="1.8"/>
+      </g>
+      <!-- PIN 2 -->
+      <g transform="translate(10, 51)">
+        <rect width="50" height="36" rx="3" fill="#14532d" opacity="0.3"/>
+        <circle cx="25" cy="18" r="10" fill="url(#screwHeadLight)" stroke="#1e293b" stroke-width="1.2"/>
+        <path d="M 19 18 H 31 M 25 12 V 24" stroke="#0f172a" stroke-width="1.8"/>
+      </g>
+      <!-- PIN 3 -->
+      <g transform="translate(10, 94)">
+        <rect width="50" height="36" rx="3" fill="#14532d" opacity="0.3"/>
+        <circle cx="25" cy="18" r="10" fill="url(#screwHeadLight)" stroke="#1e293b" stroke-width="1.2"/>
+        <path d="M 19 18 H 31 M 25 12 V 24" stroke="#0f172a" stroke-width="1.8"/>
+      </g>
+      <!-- PIN 4 -->
+      <g transform="translate(10, 137)">
+        <rect width="50" height="36" rx="3" fill="#14532d" opacity="0.3"/>
+        <circle cx="25" cy="18" r="10" fill="url(#screwHeadLight)" stroke="#1e293b" stroke-width="1.2"/>
+        <path d="M 19 18 H 31 M 25 12 V 24" stroke="#0f172a" stroke-width="1.8"/>
+      </g>
+      <!-- PIN 5 -->
+      <g transform="translate(10, 180)">
+        <rect width="50" height="36" rx="3" fill="#14532d" opacity="0.3"/>
+        <circle cx="25" cy="18" r="10" fill="url(#screwHeadLight)" stroke="#1e293b" stroke-width="1.2"/>
+        <path d="M 19 18 H 31 M 25 12 V 24" stroke="#0f172a" stroke-width="1.8"/>
+      </g>
+      <!-- PIN 6 -->
+      <g transform="translate(10, 223)">
+        <rect width="50" height="36" rx="3" fill="#14532d" opacity="0.3"/>
+        <circle cx="25" cy="18" r="10" fill="url(#screwHeadLight)" stroke="#1e293b" stroke-width="1.2"/>
+        <path d="M 19 18 H 31 M 25 12 V 24" stroke="#0f172a" stroke-width="1.8"/>
+      </g>
+      <!-- PIN 7 -->
+      <g transform="translate(10, 266)">
+        <rect width="50" height="36" rx="3" fill="#14532d" opacity="0.3"/>
+        <circle cx="25" cy="18" r="10" fill="url(#screwHeadLight)" stroke="#1e293b" stroke-width="1.2"/>
+        <path d="M 19 18 H 31 M 25 12 V 24" stroke="#0f172a" stroke-width="1.8"/>
+      </g>
+    </g>
+
+    <!-- EXSW (3-Pin 白色插座) -->
+    <g id="socket-exsw" transform="translate(475, 470)">
+      <rect width="60" height="30" rx="3" fill="#ffffff" stroke="#b45309" stroke-width="2"/>
+      <circle cx="15" cy="15" r="3" fill="#78350f"/>
+      <circle cx="30" cy="15" r="3" fill="#78350f"/>
+      <circle cx="45" cy="15" r="3" fill="#78350f"/>
+      <text x="30" y="44" fill="#78350f" font-size="10" font-weight="bold" text-anchor="middle">EXSW</text>
+    </g>
+
+    <!-- S1 按鍵 -->
+    <g transform="translate(488, 545)">
+      <rect width="32" height="32" rx="4" fill="#ffffff" stroke="#475569" stroke-width="2"/>
+      <circle cx="16" cy="16" r="8" fill="#b45309"/>
+      <text x="16" y="44" fill="#0f172a" font-size="9" font-weight="bold" text-anchor="middle">S1 按鍵</text>
+    </g>
+
+    <!-- 下方週邊白色插座群 -->
+    <!-- COUNT (2-Pin) -->
+    <g id="socket-count" transform="translate(325, 470)">
+      <rect width="45" height="30" rx="3" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+      <circle cx="15" cy="15" r="3" fill="#0f172a"/>
+      <circle cx="30" cy="15" r="3" fill="#0f172a"/>
+      <text x="22" y="44" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">COUNT</text>
+    </g>
+
+    <!-- PANEL (4-Pin) -->
+    <g id="socket-panel" transform="translate(385, 470)">
+      <rect width="75" height="30" rx="3" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+      <circle cx="15" cy="15" r="3" fill="#0f172a"/>
+      <circle cx="30" cy="15" r="3" fill="#0f172a"/>
+      <circle cx="45" cy="15" r="3" fill="#0f172a"/>
+      <circle cx="60" cy="15" r="3" fill="#0f172a"/>
+      <text x="37" y="44" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">PANEL</text>
+    </g>
+
+    <!-- EXPOS (4-Pin) -->
+    <g id="socket-expos" transform="translate(195, 335)">
+      <rect width="75" height="30" rx="3" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+      <circle cx="15" cy="15" r="3" fill="#0f172a"/>
+      <circle cx="30" cy="15" r="3" fill="#0f172a"/>
+      <circle cx="45" cy="15" r="3" fill="#0f172a"/>
+      <circle cx="60" cy="15" r="3" fill="#0f172a"/>
+      <text x="37" y="-6" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">EXPOS</text>
+    </g>
+
+    <!-- EXLAMP (2-Pin) -->
+    <g id="socket-exlamp" transform="translate(195, 405)">
+      <rect width="50" height="30" rx="3" fill="#ffffff" stroke="#0f172a" stroke-width="2"/>
+      <circle cx="16" cy="15" r="3" fill="#0f172a"/>
+      <circle cx="34" cy="15" r="3" fill="#0f172a"/>
+      <text x="25" y="-6" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">EXLAMP</text>
+    </g>
+
+    <!-- 散熱片與大繼電器 -->
+    <g transform="translate(25, 590)">
+      <rect width="130" height="150" rx="4" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+      <circle cx="65" cy="75" r="18" fill="#cbd5e1" stroke="#94a3b8"/>
+      <text x="65" y="135" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">散熱片 / 橋整 / 穩壓</text>
+    </g>
+    <rect x="175" y="600" width="35" height="110" rx="3" fill="#ffffff" stroke="#94a3b8" stroke-width="1.5"/>
+    <text x="192" y="660" fill="#475569" font-size="8" font-weight="bold" transform="rotate(90, 192, 660)" text-anchor="middle">5W 水泥電阻</text>
+    <g transform="translate(230, 640)">
+      <rect width="60" height="16" rx="4" fill="#cbd5e1" stroke="#475569"/>
+      <text x="30" y="30" fill="#dc2626" font-size="10" font-weight="bold" text-anchor="middle">15A FUSE</text>
+    </g>
+    <g transform="translate(310, 580)">
+      <rect x="0" y="0" width="70" height="90" rx="3" fill="#334155" stroke="#0f172a" stroke-width="1.5"/>
+      <text x="35" y="45" fill="#ffffff" font-size="9" font-weight="bold" text-anchor="middle">RY1 (松川)</text>
+      <rect x="78" y="0" width="70" height="90" rx="3" fill="#334155" stroke="#0f172a" stroke-width="1.5"/>
+      <text x="113" y="45" fill="#ffffff" font-size="9" font-weight="bold" text-anchor="middle">RY2 (松川)</text>
+      <rect x="0" y="98" width="70" height="90" rx="3" fill="#334155" stroke="#0f172a" stroke-width="1.5"/>
+      <text x="35" y="145" fill="#ffffff" font-size="9" font-weight="bold" text-anchor="middle">RY3 (松川)</text>
+      <rect x="83" y="105" width="60" height="20" rx="2" fill="#fef08a" stroke="#ca8a04"/>
+      <text x="113" y="119" fill="#0f172a" font-size="8" font-weight="bold" text-anchor="middle">T0162674</text>
+      <rect x="83" y="130" width="60" height="20" rx="2" fill="#ffffff" stroke="#cbd5e1"/>
+      <text x="113" y="144" fill="#0f172a" font-size="8" font-weight="bold" text-anchor="middle">QC141013</text>
+    </g>
+    <g transform="translate(380, 785)">
+      <rect width="100" height="35" rx="3" fill="#ffffff" stroke="#ca8a04" stroke-width="2"/>
+      <text x="50" y="22" fill="#854d0e" font-size="10" font-weight="bold" text-anchor="middle">馬達強電連接座</text>
+    </g>
+  </g>
+
+  <!-- ========================================================================= -->
+  <!-- 標註文字卡片 (白底 + 鮮明邊框與深色字體，列印超清晰)                      -->
+  <!-- ========================================================================= -->
+
+  <!-- PIN 1 -->
+  <path d="M 725 240 L 760 240" fill="none" stroke="#16a34a" stroke-width="2.5"/>
+  <g transform="translate(765, 220)">
+    <rect width="145" height="40" rx="4" fill="#ffffff" stroke="#16a34a" stroke-width="2"/>
+    <text x="10" y="17" fill="#15803d" font-size="12" font-weight="900">PIN 1 : ▲ (開門 OPEN)</text>
+    <text x="10" y="32" fill="#334155" font-size="9.5">接開門繼電器 NO ➔ 對地短路</text>
+  </g>
+
+  <!-- PIN 2 -->
+  <path d="M 725 282 L 760 282" fill="none" stroke="#d97706" stroke-width="2.5"/>
+  <g transform="translate(765, 265)">
+    <rect width="145" height="40" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+    <text x="10" y="17" fill="#b45309" font-size="12" font-weight="900">PIN 2 : ■ (停止 STOP)</text>
+    <text x="10" y="32" fill="#334155" font-size="9.5">接停止繼電器 NO ➔ 對地短路</text>
+  </g>
+
+  <!-- PIN 3 -->
+  <path d="M 725 325 L 760 325" fill="none" stroke="#ea580c" stroke-width="2.5"/>
+  <g transform="translate(765, 310)">
+    <rect width="145" height="40" rx="4" fill="#ffffff" stroke="#ea580c" stroke-width="2"/>
+    <text x="10" y="17" fill="#c2410c" font-size="12" font-weight="900">PIN 3 : ▼ (關門 CLOSE)</text>
+    <text x="10" y="32" fill="#334155" font-size="9.5">接關門繼電器 NO ➔ 對地短路</text>
+  </g>
+
+  <!-- PIN 4 -->
+  <path d="M 725 368 L 760 368" fill="none" stroke="#dc2626" stroke-width="2.5"/>
+  <g transform="translate(765, 355)">
+    <rect width="145" height="40" rx="4" fill="#ffffff" stroke="#dc2626" stroke-width="2"/>
+    <text x="10" y="17" fill="#b91c1c" font-size="12" font-weight="900">PIN 4 : 12V (電源輸出)</text>
+    <text x="10" y="32" fill="#334155" font-size="9.5">外接紅外線/降壓模組供電</text>
+  </g>
+
+  <!-- PIN 5 -->
+  <path d="M 725 411 L 760 411" fill="none" stroke="#0284c7" stroke-width="2.5"/>
+  <g transform="translate(765, 400)">
+    <rect width="145" height="40" rx="4" fill="#ffffff" stroke="#0284c7" stroke-width="2"/>
+    <text x="10" y="17" fill="#0369a1" font-size="12" font-weight="900">PIN 5 : 👁 (紅外線防夾)</text>
+    <text x="10" y="32" fill="#334155" font-size="9.5">遮光時停止並反轉上升</text>
+  </g>
+
+  <!-- PIN 6 -->
+  <path d="M 725 454 L 760 454" fill="none" stroke="#9333ea" stroke-width="2.5"/>
+  <g transform="translate(765, 445)">
+    <rect width="145" height="40" rx="4" fill="#ffffff" stroke="#9333ea" stroke-width="2"/>
+    <text x="10" y="17" fill="#7e22ce" font-size="12" font-weight="900">PIN 6 : ○-○ (底邊碰停)</text>
+    <text x="10" y="32" fill="#334155" font-size="9.5">門底氣壓防壓膠條輸入</text>
+  </g>
+
+  <!-- PIN 7 -->
+  <path d="M 725 497 L 760 497" fill="none" stroke="#475569" stroke-width="2.5"/>
+  <g transform="translate(765, 490)">
+    <rect width="145" height="40" rx="4" fill="#ffffff" stroke="#475569" stroke-width="2"/>
+    <text x="10" y="17" fill="#0f172a" font-size="12" font-weight="900">PIN 7 : GND (共用接地)</text>
+    <text x="10" y="32" fill="#334155" font-size="9.5">繼電器 COM 端串聯接回此處</text>
+  </g>
+
+  <!-- EXSW 標註 -->
+  <path d="M 715 635 L 760 635" fill="none" stroke="#b45309" stroke-width="1.8" stroke-dasharray="3 3"/>
+  <g transform="translate(765, 615)">
+    <rect width="145" height="38" rx="4" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="10" y="16" fill="#78350f" font-size="11" font-weight="bold">EXSW (3-Pin 插座)</text>
+    <text x="10" y="30" fill="#475569" font-size="9">原廠壁掛三鍵開關專用座</text>
+  </g>
+
+  <!-- ALARM/DISP 標註 -->
+  <path d="M 710 180 L 760 140" fill="none" stroke="#ca8a04" stroke-width="1.8" stroke-dasharray="3 3"/>
+  <g transform="translate(765, 120)">
+    <rect width="145" height="38" rx="4" fill="#ffffff" stroke="#ca8a04" stroke-width="1.5"/>
+    <text x="10" y="16" fill="#854d0e" font-size="11" font-weight="bold">ALARM/DISP (2-Pin)</text>
+    <text x="10" y="30" fill="#475569" font-size="9">外接旋轉警示燈 / 警報器</text>
+  </g>
+
+  <!-- 左側插座標註 -->
+  <path d="M 375 420 L 140 420" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-dasharray="3 3"/>
+  <g transform="translate(15, 400)">
+    <rect width="135" height="40" rx="4" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="10" y="17" fill="#0f172a" font-size="11" font-weight="bold">EXPOS (4-Pin)</text>
+    <text x="10" y="31" fill="#475569" font-size="9">行程極限 / 編碼器接頭</text>
+  </g>
+
+  <path d="M 375 490 L 140 490" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-dasharray="3 3"/>
+  <g transform="translate(15, 470)">
+    <rect width="135" height="40" rx="4" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="10" y="17" fill="#0f172a" font-size="11" font-weight="bold">EXLAMP (2-Pin)</text>
+    <text x="10" y="31" fill="#475569" font-size="9">外接車庫照明自動延遲燈</text>
+  </g>
+
+  <path d="M 505 555 L 155 565" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-dasharray="3 3"/>
+  <g transform="translate(15, 545)">
+    <rect width="135" height="40" rx="4" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="10" y="17" fill="#0f172a" font-size="11" font-weight="bold">COUNT (2-Pin)</text>
+    <text x="10" y="31" fill="#475569" font-size="9">地下室停車場計次器接口</text>
+  </g>
+
+  <path d="M 565 555 L 155 635" fill="none" stroke="#0f172a" stroke-width="1.8" stroke-dasharray="3 3"/>
+  <g transform="translate(15, 615)">
+    <rect width="135" height="40" rx="4" fill="#ffffff" stroke="#0f172a" stroke-width="1.5"/>
+    <text x="10" y="17" fill="#0f172a" font-size="11" font-weight="bold">PANEL (4-Pin)</text>
+    <text x="10" y="31" fill="#475569" font-size="9">外殼面板按鈕/指示排線</text>
+  </g>
+</svg>

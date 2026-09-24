@@ -1,0 +1,251 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 920" width="1200" height="920" id="schematic-svg">
+<defs><radialGradient id="screw" cx="35%" cy="35%" r="65%"><stop offset="0%" stop-color="#ffffff"/><stop offset="50%" stop-color="#cbd5e1"/><stop offset="100%" stop-color="#64748b"/></radialGradient><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="0.8" fill="#e2e8f0"/></pattern></defs>
+<style>text{font-family:"Microsoft JhengHei","Noto Sans TC","PingFang TC","Segoe UI",sans-serif}</style>
+<rect width="1200" height="920" fill="#ffffff"/><rect width="1200" height="920" fill="url(#dots)"/>
+<rect x="30" y="14" width="1140" height="44" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+<text x="600.0" y="36.0" font-size="17" fill="#0f172a" font-weight="900" text-anchor="middle">ESP32 × 格來得 Gliderol 鐵捲門 · 實體接線圖（2026-09-23 實測版）</text>
+<text x="600.0" y="52.0" font-size="11" fill="#475569" font-weight="normal" text-anchor="middle">格來得端子順序已依主板絲印照片核對：▲ ■ ▼ 12V 👁 ○○ GND（由上而下）</text>
+<rect x="40" y="90" width="220" height="450" rx="8" fill="#f8fafc" stroke="#334155" stroke-width="2.5"/>
+<text x="135.0" y="116.0" font-size="14" fill="#0f172a" font-weight="900" text-anchor="middle">ESP32 DevKit V1</text>
+<text x="135.0" y="132.0" font-size="9.5" fill="#475569" font-weight="normal" text-anchor="middle">依板上絲印找腳位（排列為示意）</text>
+<rect x="60" y="452" width="130" height="46" rx="4" fill="#ffffff" stroke="#94a3b8"/>
+<text x="125.0" y="472.0" font-size="12" fill="#0f172a" font-weight="900" text-anchor="middle">ESP-WROOM-32</text>
+<text x="125.0" y="488.0" font-size="10" fill="#475569" font-weight="normal" text-anchor="middle">Blynk IoT 韌體</text>
+<rect x="237" y="130" width="16" height="390" rx="2" fill="#1e293b"/>
+<text x="231.0" y="154.0" font-size="11.5" fill="#dc2626" font-weight="bold" text-anchor="end" font-family="Consolas, 'Courier New', monospace">VIN（5V）</text>
+<text x="231.0" y="194.0" font-size="11.5" fill="#334155" font-weight="bold" text-anchor="end" font-family="Consolas, 'Courier New', monospace">GND</text>
+<text x="231.0" y="254.0" font-size="11.5" fill="#16a34a" font-weight="bold" text-anchor="end" font-family="Consolas, 'Courier New', monospace">D25 · GPIO25</text>
+<text x="231.0" y="294.0" font-size="11.5" fill="#d97706" font-weight="bold" text-anchor="end" font-family="Consolas, 'Courier New', monospace">D26 · GPIO26</text>
+<text x="231.0" y="334.0" font-size="11.5" fill="#ea580c" font-weight="bold" text-anchor="end" font-family="Consolas, 'Courier New', monospace">D27 · GPIO27</text>
+<text x="231.0" y="404.0" font-size="11.5" fill="#9333ea" font-weight="bold" text-anchor="end" font-family="Consolas, 'Courier New', monospace">D32 · GPIO32</text>
+<text x="231.0" y="444.0" font-size="11.5" fill="#334155" font-weight="bold" text-anchor="end" font-family="Consolas, 'Courier New', monospace">GND</text>
+<rect x="130" y="518" width="40" height="22" rx="3" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="150.0" y="512.0" font-size="9" fill="#475569" font-weight="normal" text-anchor="middle">Micro-USB</text>
+<rect x="400" y="90" width="330" height="430" rx="8" fill="#f0f9ff" stroke="#0284c7" stroke-width="2.5"/>
+<text x="565.0" y="110.0" font-size="13" fill="#0284c7" font-weight="900" text-anchor="middle">4 路 5V 繼電器模組（高電位觸發 · 實測確認）</text>
+<rect x="412" y="130" width="16" height="350" rx="2" fill="#1e293b"/>
+<text x="434.0" y="154.0" font-size="11.5" fill="#dc2626" font-weight="bold" text-anchor="start" font-family="Consolas, 'Courier New', monospace">VCC</text>
+<text x="434.0" y="194.0" font-size="11.5" fill="#334155" font-weight="bold" text-anchor="start" font-family="Consolas, 'Courier New', monospace">GND</text>
+<text x="434.0" y="254.0" font-size="11.5" fill="#16a34a" font-weight="bold" text-anchor="start" font-family="Consolas, 'Courier New', monospace">IN1 開</text>
+<text x="434.0" y="294.0" font-size="11.5" fill="#d97706" font-weight="bold" text-anchor="start" font-family="Consolas, 'Courier New', monospace">IN2 停</text>
+<text x="434.0" y="334.0" font-size="11.5" fill="#ea580c" font-weight="bold" text-anchor="start" font-family="Consolas, 'Courier New', monospace">IN3 關</text>
+<text x="434.0" y="374.0" font-size="11.5" fill="#94a3b8" font-weight="bold" text-anchor="start" font-family="Consolas, 'Courier New', monospace">IN4 空</text>
+<g><rect x="515" y="120" width="115" height="70" rx="4" fill="#0369a1" stroke="#075985"/>
+<text x="572.0" y="142.0" font-size="10.5" fill="#ffffff" font-weight="900" text-anchor="middle">SRD-05VDC</text>
+<rect x="523" y="150" width="99" height="20" rx="3" fill="#ffffff"/>
+<text x="572.0" y="164.0" font-size="10.5" fill="#16a34a" font-weight="900" text-anchor="middle">RELAY 1（開門）</text>
+<rect x="650" y="120" width="70" height="70" rx="3" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+<text x="686.0" y="149.0" font-size="10.5" fill="#16a34a" font-weight="900" text-anchor="end">NO1</text>
+<text x="686.0" y="179.0" font-size="10" fill="#475569" font-weight="bold" text-anchor="end">COM1</text>
+<circle cx="700.0" cy="145.0" r="9" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 695.0 145.0 H 705.0 M 700.0 140.1 V 149.9" stroke="#0f172a" stroke-width="1.6"/>
+<circle cx="700.0" cy="175.0" r="9" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 695.0 175.0 H 705.0 M 700.0 170.1 V 179.9" stroke="#0f172a" stroke-width="1.6"/>
+<text x="686.0" y="164.0" font-size="8" fill="#94a3b8" font-weight="normal" text-anchor="end">NC 不接</text>
+</g>
+<g><rect x="515" y="215" width="115" height="70" rx="4" fill="#0369a1" stroke="#075985"/>
+<text x="572.0" y="237.0" font-size="10.5" fill="#ffffff" font-weight="900" text-anchor="middle">SRD-05VDC</text>
+<rect x="523" y="245" width="99" height="20" rx="3" fill="#ffffff"/>
+<text x="572.0" y="259.0" font-size="10.5" fill="#d97706" font-weight="900" text-anchor="middle">RELAY 2（停止）</text>
+<rect x="650" y="215" width="70" height="70" rx="3" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+<text x="686.0" y="244.0" font-size="10.5" fill="#d97706" font-weight="900" text-anchor="end">NO2</text>
+<text x="686.0" y="274.0" font-size="10" fill="#475569" font-weight="bold" text-anchor="end">COM2</text>
+<circle cx="700.0" cy="240.0" r="9" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 695.0 240.0 H 705.0 M 700.0 235.1 V 244.9" stroke="#0f172a" stroke-width="1.6"/>
+<circle cx="700.0" cy="270.0" r="9" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 695.0 270.0 H 705.0 M 700.0 265.1 V 274.9" stroke="#0f172a" stroke-width="1.6"/>
+<text x="686.0" y="259.0" font-size="8" fill="#94a3b8" font-weight="normal" text-anchor="end">NC 不接</text>
+</g>
+<g><rect x="515" y="310" width="115" height="70" rx="4" fill="#0369a1" stroke="#075985"/>
+<text x="572.0" y="332.0" font-size="10.5" fill="#ffffff" font-weight="900" text-anchor="middle">SRD-05VDC</text>
+<rect x="523" y="340" width="99" height="20" rx="3" fill="#ffffff"/>
+<text x="572.0" y="354.0" font-size="10.5" fill="#ea580c" font-weight="900" text-anchor="middle">RELAY 3（關門）</text>
+<rect x="650" y="310" width="70" height="70" rx="3" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+<text x="686.0" y="339.0" font-size="10.5" fill="#ea580c" font-weight="900" text-anchor="end">NO3</text>
+<text x="686.0" y="369.0" font-size="10" fill="#475569" font-weight="bold" text-anchor="end">COM3</text>
+<circle cx="700.0" cy="335.0" r="9" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 695.0 335.0 H 705.0 M 700.0 330.1 V 339.9" stroke="#0f172a" stroke-width="1.6"/>
+<circle cx="700.0" cy="365.0" r="9" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 695.0 365.0 H 705.0 M 700.0 360.1 V 369.9" stroke="#0f172a" stroke-width="1.6"/>
+<text x="686.0" y="354.0" font-size="8" fill="#94a3b8" font-weight="normal" text-anchor="end">NC 不接</text>
+</g>
+<g opacity="0.45"><rect x="515" y="405" width="115" height="70" rx="4" fill="#0369a1" stroke="#075985"/>
+<text x="572.0" y="427.0" font-size="10.5" fill="#ffffff" font-weight="900" text-anchor="middle">SRD-05VDC</text>
+<rect x="523" y="435" width="99" height="20" rx="3" fill="#ffffff"/>
+<text x="572.0" y="449.0" font-size="10.5" fill="#64748b" font-weight="900" text-anchor="middle">RELAY 4（備用）</text>
+<rect x="650" y="405" width="70" height="70" rx="3" fill="#ffffff" stroke="#0284c7" stroke-width="1.5"/>
+<text x="686.0" y="434.0" font-size="10.5" fill="#94a3b8" font-weight="900" text-anchor="end">NO4</text>
+<text x="686.0" y="464.0" font-size="10" fill="#475569" font-weight="bold" text-anchor="end">COM4</text>
+<circle cx="700.0" cy="430.0" r="9" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 695.0 430.0 H 705.0 M 700.0 425.1 V 434.9" stroke="#0f172a" stroke-width="1.6"/>
+<circle cx="700.0" cy="460.0" r="9" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 695.0 460.0 H 705.0 M 700.0 455.1 V 464.9" stroke="#0f172a" stroke-width="1.6"/>
+<text x="686.0" y="449.0" font-size="8" fill="#94a3b8" font-weight="normal" text-anchor="end">NC 不接</text>
+</g>
+<rect x="900" y="90" width="280" height="520" rx="8" fill="#f0fdf4" stroke="#15803d" stroke-width="2.5"/>
+<text x="1040.0" y="112.0" font-size="14" fill="#15803d" font-weight="900" text-anchor="middle">格來得主板 · 綠色 7P 端子</text>
+<rect x="921" y="115.0" width="52" height="460.0" rx="5" fill="#16a34a" stroke="#14532d" stroke-width="2"/>
+<circle cx="947.0" cy="145.0" r="11" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 941.0 145.0 H 953.0 M 947.0 138.9 V 151.1" stroke="#0f172a" stroke-width="1.6"/>
+<rect x="985" y="128.0" width="185" height="34" rx="4" fill="#ffffff" stroke="#16a34a" stroke-width="1.8"/>
+<text x="995.0" y="146.0" font-size="12.5" fill="#16a34a" font-weight="900" text-anchor="start">PIN1 ▲ 開門</text>
+<text x="995.0" y="158.0" font-size="9.5" fill="#475569" font-weight="bold" text-anchor="start">← NO1</text>
+<circle cx="947.0" cy="211.7" r="11" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 941.0 211.7 H 953.0 M 947.0 205.6 V 217.7" stroke="#0f172a" stroke-width="1.6"/>
+<rect x="985" y="194.7" width="185" height="34" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="1.8"/>
+<text x="995.0" y="212.7" font-size="12.5" fill="#d97706" font-weight="900" text-anchor="start">PIN2 ■ 停止</text>
+<text x="995.0" y="224.7" font-size="9.5" fill="#475569" font-weight="bold" text-anchor="start">← NO2</text>
+<circle cx="947.0" cy="278.3" r="11" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 941.0 278.3 H 953.0 M 947.0 272.3 V 284.4" stroke="#0f172a" stroke-width="1.6"/>
+<rect x="985" y="261.3" width="185" height="34" rx="4" fill="#ffffff" stroke="#ea580c" stroke-width="1.8"/>
+<text x="995.0" y="279.3" font-size="12.5" fill="#ea580c" font-weight="900" text-anchor="start">PIN3 ▼ 關門</text>
+<text x="995.0" y="291.3" font-size="9.5" fill="#475569" font-weight="bold" text-anchor="start">← NO3</text>
+<circle cx="947.0" cy="345.0" r="11" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 941.0 345.0 H 953.0 M 947.0 338.9 V 351.1" stroke="#0f172a" stroke-width="1.6"/>
+<rect x="985" y="328.0" width="185" height="34" rx="4" fill="#ffffff" stroke="#b91c1c" stroke-width="1"/>
+<text x="995.0" y="346.0" font-size="12.5" fill="#b91c1c" font-weight="900" text-anchor="start">PIN4 12V 輸出</text>
+<text x="995.0" y="358.0" font-size="9.5" fill="#b91c1c" font-weight="bold" text-anchor="start">不接！</text>
+<circle cx="947.0" cy="411.7" r="11" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 941.0 411.7 H 953.0 M 947.0 405.6 V 417.7" stroke="#0f172a" stroke-width="1.6"/>
+<rect x="985" y="394.7" width="185" height="34" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+<text x="995.0" y="412.7" font-size="12.5" fill="#94a3b8" font-weight="900" text-anchor="start">PIN5 👁 紅外線</text>
+<text x="995.0" y="424.7" font-size="9.5" fill="#475569" font-weight="bold" text-anchor="start">維持原狀</text>
+<circle cx="947.0" cy="478.3" r="11" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 941.0 478.3 H 953.0 M 947.0 472.3 V 484.4" stroke="#0f172a" stroke-width="1.6"/>
+<rect x="985" y="461.3" width="185" height="34" rx="4" fill="#ffffff" stroke="#94a3b8" stroke-width="1"/>
+<text x="995.0" y="479.3" font-size="12.5" fill="#94a3b8" font-weight="900" text-anchor="start">PIN6 ○○ 碰停</text>
+<text x="995.0" y="491.3" font-size="9.5" fill="#475569" font-weight="bold" text-anchor="start">維持原狀</text>
+<circle cx="947.0" cy="545.0" r="11" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 941.0 545.0 H 953.0 M 947.0 539.0 V 551.0" stroke="#0f172a" stroke-width="1.6"/>
+<rect x="985" y="528.0" width="185" height="34" rx="4" fill="#ffffff" stroke="#0f172a" stroke-width="1.8"/>
+<text x="995.0" y="546.0" font-size="12.5" fill="#0f172a" font-weight="900" text-anchor="start">PIN7 GND</text>
+<text x="995.0" y="558.0" font-size="9.5" fill="#475569" font-weight="bold" text-anchor="start">← COM1~3</text>
+<rect x="912" y="580" width="256" height="22" rx="3" fill="#fef2f2" stroke="#fca5a5"/>
+<text x="1040.0" y="595.0" font-size="11" fill="#b91c1c" font-weight="bold" text-anchor="middle">⚠ 接線前務必關閉捲門總電源</text>
+<rect x="340" y="620" width="380" height="140" rx="8" fill="#faf5ff" stroke="#9333ea" stroke-width="2"/>
+<text x="540.0" y="642.0" font-size="12.5" fill="#9333ea" font-weight="900" text-anchor="middle">捲門用金屬磁簧開關（常開型，門關到底時導通）</text>
+<circle cx="360.0" cy="665.0" r="8" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 355.6 665.0 H 364.4 M 360.0 660.6 V 669.4" stroke="#0f172a" stroke-width="1.6"/>
+<circle cx="360.0" cy="705.0" r="8" fill="url(#screw)" stroke="#334155" stroke-width="1.2"/>
+<path d="M 355.6 705.0 H 364.4 M 360.0 700.6 V 709.4" stroke="#0f172a" stroke-width="1.6"/>
+<text x="374.0" y="669.0" font-size="11" fill="#9333ea" font-weight="bold" text-anchor="start">線 1 → D32</text>
+<text x="374.0" y="709.0" font-size="11" fill="#334155" font-weight="bold" text-anchor="start">線 2 → GND（兩線不分極性）</text>
+<text x="540.0" y="748.0" font-size="10.5" fill="#475569" font-weight="bold" text-anchor="middle">D32 設 INPUT_PULLUP：門關到底 = LOW；門升起 = HIGH</text>
+<rect x="40" y="620" width="200" height="140" rx="8" fill="#f8fafc" stroke="#334155" stroke-width="2"/>
+<text x="140.0" y="644.0" font-size="12.5" fill="#0f172a" font-weight="900" text-anchor="middle">獨立 5V 2A USB 充電頭</text>
+<text x="140.0" y="664.0" font-size="10" fill="#475569" font-weight="normal" text-anchor="middle">插 110V 獨立插座</text>
+<text x="140.0" y="720.0" font-size="10.5" fill="#dc2626" font-weight="bold" text-anchor="middle">USB 線 → ESP32 USB 座</text>
+<text x="140.0" y="740.0" font-size="10" fill="#b91c1c" font-weight="bold" text-anchor="middle">不要從格來得 12V 取電</text>
+<g id="circuit-power">
+<path d="M 150.0 620.0 L 150.0 540.0" fill="none" stroke="#64748b" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 150.0 620.0 L 150.0 540.0" fill="none" stroke="#dc2626" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 245.0 150.0 L 420.0 150.0" fill="none" stroke="#dc2626" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="245.0" cy="150.0" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="420.0" cy="150.0" r="4.5" fill="#dc2626" stroke="#ffffff" stroke-width="1.2"/>
+<rect x="270.5" y="140.0" width="124" height="20" rx="4" fill="#ffffff" stroke="#dc2626" stroke-width="1.5"/>
+<text x="332.5" y="154.0" font-size="10.5" fill="#dc2626" font-weight="bold" text-anchor="middle">VIN → VCC（5V）</text>
+<path d="M 245.0 190.0 L 420.0 190.0" fill="none" stroke="#334155" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="245.0" cy="190.0" r="4.5" fill="#334155" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="420.0" cy="190.0" r="4.5" fill="#334155" stroke="#ffffff" stroke-width="1.2"/>
+<rect x="270.5" y="180.0" width="124" height="20" rx="4" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="332.5" y="194.0" font-size="10.5" fill="#334155" font-weight="bold" text-anchor="middle">GND → GND</text>
+</g>
+<g id="circuit-open">
+<path d="M 245.0 250.0 L 420.0 250.0" fill="none" stroke="#16a34a" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="245.0" cy="250.0" r="4.5" fill="#16a34a" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="420.0" cy="250.0" r="4.5" fill="#16a34a" stroke="#ffffff" stroke-width="1.2"/>
+<rect x="270.5" y="240.0" width="124" height="20" rx="4" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+<text x="332.5" y="254.0" font-size="10.5" fill="#16a34a" font-weight="bold" text-anchor="middle">D25 → IN1 開門</text>
+</g>
+<g id="circuit-stop">
+<path d="M 245.0 290.0 L 420.0 290.0" fill="none" stroke="#d97706" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="245.0" cy="290.0" r="4.5" fill="#d97706" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="420.0" cy="290.0" r="4.5" fill="#d97706" stroke="#ffffff" stroke-width="1.2"/>
+<rect x="270.5" y="280.0" width="124" height="20" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="1.5"/>
+<text x="332.5" y="294.0" font-size="10.5" fill="#d97706" font-weight="bold" text-anchor="middle">D26 → IN2 停止</text>
+</g>
+<g id="circuit-close">
+<path d="M 245.0 330.0 L 420.0 330.0" fill="none" stroke="#ea580c" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="245.0" cy="330.0" r="4.5" fill="#ea580c" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="420.0" cy="330.0" r="4.5" fill="#ea580c" stroke="#ffffff" stroke-width="1.2"/>
+<rect x="270.5" y="320.0" width="124" height="20" rx="4" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+<text x="332.5" y="334.0" font-size="10.5" fill="#ea580c" font-weight="bold" text-anchor="middle">D27 → IN3 關門</text>
+</g>
+<g id="circuit-open-out">
+<path d="M 709.0 145.0 L 936.0 145.0" fill="none" stroke="#16a34a" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="709.0" cy="145.0" r="4.5" fill="#16a34a" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="936.0" cy="145.0" r="4.5" fill="#16a34a" stroke="#ffffff" stroke-width="1.2"/>
+<rect x="772.0" y="135.0" width="96" height="20" rx="4" fill="#ffffff" stroke="#16a34a" stroke-width="1.5"/>
+<text x="820.0" y="149.0" font-size="10.5" fill="#16a34a" font-weight="bold" text-anchor="middle">NO1 → PIN1 ▲</text>
+</g>
+<g id="circuit-stop-out">
+<path d="M 709.0 240.0 L 738.0 240.0 A 7 7 0 0 1 752.0 240.0 L 860.0 240.0 L 860.0 211.7 L 936.0 211.7" fill="none" stroke="#d97706" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="709.0" cy="240.0" r="4.5" fill="#d97706" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="936.0" cy="211.7" r="4.5" fill="#d97706" stroke="#ffffff" stroke-width="1.2"/>
+<rect x="764.0" y="230.0" width="96" height="20" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="1.5"/>
+<text x="812.0" y="244.0" font-size="10.5" fill="#d97706" font-weight="bold" text-anchor="middle">NO2 → PIN2 ■</text>
+</g>
+<g id="circuit-close-out">
+<path d="M 709.0 335.0 L 738.0 335.0 A 7 7 0 0 1 752.0 335.0 L 880.0 335.0 L 880.0 278.3 L 936.0 278.3" fill="none" stroke="#ea580c" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="709.0" cy="335.0" r="4.5" fill="#ea580c" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="936.0" cy="278.3" r="4.5" fill="#ea580c" stroke="#ffffff" stroke-width="1.2"/>
+<rect x="764.0" y="325.0" width="96" height="20" rx="4" fill="#ffffff" stroke="#ea580c" stroke-width="1.5"/>
+<text x="812.0" y="339.0" font-size="10.5" fill="#ea580c" font-weight="bold" text-anchor="middle">NO3 → PIN3 ▼</text>
+</g>
+<g id="circuit-com">
+<path d="M 709.0 175.0 L 745.0 175.0" fill="none" stroke="#334155" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="709.0" cy="175.0" r="4.5" fill="#334155" stroke="#ffffff" stroke-width="1.2"/>
+<path d="M 709.0 270.0 L 745.0 270.0" fill="none" stroke="#334155" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="709.0" cy="270.0" r="4.5" fill="#334155" stroke="#ffffff" stroke-width="1.2"/>
+<path d="M 709.0 365.0 L 745.0 365.0" fill="none" stroke="#334155" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="709.0" cy="365.0" r="4.5" fill="#334155" stroke="#ffffff" stroke-width="1.2"/>
+<path d="M 745.0 175.0 L 745.0 545.0 L 936.0 545.0" fill="none" stroke="#334155" stroke-width="4.5" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="745.0" cy="270.0" r="4.5" fill="#334155" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="745.0" cy="365.0" r="4.5" fill="#334155" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="936.0" cy="545.0" r="4.5" fill="#334155" stroke="#ffffff" stroke-width="1.2"/>
+<rect x="755.0" y="535.0" width="150" height="20" rx="4" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+<text x="830.0" y="549.0" font-size="10.5" fill="#334155" font-weight="bold" text-anchor="middle">COM1+2+3 → PIN7 GND</text>
+</g>
+<g id="circuit-sensor">
+<path d="M 245.0 400.0 L 292.0 400.0 L 292.0 665.0 L 352.0 665.0" fill="none" stroke="#9333ea" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 245.0 440.0 L 272.0 440.0 L 272.0 705.0 L 352.0 705.0" fill="none" stroke="#334155" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="245.0" cy="400.0" r="4.5" fill="#9333ea" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="245.0" cy="440.0" r="4.5" fill="#334155" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="352.0" cy="665.0" r="4.5" fill="#9333ea" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="352.0" cy="705.0" r="4.5" fill="#334155" stroke="#ffffff" stroke-width="1.2"/>
+<rect x="293.0" y="390.0" width="84" height="20" rx="4" fill="#ffffff" stroke="#9333ea" stroke-width="1.5"/>
+<text x="335.0" y="404.0" font-size="10.5" fill="#9333ea" font-weight="bold" text-anchor="middle">D32 ← 磁簧</text>
+</g>
+<rect x="760" y="630" width="420" height="130" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+<text x="774.0" y="652.0" font-size="12" fill="#0f172a" font-weight="900" text-anchor="start">圖例</text>
+<path d="M 776.0 674.0 L 820.0 674.0" fill="none" stroke="#475569" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="820.0" cy="674.0" r="4.5" fill="#475569" stroke="#ffffff" stroke-width="1.2"/>
+<text x="832.0" y="678.0" font-size="11" fill="#475569" font-weight="normal" text-anchor="start">圓點 = 接線點／相連的分歧</text>
+<path d="M 776.0 700.0 L 791.0 700.0 A 7 7 0 0 1 805.0 700.0 L 820.0 700.0" fill="none" stroke="#475569" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="798" y1="688" x2="798" y2="712" stroke="#475569" stroke-width="3"/>
+<text x="832.0" y="704.0" font-size="11" fill="#475569" font-weight="normal" text-anchor="start">跨線小弧 = 兩線交叉但「不相連」</text>
+<text x="774.0" y="730.0" font-size="11" fill="#0f172a" font-weight="bold" text-anchor="start">每條線兩端都標了「起點 → 終點」，請以標籤為準。</text>
+<text x="774.0" y="748.0" font-size="11" fill="#0f172a" font-weight="bold" text-anchor="start">繼電器只用 NO 與 COM；NC 一律不接。</text>
+<rect x="30" y="780" width="1140" height="126" rx="8" fill="#fef2f2" stroke="#fca5a5"/>
+<text x="46.0" y="802.0" font-size="13" fill="#b91c1c" font-weight="900" text-anchor="start">⚠ 防止誤動作：通電前必做 4 件事</text>
+<text x="46.0" y="826.0" font-size="12" fill="#0f172a" font-weight="900" text-anchor="start">① 量電壓確認觸發方式</text>
+<text x="46.0" y="844.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">格來得通電、捲門不動時，</text>
+<text x="46.0" y="859.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">用電錶量 PIN1/2/3 對 PIN7：</text>
+<text x="46.0" y="874.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">應有約 5V 或 12V 直流電壓。</text>
+<text x="46.0" y="889.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">量到 0V 就先別接，再確認。</text>
+<text x="323.0" y="826.0" font-size="12" fill="#0f172a" font-weight="900" text-anchor="start">② 高態觸發（已實測）</text>
+<text x="323.0" y="844.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">閒置輸出 LOW = 放開，</text>
+<text x="323.0" y="859.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">輸出 HIGH = 吸合。</text>
+<text x="323.0" y="874.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">若重開機瞬間會閃一下，</text>
+<text x="323.0" y="889.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">IN 腳對 GND 各加 10kΩ 下拉。</text>
+<text x="600.0" y="826.0" font-size="12" fill="#0f172a" font-weight="900" text-anchor="start">③ 開機不可誤觸發</text>
+<text x="600.0" y="844.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">程式務必先 digitalWrite(LOW)，</text>
+<text x="600.0" y="859.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">再 pinMode(OUTPUT)。</text>
+<text x="600.0" y="874.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">反過來會在每次開機或重啟時</text>
+<text x="600.0" y="889.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">送出 HIGH 脈衝，門會自己動。</text>
+<text x="877.0" y="826.0" font-size="12" fill="#0f172a" font-weight="900" text-anchor="start">④ 同一時間只觸發一路</text>
+<text x="877.0" y="844.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">開／關／停三個繼電器要互鎖，</text>
+<text x="877.0" y="859.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">觸發 0.3~0.5 秒後立即放開。</text>
+<text x="877.0" y="874.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">12V（PIN4）、紅外線（PIN5）、</text>
+<text x="877.0" y="889.0" font-size="10.5" fill="#475569" font-weight="normal" text-anchor="start">碰停（PIN6）保持原狀不要動。</text>
+</svg>

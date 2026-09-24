@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>地下室鐵捲門：ESP32 × MQTT 遠端控制</title>
+<meta name="description" content="把 2014 年的鐵捲門主板接上 ESP32 與繼電器，用手機 App 和自製網頁遠端開關門。完整實作紀錄：現場勘查、接線設計、韌體防誤動作、踩過的坑與可下載程式包。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --card: #ffffff;
+    --ink: #14213d;
+    --muted: #4d5b7c;
+    --line: #d8dfec;
+    --accent: #1d4ed8;
+    --accent-ink: #ffffff;
+    --tint: #e7edfb;
+    --warn-bg: #fff4ed;
+    --warn-line: #f5b78a;
+    --warn-ink: #9a3412;
+    --ok-bg: #e8f7ee;
+    --ok-line: #8fd3ab;
+    --ok-ink: #14653a;
+    --code-bg: #0f172a;
+    --code-ink: #e2e8f0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1424;
+      --card: #16203a;
+      --ink: #e8edf9;
+      --muted: #aab6d2;
+      --line: #2a3654;
+      --accent: #8fb4ff;
+      --accent-ink: #0b1226;
+      --tint: #1d2a49;
+      --warn-bg: #2d1a10;
+      --warn-line: #8a4a21;
+      --warn-ink: #ffc9a3;
+      --ok-bg: #10281c;
+      --ok-line: #2f6a49;
+      --ok-ink: #9ae6bb;
+      --code-bg: #060b16;
+      --code-ink: #dbe4f4;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.8 'Noto Sans TC', system-ui, sans-serif;
+  }
+  main { max-width: 940px; margin: 0 auto; padding: 32px 16px 64px; }
+  .eyebrow { font-family: 'Outfit', 'Noto Sans TC', sans-serif; color: var(--accent); font-weight: 700; letter-spacing: .05em; margin: 0; }
+  h1 { font-size: clamp(1.6rem, 4.6vw, 2.4rem); line-height: 1.3; margin: 6px 0 10px; }
+  h2 {
+    font-size: clamp(1.2rem, 3vw, 1.5rem); margin: 0 0 14px; padding-bottom: 8px;
+    border-bottom: 2px solid var(--line);
+  }
+  h2 .num { font-family: 'Outfit', sans-serif; color: var(--accent); margin-right: 10px; }
+  h3 { font-size: 1.1rem; margin: 22px 0 8px; }
+  .lead { color: var(--muted); font-size: 1.05rem; margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 22px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 24px; padding: 0; list-style: none; }
+  .meta li { background: var(--tint); color: var(--muted); border-radius: 999px; padding: 4px 14px; font-size: .88rem; }
+
+  a { color: var(--accent); }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: var(--accent-ink); font-weight: 700; text-decoration: none;
+    padding: 11px 20px; border-radius: 12px; min-height: 44px;
+  }
+  .btn.ghost { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+  .btn:hover { filter: brightness(1.08); }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+
+  .toc { columns: 2; column-gap: 24px; margin: 0; padding-left: 1.2em; }
+  .toc li { margin-bottom: 4px; break-inside: avoid; }
+  @media (max-width: 560px) { .toc { columns: 1; } }
+
+  figure { margin: 18px 0; }
+  figure img, figure svg { max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 10px; }
+  figure img.photo { border: 1px solid var(--line); }
+  figure img.diagram { background: #fff; border: 1px solid var(--line); padding: 8px; }
+  figcaption { color: var(--muted); font-size: .92rem; margin-top: 8px; text-align: center; }
+  .two-up { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .two-up figure { margin: 0; }
+  @media (max-width: 640px) { .two-up { grid-template-columns: 1fr; } }
+
+  .table-wrap { overflow-x: auto; margin: 14px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: .96rem; }
+  th, td { text-align: left; padding: 9px 12px; border: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--tint); white-space: nowrap; }
+
+  pre {
+    background: var(--code-bg); color: var(--code-ink); border-radius: 12px;
+    padding: 16px 18px; overflow-x: auto; font-size: .88rem; line-height: 1.65;
+  }
+  code { font-family: 'Consolas', 'Courier New', monospace; }
+  p code, li code, td code { background: var(--tint); color: var(--ink); padding: 1px 6px; border-radius: 5px; font-size: .92em; }
+
+  .note, .warn, .ok {
+    border-left: 5px solid var(--accent); background: var(--tint);
+    border-radius: 0 10px 10px 0; padding: 14px 18px; margin: 18px 0;
+  }
+  .warn { border-left-color: var(--warn-line); background: var(--warn-bg); color: var(--warn-ink); }
+  .ok { border-left-color: var(--ok-line); background: var(--ok-bg); color: var(--ok-ink); }
+  .note p:last-child, .warn p:last-child, .ok p:last-child { margin-bottom: 0; }
+  .note p:first-child, .warn p:first-child, .ok p:first-child { margin-top: 0; }
+
+  .pitfall { border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin: 16px 0; }
+  .pitfall h3 { margin-top: 0; }
+  .pitfall .sym { color: var(--warn-ink); font-weight: 700; }
+
+  .fig-tall img { max-width: 440px; }
+  .muted { color: var(--muted); font-size: .94rem; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  footer.page { color: var(--muted); font-size: .92rem; text-align: center; margin-top: 30px; }
+</style>
+</head>
+<body>
+<main>
+
+  <p class="eyebrow">專題實作 · 2026-09</p>
+  <h1>地下室鐵捲門：ESP32 × MQTT 遠端控制</h1>
+  <p class="lead">
+    家裡地下室的鐵捲門是 2014 年的舊機，只有遙控器和牆上的按鈕。
+    這次不換主板、不動原本的線路，只加一片繼電器「代替手指按按鈕」，
+    做到手機 App 和自製網頁都能開關門。這頁記錄整個過程，包含三個踩了才知道的坑。
+  </p>
+
+  <ul class="meta">
+    <li>ESP32 DevKit</li>
+    <li>四路繼電器模組</li>
+    <li>MQTT over TLS</li>
+    <li>Arduino C++</li>
+    <li>Python 網頁控制台</li>
+    <li>格來得 Gliderol G3000</li>
+  </ul>
+
+  <div class="card">
+    <h2><span class="num">00</span>先看成果</h2>
+    <div class="two-up">
+      <figure>
+        <img class="photo" src="garage_door/install_final.jpg" alt="洞洞板上固定著 ESP32 與紅色四路繼電器模組，裝在鐵捲門主板上方，藍色訊號線接到主板的綠色端子。" loading="lazy">
+        <figcaption>ESP32 與繼電器模組裝在主板上方，藍線接到主板的訊號端子</figcaption>
+      </figure>
+      <figure>
+        <img class="photo" src="garage_door/app_buttons.jpg" alt="手機 App 畫面，由上而下三顆藍色大按鈕：開門、暫停、關門。" loading="lazy">
+        <figcaption>手機上的三顆按鈕，按一下等於按了牆上的按鈕</figcaption>
+      </figure>
+    </div>
+    <p>
+      整條路徑是：<strong>手機或瀏覽器 → MQTT broker → ESP32 → 繼電器 → 鐵捲門主板</strong>。
+      原本的遙控器和牆上按鈕完全不受影響，照樣能用。
+    </p>
+    <div class="btn-row">
+      <a class="btn" href="garage_door_starter_pack.zip" download>📦 下載程式包 (ZIP)</a>
+      <a class="btn ghost" href="garage_door/wiring.svg" target="_blank" rel="noopener">查看接線圖</a>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">01</span>這頁有什麼</h2>
+    <ol class="toc">
+      <li><a href="#s1">現場：一台 2014 年的主板</a></li>
+      <li><a href="#s2">想法：只是代替手指按按鈕</a></li>
+      <li><a href="#s3">接線設計</a></li>
+      <li><a href="#s4">坑一：繼電器的觸發方向</a></li>
+      <li><a href="#s5">韌體：讓門不會自己動</a></li>
+      <li><a href="#s6">坑二：停電復電就再也連不上</a></li>
+      <li><a href="#s7">坑三：網頁不能直接連 MQTT</a></li>
+      <li><a href="#s8">網頁控制台</a></li>
+      <li><a href="#s9">還沒做完的事</a></li>
+      <li><a href="#s10">下載與安全提醒</a></li>
+    </ol>
+  </div>
+
+  <div class="card" id="s1">
+    <h2><span class="num">02</span>現場：一台 2014 年的主板</h2>
+    <p>
+      拆開牆上的機箱，裡面是格來得 Gliderol G3000 的控制板，韌體標籤寫著
+      <code>140512-V2011C</code>，也就是 2014 年 5 月的版本。板子右側有一排綠色的七腳端子（EXCON），
+      這排就是外接按鈕用的。
+    </p>
+    <figure>
+      <img class="photo" src="garage_door/board_overview.jpg" alt="鐵捲門控制主板全景，綠色電路板上可見 315MHz 接收模組、微處理器、繼電器與變壓器。" loading="lazy">
+      <figcaption>主板全景。左上角是 315MHz 遙控接收模組，中間黑色長條是主控晶片</figcaption>
+    </figure>
+    <p>
+      端子的絲印由上而下是 <strong>▲ ■ ▼ 12V 👁 ○○ GND</strong>。對照實機照片一個一個確認之後，
+      整理成這張表：
+    </p>
+    <div class="table-wrap">
+      <table>
+        <caption class="sr-only">格來得主板七腳端子對照表</caption>
+        <thead>
+          <tr><th>PIN</th><th>絲印</th><th>用途</th><th>這次的接法</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>▲</td><td>開門</td><td>接繼電器 1 的 NO</td></tr>
+          <tr><td>2</td><td>■</td><td>停止</td><td>接繼電器 2 的 NO</td></tr>
+          <tr><td>3</td><td>▼</td><td>關門</td><td>接繼電器 3 的 NO</td></tr>
+          <tr><td>4</td><td>12V</td><td>12V 電源輸出</td><td><strong>不接</strong></td></tr>
+          <tr><td>5</td><td>👁</td><td>紅外線防夾</td><td>維持原狀</td></tr>
+          <tr><td>6</td><td>○ ○</td><td>碰停開關</td><td>維持原狀</td></tr>
+          <tr><td>7</td><td>GND</td><td>公共地</td><td>接三個 COM</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <figure>
+      <img class="diagram" src="garage_door/mainboard_pins.svg" alt="主板腳位配置圖，標示七腳端子由上而下的功能與電壓。" loading="lazy">
+      <figcaption>依實機照片核對後畫出來的腳位圖</figcaption>
+    </figure>
+    <div class="warn">
+      <p>
+        <strong>不同型號的主板腳位不一樣。</strong>照著這張表接到別台機器上很可能出事，
+        動手前務必查自己那台的說明書或絲印，並用萬用表確認。
+      </p>
+    </div>
+  </div>
+
+  <div class="card" id="s2">
+    <h2><span class="num">03</span>想法：只是代替手指按按鈕</h2>
+    <p>
+      這排端子的工作方式很單純：<strong>把某一腳對 GND 瞬間短路，就等於按了一下對應的按鈕</strong>。
+      主板收到之後會自己把門跑到底，或是收到停止就停下來。
+    </p>
+    <p>所以整個專案的核心只有一句話：讓 ESP32 在收到指令時，把對應的那一腳對地短路 0.5 秒。</p>
+    <p>刻意保留的原則有三個：</p>
+    <ul>
+      <li><strong>不動原本的線路</strong>。遙控器、牆上按鈕、紅外線防夾、碰停開關全部維持原狀。</li>
+      <li><strong>只用繼電器的常開接點</strong>。ESP32 沒電或當機時，接點是斷開的，門不會亂動。</li>
+      <li><strong>不從主板取電</strong>。ESP32 用獨立的 5V 充電頭，不去碰主板的 12V 輸出。</li>
+    </ul>
+  </div>
+
+  <div class="card" id="s3">
+    <h2><span class="num">04</span>接線設計</h2>
+    <p>
+      先畫接線圖再動手。這張圖是用 Python 程式產生的，所有線頭座標都從同一份腳位定義算出來，
+      避免手畫時線接錯位置。
+    </p>
+    <figure>
+      <img class="diagram" src="garage_door/wiring.svg" alt="ESP32 與鐵捲門主板的完整接線圖：ESP32 的 D25、D26、D27 接到繼電器 IN1 到 IN3，繼電器的 NO1 到 NO3 接到主板的開門、停止、關門三個腳位，三個 COM 併接到主板的 GND。" loading="lazy">
+      <figcaption>完整接線圖。每條線兩端都標了「起點 → 終點」，跨線的小弧表示交叉但不相連</figcaption>
+    </figure>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ESP32</th><th>繼電器</th><th>主板</th><th>功能</th></tr></thead>
+        <tbody>
+          <tr><td>D25 (GPIO25)</td><td>IN1 → NO1</td><td>PIN1 ▲</td><td>開門</td></tr>
+          <tr><td>D26 (GPIO26)</td><td>IN2 → NO2</td><td>PIN2 ■</td><td>停止</td></tr>
+          <tr><td>D27 (GPIO27)</td><td>IN3 → NO3</td><td>PIN3 ▼</td><td>關門</td></tr>
+          <tr><td>VIN / GND</td><td>VCC / GND</td><td>—</td><td>5V 供電，務必共地</td></tr>
+          <tr><td>—</td><td>COM1+2+3</td><td>PIN7 GND</td><td>三個 COM 併接</td></tr>
+          <tr><td>—</td><td>NC</td><td>—</td><td><strong>一律不接</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3>怎麼分辨 NO 和 NC</h3>
+    <p>
+      每顆繼電器有三個接點，<strong>中間一定是 COM</strong>，兩側一個是 NO（常開）、一個是 NC（常閉）。
+      用萬用表的通路檔：繼電器放開時，跟 COM <em>會</em> 嗶的那側是 NC，<em>不會</em> 嗶的那側才是 NO。
+      三組都要各量一次，不要只量一組就照推。
+    </p>
+  </div>
+
+  <div class="card" id="s4">
+    <h2><span class="num">05</span>坑一：繼電器的觸發方向</h2>
+    <div class="pitfall">
+      <h3>症狀</h3>
+      <p class="sym">一送電，三顆繼電器立刻全部吸合，LED 全亮。</p>
+      <p>
+        如果這時候線已經接上主板，等於開機瞬間同時按下開門、停止、關門三個按鈕。
+        幸好當時還沒接上去。
+      </p>
+      <h3>原因</h3>
+      <p>
+        原本以為手上這片是常見的<strong>低電位觸發</strong>模組，所以程式開機時把三隻腳設成 HIGH 當作「放開」。
+        結果這片 Keyes 4R1B 的排針上除了 IN1–IN4，還有一組 <code>COM–GND</code> 插著跳帽，
+        <strong>這個跳帽決定觸發方向</strong>：
+      </p>
+      <ul>
+        <li><code>COM</code> 接 <code>GND</code>（出廠插法）：<strong>高電位觸發</strong>，輸出 HIGH 才吸合</li>
+        <li><code>COM</code> 改接 <code>VCC</code>：低電位觸發</li>
+      </ul>
+      <figure class="fig-tall">
+        <img class="photo" src="garage_door/relay_module.jpg" alt="Keyes 四路繼電器模組的排針特寫，由上而下標示 VCC、GND、IN1 到 IN4、COM、GND，COM 與 GND 之間插著綠色跳帽。" loading="lazy">
+        <figcaption>排針最下方 COM–GND 之間那顆綠色跳帽，就是決定觸發方向的關鍵</figcaption>
+      </figure>
+      <h3>怎麼確認</h3>
+      <p>
+        不要用猜的。把三隻腳都設成 LOW，看繼電器是放開還是吸合，一次就分辨出來：
+        放開就是高電位觸發，吸合就是低電位觸發。程式裡只要改一個常數：
+      </p>
+<pre><code>const int RELAY_ON  = HIGH;   // 吸合
+const int RELAY_OFF = LOW;    // 放開（預設狀態）</code></pre>
+    </div>
+  </div>
+
+  <div class="card" id="s5">
+    <h2><span class="num">06</span>韌體：讓門不會自己動</h2>
+    <p>
+      鐵捲門跟閃爍 LED 不一樣，誤動作一次就是幾百公斤的門板在動。韌體裡有七道防線，
+      每一道都是針對一種具體的失敗情境：
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>防線</th><th>擋掉什麼情況</th></tr></thead>
+        <tbody>
+          <tr><td>開機先壓成「放開」再切成輸出</td><td>開機或重啟瞬間冒出一個脈衝</td></tr>
+          <tr><td>clean session</td><td>離線期間累積的指令一連線就全部灌進來</td></tr>
+          <tr><td>連線後主動清掉控制 topic 的 retain 訊息</td><td>broker 上留著舊訊息，一重連門就自己開</td></tr>
+          <tr><td>連線後 3 秒內不執行任何指令</td><td>同上，補一層保險</td></tr>
+          <tr><td>同一指令 1.5 秒內只執行一次</td><td>手機連點、訊號重送</td></tr>
+          <tr><td>三路互鎖</td><td>兩個以上的繼電器同時吸合</td></tr>
+          <tr><td>Wi-Fi 斷線期間強制全放開</td><td>網路不穩時繼電器卡在吸合狀態</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>開機不誤觸發</h3>
+    <p>順序很重要：<strong>先寫電位、再切輸出</strong>。反過來會在每次開機時送出一個脈衝。</p>
+<pre><code>void relayInit(int pin) {
+  digitalWrite(pin, RELAY_OFF);   // 先把電位壓成「放開」
+  pinMode(pin, OUTPUT);           // 再切成輸出
+  digitalWrite(pin, RELAY_OFF);
+}</code></pre>
+
+    <h3>三路互鎖</h3>
+    <p>
+      光是在送出指令時檢查還不夠，因為程式其他地方可能寫錯、腳位也可能被雜訊拉起來。
+      所以 <code>loop()</code> 每一圈都無條件把「不是當前吸合中」的腳位壓回去：
+    </p>
+<pre><code>void enforceInterlock() {
+  for (int i = 0; i &lt; 3; i++) {
+    if (RELAY_PINS[i] != activePin) relayOff(RELAY_PINS[i]);
+  }
+}</code></pre>
+    <p>
+      脈衝本身也不用 <code>delay()</code>，而是記下起始時間、由 <code>loop()</code> 負責放開，
+      這樣 0.5 秒的點動期間 MQTT 不會被卡住。
+    </p>
+
+    <div class="note">
+      <p>
+        <strong>還可以更保險：</strong>從通電到程式開始跑之間約有 0.2 秒，腳位是浮接的。
+        在三個 IN 腳對 GND 各加一顆 10 kΩ 下拉電阻，這段空窗就能徹底堵住。
+      </p>
+    </div>
+  </div>
+
+  <div class="card" id="s6">
+    <h2><span class="num">07</span>坑二：停電復電就再也連不上</h2>
+    <div class="pitfall">
+      <h3>症狀</h3>
+      <p class="sym">平常都正常，但停電復電之後，ESP32 再也連不上 broker，門變成遙控不了。</p>
+      <h3>原因</h3>
+      <p>
+        MQTT 走 TLS 加密，<strong>驗證伺服器憑證需要正確的時間</strong>，所以程式開機時會先跟 NTP 校時。
+        問題是原本的寫法只在 <code>setup()</code> 裡校一次，而且只有 Wi-Fi 在期限內連上才會執行。
+      </p>
+      <p>
+        停電復電時，分享器開機通常比 ESP32 慢，這時 Wi-Fi 連不上、校時被跳過，
+        時間停在 1970 年。之後就算 Wi-Fi 自動接上了，TLS 還是會因為時間不對而一直驗證失敗，
+        除非有人去手動重開機。
+      </p>
+      <p>
+        地下室鐵捲門正好是停電之後最需要能用的東西，這個 bug 特別致命。
+      </p>
+      <h3>修法</h3>
+      <p>加一個「校時成功了沒」的旗標，連上網卻還沒校到時，每 30 秒補做一次：</p>
+<pre><code>} else if (!timeSynced &amp;&amp; (lastNtpTryMs == 0 || now - lastNtpTryMs &gt; 30000)) {
+  lastNtpTryMs = now;
+  syncTime();                     // 校到才會去連 broker
+} else if (!mqtt.connected()) {
+  ...</code></pre>
+      <p>
+        順帶也把 Wi-Fi 改成可以設定多組，依序嘗試，斷線超過 15 秒就重新掃一輪。
+      </p>
+    </div>
+  </div>
+
+  <div class="card" id="s7">
+    <h2><span class="num">08</span>坑三：網頁不能直接連 MQTT</h2>
+    <div class="pitfall">
+      <h3>症狀</h3>
+      <p class="sym">想寫個網頁直接連 broker，結果怎麼連都逾時。</p>
+      <h3>原因</h3>
+      <p>
+        瀏覽器只能走 <strong>MQTT over WebSocket</strong>，不能直接用一般的 MQTT 連接埠。
+        用 <code>Test-NetConnection</code> 測，WebSocket 常用的 8083 / 8084 看起來都是「開啟」的，
+        但實際用 MQTT 客戶端連過去，三種常見路徑全部逾時。
+      </p>
+      <div class="note">
+        <p>
+          <strong>教訓：</strong>TCP 連得上不代表服務存在。有些防火牆對任何連接埠都會回應交握，
+          造成「埠是開的」假象，一定要用真正的協定去測。
+        </p>
+      </div>
+      <h3>順帶一提的安全問題</h3>
+      <p>
+        就算 broker 有開 WebSocket，把帳號密碼寫進網頁的 JavaScript 也是不行的：
+        任何人按 F12 就能看到原始碼，等於把家裡鐵捲門的鑰匙貼在網路上。
+      </p>
+      <p>
+        兩個問題的答案是同一個：<strong>在電腦上跑一支小程式當中間層</strong>。
+      </p>
+    </div>
+  </div>
+
+  <div class="card" id="s8">
+    <h2><span class="num">09</span>網頁控制台</h2>
+    <p>電腦端的 <code>door_web.py</code> 一次解決三件事：</p>
+    <figure>
+      <svg viewBox="0 0 760 210" role="img" aria-label="架構圖：攝影機的 RTSP 串流與 ESP32 的 MQTT 連線都先進到電腦上的 door_web.py，再由它用 HTTP 提供給瀏覽器。" style="max-width:760px">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+            <path d="M0 0 L10 5 L0 10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g fill="none" stroke="currentColor" stroke-width="1.6" opacity=".85">
+          <rect x="8"   y="18"  width="150" height="52" rx="10"/>
+          <rect x="8"   y="128" width="150" height="52" rx="10"/>
+          <rect x="300" y="70"  width="170" height="62" rx="12" stroke-width="2.4"/>
+          <rect x="612" y="70"  width="140" height="62" rx="10"/>
+          <path d="M158 44 H230 Q250 44 250 70 V92 H298" marker-end="url(#ar)"/>
+          <path d="M158 154 H230 Q250 154 250 128 V112 H298" marker-end="url(#ar)"/>
+          <path d="M470 101 H608" marker-end="url(#ar)"/>
+        </g>
+        <g fill="currentColor" font-family="'Noto Sans TC',sans-serif" text-anchor="middle">
+          <text x="83"  y="40"  font-size="14" font-weight="700">網路攝影機</text>
+          <text x="83"  y="60"  font-size="12" opacity=".75">RTSP 串流</text>
+          <text x="83"  y="150" font-size="14" font-weight="700">ESP32</text>
+          <text x="83"  y="170" font-size="12" opacity=".75">MQTT over TLS</text>
+          <text x="385" y="95"  font-size="15" font-weight="700">door_web.py</text>
+          <text x="385" y="116" font-size="12" opacity=".75">這台電腦</text>
+          <text x="682" y="95"  font-size="14" font-weight="700">瀏覽器</text>
+          <text x="682" y="116" font-size="12" opacity=".75">手機／電腦</text>
+          <text x="238" y="66"  font-size="11" opacity=".7">轉成 MJPEG</text>
+          <text x="238" y="140" font-size="11" opacity=".7">代發指令</text>
+          <text x="539" y="92"  font-size="11" opacity=".7">HTTP</text>
+        </g>
+      </svg>
+      <figcaption>電腦端當中間層：影像轉檔、指令代發，帳密留在電腦裡</figcaption>
+    </figure>
+    <ol>
+      <li><strong>瀏覽器不能播 RTSP</strong>，所以把攝影機畫面轉成 MJPEG 再餵給網頁。</li>
+      <li><strong>broker 沒開 WebSocket</strong>，所以指令由這支程式代發。</li>
+      <li><strong>帳號密碼留在電腦端</strong>，不會出現在網頁原始碼裡。</li>
+    </ol>
+    <p>網頁本身很單純：上半部是即時畫面，下半部是三顆大按鈕，外加一顆顯示 ESP32 在不在線上的狀態燈。</p>
+<pre><code>def send(self, cmd):
+    """回傳 (成功, 訊息)。擋掉連點，並在離線時直接拒絕。"""
+    if self.state["avail"] != "online":
+        return False, "鐵捲門控制器不在線上，指令沒有送出"
+    if time.monotonic() - self.last_sent.get(cmd, 0) &lt; MIN_GAP_SEC:
+        return False, "剛剛才送過同一個指令，請稍等一下"
+    self.client.publish(CMD_TOPICS[cmd], "web", qos=1)</code></pre>
+    <div class="warn">
+      <p>
+        <strong>只在自己的區網內使用。</strong>不要為了在外面也能開門，就在路由器上把這個連接埠對外開放，
+        那等於把鐵捲門的開關放到公開網路上。真的需要遠端，用 VPN 之類的方式回家比較安全。
+      </p>
+    </div>
+  </div>
+
+  <div class="card" id="s9">
+    <h2><span class="num">10</span>還沒做完的事</h2>
+    <ul>
+      <li><strong>磁簧開關還沒裝</strong>。裝了才知道門是真的關到底了，還是卡在半路。程式裡的位置已經留好。</li>
+      <li><strong>三個 IN 腳的下拉電阻還沒加</strong>。通電瞬間那 0.2 秒目前實測沒事，但加了才算徹底。</li>
+      <li><strong>攝影機畫面還沒接通</strong>。程式寫好了，卡在路由器把攝影機隔離在另一個網段，還沒去調設定。</li>
+    </ul>
+    <div class="ok">
+      <p>
+        <strong>已經完成並實測：</strong>接線、韌體、手機 App 控制、網頁控制台，
+        以及開機不誤動作、三路互鎖、停電復電後自動恢復。
+      </p>
+    </div>
+  </div>
+
+  <div class="card" id="s10">
+    <h2><span class="num">11</span>下載與安全提醒</h2>
+    <p>
+      程式包裡有 ESP32 韌體、電腦端網頁控制台，以及設定範本。
+      <strong>所有帳號密碼都已經換成佔位符</strong>，要自己填。
+    </p>
+    <div class="btn-row">
+      <a class="btn" href="garage_door_starter_pack.zip" download>📦 下載程式包 (ZIP)</a>
+    </div>
+    <div class="warn">
+      <p><strong>要動手做之前，請先想清楚這幾件事：</strong></p>
+      <ul>
+        <li>填好密碼的 <code>secrets.h</code> 和 <code>settings.py</code> <strong>不要上傳到 GitHub 或公開分享</strong>。</li>
+        <li>不要用不需要帳密的公開 broker。任何人猜到你的 topic 就能開你家的門。</li>
+        <li>topic 前綴自己取一段別人猜不到的字串，不要用 <code>home/door</code> 這種。</li>
+        <li>鐵捲門是重物，誤動作會夾傷人。接到主板之前，先在桌上確認繼電器只在收到指令時才動作。</li>
+        <li>機箱裡有 110V 交流電，拆裝時務必先斷電。</li>
+      </ul>
+    </div>
+    <p class="muted">
+      這份紀錄是自家鐵捲門的實作過程，不同型號的主板差異很大，照抄不一定能用。
+      動到自家設備與市電線路請自行評估風險。
+    </p>
+  </div>
+
+  <footer class="page">
+    <p>楊梅高中　簡樹桐　·　2026 年 9 月</p>
+  </footer>
+
+</main>
+</body>
+</html>
