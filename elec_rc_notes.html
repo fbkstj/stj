@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RC 充電與放電筆記</title>
+<meta name="description" content="基本電學 R-C 電路充電與放電：原始手寫稿與整理後的電子檔（網頁版、Word 檔下載）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&family=Noto+Sans+TC:wght@400;500;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f7f7;
+    --card: #ffffff;
+    --ink: #13262b;
+    --muted: #4c6166;
+    --line: #d4e1e2;
+    --accent: #00696b;
+    --accent-ink: #ffffff;
+    --tint: #e3f1f1;
+    --hl: #1f5fa8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1a1c;
+      --card: #172629;
+      --ink: #e6f0f0;
+      --muted: #a9bcbf;
+      --line: #2b3f43;
+      --accent: #4fd1c5;
+      --accent-ink: #062224;
+      --tint: #1d3336;
+      --hl: #8cc4ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.75 'Noto Sans TC', system-ui, sans-serif;
+  }
+  main { max-width: 920px; margin: 0 auto; padding: 32px 16px 56px; }
+  .eyebrow { font-family: 'Outfit', 'Noto Sans TC', sans-serif; color: var(--accent); font-weight: 700; letter-spacing: .04em; margin: 0; }
+  h1 { font-size: clamp(1.6rem, 4.5vw, 2.3rem); line-height: 1.3; margin: 4px 0 8px; }
+  .lead { color: var(--muted); margin: 0 0 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+  .downloads { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; text-decoration: none;
+    padding: 10px 18px; border-radius: 12px; min-height: 44px;
+  }
+  .btn.ghost { background: transparent; color: var(--accent); border: 2px solid var(--accent); }
+  .btn:hover { filter: brightness(1.08); }
+  a:focus-visible, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+  .tabs { display: flex; gap: 8px; margin: 8px 0 20px; border-bottom: 2px solid var(--line); }
+  .tabs button {
+    font: inherit; font-weight: 700; background: none; border: 0; color: var(--muted);
+    padding: 10px 16px; min-height: 44px; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px;
+  }
+  .tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  [role="tabpanel"][hidden] { display: none; }
+
+  /* 整理版：手寫風字體 */
+  .notes { font-family: 'LXGW WenKai TC', 'Noto Sans TC', serif; font-size: 1.08rem; }
+  .notes h2 { color: var(--hl); font-size: 1.4rem; margin: 0 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--line); }
+  .notes h3 { font-size: 1.15rem; margin: 18px 0 8px; }
+  .notes ul { padding-left: 1.3em; margin: 8px 0 12px; }
+  .notes li { margin-bottom: 4px; }
+  .notes b { color: var(--hl); }
+  .eq { text-align: center; font-size: 1.15rem; margin: 12px 0; }
+  .table-wrap { overflow-x: auto; margin: 12px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 1rem; }
+  th, td { text-align: center; padding: 8px 10px; border: 1px solid var(--line); }
+  th { background: var(--tint); }
+  figure { margin: 16px 0; text-align: center; }
+  figure img { max-width: 100%; height: auto; background: #fff; border-radius: 8px; border: 1px solid var(--line); }
+  figcaption { color: var(--muted); font-size: .92rem; margin-top: 4px; }
+  .fig-sm img { width: 420px; }
+  .fig-md img { width: 560px; }
+  .fig-lg img { width: 720px; }
+  .scan figure { margin: 0 0 24px; }
+  .scan img { width: 100%; }
+  .muted { color: var(--muted); font-size: .95rem; }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">基本電學・筆記留存</p>
+  <h1>R-C 電路的充電與放電</h1>
+  <p class="lead">手寫筆記兩頁（2026-09-24 掃描）與整理後的電子檔。整理版的內容照手稿順序重新打字，圖改用程式重畫；「公式整理」一節是整理時補上的。</p>
+
+  <section class="card" aria-labelledby="dl-title">
+    <h2 id="dl-title" style="margin:0 0 12px;font-size:1.15rem;">檔案下載</h2>
+    <ul class="downloads">
+      <li><a class="btn" href="elec_notes/rc_charge_discharge.docx" download>Word 檔（整理版）</a></li>
+      <li><a class="btn ghost" href="elec_notes/rc_handwritten_1.pdf" target="_blank" rel="noopener">手稿 PDF 第 1 頁</a></li>
+      <li><a class="btn ghost" href="elec_notes/rc_handwritten_2.pdf" target="_blank" rel="noopener">手稿 PDF 第 2 頁</a></li>
+    </ul>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="檢視版本">
+    <button role="tab" id="tab-notes" aria-controls="panel-notes" aria-selected="true" type="button">整理版</button>
+    <button role="tab" id="tab-scan" aria-controls="panel-scan" aria-selected="false" type="button" tabindex="-1">原始手稿</button>
+  </div>
+
+  <div role="tabpanel" id="panel-notes" aria-labelledby="tab-notes" class="notes">
+    <section class="card">
+      <h2>一、RC 時間常數與基本觀念</h2>
+      <ul>
+        <li>RC 時間常數：<b>τ = RC</b>。充電或放電皆需經過 <b>5τ</b> 才算完成。</li>
+        <li>電容器電壓 V<sub>C</sub>(t) 充電時：V<sub>C</sub>(t) 由 0 → E（E 為外加電壓）。</li>
+        <li>R-C 充放電電路需要一個電阻 R 與一個電容 C。</li>
+        <li>主要充電對象為電容器 → 充電壓（利用電場儲能）。</li>
+      </ul>
+      <figure class="fig-sm">
+        <img src="elec_notes/fig_circuit_charge.png" alt="R-C 充電電路：電壓源 E 串聯電阻 R 與電容 C，電流 i(t) 順時針流動，V_R 左正右負，V_C 上正下負" loading="lazy">
+        <figcaption>圖 1　R-C 充電電路</figcaption>
+      </figure>
+      <p>由克希荷夫電壓定律（KVL）：</p>
+      <p class="eq">V<sub>R</sub>(t) + V<sub>C</sub>(t) = E　（E 為固定電壓）</p>
+      <ul>
+        <li>V<sub>R</sub>(t) 與 V<sub>C</sub>(t) 具有「此消彼長」的特性：V<sub>R</sub>(t) ↓，V<sub>C</sub>(t) ↑。</li>
+        <li>經過 1τ = RC：若 V<sub>C</sub>(0) = 0 開始充電，可充到外加電壓的 63.2%，即 0.632E。</li>
+        <li>若 V<sub>C</sub>(5τ) = E 開始放電，經過 1τ 放掉 63.2%，剩下 E(1 − 0.632) = <b>0.368E</b>。</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>二、自然對數 e 的指數特性</h2>
+      <p>充放電過程中的數值都來自 e 的指數函數，以下兩組數值務必熟記：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">時間 t</th><th scope="col">衰減模式 e<sup>−t/τ</sup></th><th scope="col">增加模式 1 − e<sup>−t/τ</sup></th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>e<sup>0</sup> = 1</td><td>1 − e<sup>0</sup> = 0</td></tr>
+            <tr><td>1τ</td><td>e<sup>−1</sup> = 0.368</td><td>1 − e<sup>−1</sup> = 0.632</td></tr>
+            <tr><td>2τ</td><td>e<sup>−2</sup> = 0.135</td><td>1 − e<sup>−2</sup> = 0.865</td></tr>
+            <tr><td>3τ</td><td>e<sup>−3</sup> = 0.05</td><td>1 − e<sup>−3</sup> = 0.95</td></tr>
+            <tr><td>4τ</td><td>e<sup>−4</sup> = 0.018</td><td>1 − e<sup>−4</sup> = 0.982</td></tr>
+            <tr><td>5τ</td><td>e<sup>−5</sup> ≒ 0</td><td>1 − e<sup>−5</sup> ≒ 1</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li>衰減模式：時間愈久，數值愈小。</li>
+        <li>增加模式：時間愈久，數值愈大。</li>
+      </ul>
+      <figure class="fig-lg">
+        <img src="elec_notes/fig_modes.png" alt="左圖為增加模式曲線，由 0 上升，1τ 到 0.632E、2τ 到 0.865E、5τ 接近 E；右圖為衰減模式曲線，由 E 下降，1τ 為 0.368E、2τ 為 0.135E、5τ 接近 0" loading="lazy">
+        <figcaption>圖 2　增加模式與衰減模式曲線</figcaption>
+      </figure>
+    </section>
+
+    <section class="card">
+      <h2>三、兩種模式探討（外加電壓 E）</h2>
+      <h3>1. 增加模式（0 → E）</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">元件</th><th scope="col">t = 0</th><th scope="col">t = 5τ（穩態）</th></tr></thead>
+          <tbody>
+            <tr><td>電容器 C（充電壓）</td><td>V<sub>C</sub>(0) = 0 V</td><td>V<sub>C</sub>(5τ) = E，I = 0（開路）</td></tr>
+            <tr><td>電感器 L（充電流）</td><td>i<sub>L</sub>(0) = 0 A</td><td>i<sub>L</sub>(5τ) = E / R，I 最大（短路）</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>2. 衰減模式（E → 0）</h3>
+      <ul>
+        <li>R-C 充電中，因 E = V<sub>R</sub>(t) + V<sub>C</sub>(t)，當 V<sub>C</sub>(t) ↑ 時 V<sub>R</sub>(t) ↓。</li>
+        <li>充電過程中的 V<sub>R</sub>(t) 為衰減模式：<b>E → 0</b>。</li>
+        <li>i(t) 也一樣：i(t) = V<sub>R</sub>(t) / R，i(t) 與 V<sub>R</sub>(t) 同步變化。</li>
+      </ul>
+      <h3>3. R-C 放電</h3>
+      <ul>
+        <li>放電時由電容器提供能量給電阻，兩者形成並聯關係。</li>
+        <li>V<sub>C</sub>(t) 極性不變：E → 0（經 5τ）。</li>
+        <li>V<sub>R</sub>(t) 極性相反：V<sub>R</sub>(t) = −E → 0。</li>
+        <li>i(t) 電流極性相反：i(t) = −E / R → 0。</li>
+      </ul>
+      <figure class="fig-sm">
+        <img src="elec_notes/fig_circuit_discharge.png" alt="R-C 放電電路：電容 C 與電阻 R 形成迴路，電流 i(t) 反向流動，V_R 極性變成左負右正" loading="lazy">
+        <figcaption>圖 3　R-C 放電電路（電容器當作電源）</figcaption>
+      </figure>
+    </section>
+
+    <section class="card">
+      <h2>四、R-C 充電過程</h2>
+      <p>暫態：0 ～ 5τ；t = 5τ 以後進入穩態。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">物理量</th><th scope="col">t = 0（外加電壓 E）</th><th scope="col">變化模式</th><th scope="col">t = 5τ（穩態）</th></tr></thead>
+          <tbody>
+            <tr><td>V<sub>C</sub>(t)</td><td>0 V（短路，最小）</td><td>增加模式</td><td>E（斷路）</td></tr>
+            <tr><td>V<sub>R</sub>(t)</td><td>E（最大）</td><td>衰減模式</td><td>0 V</td></tr>
+            <tr><td>i(t) = V<sub>R</sub>(t) / R</td><td>E / R（最大）</td><td>衰減模式</td><td>0 A</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li>電容器充飽了，就沒有電流：V<sub>C</sub>(t) = E、i(t) = 0，穩態時電容器視為<b>斷路</b>。</li>
+        <li>電容器空的時候：V<sub>C</sub>(t) = 0，視為<b>短路</b>。</li>
+        <li>此時電阻電壓最大、充電電流最大，然後開始衰減至 0。</li>
+      </ul>
+      <figure class="fig-md">
+        <img src="elec_notes/fig_charge_waves.png" alt="充電過程三條波形：V_C 由 0 以增加模式升到 E；V_R 由 E 以衰減模式降到 0；i 由 E/R 以衰減模式降到 0，1τ 時分別為 0.632E、0.368E、0.368E/R" loading="lazy">
+        <figcaption>圖 4　充電過程中 V<sub>C</sub>(t)、V<sub>R</sub>(t)、i(t) 的波形</figcaption>
+      </figure>
+    </section>
+
+    <section class="card">
+      <h2>五、R-C 放電過程</h2>
+      <p>電容器已經充滿至 E，t = 0 時開始放電。放電開始前的狀態：</p>
+      <ul>
+        <li>V<sub>C</sub>(t) = E V</li>
+        <li>i(t) = 0 A</li>
+        <li>V<sub>R</sub>(t) = 0 V</li>
+      </ul>
+      <p>放電開始後各量的變化：</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">物理量</th><th scope="col">充電時</th><th scope="col">放電時</th><th scope="col">說明</th></tr></thead>
+          <tbody>
+            <tr><td>V<sub>C</sub>(t)</td><td>0 → E</td><td>E → 0</td><td>極性不變</td></tr>
+            <tr><td>V<sub>R</sub>(t)</td><td>E → 0</td><td>−E → 0</td><td>極性相反</td></tr>
+            <tr><td>i(t)</td><td>E/R → 0</td><td>−E/R → 0</td><td>電流方向相反</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <ul>
+        <li>放電過程每經過 1τ，V<sub>C</sub> 依序降為 0.368E、0.135E、……，約 5τ 後趨近於 0。</li>
+        <li>V<sub>R</sub>(t) 與 i(t) 由負的最大值（−E、−E/R）依序變為 −0.368E、−0.135E……，衰減至 0。</li>
+      </ul>
+      <figure class="fig-lg">
+        <img src="elec_notes/fig_full_waves.png" alt="充電 0 到 5τ 接著放電 0 到 5τ 的完整波形：V_C 先升到 E 再降回 0；V_R 與 i 充電時由正最大值衰減到 0，放電瞬間跳到負最大值 −E、−E/R 再衰減回 0" loading="lazy">
+        <figcaption>圖 5　充電暫態接放電暫態的完整波形</figcaption>
+      </figure>
+    </section>
+
+    <section class="card">
+      <h2>六、公式整理</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">物理量</th><th scope="col">充電（V<sub>C</sub>(0) = 0）</th><th scope="col">放電（V<sub>C</sub>(0) = E）</th></tr></thead>
+          <tbody>
+            <tr><td>V<sub>C</sub>(t)</td><td>E(1 − e<sup>−t/τ</sup>)</td><td>E · e<sup>−t/τ</sup></td></tr>
+            <tr><td>V<sub>R</sub>(t)</td><td>E · e<sup>−t/τ</sup></td><td>−E · e<sup>−t/τ</sup></td></tr>
+            <tr><td>i(t)</td><td>(E/R) · e<sup>−t/τ</sup></td><td>−(E/R) · e<sup>−t/τ</sup></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>其中 τ = RC；t = 5τ 時視為充放電完成。</p>
+    </section>
+  </div>
+
+  <div role="tabpanel" id="panel-scan" aria-labelledby="tab-scan" class="card scan" hidden>
+    <p class="muted" style="margin-top:0;">原始手寫稿掃描（點圖片可開啟原尺寸）。</p>
+    <figure>
+      <a href="elec_notes/rc_handwritten_1.jpg" target="_blank" rel="noopener"><img src="elec_notes/rc_handwritten_1.jpg" alt="手寫稿第 1 頁：R-C 充電及放電的時間常數、e 的指數數值表、增加模式與衰減模式、放電極性說明" loading="lazy"></a>
+      <figcaption>手稿第 1 頁：觀念、e 的指數表、兩種模式</figcaption>
+    </figure>
+    <figure>
+      <a href="elec_notes/rc_handwritten_2.jpg" target="_blank" rel="noopener"><img src="elec_notes/rc_handwritten_2.jpg" alt="手寫稿第 2 頁：R-C 充電過程與放電過程的 V_C、V_R、i 波形圖" loading="lazy"></a>
+      <figcaption>手稿第 2 頁：充電過程與放電過程波形</figcaption>
+    </figure>
+  </div>
+</main>
+<script>
+  (function () {
+    var tabs = Array.prototype.slice.call(document.querySelectorAll('[role="tab"]'));
+    function select(tab) {
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.setAttribute('aria-selected', on);
+        t.tabIndex = on ? 0 : -1;
+        document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      });
+      tab.focus();
+    }
+    tabs.forEach(function (t, i) {
+      t.addEventListener('click', function () { select(t); });
+      t.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowRight') select(tabs[(i + 1) % tabs.length]);
+        if (e.key === 'ArrowLeft') select(tabs[(i - 1 + tabs.length) % tabs.length]);
+      });
+    });
+  })();
+</script>
+</body>
+</html>

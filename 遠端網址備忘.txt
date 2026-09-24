@@ -24,6 +24,9 @@ https://fbkstj.github.io/www/bike_rear_alert_project_guide.html
 【專題實作】AI 守望：公共場所 AI 監控通報（學生實作手冊）：
 https://fbkstj.github.io/www/ai_guardian_project_guide.html
 
+基本電學筆記：RC 充電與放電（手稿＋整理版）：
+https://fbkstj.github.io/stj/elec_rc_notes.html
+
 【專題實作】智慧管家系統（開發手冊）：
 https://fbkstj.github.io/stj/smart_butler_project_guide.html
 
