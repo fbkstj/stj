@@ -234,6 +234,53 @@
             white-space: nowrap;
         }
 
+        /* 兩層浮動選單（2026-09-25 老師要求改回）：第一層是下拉清單，
+           滑鼠移到有 ▸ 的分類上，第二層往右浮出（靠右邊的選單改往左浮出） */
+        .nav-sub { width: auto; min-width: 250px; max-height: none; overflow: visible; padding: 0.5rem; }
+        .nav-sub.open, .nav-sub.kb-open { display: block; }
+        @media (hover: hover) and (min-width: 1081px) {
+            .nav-group:hover .nav-sub, .nav-sub:hover { display: block; }
+        }
+        .mega-col + .mega-col { margin-top: 4px; }
+        button.mega-heading {
+            display: block; width: 100%; text-align: left; font-family: inherit;
+            background: none; border: 0; border-bottom: 2px solid #e2e8f0; cursor: default;
+        }
+        .mega-list { display: flex; flex-direction: column; gap: 2px; }
+        @media (min-width: 1081px) {
+            .mega-col.has-flyout { position: relative; }
+            .mega-col.has-flyout::after {      /* 斜移到第二層時不會因離開而收起 */
+                content: ''; position: absolute; top: 0; left: 100%; width: 14px; height: 100%;
+            }
+            .mega-col.fly-left::after { left: auto; right: 100%; }
+            .mega-col.has-flyout > .mega-heading {
+                display: flex; align-items: center; justify-content: space-between; gap: 1.2rem;
+                padding: 10px 14px; margin: 0; font-size: 0.92rem; font-weight: 800; letter-spacing: 0;
+                color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+                cursor: pointer; white-space: nowrap; transition: background 0.15s ease, color 0.15s ease;
+            }
+            .mega-col.has-flyout > .mega-heading::after { content: '▸'; color: #64748b; font-size: 0.85rem; }
+            .mega-col.has-flyout:hover > .mega-heading,
+            .mega-col.has-flyout.fly-open > .mega-heading,
+            .mega-col.has-flyout.kb-open > .mega-heading {
+                background: linear-gradient(90deg, #0f766e 0%, #0369a1 100%); color: #ffffff; border-color: transparent;
+            }
+            .mega-col.has-flyout:hover > .mega-heading::after,
+            .mega-col.has-flyout.fly-open > .mega-heading::after,
+            .mega-col.has-flyout.kb-open > .mega-heading::after { color: #ffffff; }
+            .mega-col.has-flyout > .mega-list {
+                position: absolute; left: 100%; top: 0; margin-left: 8px; z-index: 100000;
+                min-width: 280px; max-height: calc(100vh - 90px); overflow-y: auto;
+                background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px;
+                box-shadow: 0 16px 45px rgba(0, 0, 0, 0.28); padding: 0.5rem; display: none;
+            }
+            .mega-col.fly-left > .mega-list { left: auto; right: 100%; margin-left: 0; margin-right: 8px; }
+            .mega-col.has-flyout:hover > .mega-list,
+            .mega-col.has-flyout.fly-open > .mega-list,
+            .mega-col.has-flyout.kb-open > .mega-list { display: flex; animation: flyoutRight 0.15s ease; }
+            @keyframes flyoutRight { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
+        }
+
         .map-row {
             display: flex;
             align-items: center;
@@ -703,18 +750,22 @@
                     <span class="chevron" aria-hidden="true">&#9662;</span>
                 </button>
                 <div class="nav-sub" data-group="award" style="--cols: 2;">
-                    <div class="mega-col">
-                        <div class="mega-heading">🛠️ 數位電子乙級</div>
-                        <button class="nav-sub-item" type="button" data-src="cpld_simulator.html">數位乙級學習導覽</button>
-                        <button class="nav-sub-item" type="button" data-src="pcb_layout.html">PCB 佈局指引</button>
-                        <button class="nav-sub-item" type="button" data-src="CPLD/index.html">Quartus MegaWizard 教學</button>
-                        <button class="nav-sub-item" type="button" data-src="fpga_keypad.html">FPGA 矩陣鍵盤模擬</button>
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">🛠️ 數位電子乙級</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="cpld_simulator.html">數位乙級學習導覽</button>
+                            <button class="nav-sub-item" type="button" data-src="pcb_layout.html">PCB 佈局指引</button>
+                            <button class="nav-sub-item" type="button" data-src="CPLD/index.html">Quartus MegaWizard 教學</button>
+                            <button class="nav-sub-item" type="button" data-src="fpga_keypad.html">FPGA 矩陣鍵盤模擬</button>
+                        </div>
                     </div>
-                    <div class="mega-col">
-                        <div class="mega-heading">📱 App Inventor</div>
-                        <button class="nav-sub-item" type="button" data-src="app_inventor_practice.html">練習題庫全集</button>
-                        <button class="nav-sub-item" type="button" data-src="app_inventor.html">上機測驗</button>
-                        <button class="nav-sub-item" type="button" data-src="app_inventor_answers.html">完整解答</button>
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">📱 App Inventor</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="app_inventor_practice.html">練習題庫全集</button>
+                            <button class="nav-sub-item" type="button" data-src="app_inventor.html">上機測驗</button>
+                            <button class="nav-sub-item" type="button" data-src="app_inventor_answers.html">完整解答</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -725,37 +776,45 @@
                     <span class="chevron" aria-hidden="true">&#9662;</span>
                 </button>
                 <div class="nav-sub" data-group="video" style="--cols: 4;">
-                    <div class="mega-col">
-                        <div class="mega-heading">📐 數乙第一題 KiCad</div>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/0CTFzI3CVOg">第 1 集：原理圖與 ERC 檢查<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/Bzip9mwdnWc">第 2 集：電路圖繪製<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/J_SE8ae60kg">第 3 集：PCB 佈局（上）<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/5vKtx-EXmaQ">第 4 集：PCB 佈局（下）與電氣檢查<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/Z3yOpmwTumg">第 5 集：PCB 布線與列印輸出<span class="ext" aria-hidden="true">↗</span></button>
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">📐 數乙第一題 KiCad</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/0CTFzI3CVOg">第 1 集：原理圖與 ERC 檢查<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/Bzip9mwdnWc">第 2 集：電路圖繪製<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/J_SE8ae60kg">第 3 集：PCB 佈局（上）<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/5vKtx-EXmaQ">第 4 集：PCB 佈局（下）與電氣檢查<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/Z3yOpmwTumg">第 5 集：PCB 布線與列印輸出<span class="ext" aria-hidden="true">↗</span></button>
+                        </div>
                     </div>
-                    <div class="mega-col">
-                        <div class="mega-heading">📟 115-09-07 ESP32 實驗板</div>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/CClkQXBeFHQ">第 1 節<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/ym8Q1tWAMOY">第 2 節<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/WcxOut--eSw">第 3 節<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/I7qP3E4xUaQ">第 4 節<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/ozs4BxqBcg8">第 5 節<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/g7RtFXK3C4c">第 6 節<span class="ext" aria-hidden="true">↗</span></button>
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">📟 115-09-07 ESP32 實驗板</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/CClkQXBeFHQ">第 1 節<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/ym8Q1tWAMOY">第 2 節<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/WcxOut--eSw">第 3 節<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/I7qP3E4xUaQ">第 4 節<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/ozs4BxqBcg8">第 5 節<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/g7RtFXK3C4c">第 6 節<span class="ext" aria-hidden="true">↗</span></button>
+                        </div>
                     </div>
-                    <div class="mega-col">
-                        <div class="mega-heading">📡 115-09-14 ESP32 與 MQTT</div>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/O-02lo-SjQk">第 1 節：ESP32 碼表／計時器<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/Zk-3QItzzyY">第 2 節：MQTT 基礎與智慧控制<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/MsvUlWtHYXM">第 3 節：MQTT 繼電器與家電控制<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/playlist?list=PLaJdK3ncriqA">整門課播放清單<span class="ext" aria-hidden="true">↗</span></button>
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">📡 115-09-14 ESP32 與 MQTT</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/O-02lo-SjQk">第 1 節：ESP32 碼表／計時器<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/Zk-3QItzzyY">第 2 節：MQTT 基礎與智慧控制<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/MsvUlWtHYXM">第 3 節：MQTT 繼電器與家電控制<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/playlist?list=PLaJdK3ncriqA">整門課播放清單<span class="ext" aria-hidden="true">↗</span></button>
+                        </div>
                     </div>
-                    <div class="mega-col">
-                        <div class="mega-heading">🤖 115-09-21 WebCam AI視覺</div>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/R5H-mSOIoPo">第 1 節：環境建置與 WebCam<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/GOlVXxrLhZ8">第 2 節：Prompt 與拍照校正<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/Y72SiVz9vho">第 3 節：多格分割視窗佈局<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/_eQ2Q6TO5vw">第 4 節：YOLO 骨架與手勢<span class="ext" aria-hidden="true">↗</span></button>
-                        <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/playlist?list=PLPylZe9oed6w">整門課播放清單<span class="ext" aria-hidden="true">↗</span></button>
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">🤖 115-09-21 WebCam AI視覺</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/R5H-mSOIoPo">第 1 節：環境建置與 WebCam<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/GOlVXxrLhZ8">第 2 節：Prompt 與拍照校正<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/Y72SiVz9vho">第 3 節：多格分割視窗佈局<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/_eQ2Q6TO5vw">第 4 節：YOLO 骨架與手勢<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/playlist?list=PLPylZe9oed6w">整門課播放清單<span class="ext" aria-hidden="true">↗</span></button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -803,17 +862,21 @@
                     <span class="chevron" aria-hidden="true">&#9662;</span>
                 </button>
                 <div class="nav-sub" data-group="map" style="--cols: 2;">
-                    <div class="mega-col">
-                        <div class="mega-heading">📋 實習處行政</div>
-                        <button class="nav-sub-item" type="button" data-src="roster.html">輪值表產生器</button>
-                        <button class="nav-sub-item" type="button" data-src="school_history_room.html">職業科校史室展區規劃（電子科・資訊科）</button>
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">📋 實習處行政</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="roster.html">輪值表產生器</button>
+                            <button class="nav-sub-item" type="button" data-src="school_history_room.html">職業科校史室展區規劃（電子科・資訊科）</button>
+                        </div>
                     </div>
-                    <div class="mega-col">
-                        <div class="mega-heading">🗺️ 課程地圖</div>
-                        <div class="map-row"><span class="map-year">115 學年</span><button class="nav-sub-item" type="button" data-src="coursemap115.html" aria-label="115 學年課程地圖列印版">列印版</button><button class="nav-sub-item" type="button" data-src="coursemap_premium115.html" aria-label="115 學年課程地圖互動版">互動版</button></div>
-                        <div class="map-row"><span class="map-year">114 學年</span><button class="nav-sub-item" type="button" data-src="coursemap114.html" aria-label="114 學年課程地圖列印版">列印版</button><button class="nav-sub-item" type="button" data-src="coursemap_premium114.html" aria-label="114 學年課程地圖互動版">互動版</button></div>
-                        <div class="map-row"><span class="map-year">113 學年</span><button class="nav-sub-item" type="button" data-src="coursemap113.html" aria-label="113 學年課程地圖列印版">列印版</button><button class="nav-sub-item" type="button" data-src="coursemap_premium113.html" aria-label="113 學年課程地圖互動版">互動版</button></div>
-                        <div class="map-row"><span class="map-year">112 學年</span><button class="nav-sub-item" type="button" data-src="coursemap112.html" aria-label="112 學年課程地圖列印版">列印版</button><button class="nav-sub-item" type="button" data-src="coursemap_premium112.html" aria-label="112 學年課程地圖互動版">互動版</button></div>
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">🗺️ 課程地圖</button>
+                        <div class="mega-list">
+                            <div class="map-row"><span class="map-year">115 學年</span><button class="nav-sub-item" type="button" data-src="coursemap115.html" aria-label="115 學年課程地圖列印版">列印版</button><button class="nav-sub-item" type="button" data-src="coursemap_premium115.html" aria-label="115 學年課程地圖互動版">互動版</button></div>
+                            <div class="map-row"><span class="map-year">114 學年</span><button class="nav-sub-item" type="button" data-src="coursemap114.html" aria-label="114 學年課程地圖列印版">列印版</button><button class="nav-sub-item" type="button" data-src="coursemap_premium114.html" aria-label="114 學年課程地圖互動版">互動版</button></div>
+                            <div class="map-row"><span class="map-year">113 學年</span><button class="nav-sub-item" type="button" data-src="coursemap113.html" aria-label="113 學年課程地圖列印版">列印版</button><button class="nav-sub-item" type="button" data-src="coursemap_premium113.html" aria-label="113 學年課程地圖互動版">互動版</button></div>
+                            <div class="map-row"><span class="map-year">112 學年</span><button class="nav-sub-item" type="button" data-src="coursemap112.html" aria-label="112 學年課程地圖列印版">列印版</button><button class="nav-sub-item" type="button" data-src="coursemap_premium112.html" aria-label="112 學年課程地圖互動版">互動版</button></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -824,14 +887,16 @@
                     <span class="chevron" aria-hidden="true">&#9662;</span>
                 </button>
                 <div class="nav-sub" data-group="remedial" style="--cols: 1;">
-                    <div class="mega-col">
-                        <div class="mega-heading">📚 115 學年度重補修</div>
-                        <button class="nav-sub-item" type="button" data-src="remedial_v2_app.html">⚡ 新版自學系統（兩科合一，登入更快）</button>
-                        <button class="nav-sub-item" type="button" data-src="remedial_mcu.html">單晶片微處理機實習：自學入口</button>
-                        <button class="nav-sub-item" type="button" data-src="remedial_mcu_app.html">單晶片自學系統（學生／老師登入）</button>
-                        <button class="nav-sub-item" type="button" data-src="remedial_elec.html">基本電學：自學入口</button>
-                        <button class="nav-sub-item" type="button" data-src="remedial_elec_app.html">基本電學自學系統（學生／老師登入）</button>
-                        <button class="nav-sub-item" type="button" data-src="elec_rc_notes.html">基本電學筆記：RC 充電與放電</button>
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">📚 115 學年度重補修</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="remedial_v2_app.html">⚡ 新版自學系統（兩科合一，登入更快）</button>
+                            <button class="nav-sub-item" type="button" data-src="remedial_mcu.html">單晶片微處理機實習：自學入口</button>
+                            <button class="nav-sub-item" type="button" data-src="remedial_mcu_app.html">單晶片自學系統（學生／老師登入）</button>
+                            <button class="nav-sub-item" type="button" data-src="remedial_elec.html">基本電學：自學入口</button>
+                            <button class="nav-sub-item" type="button" data-src="remedial_elec_app.html">基本電學自學系統（學生／老師登入）</button>
+                            <button class="nav-sub-item" type="button" data-src="elec_rc_notes.html">基本電學筆記：RC 充電與放電</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1831,6 +1896,40 @@
         g.addEventListener('mouseenter', () => requestAnimationFrame(() => fitPanel(sub)));
         g.addEventListener('focusin', () => requestAnimationFrame(() => fitPanel(sub)));
     });
+
+    // 第二層浮動選單
+    function closeFlyouts(except) {
+        document.querySelectorAll('.mega-col.fly-open').forEach(c => {
+            if (c === except) return;
+            c.classList.remove('fly-open');
+            c.querySelector('.mega-heading').setAttribute('aria-expanded', 'false');
+        });
+    }
+    document.querySelectorAll('.mega-col.has-flyout').forEach(col => {
+        const head = col.querySelector('.mega-heading'), list = col.querySelector('.mega-list');
+        keepOpenWhileFocused(col, col);
+        const place = () => {
+            if (mobileMQ.matches) return;
+            col.classList.remove('fly-left');
+            list.style.top = '';
+            let r = list.getBoundingClientRect();
+            if (r.right > window.innerWidth - 8) { col.classList.add('fly-left'); r = list.getBoundingClientRect(); }
+            const over = r.bottom - (window.innerHeight - 8);
+            if (over > 0) list.style.top = `${-Math.min(over, r.top - 70)}px`;
+        };
+        col.addEventListener('mouseenter', () => requestAnimationFrame(place));
+        col.addEventListener('focusin', () => requestAnimationFrame(place));
+        head.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (mobileMQ.matches) return;           // 手機版第二層直接攤開，不用點
+            const open = !col.classList.contains('fly-open');
+            closeFlyouts(col);
+            col.classList.toggle('fly-open', open);
+            head.setAttribute('aria-expanded', String(open));
+            requestAnimationFrame(place);
+        });
+    });
+    document.querySelectorAll('.nav-group').forEach(g => g.addEventListener('mouseleave', () => closeFlyouts(null)));
 
     function resetSubmenus() {
         document.querySelectorAll('.nav-sub.open').forEach(o => o.classList.remove('open'));
