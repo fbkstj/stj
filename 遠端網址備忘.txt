@@ -54,7 +54,7 @@ https://fbkstj.github.io/www/pcb_layout.html
 楊梅高中實習處輪值表系統：
 https://fbkstj.github.io/www/roster.html
 
-楊梅高中電子科・資訊科校史室展區規劃：
+楊梅高中職業科校史室展區規劃（電子科・資訊科）：
 https://fbkstj.github.io/stj/school_history_room.html
 
 單晶片微處理機實習重補修自學（入口頁）：
@@ -111,7 +111,7 @@ https://stjwww.netlify.app/pcb_layout.html
 楊梅高中實習處輪值表系統：
 https://stjwww.netlify.app/roster.html
 
-楊梅高中電子科・資訊科校史室展區規劃：
+楊梅高中職業科校史室展區規劃（電子科・資訊科）：
 https://stjwww.netlify.app/school_history_room.html
 
 單晶片微處理機實習重補修自學（入口頁）：
@@ -168,7 +168,7 @@ http://127.0.0.1:18456/pcb_layout.html
 楊梅高中實習處輪值表系統：
 http://127.0.0.1:18456/roster.html
 
-楊梅高中電子科・資訊科校史室展區規劃：
+楊梅高中職業科校史室展區規劃（電子科・資訊科）：
 http://127.0.0.1:18456/school_history_room.html
 
 單晶片微處理機實習重補修自學（入口頁）：
