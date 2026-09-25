@@ -878,7 +878,8 @@ async function startQuiz() {
         const d = document.createElement('div');
         d.className = 'solve';
         const bank = /^B\d+$/.test(String(x.orig || ''));
-        const src = bank ? `題庫第 ${esc(String(x.orig).slice(1))} 題` : `原卷第 ${esc(x.orig)} 題`;
+        const exam = /^K\d+-\d+$/.test(String(x.orig || ''));
+        const src = exam ? `${esc(String(x.orig).slice(1).split('-')[0])} 年統測第 ${esc(String(x.orig).split('-')[1])} 題` : bank ? `題庫第 ${esc(String(x.orig).slice(1))} 題` : `原卷第 ${esc(x.orig)} 題`;
         const from = x.orig ? (x.varied ? `本題由${src}改編（數字每次不同）` : `本題出自${src}`) : '';
         d.innerHTML = (from ? `<b>${from}</b>` : '') + (x.steps ? `<pre>${esc(x.steps)}</pre>` : '')
           + (x.right ? `<span class="ans">正確答案：${esc(x.right)}</span>` : '');
