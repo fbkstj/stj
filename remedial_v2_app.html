@@ -877,7 +877,9 @@ async function startQuiz() {
         if (x.correct || (!x.steps && !x.orig)) return;
         const d = document.createElement('div');
         d.className = 'solve';
-        const from = x.orig ? (x.varied ? `本題由原卷第 ${esc(x.orig)} 題改編（數字每次不同）` : `本題出自原卷第 ${esc(x.orig)} 題`) : '';
+        const bank = /^B\d+$/.test(String(x.orig || ''));
+        const src = bank ? `題庫第 ${esc(String(x.orig).slice(1))} 題` : `原卷第 ${esc(x.orig)} 題`;
+        const from = x.orig ? (x.varied ? (bank ? `本題是${src}的類似題（同一張圖，每次問法不同）` : `本題由${src}改編（數字每次不同）`) : `本題出自${src}`) : '';
         d.innerHTML = (from ? `<b>${from}</b>` : '') + (x.steps ? `<pre>${esc(x.steps)}</pre>` : '')
           + (x.right ? `<span class="ans">正確答案：${esc(x.right)}</span>` : '');
         f.appendChild(d);
