@@ -957,7 +957,7 @@ async function showTeacher(pre) {
   });
   renderFixGrade(d);
   renderPracGrade(d);
-  $('#refBtn').onclick = showTeacher;
+  $('#refBtn').onclick = () => showTeacher();   // 不能直接給 showTeacher：點擊事件會被當成後台資料 pre
   bindSubjectBar(d.subject && d.subject.id);
   $('#expBtn').onclick = async () => {
     const b = $('#expBtn'); b.disabled = true;

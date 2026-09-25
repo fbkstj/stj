@@ -926,7 +926,7 @@ async function showTeacher(pre) {
   });
   renderFixGrade(d);
   renderPracGrade(d);
-  $('#refBtn').onclick = showTeacher;
+  $('#refBtn').onclick = () => showTeacher();   // 不能直接給 showTeacher：點擊事件會被當成後台資料 pre
   const boxes = () => [...app.querySelectorAll('input[name="mailSid"]:not(:disabled)')];
   $('#mailAll').onclick = () => { const all = boxes().every(b => b.checked); boxes().forEach(b => { b.checked = !all; }); };
   $('#mailBtn').onclick = async () => {
