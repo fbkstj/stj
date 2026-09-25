@@ -946,6 +946,13 @@ async function showTeacher(pre) {
       </tbody></table></div>
     <div id="fixGrade"></div>
     <div id="pracGrade"></div>
+    <section class="panel" id="mailBox" aria-labelledby="mailTitle">
+      <div class="row"><h2 id="mailTitle">寄送登入碼</h2><span class="hint">勾選要寄的學生，登入碼會寄到學生的學校信箱（由老師的 Gmail 寄出，每天上限約 100 封）</span></div>
+      <div style="display:grid;gap:6px">${d.students.map(s => `
+        <label class="opt"><input type="checkbox" name="mailSid" value="${esc(s.sid)}" ${s.hasCode ? '' : 'disabled'}><span><b>${esc(s.name)}</b>　<span class="mono">${esc(s.email)}</span>${s.hasCode ? '' : '（還沒有登入碼）'}</span></label>`).join('')}</div>
+      <label class="opt"><input type="checkbox" id="mailCc" checked><span>同時寄一份名單副本給老師（<span class="mono">${esc(d.info.teacherEmail)}</span>）</span></label>
+      <div class="row"><button class="btn ghost sm" id="mailAll" type="button">全選</button><span class="err" id="mailMsg" role="status"></span><button class="btn" id="mailBtn" type="button">寄出登入碼</button></div>
+    </section>
     <details class="panel" id="codeBox"><summary><b>登入碼一覽</b>（列印或個別告知學生用；登入碼和舊版相同）</summary>
       <table class="codes"><thead><tr><th>班級</th><th>座號</th><th>學號</th><th>姓名</th><th>登入碼</th></tr></thead>
       <tbody>${d.students.map(s => `<tr><td>${esc(s.cls)}</td><td>${esc(s.seat)}</td><td class="mono">${esc(s.sid)}</td><td>${esc(s.name)}</td><td class="mono">${esc(s.code || '')}</td></tr>`).join('')}</tbody></table>
@@ -959,6 +966,25 @@ async function showTeacher(pre) {
   renderPracGrade(d);
   $('#refBtn').onclick = () => showTeacher();   // 不能直接給 showTeacher：點擊事件會被當成後台資料 pre
   bindSubjectBar(d.subject && d.subject.id);
+  const boxes = () => [...app.querySelectorAll('input[name="mailSid"]:not(:disabled)')];
+  $('#mailAll').onclick = () => { const all = boxes().every(b => b.checked); boxes().forEach(b => { b.checked = !all; }); };
+  $('#mailBtn').onclick = async () => {
+    const sids = boxes().filter(b => b.checked).map(b => b.value);
+    const msg = $('#mailMsg');
+    msg.style.color = '';
+    if (!sids.length) { msg.textContent = '請先勾選要寄送的學生'; return; }
+    const cc = $('#mailCc').checked;
+    if (!confirm(`要把登入碼寄給 ${sids.length} 位學生${cc ? '，並寄副本給老師' : ''}嗎？`)) return;
+    const b = $('#mailBtn'); b.disabled = true; msg.textContent = '寄送中…';
+    try {
+      const r = await api('sendLoginCodes', TOKEN, sids, cc);
+      const bad = r.results.filter(x => !x.ok);
+      msg.style.color = bad.length ? '' : 'var(--ok)';
+      msg.textContent = `已寄出 ${r.results.length - bad.length} 封` + (r.cc ? '，副本已寄給老師' : '')
+        + (bad.length ? `；失敗 ${bad.length} 封：` + bad.map(x => `${x.name || x.sid}（${x.msg}）`).join('、') : '');
+    } catch (e) { msg.textContent = e.message; }
+    finally { b.disabled = false; }
+  };
   $('#expBtn').onclick = async () => {
     const b = $('#expBtn'); b.disabled = true;
     try {
