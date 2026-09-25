@@ -163,7 +163,7 @@ button,input{font:inherit;color:inherit}
 .solve{margin:8px 0 2px;padding:10px 12px;border-radius:8px;background:var(--soft);border-left:3px solid var(--accent);font-size:.9rem}
 .solve b{display:block;margin-bottom:4px;color:var(--accent)}
 .solve pre{margin:0;white-space:pre-wrap;font:13px/1.7 var(--sans);color:var(--ink)}
-img.qfig{display:block;max-width:min(360px,100%);height:auto;margin:6px 0 10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}
+img.qfig{display:block;max-width:min(520px,100%);height:auto;margin:6px 0 10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}
 pre.sol{background:#10201f;color:#dbe7e4;border-radius:10px;padding:12px;margin:0 0 10px;overflow-x:auto;font:12.5px/1.55 Consolas,monospace;white-space:pre}
 .pcard .field{gap:6px}
 .pcard input[type=url],.pcard input[type=text],.pcard input[type=number],.pcard textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--bg);font-family:inherit}
@@ -879,7 +879,7 @@ async function startQuiz() {
         d.className = 'solve';
         const bank = /^B\d+$/.test(String(x.orig || ''));
         const src = bank ? `題庫第 ${esc(String(x.orig).slice(1))} 題` : `原卷第 ${esc(x.orig)} 題`;
-        const from = x.orig ? (x.varied ? (bank ? `本題是${src}的類似題（同一張圖，每次問法不同）` : `本題由${src}改編（數字每次不同）`) : `本題出自${src}`) : '';
+        const from = x.orig ? (x.varied ? `本題由${src}改編（數字每次不同）` : `本題出自${src}`) : '';
         d.innerHTML = (from ? `<b>${from}</b>` : '') + (x.steps ? `<pre>${esc(x.steps)}</pre>` : '')
           + (x.right ? `<span class="ans">正確答案：${esc(x.right)}</span>` : '');
         f.appendChild(d);
