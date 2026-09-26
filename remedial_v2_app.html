@@ -162,7 +162,7 @@ button,input{font:inherit;color:inherit}
 .codes td,.codes th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
 .solve{margin:8px 0 2px;padding:10px 12px;border-radius:8px;background:var(--soft);border-left:3px solid var(--accent);font-size:.9rem}
 .solve b{display:block;margin-bottom:4px;color:var(--accent)}
-.solve pre{margin:0;white-space:pre-wrap;font:13px/1.7 var(--sans);color:var(--ink)}
+.solve pre{margin:0;white-space:pre-wrap;font:13px/1.7 var(--sans);color:var(--ink)}details.solve summary{cursor:pointer;font-weight:700;color:var(--accent)}details.solve[open] summary{margin-bottom:6px}
 img.qfig{display:block;max-width:min(520px,100%);height:auto;margin:6px 0 10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}
 pre.sol{background:#10201f;color:#dbe7e4;border-radius:10px;padding:12px;margin:0 0 10px;overflow-x:auto;font:12.5px/1.55 Consolas,monospace;white-space:pre}
 .pcard .field{gap:6px}
@@ -231,14 +231,7 @@ tr.detail td{background:var(--bg);white-space:normal}
 </header>
 <main class="wrap" id="app"><div class="loading">載入中…</div></main>
 <div class="toast" id="toast" hidden></div>
-<div class="overlay" id="idle" hidden>
-  <div class="box">
-    <h2>還在學習嗎？</h2>
-    <p class="muted">已經 5 分鐘沒有操作滑鼠或鍵盤，影片已暫停，學習時間暫停計算。</p>
-    <p class="muted">1 分鐘內按「我還在」，剛才的時間照算；超過 1 分鐘就不算。</p>
-    <button class="btn" id="idleBtn">我還在，繼續學習</button>
-  </div>
-</div>
+
 
 <script>window.RP_API_URL = 'https://mcewgfzeqhdpygfvbfij.supabase.co/functions/v1/api?forceFunctionRegion=ap-southeast-1';window.RP_INFO = {"school": "楊梅高中", "year": 115, "subject": "重補修線上自學", "teacher": "簡樹桐", "periods": 0};</script>
 <script>
@@ -555,37 +548,27 @@ function renderPractical(pr) {
 }
 
 /* ───── 關卡頁：影片＋計時＋測驗 ───── */
-// 有在操作的學習時間：5 分鐘沒碰滑鼠／鍵盤／觸控就當作離開，那段時間不算。
-// 最近的秒數先暫存（pv 影片、pq 測驗），有操作才轉成正式秒數（vsec、qsec）送到伺服器；
-// 滿 5 分鐘沒操作就暫停影片、跳出提示：1 分鐘內按「我還在」，暫存的時間照算，超過就不算。
-const IDLE_MIN = 5, GRACE_SEC = 60;
-const study = { level: null, vsec: 0, qsec: 0, pv: 0, pq: 0, watch: 0, playing: false, mode: '', lastAct: Date.now(), idleMs: IDLE_MIN * 60000, idleAt: 0, timer: null, beat: null, progress: null, busy: false };
+// 有在操作的學習時間（不跳視窗、不暫停影片）：
+// 影片播放中 → 直接算「影片」時間（看影片不必動滑鼠）；
+// 其他時候（作答、看文字）→ 秒數先暫存（pv、pq），有碰滑鼠／鍵盤／觸控才轉成正式秒數（vsec、qsec）送到伺服器；
+// 5 分鐘沒碰 → 暫存的秒數丟掉（人離開了），之後也不算，直到再有操作。
+const IDLE_MIN = 5;
+const study = { level: null, vsec: 0, qsec: 0, pv: 0, pq: 0, watch: 0, playing: false, mode: '', lastAct: Date.now(), idleMs: IDLE_MIN * 60000, timer: null, beat: null, progress: null, busy: false };
 function commitPending() { study.vsec += study.pv; study.qsec += study.pq; study.pv = 0; study.pq = 0; }
-function markActive() { if ($('#idle').hidden) { study.lastAct = Date.now(); commitPending(); } }
+function markActive() { study.lastAct = Date.now(); commitPending(); }
 ['mousemove', 'keydown', 'touchstart', 'pointerdown', 'wheel', 'scroll', 'click'].forEach(ev => window.addEventListener(ev, markActive, { passive: true }));
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); updateLive(); });
-$('#idleBtn').onclick = () => {
-  if (Date.now() - study.idleAt <= GRACE_SEC * 1000) commitPending(); else { study.pv = 0; study.pq = 0; }
-  study.lastAct = Date.now(); $('#idle').hidden = true; updateLive();
-};
-function goIdle() {
-  study.idleAt = Date.now(); $('#idle').hidden = false;
-  const v = $('#player video');
-  if (v && !v.paused) v.pause();
-  if (YTP && YTP.pauseVideo) { try { YTP.pauseVideo(); } catch (e) {} }
-  updateLive();
-}
+function away() { return !study.playing && Date.now() - study.lastAct > study.idleMs; }
 
 function counting() {
-  return document.visibilityState === 'visible' && $('#idle').hidden;
+  return document.visibilityState === 'visible' && !away();
 }
 function tick() {
   if (document.visibilityState !== 'visible') return updateLive();
-  if (!$('#idle').hidden) return updateLive();
-  if (Date.now() - study.lastAct > study.idleMs) return goIdle();
+  if (away()) { study.pv = 0; study.pq = 0; if (study.mode === 'player') trackPos(); return updateLive(); }
   if (study.mode === 'player') {
-    // 有影片的關卡：影片播放中算「影片」、作答中算「測驗」，其他時間不算
-    if (study.playing) study.pv++; else if ($('#quizForm')) study.pq++;
+    // 有影片的關卡：影片播放中直接算「影片」、作答中暫存為「測驗」（有操作才算），其他時間不算
+    if (study.playing) study.vsec++; else if ($('#quizForm')) study.pq++;
     trackPos();
   } else {
     if ($('#quizForm')) study.pq++; else study.pv++;
@@ -651,7 +634,6 @@ function stopStudy(send) {
   if (send) flush();
   clearInterval(study.timer); clearInterval(study.beat);
   study.timer = study.beat = null; study.level = null; study.playing = false;
-  $('#idle').hidden = true;
 }
 window.addEventListener('pagehide', () => flush());
 
@@ -890,14 +872,14 @@ async function startQuiz() {
         const f = box.querySelector(`fieldset[data-no="${CSS.escape(x.no)}"]`);
         if (!f) return;
         f.classList.add(x.correct ? 'right' : 'wrong');
-        if (x.correct || (!x.steps && !x.orig)) return;
-        const d = document.createElement('div');
+        if (!x.steps && !x.orig) return;
+        const d = document.createElement(x.correct ? 'details' : 'div');
         d.className = 'solve';
         const bank = /^B\d+$/.test(String(x.orig || ''));
         const exam = /^K\d+-\d+$/.test(String(x.orig || ''));
         const src = exam ? `${esc(String(x.orig).slice(1).split('-')[0])} 年統測第 ${esc(String(x.orig).split('-')[1])} 題` : bank ? `題庫第 ${esc(String(x.orig).slice(1))} 題` : `原卷第 ${esc(x.orig)} 題`;
         const from = x.orig ? (x.varied ? `本題由${src}改編（數字每次不同）` : `本題出自${src}`) : '';
-        d.innerHTML = (from ? `<b>${from}</b>` : '') + (x.steps ? `<pre>${esc(x.steps)}</pre>` : '')
+        d.innerHTML = (x.correct ? '<summary>答對了，看詳解過程</summary>' : '<b>詳解過程</b>') + (from ? `<b>${from}</b>` : '') + (x.steps ? `<pre>${esc(x.steps)}</pre>` : '')
           + (x.right ? `<span class="ans">正確答案：${esc(x.right)}</span>` : '');
         f.appendChild(d);
       });
@@ -976,7 +958,7 @@ async function showTeacher(pre) {
       <table class="codes"><thead><tr><th>班級</th><th>座號</th><th>學號</th><th>姓名</th><th>登入碼</th></tr></thead>
       <tbody>${d.students.map(s => `<tr><td>${esc(s.cls)}</td><td>${esc(s.seat)}</td><td class="mono">${esc(s.sid)}</td><td>${esc(s.name)}</td><td class="mono">${esc(s.code || '')}</td></tr>`).join('')}</tbody></table>
     </details>
-    <p class="note">學習分鐘只算有在操作的時間（看影片、作答；5 分鐘沒碰滑鼠鍵盤就不算），下方分列影片與測驗。點學生那一列可以展開每次上課的日期與時間，照著填紙本點名單。「建議填寫」依紙本規定計算：修別為「重修」且達 60 分者填 60，其餘填實際分數；修別、登入碼、題目可以在 Supabase 後台的資料表修改（約 1 分鐘後生效）。</p>`;
+    <p class="note">學習分鐘只算有在學習的時間（影片播放中照算；作答時 5 分鐘沒碰滑鼠鍵盤就不算），下方分列影片與測驗。點學生那一列可以展開每次上課的日期與時間，照著填紙本點名單。「建議填寫」依紙本規定計算：修別為「重修」且達 60 分者填 60，其餘填實際分數；修別、登入碼、題目可以在 Supabase 後台的資料表修改（約 1 分鐘後生效）。</p>`;
   app.querySelectorAll('tr.st').forEach(tr => {
     const toggle = () => { const det = app.querySelector(`tr.detail[data-for="${tr.dataset.i}"]`); det.hidden = !det.hidden; tr.setAttribute('aria-expanded', String(!det.hidden)); };
     tr.onclick = toggle; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } };
