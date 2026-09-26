@@ -59,6 +59,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **機密檔**：`client_secrets.json`、`yt_token.json` 是 YouTube API 憑證，已列在 `.gitignore`，不可 commit，也不可寫進網頁。**打包 zip 時也要排除**：`.gitignore` 管不到 zip 裡面的檔案，2026-09 曾有兩個影片技能包夾帶這兩個檔案被公開，之後已重新打包並改附 `README_憑證請自行建立.txt`。
 - **加密頁面**：`app_inventor_answers.html`、`mcp_course_automation_guide.html`、`amb82_iot_course_guide.html`、`amb82_ai_course_guide.html` 是 StatiCrypt 加密後的輸出，**不要直接改**。未加密原始檔放在 `_private/`（已列入 `.gitignore`，不可 commit），改完由使用者雙擊 `_private/加密網頁.bat` 重新加密（密碼由使用者自己輸入，Claude 不經手）。MCP 頁的 SKILL zip 會以 data URI 包進加密頁面，不再單獨放在網站上。`_private/.staticrypt.json` 存鹽值，要保留，否則「記住我」會失效。
+- **技藝競賽模擬試題（2026-09-26）**：首頁選單「技藝競賽 → 🔒 模擬試題」指向 `skills_competition/index.html`（目錄頁）與 12 個版本頁（`115_v2.0.html`、`115_v2.0_teacher.html`、`115_v1.9`…`v1.2`、`112_v2.3`…`v2.0`），全部是 StatiCrypt 加密輸出，**不要直接改**。未加密原始檔在 `_private/skills_competition/`（來源是雲端硬碟 `claude\電腦修護工科賽\web\` 的模擬試題，檔名改成英數），改完由使用者雙擊 `_private/加密模擬試題.bat`（＝`node encrypt_pages.mjs --only contest`）重新加密。這組用自己的密碼與鹽值 `_private/.staticrypt_contest.json`，和教師專用頁（`加密網頁.bat`，預設分組 `teacher`）互不影響。每頁加密後約 2 MB。
 - **公開網站**：所有內容都會公開，不要放學生個資（像是身分證、電話、完整座號對照）。
 - `.git` 已經約 1.3 GB，追蹤的檔案裡有 zip、mp4、7z。新的大型檔案（影片、壓縮包）盡量放 YouTube 或雲端硬碟，網頁只放連結。
 - 頁面語言是 `zh-Hant-TW`，字型用 Google Fonts（Noto Sans TC / Outfit）。新頁面要比照既有頁面的風格、響應式版面，並符合無障礙 WCAG AA（對比度、alt 文字、語意標籤）。
