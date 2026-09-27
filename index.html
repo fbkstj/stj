@@ -281,6 +281,36 @@
             @keyframes flyoutRight { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: translateX(0); } }
         }
 
+        /* 模擬試題：未解鎖時不顯示第二層 */
+        .mega-col.mock-col.locked > .mega-list { display: none !important; }
+        .mega-col.mock-col.locked > .mega-heading::after { content: '' !important; }
+        .mock-group {
+            font-size: 0.8rem; font-weight: 800; color: #475569; letter-spacing: 0.04em;
+            padding: 0.45rem 0.75rem 0.2rem; white-space: nowrap;
+        }
+        .mock-group + .nav-sub-item { margin-top: 0; }
+        .mock-list-sep { border-top: 1px solid #e2e8f0; margin: 4px 0; }
+        .nav-sub-item .mock-date { margin-left: 1rem; font-size: 0.8rem; color: #475569; font-weight: 400; }
+        .nav-sub-item.mock-lock { color: #475569; font-size: 0.85rem; }
+
+        /* 密碼視窗 */
+        .pw-bg { position: fixed; inset: 0; z-index: 200000; background: rgba(15, 23, 42, 0.55);
+                 display: none; align-items: center; justify-content: center; padding: 16px; }
+        .pw-bg.show { display: flex; }
+        .pw-box { background: #ffffff; color: #0f172a; width: min(360px, 100%); border-radius: 12px;
+                  padding: 22px 22px 18px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35); }
+        .pw-box h2 { margin: 0 0 4px; font-size: 1.1rem; }
+        .pw-box p { margin: 0 0 12px; font-size: 0.88rem; color: #475569; }
+        .pw-box input { width: 100%; box-sizing: border-box; padding: 10px 12px; font: inherit; font-size: 1rem;
+                        border: 1px solid #94a3b8; border-radius: 8px; }
+        .pw-box .pw-msg { min-height: 1.3em; margin-top: 8px; font-size: 0.85rem; color: #b91c1c; }
+        .pw-box .pw-msg.busy { color: #475569; }
+        .pw-box .pw-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+        .pw-box button { font: inherit; font-size: 0.92rem; padding: 8px 16px; border-radius: 8px; cursor: pointer;
+                         border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; }
+        .pw-box button.primary { background: #0369a1; border-color: #0369a1; color: #ffffff; font-weight: 700; }
+        .pw-box button:disabled { opacity: 0.6; cursor: wait; }
+
         .map-row {
             display: flex;
             align-items: center;
@@ -762,8 +792,10 @@
                     <span class="chevron" aria-hidden="true">&#9662;</span>
                 </button>
                 <div class="nav-sub" data-group="contest" style="--cols: 1;">
-                    <div class="mega-col">
-                        <button class="nav-sub-item" type="button" data-src="skills_competition/index.html">🔒 模擬試題（電腦修護第二站）</button>
+                    <!-- 模擬試題：輸入密碼（只要一次）後，第二層才出現各版本；版本清單取自加密的 skills_competition/index.html -->
+                    <div class="mega-col has-flyout mock-col locked" id="mockCol">
+                        <button class="mega-heading" type="button" aria-expanded="false" aria-haspopup="dialog"><span id="mockLabel">🔒 模擬試題（電腦修護第二站）</span></button>
+                        <div class="mega-list" id="mockList"></div>
                     </div>
                 </div>
             </div>
@@ -1717,6 +1749,19 @@
     </main>
 </div>
 
+<div class="pw-bg" id="pwBg">
+    <form class="pw-box" id="pwForm" role="dialog" aria-modal="true" aria-labelledby="pwTitle">
+        <h2 id="pwTitle">🔒 模擬試題</h2>
+        <p>請輸入密碼。這台電腦的瀏覽器只要輸入一次，之後不必再輸入。</p>
+        <input type="password" id="pwInput" placeholder="密碼" autocomplete="current-password" aria-label="密碼">
+        <div class="pw-msg" id="pwMsg" role="status"></div>
+        <div class="pw-row">
+            <button type="button" id="pwCancel">取消</button>
+            <button type="submit" class="primary" id="pwOk">開啟</button>
+        </div>
+    </form>
+</div>
+
 <script>
     const grid = document.getElementById('cardGrid');
     const frameWrap = document.getElementById('frameWrap');
@@ -1792,7 +1837,7 @@
     }
 
     function setActiveSubItem(src) {
-        navSubItems.forEach(el => el.classList.toggle('active', el.getAttribute('data-src') === src));
+        document.querySelectorAll('.nav-sub-item').forEach(el => el.classList.toggle('active', !!src && el.getAttribute('data-src') === src));
     }
 
     // Router Implementation with Hash (#page/name)
@@ -1923,6 +1968,7 @@
         col.addEventListener('focusin', () => requestAnimationFrame(place));
         head.addEventListener('click', (e) => {
             e.stopPropagation();
+            if (col.classList.contains('locked')) { openPw(); return; }   // 模擬試題未解鎖：先問密碼
             if (mobileMQ.matches) return;           // 手機版第二層直接攤開，不用點
             const open = !col.classList.contains('fly-open');
             closeFlyouts(col);
@@ -1982,6 +2028,185 @@
             navigateToSrc(src, true);
         });
     });
+
+    // ---------- 模擬試題：密碼只要輸入一次，解鎖後第二層列出各版本 ----------
+    // 密碼驗證沿用 StatiCrypt 加密的 skills_competition/index.html（密碼與鹽值來自 _private/加密模擬試題.bat），
+    // 解密成功才讀得到版本清單；本機只存雜湊後的金鑰（不存明碼），換密碼後舊金鑰自動失效。
+    const MOCK_PAGE = 'skills_competition/index.html';
+    const MOCK_KEY = 'mock_contest_key';
+    const mockCol = document.getElementById('mockCol');
+    const mockList = document.getElementById('mockList');
+    const mockLabel = document.getElementById('mockLabel');
+    const pwBg = document.getElementById('pwBg');
+    const pwForm = document.getElementById('pwForm');
+    const pwInput = document.getElementById('pwInput');
+    const pwMsg = document.getElementById('pwMsg');
+    const pwOk = document.getElementById('pwOk');
+    const hexToBytes = h => new Uint8Array(h.match(/../g).map(b => parseInt(b, 16)));
+    const bytesToHex = b => Array.from(new Uint8Array(b), x => x.toString(16).padStart(2, '0')).join('');
+    const utf8 = s => new TextEncoder().encode(s);
+    let mockConfig = null;
+
+    function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function storeSet(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+
+    async function loadMockConfig() {
+        if (mockConfig) return mockConfig;
+        const html = await (await fetch(MOCK_PAGE, { cache: 'no-store' })).text();
+        const m = html.match(/staticryptConfig\s*=\s*(\{[^\n]*?\});/);
+        if (!m) throw new Error('找不到加密設定');
+        mockConfig = JSON.parse(m[1]);
+        return mockConfig;
+    }
+    async function pbkdf2(pass, salt, iterations, hash) {
+        const key = await crypto.subtle.importKey('raw', utf8(pass), 'PBKDF2', false, ['deriveBits']);
+        return bytesToHex(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash, iterations, salt: utf8(salt) }, key, 256));
+    }
+    async function hashPassword(pass, salt) {       // 與 StatiCrypt 3.5 相同的三段雜湊
+        let h = await pbkdf2(pass, salt, 1000, 'SHA-1');
+        h = await pbkdf2(h, salt, 14000, 'SHA-256');
+        return pbkdf2(h, salt, 585000, 'SHA-256');
+    }
+    // 金鑰正確回傳解密後的 HTML，錯誤回傳 null
+    async function decryptMockPage(keyHex) {
+        const cfg = await loadMockConfig();
+        const signed = cfg.staticryptEncryptedMsgUniqueVariableName;
+        const mac = signed.slice(0, 64), enc = signed.slice(64);
+        const hmacKey = await crypto.subtle.importKey('raw', hexToBytes(keyHex), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+        if (bytesToHex(await crypto.subtle.sign('HMAC', hmacKey, utf8(enc))) !== mac) return null;
+        const aesKey = await crypto.subtle.importKey('raw', hexToBytes(keyHex), 'AES-CBC', false, ['decrypt']);
+        const plain = await crypto.subtle.decrypt({ name: 'AES-CBC', iv: hexToBytes(enc.slice(0, 32)) }, aesKey, hexToBytes(enc.slice(32)));
+        return new TextDecoder().decode(plain);
+    }
+
+    function addMockItem(text, onClick, extraClass) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'nav-sub-item' + (extraClass ? ' ' + extraClass : '');
+        b.append(...text);
+        b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); if (e.detail) b.blur(); });
+        mockList.appendChild(b);
+        return b;
+    }
+    // 由解密後的目錄頁建立第二層：每個 <h2> 是一組，底下的 .card 是各版本；
+    // 卡片有 data-view（PDF 檢視頁）就開 PDF，舊格式 a.card[href] 則開網頁版
+    function buildMockMenu(html) {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        mockList.textContent = '';
+        doc.querySelectorAll('main h2').forEach(h2 => {
+            const grid = h2.nextElementSibling;
+            if (!grid) return;
+            const g = document.createElement('div');
+            g.className = 'mock-group';
+            g.textContent = h2.textContent.split('（')[0].trim();
+            mockList.appendChild(g);
+            grid.querySelectorAll('.card[data-view], a.card[href]').forEach(a => {
+                const page = a.getAttribute('data-view') || a.getAttribute('href');
+                const verEl = a.querySelector('.ver');
+                const tag = verEl && verEl.querySelector('.tag') ? verEl.querySelector('.tag').textContent.trim() : '';
+                const ver = verEl ? verEl.firstChild.textContent.trim() : page;
+                const dateEl = a.querySelector('.date');
+                const label = document.createElement('span');
+                label.textContent = tag ? `${ver} ${tag}` : ver;
+                const date = document.createElement('span');
+                date.className = 'mock-date';
+                date.textContent = dateEl ? dateEl.textContent.trim() : '';
+                const src = 'skills_competition/' + page;
+                addMockItem([label, date], () => navigateToSrc(src, true)).dataset.src = src;
+            });
+        });
+        const sep = document.createElement('div');
+        sep.className = 'mock-list-sep';
+        mockList.appendChild(sep);
+        addMockItem(['🔒 重新上鎖（這台電腦）'], lockMock, 'mock-lock');
+        setActiveSubItem(location.hash.startsWith('#page/') ? location.hash.slice(6) + '.html' : null);
+    }
+    function setMockUnlocked(on) {
+        mockCol.classList.toggle('locked', !on);
+        mockLabel.textContent = (on ? '📝' : '🔒') + ' 模擬試題（電腦修護第二站）';
+        mockCol.querySelector('.mega-heading').setAttribute('aria-haspopup', on ? 'true' : 'dialog');
+        if (!on) mockList.textContent = '';
+    }
+    function lockMock() {
+        storeSet(MOCK_KEY, null);
+        setMockUnlocked(false);
+        closeFlyouts(null);
+        document.querySelectorAll('.nav-sub.open').forEach(o => o.classList.remove('open'));
+    }
+    async function unlockWithKey(keyHex) {
+        const html = await decryptMockPage(keyHex);
+        if (!html) return false;
+        buildMockMenu(html);
+        setMockUnlocked(true);
+        return true;
+    }
+
+    function openPw() {
+        pwMsg.textContent = '';
+        pwMsg.classList.remove('busy');
+        pwInput.value = '';
+        pwBg.classList.add('show');
+        pwInput.focus();
+        loadMockConfig().catch(() => {});        // 先把加密設定抓下來
+    }
+    function closePw() {
+        pwBg.classList.remove('show');
+        mockCol.querySelector('.mega-heading').focus({ preventScroll: true });
+    }
+    document.getElementById('pwCancel').addEventListener('click', closePw);
+    pwBg.addEventListener('click', (e) => { if (e.target === pwBg) closePw(); });
+    pwBg.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); closePw(); } });
+    pwForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const pass = pwInput.value;
+        if (!pass) { pwMsg.textContent = '請輸入密碼'; return; }
+        pwOk.disabled = true;
+        pwMsg.classList.add('busy');
+        pwMsg.textContent = '驗證中…';
+        try {
+            const cfg = await loadMockConfig();
+            const keyHex = await hashPassword(pass, cfg.staticryptSaltUniqueVariableName);
+            if (await unlockWithKey(keyHex)) {
+                storeSet(MOCK_KEY, keyHex);
+                pwBg.classList.remove('show');
+                // 解鎖後直接把「技藝競賽」面板與第二層打開
+                const sub = mockCol.closest('.nav-sub');
+                sub.classList.add('open');
+                mockCol.classList.add('fly-open');
+                mockCol.querySelector('.mega-heading').setAttribute('aria-expanded', 'true');
+                const first = mockList.querySelector('.nav-sub-item');
+                if (first) first.focus({ preventScroll: true });
+                const g = sub.closest('.nav-group');
+                const shut = (ev) => {
+                    if (ev.type === 'click' && g.contains(ev.target)) return;
+                    sub.classList.remove('open');
+                    closeFlyouts(null);
+                    g.removeEventListener('mouseleave', shut);
+                    document.removeEventListener('click', shut);
+                };
+                g.addEventListener('mouseleave', shut);
+                setTimeout(() => document.addEventListener('click', shut), 0);
+            } else {
+                pwMsg.classList.remove('busy');
+                pwMsg.textContent = '密碼錯誤';
+                pwInput.select();
+            }
+        } catch (err) {
+            pwMsg.classList.remove('busy');
+            pwMsg.textContent = '無法驗證（請確認網路連線後再試）';
+        } finally {
+            pwOk.disabled = false;
+        }
+    });
+
+    // 之前輸入過密碼：直接解鎖（金鑰對不上代表密碼已更換，清掉重新詢問）
+    (async () => {
+        const saved = storeGet(MOCK_KEY);
+        if (!saved || !/^[0-9a-f]{64}$/.test(saved)) return;
+        try {
+            if (!(await unlockWithKey(saved))) storeSet(MOCK_KEY, null);
+        } catch (e) { /* 離線時維持上鎖狀態，下次再試 */ }
+    })();
 
     // Share Button Implementation
     const shareBtn = document.getElementById('shareBtn');
