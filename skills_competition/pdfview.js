@@ -1,7 +1,8 @@
 // 模擬試題 PDF 檢視頁：用 PDF.js 顯示（手機、平板、電腦都能看；Android 的頁框不支援直接顯示 PDF）
 // 每個版本有一個小頁面（例：115_v2.0_pdf.html），在 <body> 寫 data-pdf、data-html、data-title，共用這支程式。
-import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
+// PDF.js 4.10.38（Apache-2.0）放在同一個資料夾：Worker 不能從其他網域（CDN）載入，否則會卡在「載入中」
+import * as pdfjsLib from './pdfjs.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL('./pdfjs.worker.min.js', import.meta.url).href;
 
 const { pdf: pdfUrl, html: htmlUrl, title } = document.body.dataset;
 const bar = document.getElementById('bar');
@@ -68,7 +69,11 @@ let rt = null;
 addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (doc) { fitScale = fitWidthScale(pageBoxes[0].page); layout(); } }, 200); });
 
 try {
-  doc = await pdfjsLib.getDocument(pdfUrl).promise;
+  // 30 秒還沒載入就改顯示直接開啟的連結（網路很慢或瀏覽器不支援時）
+  doc = await Promise.race([
+    pdfjsLib.getDocument(pdfUrl).promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 30000)),
+  ]);
   document.getElementById('msg')?.remove();
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
