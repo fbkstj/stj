@@ -69,12 +69,23 @@ let rt = null;
 addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (doc) { fitScale = fitWidthScale(pageBoxes[0].page); layout(); } }, 200); });
 
 try {
-  // 30 秒還沒載入就改顯示直接開啟的連結（網路很慢或瀏覽器不支援時）
-  doc = await Promise.race([
-    pdfjsLib.getDocument(pdfUrl).promise,
-    new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 30000)),
-  ]);
-  document.getElementById('msg')?.remove();
+  // PDF 約 3～4 MB，網路慢時要一段時間：顯示下載進度，8 秒後另外提示可直接下載或改看網頁版（仍繼續載入）
+  const msg = document.getElementById('msg');
+  const task = pdfjsLib.getDocument(pdfUrl);
+  let pct = '';
+  const hintTimer = setTimeout(() => {
+    msg.innerHTML = `載入中…<span id="pct">${pct}</span><br><small>檔案較大，網路較慢時請稍候；也可以 ` +
+      `<a href="${pdfUrl}" download>直接下載 PDF</a> 或改看 <a href="${htmlUrl}">網頁版</a>。</small>`;
+  }, 8000);
+  task.onProgress = ({ loaded, total }) => {
+    if (!total) return;
+    pct = ` ${Math.round(loaded / total * 100)}%（約 ${(total / 1048576).toFixed(1)} MB）`;
+    const el = document.getElementById('pct');
+    if (el) el.textContent = pct; else msg.firstChild.textContent = '載入中…' + pct;
+  };
+  doc = await task.promise;
+  clearTimeout(hintTimer);
+  msg.remove();
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
     const el = document.createElement('div');
