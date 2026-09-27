@@ -587,8 +587,20 @@
         @media (max-width: 1400px) {
             .sidebar-header { margin-right: 1rem; }
             .nav-item { padding: 0 0.7rem; }
-            .update-chip { display: none !important; }
+            .update-chip { padding: 0.3rem 0.6rem !important; font-size: 0.78rem !important; }
             #shareBtn .share-label { display: none; }
+        }
+
+        /* 網頁更新時間：1250px 以下只留時鐘圖示與時間，1160px 以下桌面版空間不夠就隱藏（手機版在選單內照常顯示） */
+        @media (max-width: 1250px) and (min-width: 1081px) {
+            .update-chip .chip-label { font-size: 0 !important; }
+            .update-chip .chip-label::before { content: "🕒"; font-size: 0.78rem; }
+        }
+        @media (max-width: 1160px) and (min-width: 1081px) {
+            .update-chip { display: none !important; }
+        }
+        @media (max-width: 1080px) {
+            .update-chip { margin: 0.5rem 0.9rem !important; align-self: flex-start; }
         }
 
         /* ---------- 手機與平板：漢堡選單 ---------- */
@@ -922,7 +934,7 @@
             </div>
 
             <div class="update-chip" style="background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.25); color: #ffffff; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.82rem; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem; margin-left: auto;">
-                <span>🕒 網頁更新：</span><span class="updateTimeTop">2026-09-22 11:55</span>
+                <span class="chip-label">🕒 網頁更新：</span><span class="updateTimeTop">2026-09-22 11:55</span>
             </div>
 
             <button class="nav-item" id="shareBtn" style="background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.25); font-size: 0.85rem;" title="複製目前頁面的獨立分享網址" aria-label="複製本頁獨立網址">
