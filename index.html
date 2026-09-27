@@ -937,8 +937,8 @@
                 <span class="chip-label">🕒 網頁更新：</span><span class="updateTimeTop">2026-09-22 11:55</span>
             </div>
 
-            <button class="nav-item" id="shareBtn" style="background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.25); font-size: 0.85rem;" title="複製目前頁面的獨立分享網址" aria-label="複製本頁獨立網址">
-                <span aria-hidden="true">🔗</span> <span class="share-label">複製本頁獨立網址</span>
+            <button class="nav-item" id="shareBtn" style="background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.25); font-size: 0.85rem;" title="複製目前頁面的網址" aria-label="複製本頁網址">
+                <span aria-hidden="true">🔗</span> <span class="share-label">複製本頁網址</span>
             </button>
 </nav>
 
@@ -2004,13 +2004,13 @@
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(currentUrl).then(() => {
                     const origHTML = shareBtn.innerHTML;
-                    shareBtn.innerHTML = '<span aria-hidden="true">✅</span> <span class="share-label">已複製獨立網址！</span>';
+                    shareBtn.innerHTML = '<span aria-hidden="true">✅</span> <span class="share-label">已複製網址！</span>';
                     setTimeout(() => shareBtn.innerHTML = origHTML, 2000);
                 }).catch(() => {
-                    alert('您的獨立網址為：\n' + currentUrl);
+                    alert('本頁網址：\n' + currentUrl);
                 });
             } else {
-                alert('您的獨立網址為：\n' + currentUrl);
+                alert('本頁網址：\n' + currentUrl);
             }
         });
     }
