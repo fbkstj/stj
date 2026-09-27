@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>五年試題演化與115猜題方向分析</title>
+<style>
+  @page { size: A4; margin: 14mm 13mm 14mm 13mm; }
+  :root { --ink:#1c2530; --sub:#4b5768; --line:#cfd6de; --band:#f3f5f8; --accent:#1f5c8b; --soft:#e8f1f8; --warn:#9a3412; --warn-soft:#fff1e6; --ok:#166534; --ok-soft:#e9f7ee; }
+  * { box-sizing: border-box; }
+  body { font-family: "Microsoft JhengHei","Noto Sans TC","PMingLiU",sans-serif; color: var(--ink); font-size: 13px; line-height: 1.65; margin: 0 auto; max-width: 980px; padding: 0 14px 40px; background: #fff; }
+  header.cover { text-align: center; padding: 34px 0 22px; border-bottom: 3px solid var(--accent); margin-bottom: 22px; }
+  header .kicker { color: var(--accent); font-weight: 700; letter-spacing: .12em; font-size: 12px; }
+  header h1 { font-size: 24px; margin: 10px 0 6px; line-height: 1.45; }
+  header p { margin: 2px 0; color: var(--sub); font-size: 12.5px; }
+  h2 { font-size: 18px; color: var(--accent); border-left: 6px solid var(--accent); padding: 3px 0 3px 12px; margin: 30px 0 12px; break-after: avoid; }
+  h3 { font-size: 15px; margin: 18px 0 8px; padding-bottom: 3px; border-bottom: 1px solid var(--line); break-after: avoid; }
+  p { margin: 6px 0; }
+  ul, ol { margin: 6px 0; padding-left: 22px; }
+  li { margin: 3px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 14px; font-size: 11.5px; }
+  th, td { border: 1px solid var(--line); padding: 5px 6px; vertical-align: top; text-align: left; }
+  thead th { background: var(--accent); color: #fff; font-weight: 700; }
+  tbody tr:nth-child(even) td { background: var(--band); }
+  tr { break-inside: avoid; }
+  td.k { font-weight: 700; white-space: nowrap; background: var(--soft) !important; }
+  .src { color: var(--sub); font-size: 10.5px; }
+  .m { font-weight: 700; white-space: nowrap; }
+  .tag { display: inline-block; border: 1px solid currentColor; border-radius: 4px; padding: 0 5px; font-size: 10.5px; font-weight: 700; margin-right: 3px; white-space: nowrap; }
+  .t-same { color: #475569; } .t-small { color: #1d4ed8; } .t-big { color: var(--warn); } .t-new { color: var(--ok); } .t-del { color: #7c3aed; }
+  .guess { color: var(--warn); font-weight: 700; }
+  .unk { color: #7c3aed; font-weight: 700; }
+  .box { border: 1px solid var(--line); border-left: 5px solid var(--accent); background: var(--soft); border-radius: 6px; padding: 10px 14px; margin: 10px 0; break-inside: avoid; }
+  .box.warn { border-left-color: var(--warn); background: var(--warn-soft); }
+  .box.ok { border-left-color: var(--ok); background: var(--ok-soft); }
+  .legend { font-size: 11px; color: var(--sub); margin: 4px 0 8px; }
+  .scen { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; margin: 10px 0; break-inside: avoid; }
+  .scen h4 { margin: 0 0 6px; font-size: 14px; }
+  .conf { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 999px; margin-left: 6px; vertical-align: middle; }
+  .c-high { background: var(--ok-soft); color: var(--ok); border: 1px solid var(--ok); }
+  .c-mid { background: #eef2ff; color: #3730a3; border: 1px solid #3730a3; }
+  .c-low { background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn); }
+  svg text { font-family: "Microsoft JhengHei","Noto Sans TC",sans-serif; }
+  .page-break { break-before: page; }
+  .dl a { display:inline-block; margin:6px 0 4px; padding:5px 14px; border-radius:6px; background:var(--accent); color:#fff; text-decoration:none; font-weight:700; font-size:12.5px; }
+  @media print { .dl { display:none; } }
+  footer { margin-top: 30px; border-top: 1px solid var(--line); padding-top: 10px; font-size: 11px; color: var(--sub); }
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <div class="kicker">全國高級中等學校工業類科學生技藝競賽・06 電腦修護・第二站</div>
+  <h1>個人電腦 USB、藍牙介面卡製作及控制<br>110～114 學年度試題演化與 115 學年度猜題方向分析</h1>
+  <p>資料範圍：110～114 學年度正式試題（評分表、試題說明、試題需求、圖 1 電路圖）、115 學年度考前說明會投影片</p>
+  <p class="dl"><a href="analysis_115.pdf" download>⬇ 下載 PDF 版</a></p>
+  <p>整理日期：2026-09-27　｜　標示說明：〔推測〕＝沒有直接證據的推論；〔無法確認〕＝原始資料讀不到或看不清</p>
+</header>
+
+<h2>摘要</h2>
+<ol>
+  <li><b>評分表骨架五年沒變</b>：每年都是 11 項、合計 110 分（10 項各 10 分＋違規 −100 分），其中 7～8 項屬於固定骨架，每年真正換掉的只有 2～3 項「主題題」。<span class="src">（110～114 評分表）</span></li>
+  <li><b>顯示與燈效每兩三年升級一次</b>：七段顯示器（110）→ OLED／I2C（111～113）→ TFT／SPI（114）；單色 LED 經 74HC595 驅動（111～112）→ WS2812 可定址 RGB 燈條（113～114）。<span class="src">（各年圖 1）</span></li>
+  <li><b>RTC 不是新元件</b>：112 學年已經用過 RTC（Time 選單、按 Update 把電腦時間寫進 RTC、斷電後時間持續走），115 說明會的電路圖是讓它回歸，而且和 114 的 TFT、WS2812 並存。<span class="src">（112 評分項次 9、試題需求 7(a)～(c)、112 圖 1；說明會電路圖）</span></li>
+  <li><b>PC 端的「系統資料」逐年加深</b>：系統時間（110～112）→ CPU 使用率（113）→ 網卡 MAC 位址＋保全資料夾（114）；115 的設備材料表新增「系統管理相關功能呼叫函式」，並展示資料夾「安全性」權限畫面。<span class="src">（113 項次 8、114 項次 8、說明會投影片）</span></li>
+  <li><b>資料交換從「單向寫入」走向「雙向驗證」</b>：110～113 都是 PC 寫 EEPROM、再讀回來核對；114 改成介面卡自己編輯 Secure Key、傳給 PC 比對後才解鎖。115 說明會的 OTP（計次／計時、30 秒～2 分鐘有效、用過即廢棄）明顯是把 114 的固定密碼換成動態密碼。<span class="src">（114 項次 5、8；說明會 OTP 投影片）</span></li>
+  <li><b>程式複雜度五年約倍增</b>：本報告的量化評分中，MCU 端由 10 分升到 20 分（滿分 24），PC 端由 11 分升到 17 分（滿分 20）；114 是兩端同時最複雜的一年。</li>
+  <li><b>崗位號碼的衍生規則每年都換</b>：尾數奇偶（110～111）→ 首位奇偶（112）→ 轉二進位取末位＋低 4 位元（113）→ 轉十六進位（114）。115 幾乎可以確定會再換一種，選手要練「任意進制轉換」而不是背格式。</li>
+  <li><b>我方 v2.0 建議版</b>已涵蓋 RTC、TOTP、防重放、真改資料夾權限四個主線；最需要補強的是 PC 端輸入格式驗證（110～113 年年都考）、MAC 位址在 115 可能仍會被沿用，以及藍牙命名規則不應照抄 114。</li>
+</ol>
+
+<h2>一、功能演化矩陣</h2>
+<p class="legend">標示（與前一年比較）：<span class="tag t-same">＝ 不變</span><span class="tag t-small">△ 小幅改變</span><span class="tag t-big">▲ 大幅改變</span><span class="tag t-new">＋ 新增</span><span class="tag t-del">－ 刪除</span>　格內「#n」為該年評分表項次。110 年為起點，不標示變化。</p>
+<table>
+  <thead><tr><th style="width:11%">功能類別</th><th>110</th><th>111</th><th>112</th><th>113</th><th>114</th></tr></thead>
+  <tbody>
+    <tr><td class="k">違反注意事項</td><td>#1 −100 分</td><td><span class="tag t-same">＝</span>#1</td><td><span class="tag t-same">＝</span>#1</td><td><span class="tag t-small">△</span>#11 移到最後一項</td><td><span class="tag t-same">＝</span>#11</td></tr>
+    <tr><td class="k">電路組裝</td><td>#2 依公告電路裝配</td><td><span class="tag t-same">＝</span>#2</td><td><span class="tag t-same">＝</span>#2</td><td><span class="tag t-small">△</span>#1 措辭改為「依照圖 1 電路組裝」</td><td><span class="tag t-same">＝</span>#1</td></tr>
+    <tr><td class="k">CPU 運行 LED</td><td>#3 Red LED 閃爍（PIN15）</td><td><span class="tag t-same">＝</span>#3</td><td><span class="tag t-same">＝</span>#3</td><td><span class="tag t-same">＝</span>#2</td><td><span class="tag t-small">△</span>#2 LED 改接 PD4（腳 6），腳 15 讓給 TFT</td></tr>
+    <tr><td class="k">顯示器初始化</td><td>#4 七段顯示 C2XX</td><td><span class="tag t-big">▲</span>#4 OLED 兩行（NKHS／C2XX），2 秒後進選單</td><td><span class="tag t-small">△</span>#4 同左，識別字改 CYIVS</td><td><span class="tag t-small">△</span>#3 識別字 TCIVS</td><td><span class="tag t-big">▲</span>#3 改用 TFT，識別字 KSVS</td></tr>
+    <tr><td class="k">主題功能 1</td><td>#5 按 S3 以超音波測距，數值顯示於七段</td><td><span class="tag t-big">▲</span>#5 FAN 選單（Speed1／Speed2 PWM）</td><td><span class="tag t-big">▲</span>#5 Light 選單（L1～L6 點亮）</td><td><span class="tag t-big">▲</span>#4 RGB Offline（4 種色與顆數、閃爍、漸層）</td><td><span class="tag t-big">▲</span>#4 Breathing LED（依崗位號碼個位數選色）</td></tr>
+    <tr><td class="k">主題功能 2</td><td>—</td><td><span class="tag t-new">＋</span>#9 PC 控制南北／東西向紅綠燈，畫面與實體同步，Start／Stop</td><td><span class="tag t-big">▲</span>#6 BLE 選單（Change EEPROM／Change Time 提示）</td><td><span class="tag t-big">▲</span>#5 CountDown（10 秒倒數、暫停續數、粉紅閃三次）</td><td><span class="tag t-big">▲</span>#5 Code Edit（按鍵編輯 4 位 16 進位 Secure Key，存 EEPROM）</td></tr>
+    <tr><td class="k">主題功能 3（PC 系統資料）</td><td>—</td><td>—</td><td>—</td><td><span class="tag t-new">＋</span>#8 讀取 CPU 使用率，依門檻顯示綠／黃／紅於 WS2812</td><td><span class="tag t-big">▲</span>#8 Unlock：介面卡傳 Secure Key，與電腦網卡 MAC 末四碼比對，控制保全資料夾存取</td></tr>
+    <tr><td class="k">藍牙模組命名</td><td>#6 XX-ODD／XX-EVEN（尾數）</td><td><span class="tag t-same">＝</span>#6（最後一碼）</td><td><span class="tag t-small">△</span>#7(a) ODD-XX／EVEN-XX（首位）</td><td><span class="tag t-big">▲</span>#6(a) 轉 BIN 取最右位＋ODD/EVEN-XX-BBBB</td><td><span class="tag t-big">▲</span>#6(a) XX-HH（轉 16 進位）</td></tr>
+    <tr><td class="k">視窗標題列</td><td>#7 標題列含崗位號碼</td><td><span class="tag t-same">＝</span>#7(a)</td><td><span class="tag t-same">＝</span>#7(b)（與命名合併）</td><td><span class="tag t-small">△</span>#6(b) 加入承辦學校「台中高工」</td><td><span class="tag t-small">△</span>#6(b)「岡山農工」</td></tr>
+    <tr><td class="k">時間功能</td><td>#7 Current Time＝系統時間＋10 分鐘（只在 PC）</td><td><span class="tag t-big">▲</span>#7(b) Now Time，連線後在 OLED 顯示</td><td><span class="tag t-big">▲</span>#9 Time 選單＋Update 寫入 RTC，斷電後持續走時（含星期）</td><td><span class="tag t-del">－</span>不再單獨計分，只剩斷線時關閉 Now Time（#7(b)）</td><td><span class="tag t-new">＋</span>#7(b) Connect 後 Now Time 以秒同步到介面卡</td></tr>
+    <tr><td class="k">COM Port／連線狀態</td><td>#8 COM 清單即時更新；#9 Close／Open 自動顯示 Device Offline／Online</td><td><span class="tag t-small">△</span>#8(a)(b)(c) 合併為一項，Device Code</td><td><span class="tag t-small">△</span>#8 改顯示 Disconnect／Connected</td><td><span class="tag t-small">△</span>#7 斷線時關閉 Write、Now Time、CPU Loading</td><td><span class="tag t-big">▲</span>#7(a)(b) Refresh 鈕＋Connect／Disconnect 鈕（改為手動連線）</td></tr>
+    <tr><td class="k">EEPROM 讀寫</td><td>#10 PC 輸入 4 位 16 進位，寫入後斷電再由 PC 讀回</td><td><span class="tag t-same">＝</span>#10</td><td><span class="tag t-big">▲</span>#10 3 位 10 進位（100～255），讀回改在 OLED 的 EEPROM 選單</td><td><span class="tag t-big">▲</span>#9 2 進位輸入，轉 10 進位寫入，OLED 讀回</td><td><span class="tag t-big">▲</span>#5 併入 Code Edit：在介面卡端編輯與保存</td></tr>
+    <tr><td class="k">通訊日誌</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="tag t-new">＋</span>#9 顯示通訊交握狀態日誌（含時間）</td></tr>
+    <tr><td class="k">時間分數</td><td>#11 第 1 名 10 分遞減</td><td><span class="tag t-same">＝</span>#11</td><td><span class="tag t-same">＝</span>#11</td><td><span class="tag t-same">＝</span>#10</td><td><span class="tag t-same">＝</span>#10</td></tr>
+    <tr><td class="k">項次總數</td><td>11</td><td>11</td><td>11</td><td>11</td><td>11</td></tr>
+  </tbody>
+</table>
+<p class="src">出處：各年評分表第 1 頁；細節對照各年試題說明 B-1～B-8 與試題需求。110 年標題為「個人電腦 USB 介面卡」，111 起改為「USB、藍牙介面卡」。</p>
+
+<h3>各年評分項目完整清單（依原試題項次）</h3>
+<table>
+  <thead><tr><th style="width:5%">項</th><th>110（110/11/25）</th><th>111（111/11/24）</th><th>112（112/11/23）</th><th>113（113/11/28）</th><th>114（114/12/11）</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>違反注意事項 −100</td><td>違反注意事項 −100</td><td>違反注意事項 −100</td><td>電路組裝</td><td>電路組裝</td></tr>
+    <tr><td>2</td><td>電路裝配</td><td>電路裝配</td><td>電路裝配</td><td>CPU LED</td><td>CPU LED</td></tr>
+    <tr><td>3</td><td>CPU LED</td><td>CPU LED</td><td>CPU LED</td><td>OLED 初始化＋選單</td><td>TFT 初始化＋選單</td></tr>
+    <tr><td>4</td><td>七段初始化 C2XX</td><td>OLED 初始化＋選單</td><td>OLED 初始化＋選單</td><td>RGB Offline 選單</td><td>Breathing LED</td></tr>
+    <tr><td>5</td><td>超音波測距顯示</td><td>FAN 選單</td><td>Light 選單 L1～L6</td><td>CountDown 選單</td><td>Code Edit（Secure Key）</td></tr>
+    <tr><td>6</td><td>藍牙命名 ODD/EVEN</td><td>藍牙命名 ODD/EVEN</td><td>BLE 選單</td><td>藍牙命名（BIN）＋標題列</td><td>藍牙命名（HEX）＋標題列</td></tr>
+    <tr><td>7</td><td>標題列＋Current Time</td><td>標題列＋Now Time（OLED）</td><td>藍牙命名＋標題列</td><td>COM 清單＋連線狀態</td><td>COM Refresh＋Connect＋Now Time</td></tr>
+    <tr><td>8</td><td>COM Port 清單</td><td>COM 清單＋Offline/Online</td><td>COM 清單＋Disconnect/Connected</td><td>CPU 使用率→WS2812</td><td>Unlock（Secure Key 比對）</td></tr>
+    <tr><td>9</td><td>Offline／Online 自動偵測</td><td>紅綠燈 PC 控制</td><td>Time 選單＋RTC 更新</td><td>EEPROM 2 進位</td><td>通訊交握日誌</td></tr>
+    <tr><td>10</td><td>EEPROM 4 位 HEX</td><td>EEPROM 4 位 HEX</td><td>EEPROM 3 位 DEC</td><td>時間分數</td><td>時間分數</td></tr>
+    <tr><td>11</td><td>時間分數</td><td>時間分數</td><td>時間分數</td><td>違反注意事項 −100</td><td>違反注意事項 −100</td></tr>
+  </tbody>
+</table>
+
+<h2>二、固定骨架與變動區</h2>
+<table>
+  <thead><tr><th style="width:24%">固定骨架（五年都有）</th><th>五年間的變化</th><th style="width:22%">115 預期</th></tr></thead>
+  <tbody>
+    <tr><td class="k">電路組裝、違規扣分、時間分數</td><td>內容不變，只有項次位置在 113 年調整。</td><td>必考，照 114 格式〔推測〕</td></tr>
+    <tr><td class="k">CPU 運行 LED</td><td>永遠是 Red LED 閃爍，只有腳位隨周邊變動（114 改到腳 6）。</td><td>必考，腳位看當年圖 1</td></tr>
+    <tr><td class="k">顯示器開機畫面＋選單</td><td>「識別字＋C2XX，約 2 秒後進選單」自 111 起固定；選單鍵 3 顆（111）→ 4 顆（112～114）。</td><td>必考</td></tr>
+    <tr><td class="k">藍牙命名＋標題列</td><td>「一定考、規則每年換」。標題列 113 起加入承辦學校名稱。</td><td>必考，規則會換〔推測〕</td></tr>
+    <tr><td class="k">COM Port 清單＋連線狀態</td><td>自動偵測 Online／Offline（110～113）→ 114 改成 Refresh＋Connect／Disconnect 按鈕。</td><td>必考</td></tr>
+    <tr><td class="k">EEPROM 斷電保存</td><td>資料格式每年換（HEX → DEC 區間 → BIN → 介面卡編輯的 Secure Key）；114 起與保全功能綁在一起。</td><td>必考，極可能變成 OTP 種子或計次器〔推測〕</td></tr>
+  </tbody>
+</table>
+<div class="box">
+  <b>變動區（主題題）</b>：110 超音波測距；111 風扇 PWM＋紅綠燈；112 Light＋BLE＋Time（RTC）；113 RGB＋CountDown＋CPU 使用率；114 Breathing＋Code Edit＋Unlock／MAC／保全資料夾＋日誌。
+  主題題每年約佔 2～3 項（20～30 分），而且 <b>113、114 連續兩年以「PC 系統資料驅動介面卡燈效或權限」作為壓軸題</b>。
+</div>
+
+<h2>三、周邊元件演進</h2>
+<table>
+  <thead><tr><th style="width:7%">學年</th><th>顯示器</th><th>燈效／致動</th><th>感測／輸入</th><th>RTC</th><th>藍牙</th><th>EEPROM 用途</th><th>按鍵</th></tr></thead>
+  <tbody>
+    <tr><td class="k">110</td><td>4 位七段（共陰），74HC595 送段碼（DS 12、STCP 6、SHCP 11），位選經 220Ω 接腳 19～16，<b>並列＋掃描多工</b></td><td>—</td><td>HC-SR04 超音波（Trig 14、Echo 13），<b>脈寬量測</b></td><td>—</td><td>6P 母座＋4P 排針，BT-RX/TX 接腳 3／2，S2 切換</td><td>存 PC 寫入的 4 位 HEX</td><td>1 顆（S3，腳 24）</td></tr>
+    <tr><td class="k">111</td><td>OLED，<b>I2C</b>（SCL 28、SDA 27）</td><td>12V 風扇 <b>PWM</b>（腳 17／OC2）；74HC595（DS 12、STCP 11、SHCP 5）驅動 6 顆紅綠燈 LED</td><td>風扇 Sensor 腳未接〔無法確認是否使用〕</td><td>—</td><td>同 110</td><td>存 PC 寫入的 4 位 HEX</td><td>3 顆（Up 25、Enter 24、Down 23）</td></tr>
+    <tr><td class="k">112</td><td>OLED，I2C（28／27）</td><td>74HC595 驅動 L1～L6</td><td>—</td><td><b>有</b>（VCC／GND／SCL／SDA／SQW／32K，與 OLED 共用 I2C 28／27）</td><td>同 110</td><td>存 PC 寫入的 3 位 DEC（100～255）</td><td>4 顆（UP 26、Down 25、Enter 24、Return 23）</td></tr>
+    <tr><td class="k">113</td><td>OLED，I2C（28／27）</td><td><b>WS2812 × 8</b>（DIN 腳 14），<b>單線時序</b></td><td>—（改用 PC 的 CPU 使用率當資料來源）</td><td>—</td><td>同 110</td><td>存 PC 寫入的 BIN（轉 DEC）</td><td>4 顆（腳 26～23）</td></tr>
+    <tr><td class="k">114</td><td><b>TFT，SPI</b>（BL 13、SCL 19、SDA 17、D/C 15、CS 16、RST 14）</td><td>WS2812 × 8（DIN 腳 12）</td><td>—（改用 PC 的 MAC 位址）</td><td>—</td><td>同 110</td><td>存介面卡上編輯的 Secure Key</td><td>4 顆（Enter 26、Back 25、UP 24、Down 23）</td></tr>
+    <tr><td class="k">115<br><span class="src">說明會</span></td><td>TFT（SPI，同 114）</td><td>WS2812 × 8</td><td>—</td><td><b>有</b>，I2C 排針；說明會電路圖未標腳號，推定接 SCL 28／SDA 27〔推測〕</td><td>同 114</td><td class="guess">OTP 種子或計次器〔推測〕</td><td>4 顆</td></tr>
+  </tbody>
+</table>
+<p class="src">出處：各年試題 PDF 第 3 頁圖 1（逐年看圖核對）；115 為說明會電路圖。腳位以 ATmega328P-PU DIP 腳號表示。</p>
+<div class="box warn">
+  <b>對選手能力的影響</b>
+  <ul>
+    <li><b>介面協定全面化</b>：五年內依序考過並列移位（74HC595）、脈寬量測（HC-SR04）、PWM、I2C（OLED、RTC）、單線時序（WS2812）、SPI（TFT）與 UART（藍牙），115 同時會有 SPI＋I2C＋單線＋UART 四種。</li>
+    <li><b>腳位衝突要會判讀</b>：114 因 TFT 佔用腳 15，CPU LED 改到腳 6；115 加入 RTC 後若接硬體 I2C（腳 27／28）〔推測〕，與 114 的按鍵腳 23～26 不衝突。</li>
+    <li><b>I2C 共用匯流排</b>：112 年 OLED 與 RTC 共用 SCL／SDA，選手必須理解多裝置位址（DS3231 為 0x68）；115 則是 TFT 走 SPI、RTC 單獨走 I2C。</li>
+    <li><b>74HC595 已連兩年沒出現</b>（113、114），燈效統一改用 WS2812。</li>
+  </ul>
+</div>
+
+<h2>四、程式複雜度量化</h2>
+<h3>計分規則（每個面向 0～4 分）</h3>
+<table>
+  <thead><tr><th style="width:18%">面向</th><th>0</th><th>1</th><th>2</th><th>3</th><th>4</th></tr></thead>
+  <tbody>
+    <tr><td class="k">M1 顯示驅動</td><td>無</td><td>單色 LED</td><td>OLED 文字（函式庫）</td><td>七段多工或 TFT（SPI、多腳控制）</td><td>TFT 動態圖形或多畫面即時更新</td></tr>
+    <tr><td class="k">M2 燈效／致動</td><td>無</td><td>單顆開關</td><td>移位暫存器 LED 組</td><td>PWM 風扇或 WS2812 單色</td><td>WS2812 多色、漸層、呼吸或與事件連動</td></tr>
+    <tr><td class="k">M3 輸入／感測</td><td>無</td><td>1～3 顆按鍵</td><td>4 顆按鍵選單</td><td>加一個感測器（脈寬、RTC）或介面卡端編輯</td><td>多個感測器／時間源＋介面卡端編輯</td></tr>
+    <tr><td class="k">M4 選單／狀態</td><td>無選單</td><td>按鍵觸發單一功能</td><td>一層選單＋子選單</td><td>3 個以上功能選單</td><td>選單中含多段流程（編輯、等待、結果）</td></tr>
+    <tr><td class="k">M5 時序／並行</td><td>無</td><td>只有 LED 閃爍</td><td>閃爍＋一項計時</td><td>多項計時並行（PWM、時鐘、序列）</td><td>非阻塞並行＋可暫停／續行或連續動畫</td></tr>
+    <tr><td class="k">M6 資料處理</td><td>無</td><td>存取 PC 傳來的值</td><td>加上格式轉換或在介面卡顯示</td><td>介面卡端產生資料並傳給 PC</td><td>介面卡端演算（加密、OTP）</td></tr>
+    <tr><td class="k">P1 UI 元件</td><td>—</td><td>5 個以下</td><td>6～10 個</td><td>11～16 個或有自訂圖形</td><td>17 個以上</td></tr>
+    <tr><td class="k">P2 通訊訊息種類</td><td>—</td><td>1 種</td><td>2 種</td><td>3 種</td><td>4 種以上或有交握流程</td></tr>
+    <tr><td class="k">P3 輸入驗證</td><td>無</td><td>簡單比對</td><td>比對＋結果回饋</td><td>字元過濾＋長度檢查＋彈窗</td><td>再加數值區間或多種格式</td></tr>
+    <tr><td class="k">P4 系統 API</td><td>—</td><td>系統時間</td><td>時間格式運算</td><td>效能計數器（CPU 使用率）</td><td>網路介面、檔案系統或權限</td></tr>
+    <tr><td class="k">P5 非同步／背景</td><td>—</td><td>手動按鈕觸發</td><td>定時更新</td><td>自動偵測連線或持續串流</td><td>多個背景工作並行（串流＋偵測＋日誌）</td></tr>
+  </tbody>
+</table>
+
+<h3>各年得分</h3>
+<table>
+  <thead><tr><th>面向</th><th>110</th><th>111</th><th>112</th><th>113</th><th>114</th><th>評分依據</th></tr></thead>
+  <tbody>
+    <tr><td class="k">M1 顯示</td><td>3</td><td>2</td><td>2</td><td>2</td><td>3</td><td>110 七段多工；111～113 OLED；114 TFT（SPI）</td></tr>
+    <tr><td class="k">M2 燈效</td><td>0</td><td>3</td><td>2</td><td>4</td><td>4</td><td>111 PWM 風扇＋紅綠燈；112 L1～L6；113 RGB 顆數與漸層；114 呼吸燈＋解鎖結果燈號</td></tr>
+    <tr><td class="k">M3 輸入</td><td>3</td><td>1</td><td>3</td><td>2</td><td>3</td><td>110 超音波；111 三鍵；112 四鍵＋RTC；113 四鍵；114 四鍵＋Code Edit 編輯</td></tr>
+    <tr><td class="k">M4 選單</td><td>1</td><td>2</td><td>3</td><td>3</td><td>4</td><td>112 Light／BLE／Time／EEPROM；113 四個選單；114 Unlock 含傳送與結果流程</td></tr>
+    <tr><td class="k">M5 時序</td><td>2</td><td>3</td><td>3</td><td>4</td><td>3</td><td>111 PWM＋紅綠燈時序；112 RTC 時鐘持續更新；113 倒數可暫停續行＋閃爍；114 呼吸燈＋時間同步</td></tr>
+    <tr><td class="k">M6 資料</td><td>1</td><td>1</td><td>2</td><td>2</td><td>3</td><td>112、113 在 OLED 顯示 EEPROM；114 介面卡編輯 Secure Key 並傳給 PC</td></tr>
+    <tr style="font-weight:700"><td class="k">MCU 合計（滿分 24）</td><td>10</td><td>12</td><td>15</td><td>17</td><td>20</td><td></td></tr>
+    <tr><td class="k">P1 UI</td><td>2</td><td>3</td><td>2</td><td>3</td><td>3</td><td>111 有紅綠燈圖形；113 CPU 使用率顯示；114 狀態列＋日誌</td></tr>
+    <tr><td class="k">P2 訊息</td><td>2</td><td>3</td><td>3</td><td>3</td><td>4</td><td>110 寫／讀 EEPROM；111 加時間與燈號；114 時間同步＋Key 傳送＋比對結果回饋（交握）</td></tr>
+    <tr><td class="k">P3 驗證</td><td>3</td><td>3</td><td>4</td><td>3</td><td>2</td><td>110～111 HEX 過濾＋長度＋彈窗；112 再加 100～255 區間；113 BIN；114 只有 Key 比對＋燈號回饋</td></tr>
+    <tr><td class="k">P4 系統 API</td><td>1</td><td>1</td><td>2</td><td>3</td><td>4</td><td>110 時間＋10 分；112 含星期格式；113 CPU 使用率；114 MAC 位址＋資料夾</td></tr>
+    <tr><td class="k">P5 非同步</td><td>3</td><td>3</td><td>3</td><td>4</td><td>4</td><td>110～112 自動偵測 Online；113 再加 CPU 串流；114 每秒同步時間＋等待 Key＋日誌</td></tr>
+    <tr style="font-weight:700"><td class="k">PC 合計（滿分 20）</td><td>11</td><td>13</td><td>14</td><td>16</td><td>17</td><td></td></tr>
+  </tbody>
+</table>
+
+<svg viewBox="0 0 640 250" width="100%" role="img" aria-label="110 到 114 學年度 MCU 端與 PC 端複雜度分數趨勢圖">
+  <rect x="0" y="0" width="640" height="250" fill="#fff"/>
+  <text x="320" y="20" text-anchor="middle" font-size="14" font-weight="700" fill="#1c2530">程式複雜度趨勢（MCU 滿分 24、PC 滿分 20）</text>
+  <g stroke="#e2e8f0" stroke-width="1">
+    <line x1="60" y1="210" x2="600" y2="210"/><line x1="60" y1="170" x2="600" y2="170"/><line x1="60" y1="130" x2="600" y2="130"/><line x1="60" y1="90" x2="600" y2="90"/><line x1="60" y1="50" x2="600" y2="50"/>
+  </g>
+  <g font-size="11" fill="#4b5768" text-anchor="end">
+    <text x="52" y="214">0</text><text x="52" y="174">6</text><text x="52" y="134">12</text><text x="52" y="94">18</text><text x="52" y="54">24</text>
+  </g>
+  <g font-size="12" fill="#1c2530" text-anchor="middle">
+    <text x="100" y="230">110</text><text x="225" y="230">111</text><text x="350" y="230">112</text><text x="475" y="230">113</text><text x="590" y="230">114</text>
+  </g>
+  <!-- y = 210 - score*(160/24) -->
+  <polyline fill="none" stroke="#1f5c8b" stroke-width="3" points="100,143.3 225,130 350,110 475,96.7 590,76.7"/>
+  <g fill="#1f5c8b"><circle cx="100" cy="143.3" r="4"/><circle cx="225" cy="130" r="4"/><circle cx="350" cy="110" r="4"/><circle cx="475" cy="96.7" r="4"/><circle cx="590" cy="76.7" r="4"/></g>
+  <g font-size="11" fill="#1f5c8b" text-anchor="middle" font-weight="700"><text x="100" y="135">10</text><text x="225" y="122">12</text><text x="350" y="102">15</text><text x="475" y="89">17</text><text x="590" y="69">20</text></g>
+  <polyline fill="none" stroke="#b45309" stroke-width="3" stroke-dasharray="7 4" points="100,136.7 225,123.3 350,116.7 475,103.3 590,96.7"/>
+  <g fill="#b45309"><rect x="96" y="132.7" width="8" height="8"/><rect x="221" y="119.3" width="8" height="8"/><rect x="346" y="112.7" width="8" height="8"/><rect x="471" y="99.3" width="8" height="8"/><rect x="586" y="92.7" width="8" height="8"/></g>
+  <g font-size="11" fill="#b45309" text-anchor="middle" font-weight="700"><text x="100" y="158">11</text><text x="225" y="145">13</text><text x="350" y="138">14</text><text x="475" y="125">16</text><text x="590" y="118">17</text></g>
+  <g font-size="12"><line x1="380" y1="40" x2="410" y2="40" stroke="#1f5c8b" stroke-width="3"/><text x="416" y="44" fill="#1c2530">MCU 端（實線、圓點）</text>
+  <line x1="380" y1="58" x2="410" y2="58" stroke="#b45309" stroke-width="3" stroke-dasharray="7 4"/><text x="416" y="62" fill="#1c2530">PC 端（虛線、方點）</text></g>
+</svg>
+<div class="box">
+  <b>解讀</b>：MCU 端每年穩定增加約 2～3 分，主要來自選單流程與資料處理（介面卡從「只存資料」變成「產生資料」）；PC 端的成長集中在系統 API 與背景工作，輸入驗證反而在 114 下降。若 115 維持此趨勢，MCU 端約 21～22 分、PC 端約 18 分〔推測〕，也就是兩端都接近本評分表的上限，210 分鐘的時間壓力會比 114 更大。
+</div>
+
+<h2>五、命題手法趨勢</h2>
+<table>
+  <thead><tr><th style="width:17%">面向</th><th>觀察</th><th style="width:16%">出處</th></tr></thead>
+  <tbody>
+    <tr><td class="k">情境敘事</td><td>110 沒有情境；111、112「A 公司委託 NKHS／CYIVS，老陶為專案經理、老王為技術經理」；113 改為「電競環境控制」；114「NTNU 委託 KSVS、個人資料保全方案」。情境從形式上的委託，變成決定功能主軸（電競燈效、資料保全）。</td><td>111～114 試題需求開頭</td></tr>
+    <tr><td class="k">崗位號碼衍生規則</td><td>尾數奇偶 → 最後一碼奇偶 → 首位奇偶 → 轉 BIN 取最右位並附 4 位低位元 → 轉 HEX。難度逐年上升，而且每年都換。</td><td>各年藍牙命名項</td></tr>
+    <tr><td class="k">進制轉換</td><td>EEPROM 輸入依序考 HEX（110、111）、DEC 區間（112）、BIN 轉 DEC（113）、HEX 在介面卡編輯（114），五年幾乎用遍常見進制。</td><td>各年 EEPROM 項</td></tr>
+    <tr><td class="k">資安主題化</td><td>Device Password／Device Code（110～112）只是欄位名稱；114 首次把「密碼比對→解鎖→資料夾權限」做成完整流程；115 說明會以 OTP 與系統管理函式延續。</td><td>110 項 9、114 項 8、說明會</td></tr>
+    <tr><td class="k">連線狀態用語</td><td>Device Offline／Online（110、111）→ Disconnect／Connected（112、113）→ Connected (Locked)／Unlocked (Device)（114），狀態從「有沒有連線」變成「有沒有通過驗證」。</td><td>各年連線項</td></tr>
+    <tr><td class="k">參考畫面</td><td>圖數：110 共 8 張、111 共 10 張、112 共 12 張、113 共 6 張、114 共 9 張，每張都標「參考用」，備註固定三條（大小寫、相對位置、顏色深淺）。113 起參考圖較少，文字規格較多，選手要能從文字拆解規格。</td><td>各年試題需求圖號</td></tr>
+    <tr><td class="k">給範例程式</td><td>113 首次在題目中附 .bat 範例（產生 CPU 負載），代表命題會提供「測試用工具」讓評審驗證。</td><td>113 試題需求 7</td></tr>
+    <tr><td class="k">承辦學校</td><td>113 起標題列要含承辦學校（台中高工、岡山農工）；115 承辦學校〔無法確認〕。</td><td>113、114 項 6(b)</td></tr>
+  </tbody>
+</table>
+
+<h2 class="page-break">六、115 猜題方向</h2>
+<div class="box ok">
+  <b>說明會三條線索</b>：① 電路圖新增 RTC 模組（排針含 SCL、SDA、SQW、32K）；② OTP 投影片：計次使用與計時使用兩種、有效時間 30 秒～2 分鐘、認證後即廢棄；③ 設備材料表新增「與系統管理相關功能呼叫函式」，並展示 Windows 資料夾「內容 → 安全性」權限畫面。
+</div>
+
+<div class="scen"><h4>情境 A：以 RTC 時間產生 OTP，取代 114 的固定 Secure Key<span class="conf c-high">信心：高</span></h4>
+  <p><b>依據</b>：114 項次 5、8 已有「介面卡產生密碼 → 傳給 PC → 比對解鎖」流程；112 項次 9 考過 RTC 寫入與斷電持續走時；說明會 OTP 投影片與電路圖 RTC。</p>
+  <p><b>可能考法</b>：介面卡依 RTC 時間＋種子（Code Edit 編輯、存 EEPROM）計算 OTP，TFT 顯示 OTP 與剩餘秒數，按 Unlock 傳送；PC 以同樣演算法獨立計算並比對，有效時間在 30 秒～2 分鐘之間。</p>
+  <p><b>必備技能</b>：DS3231 讀寫（I2C、BCD 轉換）、時間戳換算、固定整數運算的 OTP 公式、TFT 倒數顯示、PC 端 DateTime 運算與容許誤差。</p></div>
+
+<div class="scen"><h4>情境 B：PC 端實際修改資料夾 NTFS 權限<span class="conf c-high">信心：高</span></h4>
+  <p><b>依據</b>：114 項次 8 已有保全資料夾 c:\MySecureFolder，但只要求呈現「無權限」畫面；115 設備材料表新增「系統管理相關功能呼叫函式」，並展示「安全性」頁籤。</p>
+  <p><b>可能考法</b>：驗證通過後，以 .NET DirectorySecurity／FileSystemAccessRule（或 icacls）把資料夾改為允許讀取、寫入；鎖定或斷線時恢復拒絕；評審從檔案總管的「安全性」頁籤確認。</p>
+  <p><b>必備技能</b>：C#／VB.NET 的 ACL API、以系統管理員身分執行、例外處理、程式關閉時還原權限。</p></div>
+
+<div class="scen"><h4>情境 C：時間同步與斷電保時<span class="conf c-mid">信心：中</span></h4>
+  <p><b>依據</b>：112 項次 9「Update 寫入 RTC、斷電後重新連接仍顯示最新時間」；114 項次 7(b)「Connect 後 Now Time 以秒同步」。</p>
+  <p><b>可能考法</b>：連線時把 PC 時間寫進 RTC；評審拔電再接回，確認時間持續正確，且 OTP 仍能比對成功。</p>
+  <p><b>必備技能</b>：RTC 寫入流程、開機從 RTC 讀時間而不是從 PC 讀、避免開機時覆寫 RTC。</p></div>
+
+<div class="scen"><h4>情境 D：一次性使用與有效期限<span class="conf c-mid">信心：中</span></h4>
+  <p><b>依據</b>：說明會投影片「認證之後即廢棄不用」、「有效時間 30 秒到兩分鐘」；114 項次 8 已有正確／錯誤兩種燈號回饋。</p>
+  <p><b>可能考法</b>：同一組 OTP 第二次送出要拒絕並顯示不同訊息與燈號（例如 OTP Used）；逾時的 OTP 顯示 Expired。</p>
+  <p><b>必備技能</b>：PC 端記錄已使用的時間步或 OTP、三種以上的結果狀態與對應 WS2812 燈號。</p></div>
+
+<div class="scen"><h4>情境 E：計次型 OTP（EEPROM 計數器）<span class="conf c-low">信心：低</span></h4>
+  <p><b>依據</b>：說明會投影片同時提到「計次使用」；EEPROM 斷電保存五年都有考。沒有直接證據顯示 115 會考計次型〔推測〕。</p>
+  <p><b>可能考法</b>：每按一次 Unlock，計數器加一並存 EEPROM，OTP 由種子＋計數器計算；PC 端容許計數器前後誤差。</p>
+  <p><b>必備技能</b>：EEPROM 多位元組整數存取、計數器同步。</p></div>
+
+<h3>其他可能的延伸（沿用規律推估）</h3>
+<ul>
+  <li>藍牙命名規則會再換，可能用八進位、BCD、或兩種進制組合〔推測〕。依據：五年規則從未重複。</li>
+  <li>MAC 位址可能繼續當作 OTP 種子的一部分〔推測〕。依據：114 項次 8 以 MAC 末四碼為密碼，115 仍是保全情境。</li>
+  <li>WS2812 可能用來顯示 OTP 剩餘時間（燈數遞減）或驗證結果〔推測〕。依據：113、114 都以 WS2812 反映 PC 端狀態。</li>
+  <li>通訊日誌（114 項次 9）很可能保留並要求記錄 OTP 與權限變更〔推測〕。</li>
+</ul>
+
+<h3>與我方 v2.0 建議版逐項比對</h3>
+<table>
+  <thead><tr><th style="width:5%">項</th><th style="width:34%">v2.0 評分項目</th><th style="width:12%">判定</th><th>說明</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>電路組裝（含 RTC）</td><td class="m">✔ 涵蓋</td><td>與說明會電路圖一致。</td></tr>
+    <tr><td>2</td><td>CPU LED 閃爍</td><td class="m">✔ 涵蓋</td><td>五年固定項目。</td></tr>
+    <tr><td>3</td><td>TFT 初始化＋選單，左下角顯示 RTC 時間</td><td class="m">✔ 涵蓋</td><td>顯示 RTC 時間是合理延伸〔推測〕。</td></tr>
+    <tr><td>4</td><td>Breathing LED 依崗位號碼個位數</td><td class="m">⚠ 可能押錯</td><td>燈效主題題每年都換（110～114 從未重複），照抄 114 的機率低。建議改成「顯示 OTP 剩餘時間」之類的新燈效，或準備多種燈效練習。</td></tr>
+    <tr><td>5</td><td>Code Edit 編輯 OTP Seed，存 EEPROM</td><td class="m">✔ 涵蓋</td><td>承接 114 項次 5。</td></tr>
+    <tr><td>6</td><td>藍牙命名 XX-HH＋標題列</td><td class="m">⚠ 可能押錯</td><td>命名規則五年從未重複，XX-HH 是 114 的規則。建議把規則換成新進制，並在練習時輪替多種規則。</td></tr>
+    <tr><td>7</td><td>COM Refresh、Connect 寫入 RTC、斷電 10～30 秒後時間正確</td><td class="m">✔ 涵蓋</td><td>對應情境 C。</td></tr>
+    <tr><td>8</td><td>每 30 秒 TOTP、PC 獨立比對、用過即失效</td><td class="m">✔ 涵蓋</td><td>對應情境 A、D。未涵蓋「逾時 Expired」的獨立訊息，可補。</td></tr>
+    <tr><td>9</td><td>系統管理函式實際改資料夾權限＋權限狀態＋日誌</td><td class="m">✔ 涵蓋</td><td>對應情境 B。114 把日誌獨立成一項（10 分），v2.0 合併在一起，配分可能與正式試題不同。</td></tr>
+    <tr><td>—</td><td>PC 端輸入格式驗證（字元過濾、長度、錯誤彈窗）</td><td class="m">✘ 遺漏</td><td>110～113 每年都考「只能輸入某種進制＋長度不足清空＋彈窗」，114 才拿掉。v2.0 的 Seed 輸入欄位應補上 4 位 HEX 驗證與彈窗。</td></tr>
+    <tr><td>—</td><td>MAC 位址</td><td class="m">✘ 遺漏</td><td>114 的核心 API。v2.0 改用自訂 Seed，建議把「Seed 由 MAC 末四碼產生」列為練習變化題。</td></tr>
+    <tr><td>—</td><td>計次型 OTP</td><td class="m">✘ 遺漏</td><td>信心低，可列為進階練習，不必放進正式卷。</td></tr>
+    <tr><td>10、11</td><td>時間分數、違規扣分</td><td class="m">✔ 涵蓋</td><td>固定項目。</td></tr>
+  </tbody>
+</table>
+
+<h2>備賽建議</h2>
+<table>
+  <thead><tr><th style="width:14%">等級</th><th>練習清單</th></tr></thead>
+  <tbody>
+    <tr><td class="k">必考</td><td>
+      <ol>
+        <li>依圖 1 快速接線：TFT（SPI 6 腳）、WS2812、4 顆按鍵、RTC（I2C）、藍牙切換開關；練習看紅色粗體找出當天新增的腳位。</li>
+        <li>TFT 開機畫面「識別字＋C2XX」，2 秒後進入四鍵選單的共用框架。</li>
+        <li>藍牙 AT 指令改名，並練習至少 5 種崗位號碼衍生規則（奇偶、首尾、BIN、HEX、OCT、BCD）。</li>
+        <li>PC 端樣板：標題列（含承辦學校）、COM 清單 Refresh、Connect／Disconnect、Now Time 每秒更新、通訊日誌（含時間戳）。</li>
+        <li>EEPROM 斷電保存與讀回顯示。</li>
+      </ol></td></tr>
+    <tr><td class="k">高機率</td><td>
+      <ol>
+        <li>DS3231：寫入 PC 時間、讀取、BCD 轉換、開機從 RTC 讀時間，拔電 10～30 秒測試。</li>
+        <li>以 RTC 時間計算 OTP（時間步、整數運算、四位 HEX），TFT 顯示剩餘秒數，PC 端同步計算並容許前後一個時間步。</li>
+        <li>一次性使用：同一組 OTP 第二次送出要拒絕，並以不同燈號與訊息回饋。</li>
+        <li>C# ACL：以 DirectorySecurity／FileSystemAccessRule 允許或拒絕目前使用者讀寫，程式關閉時還原；練習用系統管理員身分執行。</li>
+        <li>WS2812 顯示多種結果（成功、失敗、已使用、逾時）與呼吸、漸層、倒數燈效。</li>
+      </ol></td></tr>
+    <tr><td class="k">可能</td><td>
+      <ol>
+        <li>計次型 OTP（EEPROM 計數器＋同步）。</li>
+        <li>OTP 種子結合 MAC 位址末四碼。</li>
+        <li>PC 端輸入驗證（只能輸入 HEX／DEC／BIN、長度與區間檢查、錯誤彈窗）。</li>
+        <li>讀取其他系統資訊（CPU 使用率、記憶體、磁碟）並回傳到介面卡顯示。</li>
+      </ol></td></tr>
+  </tbody>
+</table>
+
+<h2>資料來源</h2>
+<ul>
+  <li>110～114 學年度 06 電腦修護第二站正式試題 PDF（評分表、試題說明、圖 1 電路圖、試題需求）：<code>歷屆試題\110-06電腦修護第二站.pdf</code>～<code>114-06電腦修護第二站.pdf</code>；文字內容以同名 HTML 轉檔核對。</li>
+  <li>115 學年度考前說明會投影片：<code>115年考前說明會\OTP密碼.png</code>、<code>系統管理功能呼叫函式.png</code>、<code>資料夾權限管理.png</code>、<code>電腦修護電路圖.png</code>。</li>
+  <li>我方猜題：<code>web\115學年模擬\115-06電腦修護第二站_模擬試題_v2.0建議版_20260926.html</code>。</li>
+</ul>
+
+<footer>本報告的複雜度分數為依自訂計分規則評定，用於比較年度間的相對變化；所有猜題內容皆為推估，不代表正式命題。</footer>
+</body>
+</html>

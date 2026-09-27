@@ -791,7 +791,7 @@
                     <span class="nav-title">技藝競賽</span>
                     <span class="chevron" aria-hidden="true">&#9662;</span>
                 </button>
-                <div class="nav-sub" data-group="contest" style="--cols: 2;">
+                <div class="nav-sub" data-group="contest" style="--cols: 3;">
                     <!-- 歷屆正式試題：公開，不加密（PDF 檢視頁由 _private/skills_competition/build_pages.py 產生） -->
                     <div class="mega-col has-flyout">
                         <button class="mega-heading" type="button" aria-expanded="false">📚 歷屆試題（110～114 學年）</button>
@@ -807,6 +807,13 @@
                     <div class="mega-col has-flyout mock-col locked" id="mockCol">
                         <button class="mega-heading" type="button" aria-expanded="false" aria-haspopup="dialog"><span id="mockLabel">🔒 模擬試題（電腦修護第二站）</span></button>
                         <div class="mega-list" id="mockList"></div>
+                    </div>
+                    <!-- 命題分析：公開，不加密 -->
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">📊 命題分析</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="skills_competition/analysis_115.html">110～114 試題演化與 115 猜題方向</button>
+                        </div>
                     </div>
                 </div>
             </div>
