@@ -791,7 +791,18 @@
                     <span class="nav-title">技藝競賽</span>
                     <span class="chevron" aria-hidden="true">&#9662;</span>
                 </button>
-                <div class="nav-sub" data-group="contest" style="--cols: 1;">
+                <div class="nav-sub" data-group="contest" style="--cols: 2;">
+                    <!-- 歷屆正式試題：公開，不加密（PDF 檢視頁由 _private/skills_competition/build_pages.py 產生） -->
+                    <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">📚 歷屆試題（110～114 學年）</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="skills_competition/past_114_pdf.html">114 學年度 電腦修護第二站</button>
+                            <button class="nav-sub-item" type="button" data-src="skills_competition/past_113_pdf.html">113 學年度 電腦修護第二站</button>
+                            <button class="nav-sub-item" type="button" data-src="skills_competition/past_112_pdf.html">112 學年度 電腦修護第二站</button>
+                            <button class="nav-sub-item" type="button" data-src="skills_competition/past_111_pdf.html">111 學年度 電腦修護第二站</button>
+                            <button class="nav-sub-item" type="button" data-src="skills_competition/past_110_pdf.html">110 學年度 電腦修護第二站</button>
+                        </div>
+                    </div>
                     <!-- 模擬試題：輸入密碼（只要一次）後，第二層才出現各版本；版本清單取自加密的 skills_competition/index.html -->
                     <div class="mega-col has-flyout mock-col locked" id="mockCol">
                         <button class="mega-heading" type="button" aria-expanded="false" aria-haspopup="dialog"><span id="mockLabel">🔒 模擬試題（電腦修護第二站）</span></button>

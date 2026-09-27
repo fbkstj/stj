@@ -17,8 +17,11 @@ bar.innerHTML = `
     <button type="button" id="zFit">符合寬度</button>
   </span>
   <a class="primary" href="${pdfUrl}" download>⬇ <span class="label">下載 PDF</span></a>
-  <a href="${pdfUrl}" target="_blank" rel="noopener">🖨 <span class="label">列印／新分頁開啟</span></a>
-  <a href="${htmlUrl}">🌐 <span class="label">網頁版</span></a>`;
+  <a href="${pdfUrl}" target="_blank" rel="noopener">🖨 <span class="label">列印／新分頁開啟</span></a>` +
+  (htmlUrl ? `\n  <a href="${htmlUrl}">🌐 <span class="label">網頁版</span></a>` : '');   // 歷屆試題只有 PDF，沒有網頁版
+// 正式試題 PDF 裡有未嵌入的英文標準字型（Times、Arial），需要 PDF.js 的標準字型資料；CMap 供中文字型對照備用
+const PDFJS_DATA = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/';
+const altLinks = () => `<a href="${pdfUrl}" download>直接下載 PDF</a>` + (htmlUrl ? ` 或改看 <a href="${htmlUrl}">網頁版</a>` : '');
 
 let doc = null, fitScale = 1, zoom = 1;       // zoom：相對於「符合寬度」的倍率
 const pageBoxes = [];                          // { el, canvas, page, rendered }
@@ -71,11 +74,14 @@ addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if 
 try {
   // PDF 約 3～4 MB，網路慢時要一段時間：顯示下載進度，8 秒後另外提示可直接下載或改看網頁版（仍繼續載入）
   const msg = document.getElementById('msg');
-  const task = pdfjsLib.getDocument(pdfUrl);
+  const task = pdfjsLib.getDocument({
+    url: pdfUrl,
+    cMapUrl: PDFJS_DATA + 'cmaps/', cMapPacked: true,
+    standardFontDataUrl: PDFJS_DATA + 'standard_fonts/',
+  });
   let pct = '';
   const hintTimer = setTimeout(() => {
-    msg.innerHTML = `載入中…<span id="pct">${pct}</span><br><small>檔案較大，網路較慢時請稍候；也可以 ` +
-      `<a href="${pdfUrl}" download>直接下載 PDF</a> 或改看 <a href="${htmlUrl}">網頁版</a>。</small>`;
+    msg.innerHTML = `載入中…<span id="pct">${pct}</span><br><small>檔案較大，網路較慢時請稍候；也可以 ${altLinks()}。</small>`;
   }, 8000);
   task.onProgress = ({ loaded, total }) => {
     if (!total) return;
@@ -104,5 +110,6 @@ try {
   fitScale = fitWidthScale(pageBoxes[0].page);
   layout();
 } catch (e) {
-  pagesEl.innerHTML = `<div id="msg">PDF 載入失敗。請改用 <a href="${pdfUrl}" target="_blank" rel="noopener">直接開啟 PDF</a> 或 <a href="${htmlUrl}">網頁版</a>。</div>`;
+  pagesEl.innerHTML = `<div id="msg">PDF 載入失敗。請改用 <a href="${pdfUrl}" target="_blank" rel="noopener">直接開啟 PDF</a>` +
+    (htmlUrl ? ` 或 <a href="${htmlUrl}">網頁版</a>` : '') + '。</div>';
 }
