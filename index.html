@@ -1770,7 +1770,7 @@
 <div class="pw-bg" id="pwBg">
     <form class="pw-box" id="pwForm" role="dialog" aria-modal="true" aria-labelledby="pwTitle">
         <h2 id="pwTitle">🔒 模擬試題</h2>
-        <p>請輸入密碼。這台電腦的瀏覽器只要輸入一次，之後不必再輸入。</p>
+        <p>請輸入密碼。解鎖後在本次瀏覽期間有效，關閉瀏覽器後會自動上鎖。</p>
         <input type="password" id="pwInput" placeholder="密碼" autocomplete="current-password" aria-label="密碼">
         <div class="pw-msg" id="pwMsg" role="status"></div>
         <div class="pw-row">
@@ -2047,7 +2047,7 @@
         });
     });
 
-    // ---------- 模擬試題：密碼只要輸入一次，解鎖後第二層列出各版本 ----------
+    // ---------- 模擬試題：輸入密碼後，第二層列出各版本（關閉瀏覽器後需重新輸入） ----------
     // 密碼驗證沿用 StatiCrypt 加密的 skills_competition/index.html（密碼與鹽值來自 _private/加密模擬試題.bat），
     // 解密成功才讀得到版本清單；本機只存雜湊後的金鑰（不存明碼），換密碼後舊金鑰自動失效。
     const MOCK_PAGE = 'skills_competition/index.html';
@@ -2065,8 +2065,10 @@
     const utf8 = s => new TextEncoder().encode(s);
     let mockConfig = null;
 
-    function storeGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
-    function storeSet(k, v) { try { v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+    // 解鎖只在本次瀏覽期間有效（sessionStorage）：關閉分頁或瀏覽器後就恢復上鎖
+    function storeGet(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+    function storeSet(k, v) { try { v === null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} }
+    try { localStorage.removeItem(MOCK_KEY); } catch (e) {}   // 清掉舊版永久記住的金鑰
 
     async function loadMockConfig() {
         if (mockConfig) return mockConfig;
@@ -2136,7 +2138,7 @@
         const sep = document.createElement('div');
         sep.className = 'mock-list-sep';
         mockList.appendChild(sep);
-        addMockItem(['🔒 重新上鎖（這台電腦）'], lockMock, 'mock-lock');
+        addMockItem(['🔒 立即上鎖'], lockMock, 'mock-lock');
         setActiveSubItem(location.hash.startsWith('#page/') ? location.hash.slice(6) + '.html' : null);
     }
     function setMockUnlocked(on) {
