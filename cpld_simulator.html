@@ -428,22 +428,22 @@
                             <span class="text-xs font-black px-3 py-1 bg-[#1e293b] text-sky-300 rounded-lg border border-[#475569]">{{ showCircuit ? '▲ 隱藏設計圖' : '▼ 展開設計圖' }}</span>
                         </button>
                         <div v-show="showCircuit" class="p-3.5 bg-[#0f172a] border-t-2 border-[#475569] text-center overflow-x-auto custom-scrollbar">
-                            <div class="inline-block min-w-full bg-[#1e293b] p-3.5 rounded-xl shadow-inner border-2 border-[#475569]">
+                            <div v-if="currentTask !== 2" class="inline-block min-w-full bg-[#1e293b] p-3.5 rounded-xl shadow-inner border-2 border-[#475569]">
                                 <img :src="'https://lh3.googleusercontent.com/d/' + taskData[currentTask].circuitImg" :alt="taskData[currentTask].name + '內部電路圖'" class="max-w-full h-auto mx-auto rounded-lg shadow-md border border-slate-600">
                             </div>
 
-                            <!-- 試題二修正版電路圖（實驗驗證中，與上方舊圖對照） -->
-                            <div v-if="currentTask === 2" class="mt-4 max-w-[1000px] mx-auto">
+                            <!-- 試題二電路圖（SVG；計數器持續掃描＋reg4 在列中間取樣） -->
+                            <div v-else class="max-w-[1000px] mx-auto">
                                 <div class="text-left space-y-3 bg-[#1e293b] p-3.5 rounded-xl shadow-inner border-2 border-teal-600">
                                     <div class="flex flex-wrap items-center gap-2">
-                                        <span class="text-xs font-black px-2.5 py-1 rounded-lg bg-teal-900 text-teal-200 border border-teal-500">修正版（實驗驗證中）</span>
-                                        <h4 class="text-sm md:text-base font-black text-white">改善放開按鍵後顯示跳號的問題</h4>
+                                        <span class="text-xs font-black px-2.5 py-1 rounded-lg bg-teal-900 text-teal-200 border border-teal-500">修正版</span>
+                                        <h4 class="text-sm md:text-base font-black text-white">放開按鍵後顯示不會跳號的設計</h4>
                                     </div>
-                                    <p class="text-xs md:text-sm text-slate-300 leading-relaxed">上方舊圖：按下按鍵時計數器停止、latch 的 gate 打開。放開按鍵時接點會彈跳，計數器可能在彈跳期間往下一列走，而 gate 關閉和列號改變幾乎同時發生，latch 就可能鎖到「舊的行＋新的列」，顯示跳到別的數字。修正版讓計數器一直掃描，改用 D 型正反器在每一列的正中間取樣。</p>
+                                    <p class="text-xs md:text-sm text-slate-300 leading-relaxed">舊的設計是按下按鍵時讓計數器停止、用 latch（gate 接 OR 輸出）鎖住按鍵碼。放開按鍵時接點會彈跳，計數器可能在彈跳期間往下一列走，而 gate 關閉和列號改變幾乎同時發生，latch 就可能鎖到「舊的行＋新的列」，顯示跳到別的數字。這一版讓計數器一直掃描，改用 D 型正反器在每一列的正中間取樣。</p>
                                     <div class="bg-[#0f172a] rounded-lg border border-slate-600 p-2">
                                         <svg viewBox="0 0 680 480" class="w-full h-auto" role="img" aria-labelledby="t2fixTitle t2fixDesc" style="font-family:'Noto Sans TC',sans-serif">
-                                            <title id="t2fixTitle">試題二修正版電路圖</title>
-                                            <desc id="t2fixDesc">1KHZ 除頻掃描計數器 clk_en 接 VCC 持續計數；q[11..10] 送 2to4decoder 產生鍵盤列掃描 R0 到 R3；C0、C1、C2 經 OR3 偵測有鍵按下，接 reg4 的 enable；reg4 以 q[9] 在列中間取樣按鍵碼 q[13..10]，輸出到 7Asegment 轉成七段碼。</desc>
+                                            <title id="t2fixTitle">試題二內部電路圖</title>
+                                            <desc id="t2fixDesc">1KHZ 除頻掃描計數器不設 clk_en、持續計數；q[11..10] 送 2to4decoder 產生鍵盤列掃描 R0 到 R3；C0、C1、C2 經 OR3 偵測有鍵按下，接 reg4 的 enable；reg4 以 q[9] 在列中間取樣按鍵碼 q[13..10]，輸出到 7Asegment 轉成七段碼。</desc>
                                             <g transform="translate(0,30)" font-size="12" fill="#e2e8f0">
                                                 <g fill="none" stroke="#94a3b8" stroke-width="1.5">
                                                     <path d="M110 70 H250"/>
@@ -459,8 +459,6 @@
                                                     <path d="M250 64 L257 70 L250 76"/>
                                                 </g>
                                                 <g fill="none" stroke="#2dd4bf" stroke-width="1.5">
-                                                    <path d="M205 102 H225"/>
-                                                    <path d="M215 102 V115 H250"/>
                                                     <path d="M215 300 H270"/>
                                                     <path d="M230 278 H270"/>
                                                     <path d="M270 272 L277 278 L270 284"/>
@@ -477,8 +475,6 @@
                                                     <text x="616" y="236">七段顯示</text>
                                                 </g>
                                                 <g fill="#5eead4">
-                                                    <text x="198" y="106" text-anchor="end">恆為 1</text>
-                                                    <text x="215" y="96" text-anchor="middle">VCC</text>
                                                     <text x="335" y="212" text-anchor="middle">按鍵碼暫存（列中間取樣）</text>
                                                     <text x="236" y="272">q[9]</text>
                                                 </g>
@@ -501,7 +497,6 @@
                                                 <text x="175" y="276">OR3</text>
                                                 <text x="315" y="62" text-anchor="middle" font-size="14" font-weight="700">1KHZ</text>
                                                 <text x="262" y="74">clock</text>
-                                                <text x="258" y="119">clk_en</text>
                                                 <text x="372" y="94" text-anchor="end">q[11..0]</text>
                                                 <text x="384" y="84">q[11..0]</text>
                                                 <text x="437" y="104">q[11..10]</text>
@@ -539,17 +534,142 @@
                                                 <text x="616" y="326">e · 27</text>
                                                 <text x="616" y="344">f · 34</text>
                                                 <text x="616" y="362">g · 37</text>
+                                                <g fill="none" stroke-width="3" stroke-linecap="round">
+                                                    <path v-for="i in 4" :key="'simR'+i" :d="'M590 ' + (60 + i * 20) + ' H612'" :stroke="scan.row === i - 1 ? '#fbbf24' : 'transparent'"/>
+                                                    <path d="M110 190 H150 V290 H169" :stroke="scan.activeCol === 0 ? '#fbbf24' : 'transparent'"/>
+                                                    <path d="M110 245 H140 V300 H172" :stroke="scan.activeCol === 1 ? '#fbbf24' : 'transparent'"/>
+                                                    <path d="M110 350 H130 V310 H169" :stroke="scan.activeCol === 2 ? '#fbbf24' : 'transparent'"/>
+                                                    <path d="M215 300 H270" :stroke="scan.or ? '#fbbf24' : 'transparent'"/>
+                                                    <path d="M230 278 H270" :stroke="scan.q9 ? '#fbbf24' : 'transparent'"/>
+                                                </g>
+                                                <rect x="270" y="220" width="130" height="100" rx="4" fill="#fbbf24" :opacity="scan.flash > 0 ? 0.45 : 0" pointer-events="none"/>
+                                                <g fill="#fbbf24" font-weight="700">
+                                                    <text x="437" y="128">= {{ scan.rowBits }}</text>
+                                                    <text x="445" y="262" text-anchor="middle">{{ scan.codeBits }}</text>
+                                                    <text x="528" y="352" text-anchor="middle" font-size="44">{{ scan.dispChar }}</text>
+                                                </g>
                                                 <rect x="40" y="400" width="14" height="14" rx="3" fill="#134e4a" stroke="#2dd4bf"/>
-                                                <text x="62" y="412">綠色＝修改的部分（已刪除 NOT 閘和 latch4）</text>
+                                                <text x="62" y="412">綠色＝和舊設計不同的部分（不再使用 NOT 閘和 latch4）</text>
                                                 <text x="40" y="436">同名的線互相連接：C1 線名 q[12]、C2 線名 q[13]，和計數器的 q[11..0] 合成 q[13..0]</text>
+                                                <rect x="400" y="400" width="14" height="14" rx="3" fill="#fbbf24"/>
+                                                <text x="422" y="412">黃色＝動畫中目前為 1 的訊號</text>
                                             </g>
                                         </svg>
                                     </div>
+                                    <!-- 動作原理動畫與工作脈波 -->
+                                    <section class="bg-[#0f172a] rounded-lg border border-slate-600 p-3 space-y-3" aria-labelledby="scanSimHeading">
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <h5 id="scanSimHeading" class="font-black text-amber-300 text-sm md:text-base">動作原理動畫與工作脈波</h5>
+                                            <span class="text-[11px] text-slate-300 font-bold">示意：實際每一列是 1024 個 CLK，動畫縮成 8 個</span>
+                                        </div>
+                                        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+                                            <div class="md:col-span-4 bg-[#1e293b] rounded-lg border border-slate-600 p-3">
+                                                <p class="text-xs font-bold text-slate-200 mb-2">點一下按鍵＝按住，再點一次＝放開</p>
+                                                <div class="grid gap-1.5 items-center" style="grid-template-columns: 2.2rem repeat(3, minmax(0, 1fr));">
+                                                    <span></span>
+                                                    <span v-for="c in 3" :key="'simC'+c" class="text-center text-[11px] font-black" :class="scan.activeCol === c - 1 ? 'text-amber-300' : 'text-slate-300'">C{{ c - 1 }}</span>
+                                                    <template v-for="(rowKeys, r) in scan.labels" :key="'simRow'+r">
+                                                        <span class="text-[11px] font-black px-1 py-0.5 rounded text-center" :class="scan.row === r ? 'bg-amber-400 text-slate-950' : 'text-slate-300'">R{{ r }}</span>
+                                                        <button v-for="(lab, c) in rowKeys" :key="'simK'+r+'-'+c" type="button" @click="scan.press(r, c)"
+                                                            :aria-pressed="scan.pressed && scan.pressed.row === r && scan.pressed.col === c ? 'true' : 'false'"
+                                                            :aria-label="'按鍵 ' + lab"
+                                                            class="h-10 rounded-lg font-black font-mono-custom text-base border-2 transition-colors"
+                                                            :class="scan.pressed && scan.pressed.row === r && scan.pressed.col === c ? 'bg-amber-400 text-slate-950 border-amber-200' : (scan.row === r ? 'bg-slate-700 text-white border-amber-400' : 'bg-[#0f172a] text-sky-200 border-slate-600 hover:bg-slate-700')">{{ lab }}</button>
+                                                    </template>
+                                                </div>
+                                                <label class="flex items-center gap-2 mt-3 text-xs font-bold text-slate-200 cursor-pointer">
+                                                    <input type="checkbox" v-model="scan.bounce" class="w-4 h-4 accent-amber-400"> 模擬接點彈跳
+                                                </label>
+                                            </div>
+                                            <div class="md:col-span-8 bg-[#1e293b] rounded-lg border border-slate-600 p-3 flex flex-col gap-3">
+                                                <div class="flex flex-wrap items-center gap-2">
+                                                    <button type="button" @click="scan.playing = !scan.playing" class="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-black border border-teal-300">{{ scan.playing ? '⏸ 暫停' : '▶ 播放' }}</button>
+                                                    <button type="button" @click="scan.playing = false; scan.step()" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-black border border-slate-400">⏭ 單步</button>
+                                                    <button type="button" @click="scan.reset()" class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-xs font-black border border-slate-400">↺ 重設</button>
+                                                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-200">速度
+                                                        <select v-model.number="scan.speed" class="bg-[#0f172a] text-white border border-slate-500 rounded px-1.5 py-1 text-xs font-bold">
+                                                            <option :value="320">慢</option>
+                                                            <option :value="140">中</option>
+                                                            <option :value="60">快</option>
+                                                        </select>
+                                                    </label>
+                                                </div>
+                                                <div class="grid grid-cols-3 gap-2 text-center">
+                                                    <div class="bg-[#0f172a] rounded-lg border border-slate-600 p-2">
+                                                        <div class="text-[11px] text-slate-300 font-bold">目前掃描列</div>
+                                                        <div class="text-lg font-black text-amber-300 font-mono-custom">R{{ scan.row }}</div>
+                                                        <div class="text-[11px] text-slate-300 font-mono-custom">q[11..10]={{ scan.rowBits }}</div>
+                                                    </div>
+                                                    <div class="bg-[#0f172a] rounded-lg border border-slate-600 p-2">
+                                                        <div class="text-[11px] text-slate-300 font-bold">reg4 存的按鍵碼</div>
+                                                        <div class="text-lg font-black text-emerald-300 font-mono-custom">{{ scan.codeBits }}</div>
+                                                        <div class="text-[11px] text-slate-300 font-mono-custom">enable={{ scan.or }}　q[9]={{ scan.q9 }}</div>
+                                                    </div>
+                                                    <div class="bg-[#0f172a] rounded-lg border border-slate-600 p-2">
+                                                        <div class="text-[11px] text-slate-300 font-bold">七段顯示</div>
+                                                        <div class="text-3xl leading-8 font-black text-amber-300 font-mono-custom">{{ scan.dispChar }}</div>
+                                                    </div>
+                                                </div>
+                                                <p class="text-xs md:text-sm text-slate-100 font-bold leading-relaxed bg-[#0f172a] rounded-lg border border-slate-600 p-2 min-h-[3.2rem]">{{ scan.status }}</p>
+                                            </div>
+                                        </div>
+                                        <div class="overflow-x-auto custom-scrollbar bg-[#090d16] rounded-lg border border-slate-600 p-2">
+                                            <svg viewBox="0 0 700 330" class="h-auto" style="width:100%;min-width:660px;font-family:'Noto Sans TC',sans-serif" role="img" aria-labelledby="scanWaveTitle scanWaveDesc">
+                                                <title id="scanWaveTitle">試題二工作脈波圖</title>
+                                                <desc id="scanWaveDesc">由上到下依序為 CLK、q[9]、列號 q[11..10]、R0 到 R3、按鍵接點、OR 輸出 enable、reg4 取樣點、reg4 輸出。每一列佔 8 個 CLK，q[9] 在每一列的中間由 0 變 1，reg4 只在這個上升緣而且 enable 為 1 時存入按鍵碼。</desc>
+                                                <g font-size="11" fill="#cbd5e1">
+                                                    <g stroke="#334155" stroke-width="1">
+                                                        <path v-for="j in 9" :key="'simG'+j" :d="'M' + (100 + (j - 1) * 72) + ' 14 V306'"/>
+                                                    </g>
+                                                    <g stroke="#2dd4bf" stroke-width="1" stroke-dasharray="3 3" opacity="0.7">
+                                                        <path v-for="m in scan.samples" :key="'simE'+m.x" :d="'M' + m.x + ' 40 V306'"/>
+                                                    </g>
+                                                    <g text-anchor="end" font-weight="700">
+                                                        <text x="94" y="31">CLK</text>
+                                                        <text x="94" y="57" fill="#5eead4">q[9]</text>
+                                                        <text x="94" y="83">q[11..10]</text>
+                                                        <text v-for="i in 4" :key="'simL'+i" x="94" :y="83 + i * 26" :fill="scan.row === i - 1 ? '#fbbf24' : '#cbd5e1'">R{{ i - 1 }}</text>
+                                                        <text x="94" y="213" fill="#f9a8d4">按鍵接點</text>
+                                                        <text x="94" y="239" fill="#fcd34d">OR→enable</text>
+                                                        <text x="94" y="265" fill="#5eead4">reg4 取樣</text>
+                                                        <text x="94" y="291" fill="#86efac">reg4 輸出</text>
+                                                    </g>
+                                                    <g fill="none" stroke-width="1.5" stroke-linejoin="round">
+                                                        <path :d="scan.clkPath" stroke="#94a3b8"/>
+                                                        <path :d="scan.q9Path" stroke="#2dd4bf"/>
+                                                        <path v-for="(d, i) in scan.rPaths" :key="'simRP'+i" :d="d" :stroke="scan.row === i ? '#fbbf24' : '#7dd3fc'"/>
+                                                        <path :d="scan.contactPath" stroke="#f9a8d4"/>
+                                                        <path :d="scan.orPath" stroke="#fbbf24"/>
+                                                    </g>
+                                                    <g v-for="b in scan.busSegs" :key="'simB'+b.x">
+                                                        <path :d="b.d" fill="#1e293b" stroke="#94a3b8" stroke-width="1.2"/>
+                                                        <text :x="b.x" y="83" text-anchor="middle" fill="#e2e8f0">{{ b.t }}</text>
+                                                    </g>
+                                                    <g v-for="m in scan.samples" :key="'simS'+m.x">
+                                                        <path :d="'M' + m.x + ' 268 V254 M' + (m.x - 4) + ' 259 L' + m.x + ' 253 L' + (m.x + 4) + ' 259'" fill="none" :stroke="m.st === 2 ? '#fbbf24' : '#64748b'" :stroke-width="m.st === 2 ? 2.5 : 1.2"/>
+                                                        <text v-if="m.st === 2" :x="m.x + 7" y="265" fill="#fbbf24" font-weight="700">存入</text>
+                                                    </g>
+                                                    <g v-for="r in scan.regRuns" :key="'simRR'+r.x1">
+                                                        <path :d="r.d" fill="#14532d" stroke="#86efac" stroke-width="1.2"/>
+                                                        <text v-if="r.w >= 18" :x="r.mid" y="291" text-anchor="middle" fill="#dcfce7" font-weight="700">{{ r.t }}</text>
+                                                    </g>
+                                                    <path :d="'M' + scan.cursorX + ' 14 V306'" stroke="#f8fafc" stroke-width="1.5"/>
+                                                    <text x="100" y="322">← 一次完整掃描＝4 列（R0→R3），畫面共顯示 2 次掃描；白色直線＝現在，右邊是上一輪留下的波形</text>
+                                                </g>
+                                            </svg>
+                                        </div>
+                                        <ul class="list-disc pl-5 space-y-1 text-xs md:text-sm text-slate-200">
+                                            <li><strong class="text-teal-300">綠色虛線</strong>是 q[9] 的上升緣，位置固定在每一列的正中間；列號（q[11..10]、R0～R3）只在灰色格線處改變，兩者永遠錯開。</li>
+                                            <li><strong class="text-pink-300">按鍵接點</strong>按住時一直是 1，但 <strong class="text-amber-300">OR→enable</strong> 只有掃到那顆鍵所在的列才會變 1。</li>
+                                            <li>取樣箭頭變成<strong class="text-amber-300">黃色「存入」</strong>，代表那個上升緣 enable＝1，reg4 存入新的按鍵碼；灰色箭頭代表 enable＝0，reg4 保持原值。</li>
+                                            <li>勾選「模擬接點彈跳」後放開按鍵：接點和 enable 會亂跳，但 reg4 輸出不會變成別的數字，因為只有在列的中間才取樣，取到的一定是同一顆鍵。</li>
+                                        </ul>
+                                    </section>
                                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs md:text-sm">
                                         <div class="bg-[#0f172a] rounded-lg border border-slate-600 p-3">
-                                            <h5 class="font-black text-teal-300 mb-2">和舊圖相比改了四個地方</h5>
+                                            <h5 class="font-black text-teal-300 mb-2">和舊的設計相比改了四個地方</h5>
                                             <ol class="list-decimal pl-5 space-y-1 text-slate-200">
-                                                <li>刪除 NOT 閘，計數器 <code class="text-amber-300">clk_en</code> 改接 <strong>VCC</strong>，讓它一直掃描。</li>
+                                                <li>刪除 NOT 閘，計數器不再使用 <code class="text-amber-300">clk_en</code>（MegaWizard 不勾選 Clock Enable），讓它一直掃描。</li>
                                                 <li><code class="text-amber-300">latch4</code>（LPM_LATCH）換成 <code class="text-amber-300">reg4</code>（LPM_FF，4 位元 D 型正反器，勾選 Clock Enable）。</li>
                                                 <li>OR3 輸出改接 reg4 的 <code class="text-amber-300">enable</code>。</li>
                                                 <li>新增 <code class="text-amber-300">q[9]</code> 接到 reg4 的 <code class="text-amber-300">clock</code>。</li>
@@ -566,7 +686,7 @@
                                                 <tr><th scope="col" class="p-2 border border-slate-600 text-left">方塊</th><th scope="col" class="p-2 border border-slate-600 text-left">功能</th></tr>
                                             </thead>
                                             <tbody class="text-slate-200">
-                                                <tr><td class="p-2 border border-slate-600 font-bold whitespace-nowrap">1KHZ（除頻掃描計數器）</td><td class="p-2 border border-slate-600">12 位元計數器，clk_en 接 VCC 讓它不停計數。q[11..10] 是目前掃描的列號，q[9] 當作取樣時脈</td></tr>
+                                                <tr><td class="p-2 border border-slate-600 font-bold whitespace-nowrap">1KHZ（除頻掃描計數器）</td><td class="p-2 border border-slate-600">12 位元計數器，沒有 clk_en，通電後不停計數。q[11..10] 是目前掃描的列號，q[9] 當作取樣時脈</td></tr>
                                                 <tr><td class="p-2 border border-slate-600 font-bold whitespace-nowrap">2to4decoder（列掃描解碼）</td><td class="p-2 border border-slate-600">把列號 q[11..10] 轉成 R0～R3，一次只讓一列為 1，輪流掃描鍵盤</td></tr>
                                                 <tr><td class="p-2 border border-slate-600 font-bold whitespace-nowrap">OR3（有鍵按下偵測）</td><td class="p-2 border border-slate-600">C0～C2 任一行為 1，就表示這一列有鍵被按下，輸出送到 reg4 的 enable</td></tr>
                                                 <tr><td class="p-2 border border-slate-600 font-bold whitespace-nowrap text-teal-300">reg4（按鍵碼暫存）</td><td class="p-2 border border-slate-600">在 q[9] 上升緣（列的正中間），而且確定有鍵按下時，才存入按鍵碼 {C2, C1, 列號}；放開後保持最後一次的值</td></tr>
@@ -974,6 +1094,153 @@
 
         const REVISION_DATA = [{"id": 1, "chapter": "壹、試題使用說明", "page": "1-2", "title": "六、試題抽題規定（抽題與崗位安排規則）", "tag": "抽題與崗位", "summary": "明確規範抽題現場設備、電腦抽籤操作介面、應檢人見證與崗位入座交錯規則（左、右不得為相同試題）。", "revised": "<b>六、 試題抽題規定：</b><br>\n(一) 由監評人員主持公開抽題（無監評人員親自在場主持抽題時，該場次之測試無效），術科抽題現場應準備電腦及印表機相關設備各1 套，每一場次術科測試均應包含試題所列2 題，術科測試辦理單位之試務人員依應檢人數準備試題套數，並事先將2 題試題交錯置於崗位上（<span class=\"text-amber-300 font-bold\">左、右不得為相同試題，且每題均應平均使用</span>），應依時間配當表辦理抽題，並將電腦設置到抽題操作介面，會同監評人員、代表抽籤之應檢人及其第2 順位編號應檢人為見證，全程參與抽題，處理電腦操作及列印簽名事項。應檢人依抽題結果進行測試，遲到者或缺席者不得有異議。<br><br>\n(二) 籤條項目分3 次抽選：<br>\n1. <b>抽試題編號：</b>測試當場由已報到術科測試編號最小號之應檢人為代表抽籤，抽出其中1 題試題應試，並依該試題所對應之崗位順序入座，其餘應檢人則依術科測試編號之順序（含遲到及缺考）接續依各該崗位所對應之試題進行測試（例如：奇數崗位為試題一，偶數崗位為試題二，代表抽籤之應檢人抽到試題二，即入座第2 崗位；次號入座第3 崗位，餘依此類推）。<br>\n2. <b>抽子板CPLD 指定接腳：</b>由A－E 共5 種組合抽1 組測試，當場次應檢人測試同一組；非指定接腳由應檢人自行規劃。<br>\n3. <b>抽七段顯示器顯示內容：</b>由J－N 共5 種組合抽1 組測試，當場次應檢人測試同一組。", "original": "<b>六、 試題抽題規定：</b><br>\n(一) 由監評人員主持公開抽題（無監評人員親自在場主持抽題時，該場次之測試無效），術科測試現場應準備電腦及印表機相關設備各1 套，術科測試辦理單位之試務人員依應檢人數設定試題套數並事先排定於工作崗位上（每題均應平均使用），依時間配當表辦理抽題，將電腦設置到抽題操作介面，會同監評人員、應檢人，全程參與抽題，處理電腦操作及列印簽證（測試列印用紙監評人員需事先簽證，若有列印失誤，應檢人需拿原先列印失誤者更換列印用紙）事項。應檢人依抽題結果進行測試，遲到者或缺席者不得有異議。<br><br>\n(二) 每一場次術科測試均應包含所列試題2 題，測試當場由該場次術科測試編號最小號應檢人為代表抽籤（遲到者，依順序遞補術科測試編號最小號應檢人代表抽籤），籤條項目分3 次抽選：<br>\n1. 抽試題編號：抽籤代表人抽出其中1 題試題應試（術科測試編號最小號應檢人依抽定試題的第一個崗位入座），其餘應檢人則依術科測試編號之順序（含遲到及缺考）接續依各崗位所對應之試題編號進行測試。<br>\n2. 抽子板指定接腳：由A – E 共5 種組合抽1 組測試；非指定接腳由應檢人自行規劃。<br>\n3. 抽七段顯示器顯示內容：由J – N 共5 種組合抽1 組測試。"}, {"id": 2, "chapter": "貳、應檢人須知", "page": "4-6", "title": "一、檢定內容與二、注意事項（考場紀律、設備檢查與SKC_DEtest測試檔）", "tag": "考場須知與SKC_DEtest", "summary": "新增 30 分鐘內清點耗材設備、使用桌面 SKC_DEtest.pof 驗證 CPLD 功能、列印用紙失誤更換扣分規定及作業規則扣考條款。", "revised": "<b>一、 檢定內容：</b><br>\n測試時間為 6 小時（含檢查材料時間）。完成電路圖、零件佈置圖、佈線圖及晶片電路設計（應檢人於測試中，應隨時存檔，以為備用）。<br><br>\n<b>二、 重點注意事項修正：</b><br>\n(七) 測試列印用紙 2 張、CPLD 零件及二片電路板等均應有監評人員簽證，方為有效。另應檢人若將監評人員簽證之列印用紙列印失誤（正、反面均可列印），請向監評人員更換，並按評審表規定扣分。<br>\n(八) <span class=\"text-amber-300 font-bold\">術科測試辦理單位準備 CPLD 測試板，可利用電腦桌面上 CPLD I/O 接腳測試板之燒錄檔（SKC_DEtest.pof）確認取得 CPLD 各 I/O 接腳功能正常。</span><br>\n(十三) 應檢人若故意損壞機具、設備，除應負賠償責任外，應予以扣考，不得繼續應檢，其術科測試成績以不及格論。<br>\n(十四) 通電檢驗若發生短路現象（如無熔絲開關跳脫或插座保險絲熔斷者），即應停止測試，不得重修，應予以扣考。<br>\n(十七) <span class=\"text-amber-300 font-bold\">在測試開始 30 分鐘內應自行檢查及清點器具、設備、材料，如有毀損、不良及短缺者，應立即提出更換或補發</span>，並由監評人員立即處理，測試開始 30 分鐘後，不得再提出疑義。另機具設備因應檢人操作疏失致故障者，應檢人須自行排除，不另加給測試時間。<br>\n(二十) 應檢人於術科測試結束或提前棄權離場時，應將試題、評審表、成品、工件及未用完之測試材料等繳交監評人員。未能於規定時間內完成者或提前棄權離場者需於術科測試評審表之不予評分項目欄位內簽名及填寫離場時間。繳件出場後，不得再進場。", "original": "<b>一、 檢定內容：</b><br>\n(一) 原規定於資料夾命名寫在應檢人須知中（後移至各試題動作要求）。<br><br>\n<b>二、 舊版注意事項：</b><br>\n(四) 測試列印用紙、CPLD 零件及二片電路板等均應有監評人員簽證。<br>\n(五) 術科測試辦理單位準備 CPLD 測試板，可利用電腦桌面上 SKC_DEtest.pof 確認 CPLD 功能。<br>\n(十三) 舊版僅簡述 30 分鐘內檢查清點，未詳細載明操作疏失故障自行排除且不另加給時間之規定。<br>\n(十六) 應檢人於術科測試結束後，應將成品、圖件及未用完之測試材料等繳交監評人員。中途離場者亦同。"}, {"id": 3, "chapter": "參、工作規則", "page": "9", "title": "一、電腦製圖規則（項次重新整理與圖框設定）", "tag": "電腦製圖規則", "summary": "將「未依規定建立資料夾」移至試題動作要求中，電腦製圖規則精簡為 5 大項次，並強化圖框 Title: 測試編號-崗位編號 與 Date 設定要求。", "revised": "<b>一、 電腦製圖規則（修正後 5 項）：</b><br>\n1. 零件佈置圖與佈線圖（需存成 PDF 檔供監評人員檢核），列印應以原尺寸（1：1）列印，否則不予評分。（符號：✕）<br>\n2. 零件佈置應平均分佈於電路板上，零件之外緣不得超出母板，否則不予評分。（符號：✕）<br>\n3. <span class=\"text-amber-300 font-bold\">零件佈置圖與佈線圖右下角的繪製者資訊需設定，包含術科測試編號-崗位編號（標註於圖框的 Title）、測試日期（標註於圖框的 Date），不完整每項扣 10 分。</span>（符號：☆）<br>\n&nbsp;&nbsp;&nbsp;&nbsp;<i>範例：Title 填寫 <code>12345678-12</code>、Date 填寫 <code>2026-10-26</code></i><br>\n4. 零件代號標示應與母板材料表之編號相符。（符號：○）<br>\n5. 佈線圖中之佈線應與圖邊緣成水平或垂直，折角應 90 度或 135 度。（符號：○）", "original": "<b>一、 電腦製圖規則（原 6 項）：</b><br>\n1. 零件佈置圖與佈線圖（需存成 PDF 檔供監評人員檢核），列印應以原尺寸（1：1）列印，否則不予評分。<br>\n2. 零件佈置應平均分佈於電路板上，零件之外緣不得超出母板，否則不予評分。<br>\n3. <span class=\"line-through text-slate-400\">未依規定建立資料夾，每項扣 10 分。</span>（舊版列於製圖規則第3項）<br>\n4. 零件佈置圖與佈線圖右下角繪製者資訊設定...不完整每項扣 10 分。<br>\n5. 零件代號標示應與母板材料表之編號相符。<br>\n6. 佈線圖中之佈線應與圖邊緣成水平或垂直，折角應 90 度或 135 度。"}, {"id": 4, "chapter": "參、工作規則", "page": "11", "title": "三、裝配規則（新增跳線直線拉線與電阻方向基準）", "tag": "裝配規則與跳線", "summary": "【極重要新規】第 3 項新增「電路連接所需之跳線需使用 2 點間直線拉線」；第 5 項明確電阻安裝方向以顯示器顯示方向為基準，鍵盤數目字方向亦同；母板銅柱明確納入組裝要求。", "revised": "<b>三、 裝配規則（修正後重點）：</b><br>\n1. 電路連接所需之跳線長短可自行剪裁，但應裝置於電路板零件面，銅箔面不得使用跳線或零件，零件面可使用跳線但不得跨過零件或其他跳線，電路板兩面不得用導線繞過板外緣連接，否則不予評分。（符號：✕）<br>\n2. 萬用板上零件安裝之位置需與繪製之「零件佈置圖」相同。（符號：✕）<br>\n3. <span class=\"text-emerald-300 font-bold bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500\">【新增第3項 ☆】電路連接所需之跳線需使用 2 點間直線拉線。</span><br>\n4. 萬用板成品需與 PCB 佈線圖完全相同，兩者不一致時每條接線（元件接腳與接腳間的接線）扣 2 分。（符號：○）<br>\n5. <span class=\"text-amber-300 font-bold\">電阻器安裝於電路板時，色碼之讀法必須由左而右，由上而下方一致，<u>以顯示器顯示方向為基準，鍵盤數目字方向亦同</u>。</span>（符號：○）<br>\n6. 被動零件裝配應與電路板密貼，電晶體需與電路板留有 3-5mm 之高度。（符號：○）<br>\n7. IC、鍵盤、石英振盪器及七段顯示器均需使用腳座，不可直接焊於電路板上，腳座應與電路板密貼。（符號：○）<br>\n8. 零件接腳彎曲後不得延伸至銅箔圓點邊緣外。（符號：○）<br>\n9. <span class=\"text-sky-300 font-bold\">母電路板的塑膠（銅）柱應完成組裝。</span>（符號：○）", "original": "<b>三、 裝配規則（原內容）：</b><br>\n1. 電路連接所需之跳線長短可自行剪裁...<br>\n2. 萬用板上零件安裝之位置需與繪製之「零件佈置圖」相同。<br>\n3. <span class=\"text-slate-400\">（舊版無「2點間直線拉線」條款）</span>萬用板成品需與 PCB 佈線圖完全相同...扣2分。<br>\n4. 電阻器安裝於電路板時，色碼之讀法必須由左而右，由上而下方一致。<br>\n5. 被動零件裝配應與電路板密貼，電晶體需與電路板留有 3-5mm 之高度。<br>\n6. IC、鍵盤、石英振盪器及七段顯示器均需使用腳座...<br>\n7. 零件接腳彎曲後不得延伸至銅箔圓點邊緣外。<br>\n8. 母電路板的塑膠銅柱應完成組裝。"}, {"id": 5, "chapter": "肆、自備工具表", "page": "12", "title": "應檢人自備工具表（規格紅字細緻化標註）", "tag": "自備工具表", "summary": "尖嘴鉗/斜口鉗明確標註為 6\" 電子用；電烙鐵明確標註 30W 含烙鐵架及海綿；備註欄標明數量得視個人需要增加。", "revised": "<b>應檢人自備工具表（113.10.26 規格修正）：</b><br>\n• 項次 3：尖嘴鉗 — <span class=\"text-amber-300 font-bold\">6\" 電子用</span> (支 / 1)<br>\n• 項次 4：斜口鉗 — <span class=\"text-amber-300 font-bold\">6\" 電子用</span> (支 / 1)<br>\n• 項次 7：電烙鐵 — <span class=\"text-amber-300 font-bold\">30W</span> 含烙鐵架及海綿 (套 / 1)<br>\n• 備註欄註記：<span class=\"text-sky-300 font-bold\">數量得視個人需要增加</span>（項次 1~9 皆適用）", "original": "<b>應檢人自備工具表（原內容）：</b><br>\n• 項次 3：尖嘴鉗 — 電子用 (支 / 1)<br>\n• 項次 4：斜口鉗 — 電子用 (支 / 1)<br>\n• 項次 7：電烙鐵 — 含烙鐵架及海綿 (套 / 1)<br>\n• 備註欄空白。"}, {"id": 6, "chapter": "伍、試題一 (110201)", "page": "14-16", "title": "試題一動作要求、七段字型呈現與子板電路圖修正", "tag": "試題一動作與電路圖", "summary": "明定資料夾建立於 D 槽（崗位編號_Layout 與 崗位編號_CPLD，否則每項扣10分）；新增 0~9 七段顯示器標準字型；修正子電路板圖 P14 引腳標示為 I/O（修正舊版 IO 誤植）。", "revised": "<b>試題一動作要求與圖表（修正後）：</b><br>\n1. <b>資料夾建立規定：</b><br>\n&nbsp;&nbsp;&nbsp;&nbsp;應檢人應於資料碟（如 D 槽）中，建立兩個資料夾，否則每項扣 10 分：<br>\n&nbsp;&nbsp;&nbsp;&nbsp;• 第一個資料夾名稱為：<code>崗位編號_Layout</code>，放置電路圖與佈線圖設計專案。<br>\n&nbsp;&nbsp;&nbsp;&nbsp;• 第二個資料夾名稱為：<code>崗位編號_CPLD</code>，放置 CPLD 電路設計專案。<br>\n2. <b>七段顯示器標準字型呈現：</b>新增 <code>0 1 2 3 4 5 6 7 8 9</code> 完整七段標準字型對照圖。<br>\n3. <b>扣分標準明確：</b>四位數七段顯示器同一節段在 4 位數都不正確扣 25 分；不同位數不同段每字扣 25 分；一個錯誤僅扣一次不重複扣分。<br>\n4. <b>子電路板電路圖修正：</b>U1 (EPM3064A) 之 Pin 14 標示修正為標準 <code>I/O</code>（原誤植為 IO），標題明確標註為「試題一：四位數顯示裝置」。", "original": "<b>試題一動作要求與圖表（原內容）：</b><br>\n1. 舊版動作要求僅列出 LED1 亮燈扣5分、未依抽定子板接腳少一腳扣10分（資料夾規定原放在工作規則）。<br>\n2. 舊版無 0~9 七段字型標準範例圖。<br>\n3. 子電路板圖中 Pin 14 誤植為 <span class=\"line-through text-red-400\">IO</span>，標題原誤植為「鍵盤輸入顯示裝置」。"}, {"id": 7, "chapter": "伍、試題二 (110202)", "page": "22-23", "title": "試題二動作要求、按鍵栓鎖與 0~9,*,# 七段字型呈現", "tag": "試題二動作與字型", "summary": "明定 D 槽雙資料夾規範；明確載明「鍵盤每一個數字符號應顯示並栓鎖於七段顯示器，若未能栓鎖則扣 25 分」；載明 0~9,*,# 七段標準字型圖。", "revised": "<b>試題二動作要求與字型（修正後）：</b><br>\n1. <b>資料夾建立規定：</b>應於資料碟（如 D 槽）中建立 <code>崗位編號_Layout</code> 與 <code>崗位編號_CPLD</code> 兩個資料夾，否則每項扣 10 分。<br>\n2. <b>鍵盤輸入與栓鎖評分要求：</b><br>\n&nbsp;&nbsp;&nbsp;&nbsp;按下鍵盤，七段顯示器應出現對應之數字符號並須栓鎖於顯示器上，其中“＊”及“＃”顯示內容為由當日抽籤指定（J~N組）。<br>\n&nbsp;&nbsp;&nbsp;&nbsp;<span class=\"text-amber-300 font-bold\">鍵盤每一個數字符號應顯示並栓鎖於七段顯示器，若未能栓鎖則扣 25 分。</span><br>\n&nbsp;&nbsp;&nbsp;&nbsp;同一個節段內容顯示不正確，則每一節段扣 25 分；不同數字符號不同段顯示不正確，則每字扣 25 分。<br>\n3. <b>字型呈現：</b>列出 <code>0 1 2 3 4 5 6 7 8 9 * #</code> 標準七段字型對照圖。", "original": "<b>試題二動作要求與字型（原內容）：</b><br>\n1. 舊版資料夾規定未放在動作要求。<br>\n2. 舊版條文漏列「若未能栓鎖則扣 25 分」之精確罰則文字，修正後正式補齊。<br>\n3. 七段字型呈現格式調整。"}, {"id": 8, "chapter": "陸、評審表 & 柒、時間配當表", "page": "30-31", "title": "評審表扣分項目對齊、紅字註記與時間配當表", "tag": "評審表與時間配當", "summary": "評審表電腦製圖扣分項次改為「第3項規定(10分)」與「第4、5項規定(2分)」；裝配規則改為「第3項規定(10分)」與「第4~9項規定(2分)」；時間配當表載明上午測試含「測試開始 30 分鐘內檢查材料等時間」。", "revised": "<b>評審表與時間配當表修正重點：</b><br>\n1. <b>評審表扣分依據調整：</b><br>\n&nbsp;&nbsp;&nbsp;&nbsp;• 電腦製圖：1.依照「電腦製圖規則」第3項規定（扣10分）；2.依照第4、5項規定（扣2分）。最高扣20分。<br>\n&nbsp;&nbsp;&nbsp;&nbsp;• 裝配規則：1.依照「裝配規則」第3項規定（扣10分）；2.依照第4~9項規定（扣2分）。最高扣20分。<br>\n&nbsp;&nbsp;&nbsp;&nbsp;• <span class=\"text-red-400 font-bold\">紅字重要備註：</span>實扣分數不得超過該大項最高扣分；應檢人若因各項扣分時，應於扣分備註欄註記原因；有塗改處應由塗改人員於塗改處簽全名。<br>\n2. <b>時間配當表修訂：</b><br>\n&nbsp;&nbsp;&nbsp;&nbsp;• 上午測試 09:00－12:00（特別加註：<span class=\"text-amber-300 font-bold\">含測試開始 30 分鐘內檢查材料等時間</span>）。<br>\n&nbsp;&nbsp;&nbsp;&nbsp;• 下午 16:00－17:00 載明：監評人員進行評分、成績統計、登錄、檢核及彌封等作業。", "original": "<b>評審表與時間配當表原內容：</b><br>\n1. 舊版評審表電腦製圖扣分項次寫「第3、4項」與「第5、6項」；裝配規則寫「第3~8項」。<br>\n2. 舊版備註無紅字強調塗改簽全名與最高扣分上限提醒。<br>\n3. 舊版時間配當表上午測試未加註 30 分鐘檢查材料說明。"}];
 
+        // 試題二：鍵盤掃描動作原理動畫與工作脈波（每列 8 個 CLK 的縮小示意）
+        function useScanSim(isActive) {
+            const { reactive, computed, watch } = Vue;
+            const ROW_T = 8, FRAME = 64, X0 = 100, TW = 9;
+            const LABELS = [['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['*', '0', '#']];
+            const rowY = (i) => 20 + i * 26;
+            const reduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+            const digital = (arr, i) => {
+                const hi = rowY(i) + 4, lo = rowY(i) + 18;
+                let d = 'M' + X0 + ' ' + (arr[0] ? hi : lo);
+                for (let k = 0; k < arr.length; k++) {
+                    if (k > 0 && !!arr[k] !== !!arr[k - 1]) d += ' V' + (arr[k] ? hi : lo);
+                    d += ' H' + (X0 + (k + 1) * TW);
+                }
+                return d;
+            };
+            const busShape = (xa, xb, i) => {
+                const hi = rowY(i) + 4, lo = rowY(i) + 18, mid = rowY(i) + 11;
+                const e = Math.min(3, (xb - xa) / 2);
+                return 'M' + xa + ' ' + mid + ' L' + (xa + e) + ' ' + hi + ' H' + (xb - e) + ' L' + xb + ' ' + mid + ' L' + (xb - e) + ' ' + lo + ' H' + (xa + e) + ' Z';
+            };
+            const ticks = Array.from({ length: FRAME }, (_, k) => k);
+            const rowOf = (k) => Math.floor(k / ROW_T) % 4;
+
+            let clkPath = '';
+            ticks.forEach((k) => {
+                const x = X0 + k * TW, hi = rowY(0) + 4, lo = rowY(0) + 18;
+                clkPath += (k ? ' ' : 'M' + x + ' ' + lo + ' ') + 'V' + hi + ' H' + (x + TW / 2) + ' V' + lo + ' H' + (x + TW);
+            });
+
+            const s = reactive({
+                labels: LABELS,
+                t: 0, playing: !reduceMotion, speed: 140, bounce: true,
+                pressed: null, row: 0, pos: 0, q9: 0, contact: 0, or: 0, activeCol: -1,
+                regCode: -1, flash: 0, stored: false,
+                wContact: Array(FRAME).fill(0), wOr: Array(FRAME).fill(0),
+                wReg: Array(FRAME).fill(-1), wSample: Array(FRAME).fill(0),
+                clkPath,
+                q9Path: digital(ticks.map((k) => (k % ROW_T >= ROW_T / 2 ? 1 : 0)), 1),
+                rPaths: [0, 1, 2, 3].map((r) => digital(ticks.map((k) => (rowOf(k) === r ? 1 : 0)), 3 + r)),
+                busSegs: Array.from({ length: FRAME / ROW_T }, (_, j) => {
+                    const xa = X0 + j * ROW_T * TW, xb = xa + ROW_T * TW;
+                    return { x: (xa + xb) / 2, d: busShape(xa, xb, 2), t: (j % 4).toString(2).padStart(2, '0') };
+                })
+            });
+
+            let bounceQ = [], contactKey = null, prevOr = 0, prevKey = null;
+            const charOf = (code) => (code < 0 ? '–' : LABELS[code % 4][code >> 2]);
+            const randomBounce = (n, last) => {
+                const q = [];
+                let v = last ? 0 : 1;
+                while (q.length < n) {
+                    const run = 1 + Math.floor(Math.random() * 3);
+                    for (let i = 0; i < run && q.length < n; i++) q.push(v);
+                    v = v ? 0 : 1;
+                }
+                q[q.length - 1] = last;
+                return q;
+            };
+
+            const step = () => {
+                const x = s.t % FRAME, pos = s.t % ROW_T, row = rowOf(s.t);
+                let c;
+                if (bounceQ.length) c = bounceQ.shift();
+                else { c = s.pressed ? 1 : 0; if (!s.pressed) contactKey = null; }
+                const key = contactKey;
+                const or = c && key && key.row === row ? 1 : 0;
+                s.stored = false;
+                if (pos === ROW_T / 2) {
+                    if (prevOr && prevKey) {
+                        s.regCode = prevKey.col * 4 + prevKey.row;
+                        s.flash = 3; s.stored = true; s.wSample[x] = 2;
+                    } else s.wSample[x] = 1;
+                } else {
+                    s.wSample[x] = 0;
+                    if (s.flash > 0) s.flash--;
+                }
+                s.wContact[x] = c; s.wOr[x] = or; s.wReg[x] = s.regCode;
+                s.row = row; s.pos = pos; s.q9 = pos >= ROW_T / 2 ? 1 : 0;
+                s.contact = c; s.or = or; s.activeCol = or ? key.col : -1;
+                prevOr = or; prevKey = key; s.t++;
+            };
+
+            const press = (r, c) => {
+                if (s.pressed && s.pressed.row === r && s.pressed.col === c) {
+                    s.pressed = null;
+                    bounceQ = s.bounce ? randomBounce(36, 0) : [];
+                    if (!s.bounce) contactKey = null;
+                } else {
+                    const k = { row: r, col: c, label: LABELS[r][c] };
+                    s.pressed = k; contactKey = k;
+                    bounceQ = s.bounce ? randomBounce(12, 1) : [];
+                }
+            };
+
+            const reset = () => {
+                s.t = 0; s.pressed = null; s.row = 0; s.pos = 0; s.q9 = 0; s.contact = 0; s.or = 0; s.activeCol = -1;
+                s.regCode = -1; s.flash = 0; s.stored = false;
+                s.wContact.fill(0); s.wOr.fill(0); s.wReg.fill(-1); s.wSample.fill(0);
+                bounceQ = []; contactKey = null; prevOr = 0; prevKey = null;
+            };
+
+            s.step = step; s.press = press; s.reset = reset;
+            s.contactPath = computed(() => digital(s.wContact, 7));
+            s.orPath = computed(() => digital(s.wOr, 8));
+            s.samples = computed(() => Array.from({ length: FRAME / ROW_T }, (_, j) => {
+                const k = j * ROW_T + ROW_T / 2;
+                return { x: X0 + k * TW, st: s.wSample[k] };
+            }));
+            s.regRuns = computed(() => {
+                const runs = [];
+                let a = 0;
+                for (let k = 1; k <= FRAME; k++) {
+                    if (k === FRAME || s.wReg[k] !== s.wReg[a]) {
+                        const x1 = X0 + a * TW, x2 = X0 + k * TW;
+                        runs.push({ x1, w: x2 - x1, mid: (x1 + x2) / 2, d: busShape(x1, x2, 10), t: charOf(s.wReg[a]) });
+                        a = k;
+                    }
+                }
+                return runs;
+            });
+            s.cursorX = computed(() => X0 + (s.t % FRAME) * TW);
+            s.rowBits = computed(() => s.row.toString(2).padStart(2, '0'));
+            s.codeBits = computed(() => (s.regCode < 0 ? '----' : s.regCode.toString(2).padStart(4, '0')));
+            s.dispChar = computed(() => charOf(s.regCode));
+            s.status = computed(() => {
+                let msg = '正在掃描 R' + s.row + '（q[11..10]=' + s.rowBits + '）：';
+                if (s.or) msg += '按鍵「' + prevKey.label + '」接通，C' + s.activeCol + '＝1，enable＝1。';
+                else if (s.pressed && s.pressed.row !== s.row) msg += '按鍵「' + s.pressed.label + '」在 R' + s.pressed.row + '，這一列沒有訊號，enable＝0。';
+                else if (s.pressed || s.contact || bounceQ.length) msg += '接點彈跳中，這一瞬間沒有接通，enable＝0。';
+                else msg += '沒有按鍵，enable＝0，reg4 保持原值。';
+                if (s.stored) msg += ' q[9] 上升緣：reg4 存入 ' + s.codeBits + '，顯示「' + s.dispChar + '」。';
+                else if (s.pos === ROW_T / 2) msg += ' q[9] 上升緣：enable＝0，不存入。';
+                return msg;
+            });
+
+            let timer = null;
+            const restart = () => {
+                clearInterval(timer);
+                timer = setInterval(() => { if (s.playing && isActive() && !document.hidden) step(); }, s.speed);
+            };
+            watch(() => s.speed, restart);
+            restart();
+            return s;
+        }
+
         createApp({
             setup() {
                 const currentTask = ref(1);
@@ -985,6 +1252,7 @@
                 const showAhdl = ref(true); 
                 const showOfficialDownloads = ref(true);
                 const selectedKeypad = ref(null);
+                const scan = useScanSim(() => currentTask.value === 2 && showCircuit.value);
 
                 // 修訂對照表 state
                 const showRevisionModal = ref(false);
@@ -1334,7 +1602,7 @@
                 return {
                     currentTask, viewMode, currentSide, selectedSet, sets, taskData, layoutConfig,
                     j2Headers, j3Headers, allPinsLeft, allPinsRight, showCircuit, showAhdl, showOfficialDownloads,
-                    selectedKeypad, evalSignerName, copyQSF,
+                    selectedKeypad, scan, evalSignerName, copyQSF,
                     showRevisionModal, revisionSearch, selectedRevisionCategory, revisionCategories, revisionDataList, filteredRevisions, openRevisionModal,
                     setTask, currentSetData, getPinY, getResPoints, isSelected, getSignalName, isSpec, goHome,
                     evalSubject, evalCpld, evalDisplay, stationStart, testNoStart, candidateCount, isGeneratingPdf, generatePDF
