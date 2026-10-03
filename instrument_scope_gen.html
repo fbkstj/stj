@@ -112,11 +112,6 @@ ol.lessons li:first-child{border-top:0}
 #bigscr{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:50;display:none;align-items:center;justify-content:center;padding:12px;cursor:zoom-out}
 #bigscr canvas{max-width:96vw;max-height:88vh;width:auto;height:auto;aspect-ratio:5/3;background:#000;border-radius:6px}
 #bigscr .tip{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#cfd6df;font-size:13px}
-#miniscope{position:sticky;top:8px;z-index:30;margin-bottom:14px;background:#0b0f14;border:2px solid var(--accent);border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.28);overflow:hidden}
-#miniscope .mh{display:flex;justify-content:space-between;align-items:center;padding:3px 8px;background:var(--accent);color:#fff;font-size:13px}
-#miniscope .mh button{background:transparent;color:#fff;border:0;padding:0 4px;font-size:14px}
-#miniscope canvas{display:block;width:100%;height:auto}
-@media(max-width:1000px){#miniscope{position:fixed;top:6px;right:6px;width:min(300px,62vw);margin:0}}
 footer{color:var(--mute);font-size:13px;padding:6px 0}
 </style>
 </head>
@@ -151,6 +146,10 @@ footer{color:var(--mute);font-size:13px;padding:6px 0}
         <h2>示波器 GDS-2102E（100 MHz，2 通道）<button id="zoomscr" style="float:right;font-size:13px">放大螢幕畫面</button></h2>
         <div class="devwrap"><div class="scopebox"><canvas id="scr" width="800" height="480"></canvas><svg id="scope" class="panel" viewBox="0 0 1000 590"></svg></div></div>
       </div>
+      <div class="card">
+        <h2>信號產生器 MFG-2110</h2>
+        <div class="devwrap"><svg id="gen" class="panel" viewBox="0 0 1000 350"></svg></div>
+      </div>
       <div class="card gcard" id="guide2">
         <h2>信號產生器　開機與輸出設定　動畫指引</h2>
         <div class="gt" id="ht"></div>
@@ -158,14 +157,9 @@ footer{color:var(--mute);font-size:13px;padding:6px 0}
         <div class="gb"><button id="hprev">◀ 上一步</button><button id="hplay">▶ 自動播放</button><button id="hnext">下一步 ▶</button><button id="hrestart">重來</button><span class="ref" id="href"></span></div>
         <div class="dots" id="hdots"></div>
       </div>
-      <div class="card">
-        <h2>信號產生器 MFG-2110<button id="minitoggle" style="float:right;font-size:13px">示波器小視窗：開</button></h2>
-        <div class="devwrap"><svg id="gen" class="panel" viewBox="0 0 1000 350"></svg></div>
-      </div>
       <footer>資料來源：GW Instek GDS-2000E、MFG-2000 系列使用手冊；題組與評分依「工業電子丙級術科測試試題（試題二 儀表操作與訊號量測）」。標示「待確認」的項目（選單層級、預設值、按鍵實際位置等）請對照考場實機。本頁為教學模擬，波形為計算產生，非真實量測。</footer>
     </div>
     <aside>
-      <div id="miniscope" style="display:none"><div class="mh"><span>示波器畫面（即時）</span><button id="miniclose" title="關閉小視窗">✕</button></div><canvas id="minicv" width="800" height="480"></canvas></div>
       <div class="card" id="infocard"><div id="info"></div></div>
       <div class="tabs"><button id="tab2" class="on">試題二　訊號量測</button><button id="tab1">試題一　音樂盒</button></div>
       <div class="card" id="exam"><h2>丙級術科模擬：訊號量測（試題二）</h2>
@@ -954,23 +948,7 @@ function refresh(){
   const lb=S.autoLbl; if(lb) lb.textContent="";
 }
 const bigEl=document.getElementById("bigscr"), bigCx=document.getElementById("bigcv").getContext("2d");
-const miniEl=document.getElementById("miniscope"), miniCx=document.getElementById("minicv").getContext("2d");
-let miniOn=true, scopeVisible=true;
-function miniUpdate(){
-  const show=miniOn&&!scopeVisible;
-  miniEl.style.display=show?"":"none";
-  document.getElementById("minitoggle").textContent="示波器小視窗："+(miniOn?"開":"關");
-}
-function loop(){ drawScope(); updateCur(); if(bigEl.style.display==="flex") bigCx.drawImage(cv,0,0); if(miniEl.style.display!=="none") miniCx.drawImage(cv,0,0); requestAnimationFrame(loop); }
-(function initMini(){
-  const target=document.getElementById("scr");
-  if("IntersectionObserver" in window){
-    new IntersectionObserver(es=>{ scopeVisible=es[0].intersectionRatio>=0.85; miniUpdate(); },{threshold:[0,0.5,0.85,1]}).observe(target);
-  }
-  document.getElementById("miniclose").onclick=()=>{ miniOn=false; miniUpdate(); };
-  document.getElementById("minitoggle").onclick=()=>{ miniOn=!miniOn; miniUpdate(); };
-  miniUpdate();
-})();
+function loop(){ drawScope(); updateCur(); if(bigEl.style.display==="flex") bigCx.drawImage(cv,0,0); requestAnimationFrame(loop); }
 document.getElementById("zoomscr").onclick=()=>{ bigEl.style.display="flex"; };
 bigEl.onclick=()=>{ bigEl.style.display="none"; };
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") bigEl.style.display="none"; });
