@@ -564,6 +564,50 @@
             }
         }
 
+        /* 分區標題：橫跨整列，上方有分隔線 */
+        .grid-section {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: baseline;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-top: 1.6rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .grid-section:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .grid-section h2 {
+            font-size: 1.12rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: 0.02em;
+        }
+
+        .grid-section p {
+            font-size: 0.86rem;
+            color: var(--text-muted);
+            margin: 0;
+            flex: 1 1 auto;
+            min-width: 12rem;
+        }
+
+        .grid-section-count {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: var(--badge-bg);
+            border: 1px solid var(--icon-line);
+            border-radius: 999px;
+            padding: 0.15rem 0.6rem;
+            white-space: nowrap;
+        }
+
         /* Card Styling */
         /* 磚格：桌面版每張卡片等寬等高（正方形），內容超出就截斷或在卡內捲動 */
         .card {
@@ -1302,50 +1346,14 @@
 
     <main class="content" id="mainContent">
         <div class="grid" id="cardGrid">
-            <!-- 【專題製作】115-09-21 WebCam AI 視覺與 YOLO 課程全輯 -->
-            <div class="card project" data-cat="project">
-                <div class="card-top">
-                    <div class="card-icon" style="color: #0d9488;">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                    </div>
-                    <span class="badge-year" style="background: rgba(15, 118, 110, 0.15); color: #0f766e; border: 1px solid rgba(15, 118, 110, 0.3);">【專題製作】AI 視覺</span>
-                </div>
-                <div class="card-body">
-                    <h3>【專題製作】WebCam AI 視覺與 YOLO 應用實務 (全 4 節課)</h3>
-                    <p>由簡樹桐老師親自講授！涵蓋 WebCam 視訊測試、Prompt 提示詞工程避坑、拍照控制視窗、多格九宮格分割座標縮放、YOLO 模型切換、多人骨架追蹤、跌倒紅框警戒與舉手手勢拍照實作。</p>
-                    <div class="mini-links">
-                    <span class="mini-label">分節</span>
-                    <button class="mini-link" type="button" data-src="https://www.youtube.com/embed/R5H-mSOIoPo" title="第 01 節課：AI 視覺環境建置與 WebCam 基礎測試">1</button>
-                    <button class="mini-link" type="button" data-src="https://www.youtube.com/embed/GOlVXxrLhZ8" title="第 02 節課：Prompt 提示詞工程、拍照控制與 1:1 校正">2</button>
-                    <button class="mini-link" type="button" data-src="https://www.youtube.com/embed/Y72SiVz9vho" title="第 03 節課：多格分割視窗佈局、座標換算與縮放">3</button>
-                    <button class="mini-link" type="button" data-src="https://www.youtube.com/embed/_eQ2Q6TO5vw" title="第 04 節課：YOLO 骨架追蹤、跌倒警示與手勢拍照">4</button>
-                </div>
-                </div>
-                <div class="card-footer">
-                    <span class="category-tag">WebCam × YOLO 專題</span>
-                    <button class="go-link" style="background: linear-gradient(135deg, #0d9488, #0284c7);" data-src="https://www.youtube.com/playlist?list=PLPylZe9oed6w">播放清單全輯 &rarr;</button>
-                </div>
+<!-- 【專題製作】115-09-21 WebCam AI 視覺與 YOLO 課程全輯 -->
+
+            <div class="grid-section">
+                <h2>課程規劃與行政</h2>
+                <p>科內課程地圖與實習處的線上行政工具。</p>
+                <span class="grid-section-count">2 項</span>
             </div>
 
-            <!-- 115-09-14 AI 課程 - ESP32 與 MQTT 卡片 -->
-            <div class="card feature" data-cat="common-skill">
-                <div class="card-top">
-                    <div class="card-icon" style="font-size: 1.8rem;">
-                        📟
-                    </div>
-                    <span class="badge-year" style="background: var(--primary); color: #fff;">115-09-14 課程</span>
-                </div>
-                <div class="card-body">
-                    <h3>【115-09-14 AI課程】ESP32 與 MQTT 智慧控制實作</h3>
-                    <p>ESP32 數字碼表/計時器電路實作、MQTT 通訊協定基礎與繼電器家電智慧控制全輯教學。</p>
-                </div>
-                <div class="card-footer">
-                    <span class="category-tag">ESP32 & MQTT</span>
-                    <button class="go-link" data-src="https://www.youtube.com/playlist?list=PLaJdK3ncriqA">觀看清單 &rarr;</button>
-                </div>
-            </div>
-
-            <!-- 輪值表產生器 -->
             <div class="card map" data-cat="map">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1364,24 +1372,43 @@
             </div>
 
             <!-- 工業電子量測互動教學系統 -->
-            <div class="card award" data-cat="award">
+
+            <div class="card map" data-cat="map">
                 <div class="card-top">
                     <div class="card-icon">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 4L9 7"/></svg>
                     </div>
-                    <span class="badge-year">互動模擬</span>
+                    <span class="badge-year">專業指引</span>
                 </div>
                 <div class="card-body">
-                    <h3>工業電子量測互動教學系統</h3>
-                    <p>數位電子乙級必備！提供 12 大題組的直流負載 (DC) 與交流分壓 (AC) 電路分析。支援開路/短路動態模擬與公式高亮對照。</p>
+                    <h3>資訊科・電子科 課程地圖</h3>
+                    <p>楊梅高中資訊科與電子科課程地圖指引。完整呈現部定必修、校訂必修與選修專業實習課程規劃，輔以產業需求及科專業核心能力對接指南。</p>
+                    <div class="mini-links">
+                    <span class="mini-label">互動版</span>
+                    <button class="mini-link" type="button" data-src="coursemap_premium112.html" title="112學年度入學 互動版">112</button>
+                    <button class="mini-link" type="button" data-src="coursemap_premium113.html" title="113學年度入學 互動版">113</button>
+                    <button class="mini-link" type="button" data-src="coursemap_premium114.html" title="114學年度入學 互動版">114</button>
+                    <button class="mini-link" type="button" data-src="coursemap_premium115.html" title="115學年度入學 互動版">115</button>
+                    <span class="mini-label">列印版</span>
+                    <button class="mini-link" type="button" data-src="coursemap112.html" title="112學年度入學 列印版">112</button>
+                    <button class="mini-link" type="button" data-src="coursemap113.html" title="113學年度入學 列印版">113</button>
+                    <button class="mini-link" type="button" data-src="coursemap114.html" title="114學年度入學 列印版">114</button>
+                    <button class="mini-link" type="button" data-src="coursemap115.html" title="115學年度入學 列印版">115</button>
+                </div>
                 </div>
                 <div class="card-footer">
-                    <span class="category-tag">量測模擬</span>
-                    <button class="go-link" data-src="industrial_electronics_app.html">進入系統 &rarr;</button>
+                    <span class="category-tag">課程規劃</span>
                 </div>
             </div>
+            <!-- CPLD 綜合導覽系統 -->
 
-            <!-- 重補修線上自學及課程報到系統（Supabase，三科合一） -->
+
+            <div class="grid-section">
+                <h2>重補修線上自學</h2>
+                <p>學生用學號登入，看影片、做測驗、自動累計上課時數。</p>
+                <span class="grid-section-count">3 項</span>
+            </div>
+
             <div class="card map" data-cat="remedial">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1400,6 +1427,7 @@
             </div>
 
             <!-- 單晶片重補修自學 -->
+
             <div class="card map" data-cat="remedial">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1435,34 +1463,33 @@
             </div>
 
             <!-- 課程地圖 -->
-            <div class="card map" data-cat="map">
+
+
+            <div class="grid-section">
+                <h2>證照檢定與競賽教材</h2>
+                <p>數位電子乙級、FPGA、App Inventor 等術科練習與教學影片。</p>
+                <span class="grid-section-count">10 項</span>
+            </div>
+
+            <div class="card award" data-cat="award">
                 <div class="card-top">
                     <div class="card-icon">
-                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 4L9 7"/></svg>
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                     </div>
-                    <span class="badge-year">專業指引</span>
+                    <span class="badge-year">互動模擬</span>
                 </div>
                 <div class="card-body">
-                    <h3>資訊科・電子科 課程地圖</h3>
-                    <p>楊梅高中資訊科與電子科課程地圖指引。完整呈現部定必修、校訂必修與選修專業實習課程規劃，輔以產業需求及科專業核心能力對接指南。</p>
-                    <div class="mini-links">
-                    <span class="mini-label">互動版</span>
-                    <button class="mini-link" type="button" data-src="coursemap_premium112.html" title="112學年度入學 互動版">112</button>
-                    <button class="mini-link" type="button" data-src="coursemap_premium113.html" title="113學年度入學 互動版">113</button>
-                    <button class="mini-link" type="button" data-src="coursemap_premium114.html" title="114學年度入學 互動版">114</button>
-                    <button class="mini-link" type="button" data-src="coursemap_premium115.html" title="115學年度入學 互動版">115</button>
-                    <span class="mini-label">列印版</span>
-                    <button class="mini-link" type="button" data-src="coursemap112.html" title="112學年度入學 列印版">112</button>
-                    <button class="mini-link" type="button" data-src="coursemap113.html" title="113學年度入學 列印版">113</button>
-                    <button class="mini-link" type="button" data-src="coursemap114.html" title="114學年度入學 列印版">114</button>
-                    <button class="mini-link" type="button" data-src="coursemap115.html" title="115學年度入學 列印版">115</button>
-                </div>
+                    <h3>工業電子量測互動教學系統</h3>
+                    <p>數位電子乙級必備！提供 12 大題組的直流負載 (DC) 與交流分壓 (AC) 電路分析。支援開路/短路動態模擬與公式高亮對照。</p>
                 </div>
                 <div class="card-footer">
-                    <span class="category-tag">課程規劃</span>
+                    <span class="category-tag">量測模擬</span>
+                    <button class="go-link" data-src="industrial_electronics_app.html">進入系統 &rarr;</button>
                 </div>
             </div>
-            <!-- CPLD 綜合導覽系統 -->
+
+            <!-- 重補修線上自學及課程報到系統（Supabase，三科合一） -->
+
             <div class="card award" data-cat="award">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1481,6 +1508,7 @@
             </div>
 
             <!-- Quartus MegaWizard 教學 -->
+
             <div class="card award" data-cat="award">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1498,6 +1526,7 @@
                 </div>
             </div>
             <!-- Arduino 模擬教學平台 -->
+
             <div class="card feature" data-cat="feature">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1518,6 +1547,7 @@
 
 
             <!-- PCB 元件佈局指引 -->
+
             <div class="card award" data-cat="award">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1536,6 +1566,7 @@
             </div>
 
             <!-- FPGA 矩陣鍵盤與七段顯示器模擬 -->
+
             <div class="card award" data-cat="award">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1554,6 +1585,7 @@
             </div>
 
             <!-- MIT App Inventor 練習題全集 (含模擬器) -->
+
             <div class="card award" data-cat="award">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1572,6 +1604,7 @@
             </div>
 
             <!-- MIT App Inventor 上機測驗 (學生版) -->
+
             <div class="card award" data-cat="award">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1590,6 +1623,7 @@
             </div>
 
             <!-- MIT App Inventor 上機測驗 (完整解答版) -->
+
             <div class="card award" data-cat="award">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1607,6 +1641,7 @@
                 </div>
             </div>
             <!-- KiCad 電路板設計教學影片全集 -->
+
             <div class="card video" data-cat="video">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1631,6 +1666,40 @@
                 </div>
             </div>
             <!-- 專題製作：代理AI 課程全集 -->
+
+
+            <div class="grid-section">
+                <h2>專題製作與實作手冊</h2>
+                <p>歷屆專題成果、學生實作手冊與課程講義，含程式包與情境動畫。</p>
+                <span class="grid-section-count">15 項</span>
+            </div>
+
+            <div class="card project" data-cat="project">
+                <div class="card-top">
+                    <div class="card-icon" style="color: #0d9488;">
+                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    </div>
+                    <span class="badge-year" style="background: rgba(15, 118, 110, 0.15); color: #0f766e; border: 1px solid rgba(15, 118, 110, 0.3);">【專題製作】AI 視覺</span>
+                </div>
+                <div class="card-body">
+                    <h3>【專題製作】WebCam AI 視覺與 YOLO 應用實務 (全 4 節課)</h3>
+                    <p>由簡樹桐老師親自講授！涵蓋 WebCam 視訊測試、Prompt 提示詞工程避坑、拍照控制視窗、多格九宮格分割座標縮放、YOLO 模型切換、多人骨架追蹤、跌倒紅框警戒與舉手手勢拍照實作。</p>
+                    <div class="mini-links">
+                    <span class="mini-label">分節</span>
+                    <button class="mini-link" type="button" data-src="https://www.youtube.com/embed/R5H-mSOIoPo" title="第 01 節課：AI 視覺環境建置與 WebCam 基礎測試">1</button>
+                    <button class="mini-link" type="button" data-src="https://www.youtube.com/embed/GOlVXxrLhZ8" title="第 02 節課：Prompt 提示詞工程、拍照控制與 1:1 校正">2</button>
+                    <button class="mini-link" type="button" data-src="https://www.youtube.com/embed/Y72SiVz9vho" title="第 03 節課：多格分割視窗佈局、座標換算與縮放">3</button>
+                    <button class="mini-link" type="button" data-src="https://www.youtube.com/embed/_eQ2Q6TO5vw" title="第 04 節課：YOLO 骨架追蹤、跌倒警示與手勢拍照">4</button>
+                </div>
+                </div>
+                <div class="card-footer">
+                    <span class="category-tag">WebCam × YOLO 專題</span>
+                    <button class="go-link" style="background: linear-gradient(135deg, #0d9488, #0284c7);" data-src="https://www.youtube.com/playlist?list=PLPylZe9oed6w">播放清單全輯 &rarr;</button>
+                </div>
+            </div>
+
+            <!-- 115-09-14 AI 課程 - ESP32 與 MQTT 卡片 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1657,6 +1726,7 @@
             </div>
 
             <!-- 【專題製作】AI 視覺創客小學堂：用一顆 WebCam 打造生活智慧眼 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1681,6 +1751,7 @@
             </div>
 
             <!-- 【專題實作】導盲磚占用偵測 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1704,6 +1775,7 @@
             </div>
 
             <!-- 【專題實作】頭部障礙物警示帽 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1727,6 +1799,7 @@
             </div>
 
             <!-- 【專題實作】地下室鐵捲門 ESP32 遠端控制 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1750,6 +1823,7 @@
             </div>
 
             <!-- 【專題實作】自行車後方來車警示 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1773,6 +1847,7 @@
             </div>
 
             <!-- 【專題實作】AI 守望：公共場所 AI 監控通報 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon" style="color: #b42318;">
@@ -1796,6 +1871,7 @@
             </div>
 
             <!-- 【專題實作】智慧管家系統 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon" style="color: #0d5f6e;">
@@ -1819,6 +1895,7 @@
             </div>
 
             <!-- 【專題報告寫作範本】AuraBrew：基於非接觸生理感知之智慧心情咖啡機 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon" style="color: #b45309;">
@@ -1843,6 +1920,7 @@
             </div>
 
             <!-- 【專題實作】AirTouch 無接觸手勢＋語音遙控 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon" style="color: #4338ca;">
@@ -1866,6 +1944,7 @@
             </div>
 
             <!-- 【專題製作成果】AirTouch：無接觸手勢與 AI 語音智慧遙控 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon" style="color: #0f766e;">
@@ -1892,6 +1971,7 @@
 
 
             <!-- AMB82-Mini 影像物聯網入門研習講義 -->
+
             <div class="card project" data-cat="project">
                 <div class="card-top">
                     <div class="card-icon" style="color: #0f766e;">
@@ -1959,6 +2039,33 @@
             </div>
 
             <!-- ESET 端點防毒與中控代理 (啟用與診斷 SOP) -->
+
+
+            <div class="grid-section">
+                <h2>研習與資訊應用</h2>
+                <p>教師研習教材與校內資訊作業流程。</p>
+                <span class="grid-section-count">3 項</span>
+            </div>
+
+            <div class="card feature" data-cat="common-skill">
+                <div class="card-top">
+                    <div class="card-icon" style="font-size: 1.8rem;">
+                        📟
+                    </div>
+                    <span class="badge-year" style="background: var(--primary); color: #fff;">115-09-14 課程</span>
+                </div>
+                <div class="card-body">
+                    <h3>【115-09-14 AI課程】ESP32 與 MQTT 智慧控制實作</h3>
+                    <p>ESP32 數字碼表/計時器電路實作、MQTT 通訊協定基礎與繼電器家電智慧控制全輯教學。</p>
+                </div>
+                <div class="card-footer">
+                    <span class="category-tag">ESP32 & MQTT</span>
+                    <button class="go-link" data-src="https://www.youtube.com/playlist?list=PLaJdK3ncriqA">觀看清單 &rarr;</button>
+                </div>
+            </div>
+
+            <!-- 輪值表產生器 -->
+
             <div class="card feature" data-cat="common-skill">
                 <div class="card-top">
                     <div class="card-icon">
@@ -1983,6 +2090,7 @@
             </div>
 
             <!-- AI 數位研習雙模式自動化系統 -->
+
             <div class="card award" data-cat="common-skill">
                 <div class="card-top">
                     <div class="card-icon">
@@ -2005,6 +2113,7 @@
                     <button class="go-link" style="background: linear-gradient(135deg, #0f766e, #0369a1);" data-src="mcp_course_automation_guide.html">進入 MCP 雙模式實戰 &rarr;</button>
                 </div>
             </div>
+
         </div>
 
         <div class="frame-wrap" id="frameWrap">
