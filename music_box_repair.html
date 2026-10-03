@@ -59,6 +59,13 @@ th{background:var(--bg)}
 .rank{display:inline-block;width:1.6em;height:1.6em;line-height:1.6em;text-align:center;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;margin-right:4px}
 svg text{font-family:inherit}
 footer{color:var(--mute);font-size:13px;padding:6px 0}
+.simgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+@media(max-width:800px){.simgrid{grid-template-columns:1fr}}
+.lamp{display:inline-block;width:14px;height:14px;border-radius:50%;background:#445;border:1px solid #000;vertical-align:middle}
+#sim_sw{font-weight:700}
+#sim_sw.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+.dmmscr{background:#c9d8b8;color:#152015;font:700 26px/1.2 ui-monospace,Consolas,monospace;text-align:right;padding:6px 10px;border-radius:4px;min-height:44px}
+select{max-width:100%}
 @media(max-width:600px){.kv{grid-template-columns:1fr}.kv dt{margin-top:4px}}
 </style>
 </head>
@@ -71,6 +78,7 @@ footer{color:var(--mute);font-size:13px;padding:6px 0}
   <div class="safety"><b>⚠ 安全提醒</b>：機殼內有 AC110V（電源線、SW1、F1、PT 初級）。更換任何零件前，<b>一定先關 SW1 並拔掉電源線插頭</b>，再等電解電容放電（C1 470 µF／35 V、C9 與 C10 470 µF／25 V 容量大，用電表確認兩端電壓低於 1 V）。通電量測時，單手操作，不要用手碰 AC110V 的接點與端子。</div>
   <div class="tabs" id="tabs">
     <button data-t="fix" class="on">故障檢修</button>
+    <button data-t="sim">故障模擬練習</button>
     <button data-t="parts">零件與更換方法</button>
     <button data-t="circuit">電路與測試點</button>
     <button data-t="tbc">待確認項目</button>
@@ -79,6 +87,58 @@ footer{color:var(--mute);font-size:13px;padding:6px 0}
   <section id="p-fix">
     <div class="card"><h2>1. 選擇故障現象</h2><div class="symgrid" id="symgrid"></div></div>
     <div class="card" id="flowcard" style="display:none"><h2 id="flowtitle"></h2><div id="flow"></div></div>
+  </section>
+
+  <section id="p-sim" style="display:none">
+    <div class="card"><h2>故障模擬練習</h2>
+      <p class="hint">系統會在虛擬音樂盒裡藏一個（或兩個）故障。你用虛擬的三用電表與示波器量測，找出壞的零件並更換，最後做完整驗證。<b>電壓與量測值由簡化模型計算，不是真實電路量測</b>，只用來練習找故障的流程；實際數值請以實板為準。</p>
+      <div class="btnrow"><button id="sim_new">抽一個故障</button><button id="sim_new2">抽兩個故障（較難）</button>
+        <select id="sim_pick"></select><button id="sim_show">顯示／隱藏答案</button><button id="sim_reset">清除</button></div>
+      <p id="sim_fault" class="hint" style="margin:4px 0">請先抽題</p>
+    </div>
+    <div class="simgrid">
+      <div>
+        <div class="card"><h2>1. 操作音樂盒</h2>
+          <div class="btnrow"><button id="sim_sw">SW1：OFF</button>
+            <span>POWER 燈 <span class="lamp" id="sim_lamp"></span></span>
+            <span>電路板 LED <span class="lamp" id="sim_led"></span></span></div>
+          <p id="sim_events" style="color:var(--bad);font-weight:700;margin:4px 0"></p>
+          <div class="kv"><dt>SVR1</dt><dd><input type="range" id="sim_svr1" min="0" max="1" step="0.005" style="width:80%"></dd>
+            <dt>SVR2</dt><dd><input type="range" id="sim_svr2" min="0" max="1" step="0.005" style="width:80%"></dd></div>
+          <div class="btnrow"><span>音量 <button id="sim_vdn">▼</button> <b id="sim_vol">3</b> <button id="sim_vup">▲</button></span>
+            <span>音源 <button id="sim_src">切換</button> <b id="sim_srcn">音樂 1</b></span></div>
+          <label style="font-size:14px"><input type="checkbox" id="sim_aux"> 信號產生器 1 kHz、3 Vpp 輸入 AUX IN（J8）</label>
+          <p style="margin:6px 0">喇叭：<b id="sim_sound">電源未開</b></p>
+        </div>
+        <div class="card"><h2>2. 更換零件</h2>
+          <p class="hint">更換前要先關 SW1。換錯（好的零件）會被記為「多換」；更換子板會扣 20 分。</p>
+          <div class="btnrow"><select id="sim_rep" style="max-width:100%"></select><button id="sim_repgo">更換</button></div>
+          <p id="sim_repmsg" style="margin:4px 0"></p>
+        </div>
+      </div>
+      <div>
+        <div class="card"><h2>3. 通電量測（三用電表）</h2>
+          <div class="btnrow"><select id="sim_fn"><option value="DCV">DCV 直流電壓</option><option value="ACV">ACV 交流電壓</option></select>
+            <select id="sim_node"></select><button id="sim_dmmgo">量測</button></div>
+          <div class="dmmscr" style="font-size:22px"><span id="sim_dmm">—</span></div>
+          <p class="hint" style="margin:4px 0">黑棒接地（GND）；本模擬自動選檔位。</p>
+        </div>
+        <div class="card"><h2>4. 斷電量測零件（電阻、二極體、電晶體…）</h2>
+          <div class="btnrow"><select id="sim_part" style="max-width:100%"></select><button id="sim_pmgo">量測</button></div>
+          <p id="sim_pm" style="margin:4px 0">—</p>
+        </div>
+        <div class="card"><h2>5. 示波器信號追蹤</h2>
+          <p class="hint" style="margin:0 0 4px">先勾選上方「信號產生器輸入 AUX IN」，並把音源切到「外部音源」，音量設 3 以上。</p>
+          <div class="btnrow"><select id="sim_tr"><option value="j8">J8 輸入（AUX）</option><option value="sel">音源選擇後</option><option value="vol">音量控制後（C3 前）</option><option value="c3">C3 後</option><option value="c4">C4 後（AUDIO_IN）</option><option value="spk">C9 後（喇叭端）</option><option value="rip">C1 兩端漣波</option></select><button id="sim_trgo">量測</button></div>
+          <p id="sim_trv" style="margin:4px 0">—</p>
+        </div>
+      </div>
+    </div>
+    <div class="card"><h2>6. 完整驗證與紀錄</h2>
+      <div class="btnrow"><button id="sim_verifygo">完整驗證（依動作要求）</button><span class="hint" id="sim_stat">量測 0 次｜更換 0 顆（多換 0 顆）</span></div>
+      <div id="sim_verify"></div>
+      <h3>操作紀錄（最新在上）</h3><ul id="sim_logbox" class="path" style="max-height:200px;overflow:auto"></ul>
+    </div>
   </section>
 
   <section id="p-parts" style="display:none">
@@ -599,12 +659,307 @@ const TBC=[
 
 /* ---- 分頁 ---- */
 function showTab(t){
-  ["fix","parts","circuit","tbc"].forEach(k=>{ $("p-"+k).style.display=k===t?"":"none"; });
+  ["fix","sim","parts","circuit","tbc"].forEach(k=>{ $("p-"+k).style.display=k===t?"":"none"; });
   document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
 }
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
 $("psearch").oninput=renderParts; $("pboard").onchange=renderParts;
 $("tbclist").innerHTML=TBC.map(s=>`<li>${esc(s)}</li>`).join("");
+/* ============ 故障模擬練習（簡化模型，非真實電路計算） ============ */
+/* 故障目錄：bad = {零件: 模式}；模式 open 斷路、short 短路、weak 容量衰減、fault 故障 */
+const FAULTS=[
+ {id:"f1",g:"power",n:"保險絲 F1 熔斷",bad:{F1:"open"}},
+ {id:"sw1",g:"power",n:"電源開關 SW1 接點不良",bad:{SW1:"open"}},
+ {id:"pt",g:"power",n:"電源變壓器 PT 斷路",bad:{PT:"open"}},
+ {id:"d1o",g:"power",n:"整流二極體 D1 斷路（半波整流，哼聲、電壓偏低）",bad:{D1:"open"}},
+ {id:"d3o",g:"power",n:"整流二極體 D3 斷路",bad:{D3:"open"}},
+ {id:"d2s",g:"power",n:"整流二極體 D2 短路（開機就燒保險絲）",bad:{D2:"short"}},
+ {id:"c1o",g:"power",n:"濾波電容 C1 斷路（電壓低、漣波大）",bad:{C1:"open"}},
+ {id:"c1s",g:"power",n:"濾波電容 C1 短路（開機燒保險絲）",bad:{C1:"short"}},
+ {id:"d5o",g:"led",n:"LED D5 斷路（只有 LED 不亮）",bad:{D5:"open"}},
+ {id:"r1o",g:"led",n:"電阻 R1 斷路（只有 LED 不亮）",bad:{R1:"open"}},
+ {id:"r2o",g:"reg",n:"電阻 R2 斷路（基準電壓消失，TP1 幾乎無電壓）",bad:{R2:"open"}},
+ {id:"d6s",g:"reg",n:"齊納二極體 D6 短路（TP1 幾乎無電壓）",bad:{D6:"short"}},
+ {id:"d6o",g:"reg",n:"齊納二極體 D6 斷路（TP1 偏高且不隨 SVR1 變）",bad:{D6:"open"}},
+ {id:"q3s",g:"reg",n:"調整電晶體 Q3 C–E 短路（TP1 偏高且不隨 SVR1 變）",bad:{Q3:"short"}},
+ {id:"q3o",g:"reg",n:"調整電晶體 Q3 斷路（TP1 沒有輸出）",bad:{Q3:"open"}},
+ {id:"svr1o",g:"reg",n:"SVR1 斷路（TP1 偏高且不隨 SVR1 變）",bad:{SVR1:"open"}},
+ {id:"r7o",g:"reg",n:"電阻 R7 斷路（TP1 偏高，調不到 12 V）",bad:{R7:"open"}},
+ {id:"r8o",g:"reg",n:"電阻 R8 斷路（TP1 偏低，調不到 12 V）",bad:{R8:"open"}},
+ {id:"q5o",g:"reg",n:"電晶體 Q5 斷路（TP2 沒有電壓）",bad:{Q5:"open"}},
+ {id:"q5s",g:"reg",n:"電晶體 Q5 C–E 短路（TP2 偏高）",bad:{Q5:"short"}},
+ {id:"d7o",g:"reg",n:"齊納二極體 D7 斷路（TP2 偏高）",bad:{D7:"open"}},
+ {id:"d7s",g:"reg",n:"齊納二極體 D7 短路（TP2 幾乎無電壓）",bad:{D7:"short"}},
+ {id:"c12s",g:"reg",n:"電容 C12 短路（TP2 被拉低）",bad:{C12:"short"}},
+ {id:"svr2o",g:"amp",n:"SVR2 斷路（TP3 不隨 SVR2 變）",bad:{SVR2:"open"}},
+ {id:"r16o",g:"amp",n:"電阻 R16 斷路（TP3 幾乎無電壓）",bad:{R16:"open"}},
+ {id:"q9s",g:"amp",n:"輸出電晶體 Q9 短路（TP3 接近 0 V）",bad:{Q9:"short"}},
+ {id:"q8s",g:"amp",n:"輸出電晶體 Q8 短路（TP3 接近 TP1）",bad:{Q8:"short"}},
+ {id:"d8o",g:"amp",n:"偏壓二極體 D8 斷路（交越失真，聲音粗糙）",bad:{D8:"open"}},
+ {id:"q6o",g:"amp",n:"電晶體 Q6 斷路（沒聲音，TP3 偏高）",bad:{Q6:"open"}},
+ {id:"c4o",g:"amp",n:"耦合電容 C4 斷路（沒聲音）",bad:{C4:"open"}},
+ {id:"c9o",g:"spk",n:"輸出電容 C9 斷路（沒聲音，電壓都正常）",bad:{C9:"open"}},
+ {id:"c9w",g:"spk",n:"輸出電容 C9 容量衰減（聲音很小）",bad:{C9:"weak"}},
+ {id:"spo",g:"spk",n:"喇叭 SP 斷路（沒聲音，電壓都正常）",bad:{SP:"open"}},
+ {id:"c14o",g:"src",n:"AUX 耦合電容 C14 斷路（只有外部音源沒聲音）",bad:{C14:"open"}},
+ {id:"u1b",g:"src",n:"音樂 IC U1 損壞（音樂 1 沒聲音）",bad:{U1:"open"}},
+ {id:"r14o",g:"src",n:"電阻 R14 斷路（音樂 2 沒聲音）",bad:{R14:"open"}},
+ {id:"c3o",g:"vol",n:"音量輸出電容 C3 斷路（所有音源都沒聲音）",bad:{C3:"open"}},
+ {id:"r34o",g:"vol",n:"電阻 R34 斷路（所有音源都沒聲音）",bad:{R34:"open"}},
+ {id:"subv",g:"vol",n:"觸控子板故障（音量無法調整）",bad:{"子板":"vol"}},
+ {id:"subs",g:"vol",n:"觸控子板故障（音源無法切換）",bad:{"子板":"src"}}
+];
+const SIM={fault:null,bad:{},sw:false,svr1:0.3,svr2:0.7,vol:3,src:0,aux:false,log:[],meas:0,rep:0,wrong:0,subWrong:0,solved:false,reveal:false,events:""};
+const VF=[0,0.077,0.143,0.2,0.25,0.294,0.333,0.368]; // 推論：音量分壓比（依 R27～R34 推算，拓樸待確認）
+const clampN=(v,a,b)=>Math.min(b,Math.max(a,v));
+function simBoard(){
+  const b=SIM.bad, M={};
+  const diodesOpen=["D1","D2","D3","D4"].filter(k=>b[k]==="open").length;
+  M.lamp=SIM.sw&&b.F1!=="open"&&b.SW1!=="open";
+  M.ac=(SIM.sw&&b.F1!=="open"&&b.SW1!=="open"&&b.PT!=="open")?15:0;
+  const on=M.ac>0;
+  M.on=on;
+  M.vc1=0; M.ripple=0;
+  if(on){
+    M.vc1=19.0; M.ripple=0.4;
+    if(diodesOpen>=1){M.vc1=16.8;M.ripple=3.0;}
+    if(diodesOpen>=2){M.vc1=9.0;M.ripple=6.0;}
+    if(b.C1==="open"){M.vc1=12.5;M.ripple=12;}
+  }
+  // TP1
+  let base=9.5+5.5*SIM.svr1;
+  if(b.R7==="open") base=13.3+4*SIM.svr1;
+  if(b.R8==="open") base=5+5.5*SIM.svr1;
+  if(b.SVR1==="open") base=15.2;
+  M.tp1=0;
+  if(on){
+    if(b.D6==="short"||b.R2==="open") M.tp1=0.8;
+    else if(b.Q3==="open"||b.Q2==="open") M.tp1=0;
+    else if(b.Q3==="short") M.tp1=M.vc1-0.3;
+    else if(b.D6==="open") M.tp1=M.vc1-1.0;
+    else M.tp1=Math.max(0,Math.min(base,M.vc1-1.8));
+  }
+  // TP2
+  M.tp2=0;
+  if(on){
+    M.tp2=M.tp1<6.5?Math.max(0,M.tp1-1.6):5.0+0.04*(M.tp1-12);
+    if(b.Q5==="open") M.tp2=0;
+    else if(b.Q5==="short") M.tp2=Math.max(0,M.tp1-0.2);
+    else if(b.D7==="open") M.tp2=Math.max(0,M.tp1-1.0);
+    else if(b.D7==="short"||b.R9==="open") M.tp2=0.7;
+    else if(b.C12==="short"||b.C11==="short") M.tp2=0.1;
+  }
+  // TP3
+  M.tp3=0;
+  if(on){
+    M.tp3=M.tp1*(0.3+0.4*SIM.svr2);
+    if(b.SVR2==="open") M.tp3=M.tp1*0.3;
+    if(b.R16==="open") M.tp3=0.5;
+    if(b.R17==="open"||b.Q6==="open"||b.Q7==="open") M.tp3=M.tp1*0.82;
+    if(b.Q9==="short") M.tp3=0.4;
+    if(b.Q8==="short") M.tp3=Math.max(0,M.tp1-0.3);
+    if(b.Q8==="open") M.tp3=0.3;
+    if(b.Q9==="open") M.tp3=Math.max(0,M.tp1-0.4);
+  }
+  M.led=on&&b.D5!=="open"&&b.R1!=="open";
+  // 音訊
+  M.volEff=b["子板"]==="vol"?3:SIM.vol;
+  M.srcEff=b["子板"]==="src"?0:SIM.src;
+  let level=0, jin=0;
+  if(M.srcEff===0) level=(b.U1==="open"||b.R13==="open")?0:1.0;
+  else if(M.srcEff===1) level=(b.U2==="open"||b.R14==="open")?0:1.0;
+  else{ jin=SIM.aux?3.0:0; level=(SIM.aux&&b.C14!=="open"&&b.R15!=="open"&&b.J8!=="open")?3.0*0.99:0; }
+  M.j8=M.srcEff===2?jin:0;
+  M.afterSel=on?level:0;
+  M.afterVol=M.afterSel*VF[M.volEff];
+  if(b.R34==="open") M.afterVol=0;
+  M.afterC3=b.C3==="open"?0:M.afterVol;
+  M.afterC4=b.C4==="open"?0:M.afterC3;
+  let gain=6;
+  if(b.Q6==="open") gain=0;
+  if(b.Q7==="open") gain=0.05;
+  if(b.R16==="open") gain=0.1;
+  let want=M.afterC4*gain;
+  const lim=Math.max(0,2*Math.min(M.tp3,M.tp1-M.tp3)-1.0);
+  M.dist=false;
+  M.out=on?Math.min(want,lim):0;
+  if(on&&want>lim&&want>0.05) M.dist=true;
+  if(b.D8==="open"||b.D9==="open") M.dist=true;
+  M.spk=M.out;
+  if(b.C9==="open") M.spk=0; else if(b.C9==="weak") M.spk=M.out*0.2;
+  M.spkOpen=b.SP==="open";
+  if(M.spkOpen) M.spk=M.out;   // 開路時在喇叭端仍量得到信號，但沒聲音
+  M.sound="none";
+  if(!M.spkOpen&&M.spk>0.12) M.sound=M.dist?"distorted":(M.spk<0.9?"weak":"ok");
+  if(M.sound==="ok"&&M.ripple>2) M.sound="hum";
+  M.volOk=b["子板"]!=="vol"; M.srcOk=b["子板"]!=="src";
+  return M;
+}
+/* ---- 量測 ---- */
+const nodeList=[
+ ["tp1","TP1","DCV"],["tp2","TP2","DCV"],["tp3","TP3","DCV"],
+ ["c1","C1 兩端（整流後）","DCV"],["d6","D6 兩端","DCV"],["d7","D7 兩端","DCV"],
+ ["q3ce","Q3 集極–射極兩端","DCV"],["led","LED D5 兩端","DCV"],["j1","J1 兩腳（交流）","ACV"]
+];
+function fmtVolt(v){ const a=Math.abs(v); if(a<0.0005) return "0.000 V"; return a<10?v.toFixed(3)+" V":v.toFixed(2)+" V"; }
+function nodeValue(id,M){
+  switch(id){
+    case "tp1":return M.tp1; case "tp2":return M.tp2; case "tp3":return M.tp3;
+    case "c1":return M.vc1;
+    case "d6":{ if(!M.on) return 0; if(SIM.bad.D6==="short"||SIM.bad.R2==="open") return 0; if(SIM.bad.D6==="open") return M.vc1*0.55; return 5.6; }
+    case "d7":{ if(!M.on) return 0; if(SIM.bad.D7==="short"||SIM.bad.R9==="open") return 0; if(SIM.bad.D7==="open") return Math.max(0,M.tp1-0.6); return 5.6; }
+    case "q3ce":return M.on?(SIM.bad.Q3==="short"?0.2:(SIM.bad.Q3==="open"?M.vc1:Math.max(0,M.vc1-M.tp1))):0;
+    case "led":return M.on?(SIM.bad.D5==="open"?M.vc1:(SIM.bad.R1==="open"?0:2.0)):0;
+    case "j1":return M.ac;
+  }
+  return 0;
+}
+function simDmm(){
+  const sel=$("sim_node").value; const n=nodeList.find(x=>x[0]===sel); const M=simBoard();
+  SIM.meas++;
+  const fn=$("sim_fn").value;
+  let txt;
+  if(!SIM.sw && sel!=="j1" && sel!=="c1"){ txt="0.000 V"; }
+  else if(n[2]==="DCV"&&fn!=="DCV") txt="0.000 V（功能選錯：這個點要用直流電壓 DCV）";
+  else if(n[2]==="ACV"&&fn!=="ACV") txt="0.000 V（功能選錯：這個點要用交流電壓 ACV）";
+  else txt=n[2]==="ACV"?M.ac.toFixed(1)+" V":fmtVolt(nodeValue(sel,M));
+  $("sim_dmm").textContent=txt;
+  simLog("量測 "+n[1]+" → "+txt.split("（")[0]);
+  simUpdate();
+}
+const TOLH=s=>{let h=0;for(const c of s)h=(h*31+c.charCodeAt(0))%97;return h;};
+function parseOhm(spec){ const m=spec.match(/([\d.]+)\s*(k|M)?Ω/); if(!m) return null; return parseFloat(m[1])*({k:1e3,M:1e6}[m[2]]||1); }
+function fmtOhm(v){ return v>=1e6?(v/1e6).toFixed(2)+" MΩ":v>=1e3?(v/1e3).toFixed(2)+" kΩ":v.toFixed(1)+" Ω"; }
+function simPartMeasure(){
+  const k=$("sim_part").value, d=PARTS[k], mode=SIM.bad[k]||"ok", t=d[3], out=[];
+  if(SIM.sw){ $("sim_pm").textContent="請先關閉 SW1、拔掉電源，並等電容放電後再量零件。"; return; }
+  SIM.meas++;
+  const OL="OL（開路）";
+  if(t==="res"){ const nom=parseOhm(d[1]); const v=nom*(1+0.01*((TOLH(k)%3)-1)); out.push(mode==="open"?OL:mode==="short"?"0.0 Ω（短路）":fmtOhm(v)); }
+  else if(t==="smd_diode"){ if(mode==="open") out.push("順向：OL；逆向：OL（斷路）"); else if(mode==="short") out.push("順向：0.00 V；逆向：0.00 V（短路）"); else out.push("順向：0.54 V；逆向：OL"); }
+  else if(t==="zener"){ if(mode==="open") out.push("順向：OL；逆向：OL（斷路）"); else if(mode==="short") out.push("順向：0.00 V；逆向：0.00 V（短路）"); else out.push("順向：0.68 V；逆向：OL（二極體檔量不出齊納電壓）"); }
+  else if(t==="led"){ if(mode==="open") out.push("順向：OL；逆向：OL（斷路）"); else out.push("順向：1.95 V（LED 微亮）；逆向：OL"); }
+  else if(t==="to92"||t==="sot89"){
+    const npn=["Q1","Q2","Q4","Q5","Q7","Q8"].includes(k);
+    const probe=npn?"紅棒接 B":"黑棒接 B";
+    if(mode==="open") out.push(`（${probe}）B–E：OL；B–C：OL；C–E：OL（接面斷路）`);
+    else if(mode==="short") out.push(`（${probe}）B–E：0.62 V；B–C：0.62 V；C–E：0.00 V（C–E 短路）`);
+    else out.push(`（${probe}）B–E：0.62 V；B–C：0.63 V；C–E：OL（正常）`);
+  }
+  else if(t==="elec"){ out.push(mode==="open"?"一開始就 OL，沒有充電現象（容量消失）":mode==="short"?"約 0 Ω（短路）":mode==="weak"?"上升幅度很小、很快到 OL（容量不足）":"歐姆檔讀值由小慢慢變大，最後到 OL（正在充電，正常）"); }
+  else if(t==="cer"){ out.push(mode==="short"?"約 0 Ω（短路）":"OL（正常）"); }
+  else if(t==="trimmer"){ const nom=parseOhm(d[1]); out.push(mode==="open"?OL:fmtOhm(nom)+"；轉動時滑臂阻值連續變化（正常）"); }
+  else if(k==="F1") out.push(mode==="open"?OL:"導通（約 0.3 Ω）");
+  else if(k==="SW1") out.push(mode==="open"?"OFF：OL；ON：OL（接點不良，ON 位置仍不通）":"OFF：OL；ON：導通");
+  else if(k==="PT") out.push(mode==="open"?"有一組線圈 OL（斷路）":"初級、次級線圈都導通");
+  else if(k==="SP") out.push(mode==="open"?OL:"約 8.2 Ω");
+  else if(t==="ic") out.push("無法用電表判斷，請用示波器看輸出信號。");
+  else if(t==="daughter") out.push("無法離板量測；請先排除母板側零件。");
+  else out.push("本模擬不模擬這類零件的量測（請目視檢查焊點）。");
+  $("sim_pm").textContent=k+"："+out.join("；");
+  simLog("量測零件 "+k+" → "+out.join("；"));
+  simUpdate();
+}
+function simTrace(){
+  const M=simBoard(), id=$("sim_tr").value; SIM.meas++;
+  const map={j8:["J8 輸入（AUX）",M.j8],sel:["音源選擇後",M.afterSel],vol:["音量控制後（C3 前）",M.afterVol],c3:["C3 後",M.afterC3],c4:["C4 後（AUDIO_IN）",M.afterC4],spk:["C9 後（喇叭端）",M.spk]};
+  if(id==="rip"){ $("sim_trv").textContent=SIM.sw?("C1 兩端漣波約 "+M.ripple.toFixed(1)+" Vpp（示波器 AC 耦合）"):"請先開啟 SW1"; simLog("示波器量 C1 漣波 → "+M.ripple.toFixed(1)+" Vpp"); simUpdate(); return; }
+  const [nm,v]=map[id];
+  let t=nm+"：約 "+(v<0.005?"0":v.toFixed(2))+" Vpp";
+  if(id==="spk"&&M.dist&&v>0.05) t+="；波形失真";
+  if(id==="j8"&&!(SIM.aux)) t+="（尚未打開信號產生器輸出）";
+  $("sim_trv").textContent=t; simLog("示波器量 "+t); simUpdate();
+}
+function simLog(s){ SIM.log.push(s); if(SIM.log.length>60) SIM.log.shift(); }
+/* ---- 操作 ---- */
+function simPower(){
+  SIM.sw=!SIM.sw; SIM.events="";
+  if(SIM.sw){
+    const shorts=["D1","D2","D3","D4"].some(k=>SIM.bad[k]==="short")||SIM.bad.C1==="short";
+    if(shorts&&SIM.bad.F1!=="open"&&SIM.bad.SW1!=="open"){ SIM.bad.F1="open"; SIM.events="開機瞬間保險絲 F1 熔斷了！表示後面有短路的零件，只換保險絲會再斷。"; simLog("開機 → F1 熔斷（有短路零件）"); }
+    else simLog("開啟 SW1");
+  }else simLog("關閉 SW1");
+  simUpdate();
+}
+function simReplace(){
+  const k=$("sim_rep").value; if(!k) return;
+  if(SIM.sw){ $("sim_repmsg").textContent="請先關閉 SW1、拔掉電源再更換零件。"; return; }
+  SIM.rep++;
+  let msg;
+  if(SIM.bad[k]){ delete SIM.bad[k]; msg="已更換 "+k+"：這顆確實是故障零件。"; }
+  else{ SIM.wrong++; if(k==="子板") SIM.subWrong++; msg="已更換 "+k+"：這顆原本是好的（多換了一顆"+(k==="子板"?"，子板更換要扣 20 分":"")+"）。"; }
+  const left=Object.keys(SIM.bad).length;
+  if(left===0){ SIM.solved=true; msg+=" 目前沒有已知故障零件，請做下方「完整驗證」確認。"; }
+  $("sim_repmsg").textContent=msg; simLog(msg); simUpdate();
+}
+function simNew(mode){
+  let pick=[];
+  if(mode==="random") pick=[FAULTS[Math.floor(Math.random()*FAULTS.length)]];
+  else if(mode==="double"){ const a=FAULTS[Math.floor(Math.random()*FAULTS.length)]; let b; do{ b=FAULTS[Math.floor(Math.random()*FAULTS.length)]; }while(b.g===a.g||Object.keys(b.bad)[0]===Object.keys(a.bad)[0]); pick=[a,b]; }
+  else pick=[FAULTS.find(f=>f.id===mode)];
+  SIM.fault=pick; SIM.bad={}; pick.forEach(f=>Object.assign(SIM.bad,f.bad));
+  SIM.sw=false; SIM.vol=3; SIM.src=0; SIM.aux=false; SIM.log=[]; SIM.meas=0; SIM.rep=0; SIM.wrong=0; SIM.subWrong=0; SIM.solved=false; SIM.reveal=false; SIM.events="";
+  SIM.svr1=+(0.15+Math.random()*0.7).toFixed(2); SIM.svr2=+(0.15+Math.random()*0.7).toFixed(2);
+  $("sim_verify").innerHTML=""; $("sim_repmsg").textContent=""; $("sim_dmm").textContent="—"; $("sim_pm").textContent="—"; $("sim_trv").textContent="—";
+  simUpdate();
+}
+function simVerify(){
+  const M=simBoard(); const items=[];
+  const add=(n,ok,note)=>items.push([n,ok,note]);
+  add("SW1 ON：POWER 燈亮、綠色 LED 亮、有音樂聲",SIM.sw&&M.lamp&&M.led&&M.sound!=="none"&&SIM.src!==2,SIM.sw?"請把音源切到音樂 1 或 2 檢查":"請先開啟 SW1");
+  add("TP1 ＝ 12 V ± 1 V（調 SVR1）",Math.abs(M.tp1-12)<=1,"目前 "+M.tp1.toFixed(2)+" V");
+  add("TP2 ＝ 5 V ± 0.5 V",Math.abs(M.tp2-5)<=0.5,"目前 "+M.tp2.toFixed(2)+" V");
+  add("TP3 ＝ 6 V ± 0.5 V（調 SVR2）",Math.abs(M.tp3-6)<=0.5,"目前 "+M.tp3.toFixed(2)+" V");
+  add("音量觸控可調整（0～7）",M.volOk,"觸控子板音量沒有反應");
+  add("音源可切換兩種不同音樂",M.srcOk,"觸控子板音源沒有反應");
+  // 外部音源測試：暫時以 AUX、音量 3 計算
+  const keep={src:SIM.src,aux:SIM.aux,vol:SIM.vol}; SIM.src=2; SIM.aux=true; SIM.vol=3; const A=simBoard(); Object.assign(SIM,keep);
+  add("信號產生器 1 kHz、3 Vpp 輸入 AUX IN，應有聲音",A.sound==="ok"||A.sound==="weak"||A.sound==="hum",A.sound==="none"?"沒有聲音":A.sound==="distorted"?"聲音失真":"");
+  add("聲音大小與品質正常，沒有哼聲（音樂 1，音量 3）",(()=>{const k=SIM.src; SIM.src=0; const B=simBoard(); SIM.src=k; return B.sound==="ok";})(),"聲音小、失真或有哼聲");
+  let h='<ul class="check">'+items.map(it=>`<li style="color:${it[1]?"var(--ok)":"var(--bad)"}">${it[1]?"✓":"✗"} ${esc(it[0])}${it[1]?"":"　<em style='color:var(--warn)'>"+esc(it[2])+"</em>"}</li>`).join("")+"</ul>";
+  const pass=items.every(i=>i[1]);
+  h+=`<p><b>${pass?"驗證通過！":"還有項目沒過。"}</b>　量測 ${SIM.meas} 次；更換 ${SIM.rep} 顆，其中多換 ${SIM.wrong} 顆${SIM.subWrong?"（含子板，扣 20 分）":""}。</p>`;
+  $("sim_verify").innerHTML=h;
+}
+function simUpdate(){
+  const M=simBoard();
+  $("sim_fault").innerHTML=SIM.fault?(SIM.reveal?"<b>答案：</b>"+SIM.fault.map(f=>esc(f.n)).join("；"):"已抽出 "+SIM.fault.length+" 個故障（答案隱藏）"):"請先抽題";
+  $("sim_sw").textContent=SIM.sw?"SW1：ON":"SW1：OFF"; $("sim_sw").className=SIM.sw?"on":"";
+  $("sim_lamp").style.background=M.lamp?"#3dff6a":"#445"; $("sim_led").style.background=M.led?"#3dff6a":"#445";
+  $("sim_vol").textContent=M.volOk?SIM.vol:"—";
+  $("sim_srcn").textContent=["音樂 1","音樂 2","外部音源 AUX"][SIM.src];
+  $("sim_svr1").value=SIM.svr1; $("sim_svr2").value=SIM.svr2;
+  const snd={ok:"有聲音，正常",weak:"聲音很小",distorted:"聲音失真、粗糙",hum:"有聲音，但有明顯的嗡嗡哼聲",none:"沒有聲音"}[M.sound];
+  $("sim_sound").textContent=(!SIM.sw?"電源未開":snd)+(SIM.src===2&&!SIM.aux?"（外部音源：信號產生器未輸入）":"");
+  $("sim_events").textContent=SIM.events;
+  $("sim_aux").checked=SIM.aux;
+  $("sim_logbox").innerHTML=SIM.log.slice().reverse().map(s=>"<li>"+esc(s)+"</li>").join("")||"<li class='hint'>還沒有紀錄</li>";
+  $("sim_stat").textContent="量測 "+SIM.meas+" 次｜更換 "+SIM.rep+" 顆（多換 "+SIM.wrong+" 顆）";
+}
+(function initSim(){
+  const sel=(id,opts)=>{ $(id).innerHTML=opts; };
+  sel("sim_node",nodeList.map(n=>`<option value="${n[0]}">${n[1]}</option>`).join(""));
+  const pk=Object.keys(PARTS);
+  sel("sim_part",pk.map(k=>`<option value="${esc(k)}">${esc(k)}　${esc(PARTS[k][0])}</option>`).join(""));
+  sel("sim_rep",pk.map(k=>`<option value="${esc(k)}">${esc(k)}　${esc(PARTS[k][0])}</option>`).join(""));
+  sel("sim_pick",'<option value="">指定故障（教師用）</option>'+FAULTS.map(f=>`<option value="${f.id}">${esc(f.n)}</option>`).join(""));
+  $("sim_new").onclick=()=>simNew("random");
+  $("sim_new2").onclick=()=>simNew("double");
+  $("sim_pick").onchange=e=>{ if(e.target.value) simNew(e.target.value); };
+  $("sim_show").onclick=()=>{ if(!SIM.fault) return; SIM.reveal=!SIM.reveal; simUpdate(); };
+  $("sim_sw").onclick=simPower;
+  $("sim_svr1").oninput=e=>{ SIM.svr1=+e.target.value; simUpdate(); };
+  $("sim_svr2").oninput=e=>{ SIM.svr2=+e.target.value; simUpdate(); };
+  $("sim_vup").onclick=()=>{ if(simBoard().volOk) SIM.vol=Math.min(7,SIM.vol+1); simLog("音量 ▲"+(simBoard().volOk?"":"（觸控沒反應）")); simUpdate(); };
+  $("sim_vdn").onclick=()=>{ if(simBoard().volOk) SIM.vol=Math.max(0,SIM.vol-1); simLog("音量 ▼"+(simBoard().volOk?"":"（觸控沒反應）")); simUpdate(); };
+  $("sim_src").onclick=()=>{ if(simBoard().srcOk){ SIM.src=(SIM.src+1)%3; } simLog("切換音源"+(simBoard().srcOk?"":"（觸控沒反應）")); simUpdate(); };
+  $("sim_aux").onchange=e=>{ SIM.aux=e.target.checked; simUpdate(); };
+  $("sim_dmmgo").onclick=simDmm; $("sim_pmgo").onclick=simPartMeasure; $("sim_trgo").onclick=simTrace;
+  $("sim_repgo").onclick=simReplace; $("sim_verifygo").onclick=simVerify;
+  $("sim_reset").onclick=()=>{ SIM.fault=null; SIM.bad={}; SIM.sw=false; SIM.log=[]; SIM.meas=0; SIM.rep=0; SIM.wrong=0; $("sim_verify").innerHTML=""; simUpdate(); };
+  simUpdate();
+})();
+
 renderSyms(); renderParts(); renderReplace(); drawBlocks(); drawBoard();
 </script>
 </body>
