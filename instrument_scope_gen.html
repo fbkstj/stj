@@ -32,7 +32,7 @@ button:hover{border-color:var(--accent)}
 .devwrap{overflow-x:auto}
 svg.panel{width:100%;height:auto;display:block;min-width:620px;user-select:none;-webkit-user-select:none}
 .scopebox{position:relative;min-width:620px}
-canvas#scr{position:absolute;left:3.6%;top:6.2%;width:44.8%;height:46.2%;border-radius:3px;background:#000}
+canvas#scr{position:absolute;left:3.6%;top:13%;width:44.8%;height:50.9%;border-radius:3px;background:#000}
 .ctl{cursor:pointer;outline:none}
 .ctl .face{fill:var(--key);stroke:var(--keyline);stroke-width:1.4}
 .ctl:hover .face{stroke:var(--accent);stroke-width:2.2}
@@ -110,7 +110,7 @@ ol.lessons li:first-child{border-top:0}
 .touch{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13.5px;margin:8px 0}
 .seg{font:700 22px ui-monospace,Consolas,monospace;background:#111;color:#ff4030;padding:0 8px;border-radius:3px}
 #bigscr{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:50;display:none;align-items:center;justify-content:center;padding:12px;cursor:zoom-out}
-#bigscr canvas{max-width:96vw;max-height:88vh;width:auto;height:auto;aspect-ratio:5/3;background:#000;border-radius:6px}
+#bigscr canvas{max-width:96vw;max-height:88vh;width:auto;height:auto;aspect-ratio:800/536;background:#000;border-radius:6px}
 #bigscr .tip{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#cfd6df;font-size:13px}
 footer{color:var(--mute);font-size:13px;padding:6px 0}
 </style>
@@ -144,7 +144,7 @@ footer{color:var(--mute);font-size:13px;padding:6px 0}
       </div>
       <div class="card">
         <h2>示波器 GDS-2102E（100 MHz，2 通道）<button id="zoomscr" style="float:right;font-size:13px">放大螢幕畫面</button></h2>
-        <div class="devwrap"><div class="scopebox"><canvas id="scr" width="800" height="480"></canvas><svg id="scope" class="panel" viewBox="0 0 1000 590"></svg></div></div>
+        <div class="devwrap"><div class="scopebox"><canvas id="scr" width="800" height="536"></canvas><svg id="scope" class="panel" viewBox="0 0 1000 590"></svg></div></div>
       </div>
       <div class="card">
         <h2>信號產生器 MFG-2110</h2>
@@ -222,7 +222,7 @@ footer{color:var(--mute);font-size:13px;padding:6px 0}
   </div>
 </div>
 
-<div id="bigscr"><canvas id="bigcv" width="800" height="480"></canvas><div class="tip">點任一處或按 Esc 關閉</div></div>
+<div id="bigscr"><canvas id="bigcv" width="800" height="536"></canvas><div class="tip">點任一處或按 Esc 關閉</div></div>
 <script>
 "use strict";
 /* ============ 工具 ============ */
@@ -507,8 +507,8 @@ const scopeSvg=document.getElementById("scope");
   const R=scopeSvg;
   svg("rect",{x:6,y:6,width:988,height:490,rx:16,fill:"var(--dev)",stroke:"var(--dev2)","stroke-width":2},R);
   svg("rect",{x:6,y:490,width:988,height:94,rx:12,fill:"var(--dev2)"},R);
-  svg("rect",{x:26,y:22,width:468,height:318,rx:8,fill:"var(--bezel)"},R);
-  svg("text",{class:"lbl l",x:36,y:386,"font-size":13},R,"GW INSTEK   GDS-2102E   100 MHz  1 GS/s");
+  svg("rect",{x:26,y:67,width:468,height:318,rx:8,fill:"var(--bezel)"},R);
+  svg("text",{class:"lbl l",x:36,y:431,"font-size":13},R,"GW INSTEK   GDS-2102E   100 MHz  1 GS/s");
   // 區塊框
   const box=(x,y,w,h,t)=>{ svg("rect",{x,y,width:w,height:h,rx:8,fill:"none",stroke:"var(--keyline)","stroke-width":1.2},R);
     svg("text",{class:"lbl",x:x+w/2,y:y+13,"font-weight":"bold"},R,t); };
@@ -517,9 +517,9 @@ const scopeSvg=document.getElementById("scope");
   box(902,222,86,208,"TRIGGER");
   const add=o=>addCtl(R,o);
   // 螢幕選單鍵
-  for(let i=0;i<7;i++) add({id:"o.sb"+i,kind:"softk",x:62+i*62,y:356,w:48,h:16,info:"o.soft",label:"",press(){ scSoft(i); }});
-  for(let i=0;i<6;i++) add({id:"o.ss"+i,kind:"rkey",x:508,y:58+i*44,r:9,info:"o.soft",press(){ flash("側邊選單鍵：功能依螢幕選單而定（本教學版未模擬）"); }});
-  add({id:"o.menuoff",kind:"key",x:508,y:326,w:34,h:16,label:"Off",info:"o.menuoff",press(){ S.scMenu.until=0; }});
+  for(let i=0;i<7;i++) add({id:"o.sb"+i,kind:"softk",x:62+i*62,y:401,w:48,h:16,info:"o.soft",label:"",press(){ scSoft(i); }});
+  for(let i=0;i<6;i++) add({id:"o.ss"+i,kind:"rkey",x:508,y:103+i*44,r:9,info:"o.soft",press(){ flash("側邊選單鍵：功能依螢幕選單而定（本教學版未模擬）"); }});
+  add({id:"o.menuoff",kind:"key",x:508,y:371,w:34,h:16,label:"Off",info:"o.menuoff",press(){ S.scMenu.until=0; }});
   // 上方功能鍵
   const fk=[["Measure",625,40,"o.measure"],["Cursor",685,40,"o.cursor"],["APP",745,40,"o.app"],["Acquire",805,40,"o.acquire"],
             ["Display",625,76,"o.display"],["Help",685,76,"o.help"],["Save/Recall",745,76,"o.saverecall"],["Utility",805,76,"o.utility"]];
@@ -805,31 +805,31 @@ function updateCur(){
 
 /* ============ 示波器螢幕繪製 ============ */
 const cv=document.getElementById("scr"), cx=cv.getContext("2d");
-const GX=56,GY=40,GW=690,GH=352,DW=69,DH=44;
+const GX=56,GY=40,GW=690,GH=400,DW=69,DH=50;
 const COL=["#f5d90a","#35a7ff"];
 function drawScope(){
   const sc=S.sc;
-  cx.fillStyle="#05080c"; cx.fillRect(0,0,800,480);
+  cx.fillStyle="#05080c"; cx.fillRect(0,0,800,536);
   const bt=S.bootUntil-performance.now();
   if(sc.on&&bt>0){
     const pr=1-bt/S.bootLen;
     cx.fillStyle="#cfd6df"; cx.font="bold 28px sans-serif"; cx.textAlign="center";
-    cx.fillText("GW INSTEK  GDS-2102E",400,210);
-    cx.font="20px sans-serif"; cx.fillStyle="#8d99a8"; cx.fillText("開機中…（實機約需 30 秒，此處加速）",400,248);
+    cx.fillText("GW INSTEK  GDS-2102E",400,238);
+    cx.font="20px sans-serif"; cx.fillStyle="#8d99a8"; cx.fillText("開機中…（實機約需 30 秒，此處加速）",400,276);
     cx.strokeStyle="#4a5666"; cx.strokeRect(250,270,300,12); cx.fillStyle="#4cc3ff"; cx.fillRect(252,272,296*pr,8);
     cx.textAlign="left"; S.last.trigd=false; return;
   }
-  if(!sc.on){ cx.fillStyle="#2a3038"; cx.font="26px sans-serif"; cx.textAlign="center"; cx.fillText("POWER OFF",400,240); cx.textAlign="left"; S.last.trigd=false; return; }
+  if(!sc.on){ cx.fillStyle="#2a3038"; cx.font="26px sans-serif"; cx.textAlign="center"; cx.fillText("POWER OFF",400,268); cx.textAlign="left"; S.last.trigd=false; return; }
   // 格線
-  cx.strokeStyle="#26303c"; cx.lineWidth=1; cx.beginPath();
+  cx.strokeStyle="#5d7088"; cx.lineWidth=2; cx.beginPath();
   for(let i=0;i<=10;i++){ const x=GX+i*DW+0.5; cx.moveTo(x,GY); cx.lineTo(x,GY+GH); }
   for(let j=0;j<=8;j++){ const y=GY+j*DH+0.5; cx.moveTo(GX,y); cx.lineTo(GX+GW,y); }
   cx.stroke();
-  cx.strokeStyle="#3b4757"; cx.beginPath();
+  cx.strokeStyle="#9db0c6"; cx.lineWidth=2.5; cx.beginPath();
   const yc=GY+GH/2, xc=GX+GW/2;
   cx.moveTo(GX,yc+0.5); cx.lineTo(GX+GW,yc+0.5); cx.moveTo(xc+0.5,GY); cx.lineTo(xc+0.5,GY+GH);
-  for(let i=0;i<=50;i++){ const x=GX+i*DW/5+0.5; cx.moveTo(x,yc-3); cx.lineTo(x,yc+4); }
-  for(let j=0;j<=40;j++){ const y=GY+j*DH/5+0.5; cx.moveTo(xc-3,y); cx.lineTo(xc+4,y); }
+  for(let i=0;i<=50;i++){ const x=GX+i*DW/5+0.5; cx.moveTo(x,yc-6); cx.lineTo(x,yc+7); }
+  for(let j=0;j<=40;j++){ const y=GY+j*DH/5+0.5; cx.moveTo(xc-6,y); cx.lineTo(xc+7,y); }
   cx.stroke();
   // 觸發
   const tdiv=TDIVS[sc.ti];
@@ -890,20 +890,20 @@ function drawScope(){
   let bx=GX;
   sc.ch.forEach((ch,i)=>{
     if(!ch.on) return;
-    cx.fillStyle=COL[i]; cx.fillRect(bx,410,26,26); cx.fillStyle="#000"; cx.font="bold 20px monospace"; cx.textAlign="center"; cx.fillText(String(i+1),bx+13,430);
+    cx.fillStyle=COL[i]; cx.fillRect(bx,458,26,26); cx.fillStyle="#000"; cx.font="bold 20px monospace"; cx.textAlign="center"; cx.fillText(String(i+1),bx+13,478);
     cx.textAlign="left"; cx.font="bold 24px monospace"; cx.fillStyle=COL[i];
-    cx.fillText(si(VDIVS[ch.vi],"V")+(ch.probe!==1?" "+ch.probe+"X":"")+(ch.coupling!=="DC"?" "+ch.coupling:""),bx+34,432); bx+=300;
+    cx.fillText(si(VDIVS[ch.vi],"V")+(ch.probe!==1?" "+ch.probe+"X":"")+(ch.coupling!=="DC"?" "+ch.coupling:""),bx+34,480); bx+=300;
   });
   cx.font="bold 24px monospace";
-  cx.fillStyle="#ffffff"; cx.fillText("M "+si(tdiv,"s"),GX,468);
-  cx.fillStyle="#9aa6b6"; cx.fillText("H "+(sc.hpos*tdiv===0?"0 s":si(sc.hpos*tdiv,"s")),GX+300,468);
+  cx.fillStyle="#ffffff"; cx.fillText("M "+si(tdiv,"s"),GX,516);
+  cx.fillStyle="#9aa6b6"; cx.fillText("H "+(sc.hpos*tdiv===0?"0 s":si(sc.hpos*tdiv,"s")),GX+300,516);
   // 通道選單（下方選單鍵）
   if(scMenuOpen()){
     const mc=sc.ch[S.scMenu.ch];
-    cx.fillStyle="#0a1018"; cx.fillRect(0,400,800,80);
+    cx.fillStyle="#0a1018"; cx.fillRect(0,448,800,88);
     const labs=["CH"+(S.scMenu.ch+1)+" 耦合 "+mc.coupling,"Probe "+mc.probe+"X","","","","",""];
-    labs.forEach((l,i)=>{ const x=6+i*113; cx.strokeStyle="#4a5666"; cx.lineWidth=2; cx.strokeRect(x,420,107,44);
-      cx.fillStyle="#e6eef7"; cx.font="bold 19px sans-serif"; cx.textAlign="center"; cx.fillText(l,x+53,449); });
+    labs.forEach((l,i)=>{ const x=6+i*113; cx.strokeStyle="#4a5666"; cx.lineWidth=2; cx.strokeRect(x,468,107,44);
+      cx.fillStyle="#e6eef7"; cx.font="bold 19px sans-serif"; cx.textAlign="center"; cx.fillText(l,x+53,497); });
     cx.textAlign="left";
   }
   // 供練習判斷
