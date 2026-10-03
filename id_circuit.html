@@ -1,502 +1,477 @@
 <!DOCTYPE html>
-<html lang="zh-TW" class="h-full">
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>學號顯示電路設計器 (Student ID Circuit Designer Pro)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
-        .font-mono { font-family: 'Fira Code', monospace; }
-        
-        /* Custom Scrollbar for Light Theme */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f5f9; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>學號顯示電路設計器（組合邏輯 · 七段顯示器）</title>
+<style>
+/* ===== 基礎 ===== */
+*,*::before,*::after{box-sizing:border-box}
+:root{
+  --bg:#cfd4da; --ink:#17202b; --mute:#55616f; --line:#aab1ba;
+  --u1:#eef0f3; --u2:#dde1e6; --edge:#a9b0b9;
+  --scr:#0a1017; --scr2:#121b26; --scr-line:#2b3a4b;
+  --blue:#0b63c5; --blue-d:#084c96; --amber:#ffb020; --ok:#128a4a; --bad:#c62828;
+  --mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,"Courier New",monospace;
+  --sans:"Segoe UI","Microsoft JhengHei","PingFang TC","Noto Sans TC",system-ui,-apple-system,sans-serif;
+}
+html{scroll-behavior:smooth;scroll-padding-top:62px}
+body{margin:0;background:var(--bg);background-image:radial-gradient(#c3c9d0 1px,transparent 1px);background-size:14px 14px;color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
 
-        /* Light Proteus CAD Grid background */
-        .proteus-grid {
-            background-color: #f8fafc;
-            background-image: 
-                linear-gradient(rgba(203, 213, 225, 0.6) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(203, 213, 225, 0.6) 1px, transparent 1px);
-            background-size: 20px 20px;
-            border: 2px solid #cbd5e1;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
-        }
+/* ===== LED 主題（七段顯示器顏色） ===== */
+.theme-emerald{--led-on-1:#9cf83c;--led-on-2:#72e718;--led-on-3:#53ca0a;--led-stroke:#8af829;--led-glow:rgba(118,245,34,.85);--led-off-fill:#162417;--led-off-stroke:#0d170e;--accent-color:#76f522}
+.theme-blue{--led-on-1:#60a5fa;--led-on-2:#2563eb;--led-on-3:#1d4ed8;--led-stroke:#93c5fd;--led-glow:rgba(37,99,235,.85);--led-off-fill:#0f172a;--led-off-stroke:#1e293b;--accent-color:#3b82f6}
+.theme-amber{--led-on-1:#fde047;--led-on-2:#eab308;--led-on-3:#ca8a04;--led-stroke:#fef08a;--led-glow:rgba(234,179,8,.85);--led-off-fill:#261f14;--led-off-stroke:#17130b;--accent-color:#eab308}
+.theme-red-orange{--led-on-1:#ff5733;--led-on-2:#e34d26;--led-on-3:#c0392b;--led-stroke:#ff7654;--led-glow:rgba(227,77,38,.75);--led-off-fill:#151f28;--led-off-stroke:#0d151c;--accent-color:#e34d26}
+.theme-cyan{--led-on-1:#38edf8;--led-on-2:#10c5e7;--led-on-3:#089bba;--led-stroke:#5df3f8;--led-glow:rgba(16,197,231,.85);--led-off-fill:#13232c;--led-off-stroke:#0b171f;--accent-color:#10c5e7}
+.theme-violet{--led-on-1:#e879f9;--led-on-2:#c084fc;--led-on-3:#9333ea;--led-stroke:#f0abfc;--led-glow:rgba(192,132,252,.85);--led-off-fill:#231628;--led-off-stroke:#160d1b;--accent-color:#c084fc}
+.hw-segment-on{fill:url(#led-grad);stroke:var(--led-stroke);stroke-width:.5px;filter:drop-shadow(0 0 4px var(--led-glow));transition:fill .15s,filter .15s,stroke .15s}
+.hw-segment-off{fill:var(--led-off-fill);stroke:var(--led-off-stroke);stroke-width:.5px;opacity:.95;transition:fill .15s,stroke .15s}
+.seg-click{cursor:pointer}
 
-        /* Crisp Light Card Styling */
-        .light-panel {
-            background: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 15px -1px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
-        }
+/* ===== 頂部 ===== */
+.top{background:linear-gradient(#f4f6f8,#dfe3e8);border-bottom:1px solid var(--edge);box-shadow:0 1px 0 #fff inset,0 2px 6px rgba(0,0,0,.1)}
+.top-in{max-width:1320px;margin:0 auto;padding:8px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand .pwr{width:14px;height:14px;border-radius:50%;background:var(--accent-color);box-shadow:0 0 8px var(--led-glow),inset 0 0 3px rgba(255,255,255,.7);flex:none}
+.brand h1{font-size:19px;margin:0;line-height:1.25}
+.brand p{margin:0;font-size:12.5px;color:var(--mute);font-family:var(--mono)}
+.top-act{display:flex;gap:8px;flex-wrap:wrap}
+.flow{background:#2a3441;border-bottom:2px solid #11171f;position:sticky;top:0;z-index:35;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#5a6a80 #2a3441}
+.flow-in{max-width:1320px;margin:0 auto;padding:6px 16px;display:flex;gap:6px;white-space:nowrap}
+.flow a{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:20px;color:#dbe4ee;text-decoration:none;font-size:14.5px;border:1px solid #435064;background:#323e4e}
+.flow a b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#ffb020;color:#1a1200;font-size:13px}
+.flow a:hover{background:#3d4b5e}
+.flow a.on{background:var(--blue);border-color:#6aa6ee;color:#fff}
+@media(max-width:700px){.brand h1{font-size:17px}.brand p{display:none}}
 
-        /* Circuit Wire Interactive Styles */
-        .circuit-wire {
-            transition: stroke 0.2s ease, stroke-width 0.2s ease;
-            cursor: pointer;
-        }
-        .circuit-wire:hover {
-            stroke-width: 5px !important;
-            filter: drop-shadow(0 0 4px currentColor);
-        }
+/* ===== 版面 ===== */
+main{max-width:1320px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:18px}
+.unit{position:relative;background:linear-gradient(#f2f4f6,#e0e4e9);border:1px solid var(--edge);border-radius:14px;padding:18px 18px 18px;box-shadow:0 1px 0 #fff inset,0 3px 10px rgba(0,0,0,.12)}
+.unit::before,.unit::after{content:"";position:absolute;top:8px;width:8px;height:8px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#8e97a2);box-shadow:0 0 0 1px #7c8591}
+.unit::before{left:8px}.unit::after{right:8px}
+.plate{display:flex;align-items:center;gap:10px;margin:0 8px 14px;flex-wrap:wrap}
+.plate .no{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--ink);color:#ffb020;font-weight:700;font-family:var(--mono)}
+.plate h2{margin:0;font-size:18px}
+.plate small{font-family:var(--mono);color:var(--mute);font-size:12.5px;letter-spacing:.06em}
+.plate .sp{flex:1}
+.grid2{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px}
+@media(max-width:980px){.grid2{grid-template-columns:minmax(0,1fr)}}
+.well{background:#f7f8fa;border:1px solid #c3c9d1;border-radius:10px;padding:12px;box-shadow:inset 0 1px 3px rgba(0,0,0,.08)}
+.hint{color:var(--mute);font-size:13.5px}
 
-        /* Hardware LED Display Housing (Dark Slot for LED High Contrast) */
-        .hw-led-casing {
-            background: #0f172a;
-            border: 3px solid #334155;
-            border-radius: 12px;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
-        }
-        .hw-digit-slot {
-            background: #090d16;
-            border: 2px solid #1e293b;
-            border-radius: 8px;
-            box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.9);
-        }
-        .hw-digit-slot-active {
-            border-color: var(--accent-color, #16a34a);
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9), 0 0 16px var(--led-glow, rgba(22, 163, 74, 0.8));
-        }
+/* ===== 按鍵 ===== */
+.key{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;min-width:44px;padding:0 16px;border-radius:9px;border:1px solid #8a929c;border-bottom-width:3px;background:linear-gradient(#fdfdfe,#dfe3e8);color:var(--ink);font-weight:600;font-size:15px;text-decoration:none;white-space:nowrap}
+.key:hover{background:linear-gradient(#fff,#e9ecf0)}
+.key:active{transform:translateY(2px);border-bottom-width:1px}
+.key.pri{background:linear-gradient(#2f86ec,#0b63c5);border-color:#084c96;color:#fff}
+.key.pri:hover{background:linear-gradient(#4496f5,#1470d6)}
+.key.dark{background:linear-gradient(#3a4656,#252e3a);border-color:#10161d;color:#e8eef5}
+.key.lit{box-shadow:inset 0 -4px 0 var(--amber)}
+.key.sq{padding:0;width:48px}
+.theme-dots{display:flex;gap:6px}
+.dot{width:44px;height:44px;border-radius:50%;border:2px solid #7b848f;background:#dfe3e8;display:grid;place-items:center;padding:0}
+.dot i{width:22px;height:22px;border-radius:50%;display:block;box-shadow:inset 0 0 4px rgba(255,255,255,.6),0 0 6px rgba(0,0,0,.25)}
+.dot[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 3px #ffb020}
+.field{display:flex;flex-direction:column;gap:4px}
+.field>label,.lab{font-family:var(--mono);font-size:12px;letter-spacing:.07em;color:var(--mute);text-transform:uppercase}
+.lcd{width:100%;min-width:0;max-width:100%;min-height:52px;padding:6px 14px;background:var(--scr);border:3px solid #3c4756;border-radius:9px;color:#8cf83a;font-family:var(--mono);font-size:26px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;box-shadow:inset 0 2px 6px #000}
+select.sel{min-height:44px;padding:0 10px;border-radius:9px;border:1px solid #8a929c;background:#fff;font-weight:600}
+.sw{display:inline-flex;align-items:center;min-height:44px;border-radius:24px;border:1px solid #6c7581;background:#c6ccd3;padding:3px;gap:0}
+.sw span{padding:0 14px;min-height:36px;display:inline-flex;align-items:center;border-radius:20px;font-weight:700;font-size:14px;color:#5a6572}
+.sw[data-mode="CA"] span:first-child,.sw[data-mode="CC"] span:last-child{background:linear-gradient(#ffcf5f,#ffb020);color:#2a1d00;box-shadow:0 1px 3px rgba(0,0,0,.3)}
 
-        /* Original Hardware Green & Hardware Blue LED Theme Palette */
-        .theme-emerald {
-            --led-on-1: #9cf83c;
-            --led-on-2: #72e718;
-            --led-on-3: #53ca0a;
-            --led-stroke: #8af829;
-            --led-glow: rgba(118, 245, 34, 0.85);
-            --led-off-fill: #162417;
-            --led-off-stroke: #0d170e;
-            --accent-color: #76f522;
-        }
-        .theme-blue {
-            --led-on-1: #60a5fa;
-            --led-on-2: #2563eb;
-            --led-on-3: #1d4ed8;
-            --led-stroke: #93c5fd;
-            --led-glow: rgba(37, 99, 235, 0.85);
-            --led-off-fill: #0f172a;
-            --led-off-stroke: #1e293b;
-            --accent-color: #3b82f6;
-        }
-        .theme-amber {
-            --led-on-1: #fde047;
-            --led-on-2: #eab308;
-            --led-on-3: #ca8a04;
-            --led-stroke: #fef08a;
-            --led-glow: rgba(234, 179, 8, 0.85);
-            --led-off-fill: #261f14;
-            --led-off-stroke: #17130b;
-            --accent-color: #eab308;
-        }
-        .theme-red-orange {
-            --led-on-1: #ff5733;
-            --led-on-2: #e34d26;
-            --led-on-3: #c0392b;
-            --led-stroke: #ff7654;
-            --led-glow: rgba(227, 77, 38, 0.75);
-            --led-off-fill: #151f28;
-            --led-off-stroke: #0d151c;
-            --accent-color: #e34d26;
-        }
-        .theme-cyan {
-            --led-on-1: #38edf8;
-            --led-on-2: #10c5e7;
-            --led-on-3: #089bba;
-            --led-stroke: #5df3f8;
-            --led-glow: rgba(16, 197, 231, 0.85);
-            --led-off-fill: #13232c;
-            --led-off-stroke: #0b171f;
-            --accent-color: #10c5e7;
-        }
-        .theme-violet {
-            --led-on-1: #e879f9;
-            --led-on-2: #c084fc;
-            --led-on-3: #9333ea;
-            --led-stroke: #f0abfc;
-            --led-glow: rgba(192, 132, 252, 0.85);
-            --led-off-fill: #231628;
-            --led-off-stroke: #160d1b;
-            --accent-color: #c084fc;
-        }
+@media(max-width:520px){.lcd{font-size:22px;letter-spacing:.1em}.unit{padding:14px 10px}.plate{margin:0 4px 12px}}
+/* ===== 螢幕（深色顯示區） ===== */
+.screen{background:var(--scr);border:3px solid #3c4756;border-radius:10px;box-shadow:inset 0 2px 10px #000;color:#cfe0f1}
+.read{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.read div{background:var(--scr);border:2px solid #3c4756;border-radius:8px;padding:6px 10px;color:#9fb4c9;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em}
+.read b{display:block;color:#8cf83a;font-size:28px;line-height:1.1;letter-spacing:.04em}
+.big{display:flex;justify-content:center;padding:14px 10px}
+.digits{padding:12px;overflow-x:auto}
+.digits-in{display:flex;gap:10px;min-width:max-content;justify-content:center}
+.digit{background:#090d16;border:2px solid #1e293b;border-radius:8px;padding:8px 10px;min-width:74px;text-align:center;color:#8da0b5;font-family:var(--mono);transition:transform .15s}
+.digit:hover{transform:translateY(-2px)}
+.digit.cur{border-color:var(--accent-color);box-shadow:0 0 14px var(--led-glow)}
+.digit small{display:block;font-size:11px}
+.digit .ch{font-weight:700;font-size:14px}
+.digit.cur .ch{color:var(--accent-color)}
 
-        .hw-segment-on {
-            fill: url(#led-grad);
-            stroke: var(--led-stroke);
-            stroke-width: 0.5px;
-            filter: drop-shadow(0px 0px 4px var(--led-glow));
-            transition: fill 0.15s ease, filter 0.15s ease, stroke 0.15s ease;
-        }
-        .hw-segment-off {
-            fill: var(--led-off-fill);
-            stroke: var(--led-off-stroke);
-            stroke-width: 0.5px;
-            opacity: 0.95;
-            transition: fill 0.15s ease, stroke 0.15s ease;
-        }
-    </style>
+/* ===== 布林式（上線 overbar） ===== */
+.tm{display:inline-flex;align-items:center;gap:2px;font-family:var(--mono);font-weight:800}
+.ov{display:inline-block;border-top:2px solid currentColor;line-height:1.05;padding:0 1px}
+.eqbar{background:var(--scr);border:3px solid #3c4756;border-radius:10px;padding:12px 16px;color:#fff;box-shadow:inset 0 2px 8px #000}
+.eqbar .lab{color:var(--amber)}
+#mainEquation{font-family:var(--mono);font-size:30px;font-weight:800;display:flex;align-items:center;gap:8px;overflow-x:auto;white-space:nowrap;padding:4px 0}
+#mainEquation .ov{border-top-color:#9cf83c;color:#9cf83c}
+#mainEquation .tm{color:#fff;font-size:28px}
+#mainEquation .nm{color:#9cf83c}
+.plus{color:var(--amber);font-weight:800;padding:0 4px}
+.eqgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px}
+.eqitem{display:flex;align-items:center;gap:10px;text-align:left;min-height:52px;padding:8px 12px;border-radius:10px;border:1px solid #9aa3ad;background:#fff;overflow-x:auto}
+.eqitem .sg{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:8px;background:var(--ink);color:#8cf83a;font-family:var(--mono);font-weight:800;font-size:18px}
+.eqitem .ex{font-family:var(--mono);font-size:20px;font-weight:800;white-space:nowrap}
+.eqitem[aria-pressed="true"]{border-color:var(--blue);box-shadow:0 0 0 3px rgba(11,99,197,.28);background:#eef5fe}
+.eqitem[aria-pressed="true"] .sg{background:var(--blue);color:#fff}
+.steps{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px;font-size:16px}
+.steps li{background:#fff;border:1px solid #c9ced6;border-radius:8px;padding:8px 12px}
+.steps .tm{font-size:21px;color:var(--blue-d);margin-right:6px}
+.steps .ov{border-top-color:var(--blue-d)}
+.segpills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{width:44px;height:44px;border-radius:10px;border:1px solid #8a929c;border-bottom-width:3px;background:linear-gradient(#fff,#dfe3e8);font-family:var(--mono);font-weight:800;font-size:18px}
+.pill[aria-pressed="true"]{background:linear-gradient(#2f86ec,#0b63c5);color:#fff;border-color:#084c96}
+
+/* ===== 卡諾圖 ===== */
+.kplate{background:#fff;border:1px solid #b9c0c9;border-radius:10px;padding:18px 12px;display:flex;flex-direction:column;align-items:center;overflow-x:auto}
+.kmx{display:flex;flex-direction:column;align-items:center;user-select:none;font-family:var(--mono)}
+.kbar-top{display:flex;margin-left:96px;margin-bottom:4px}
+.kbar-top .sp{width:56px}
+.kb{font-size:12px;font-weight:900;padding:2px 0;text-align:center}
+.kb.t{width:114px;margin:0 2px;border-bottom:2px solid;border-radius:4px 4px 0 0}
+.kb.l{display:flex;align-items:center;justify-content:center;border-right:2px solid;border-radius:4px 0 0 4px;padding:0 4px}
+.kb.amber{color:#92400e;background:#fef3c7;border-color:#f59e0b}
+.kb.green{color:#166534;background:#dcfce7;border-color:#22c55e}
+.kb.sky{color:#075985;background:#e0f2fe;border-color:#0ea5e9}
+.kb.purple{color:#6b21a8;background:#f3e8ff;border-color:#a855f7}
+.kwrap{display:flex;align-items:flex-start}
+.kleft{display:flex;flex-direction:column;justify-content:flex-end;margin-right:6px;padding-top:44px}
+.kcol{display:flex;flex-direction:column}
+.khead{display:flex;margin-bottom:6px}
+.corner{width:64px;height:40px;margin-right:8px;flex:none;background:#10161d;color:var(--amber);font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;border-radius:8px;letter-spacing:.06em}
+.kc{width:56px;height:40px;margin:0 2px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;background:#e2e6eb;border:1px solid #b3bac3;border-radius:8px}
+.krows{display:flex}
+.krowh{display:flex;flex-direction:column;margin-right:8px}
+.kr{width:64px;height:56px;margin:2px 0;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;background:#e2e6eb;border:1px solid #b3bac3;border-radius:8px}
+.kgrid{display:grid;grid-template-columns:repeat(4,1fr);border:2px solid #8a929c;background:#f8fafc;position:relative;border-radius:12px;overflow:hidden}
+.kgrid>svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10}
+.kcell{width:56px;height:56px;border:1px solid #c5ccd5;display:flex;align-items:center;justify-content:center;position:relative;z-index:0;font-size:22px;font-weight:800}
+.kcell .v1{color:#0b1220}.kcell .vx{color:#128a4a}.kcell .v0{color:#a1abb8;font-weight:600}
+.kcell .mi{position:absolute;top:1px;left:4px;font-size:10px;font-weight:600;font-style:normal;color:#8896a6}
+.kcell .now{position:absolute;inset:0;border:2px solid #dc2626;background:rgba(220,38,38,.18);z-index:20;pointer-events:none}
+.legend{margin-top:12px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;font-size:13px;font-weight:600}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:6px}
+
+/* ===== 真值表 ===== */
+.ttwrap{overflow-x:auto}
+table.tt{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:15px;background:#fff}
+table.tt th,table.tt td{border:1px solid #9aa3ae;padding:5px 8px;text-align:center}
+table.tt thead th{background:#d9dee4;font-weight:700}
+table.tt thead small{display:block;font-weight:500;color:var(--mute);font-size:11px}
+table.tt td.in{background:#eef2f6;font-weight:700}
+table.tt td.on0{color:#128a4a;font-weight:800}
+table.tt td.on1{color:#7c8794}
+table.tt td.dc{background:#fff6dc;color:#8a5a00;font-weight:800}
+table.tt td.blank{background:#fff}
+table.tt tr.cur td{background:#fde7e7}
+table.tt tr.cur td.in{background:#f8c9c9}
+table.tt td.dc{background:#fff0c7}
+table.tt .tt-in{width:36px;height:34px;text-align:center;font:inherit;font-weight:800;text-transform:uppercase;border:2px solid #98a2ae;border-radius:6px;background:#fff;padding:0}
+table.tt .tt-in.ok{border-color:var(--ok);background:#e5f7ec}
+table.tt .tt-in.bad{border-color:var(--bad);background:#fde8e8}
+.ttprog{margin:8px 0 0;font-weight:700}
+
+/* ===== 電路圖 ===== */
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.bar .sp{flex:1}
+.zoom{display:inline-flex;align-items:center;border:1px solid #8a929c;border-radius:9px;background:#fff;overflow:hidden}
+.zoom button{min-width:44px;min-height:44px;border:0;background:#eef1f4;font-weight:800;font-size:18px}
+.zoom span{padding:0 12px;font-family:var(--mono);font-weight:700}
+.legend2{display:flex;gap:12px;font-size:13px;font-weight:700;font-family:var(--mono)}
+.legend2 i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.cvs{background-color:#f8fafc;background-image:linear-gradient(rgba(203,213,225,.7) 1px,transparent 1px),linear-gradient(90deg,rgba(203,213,225,.7) 1px,transparent 1px);background-size:20px 20px;border:2px solid #aeb6c0;border-radius:10px;padding:12px;overflow-x:auto;min-height:420px;box-shadow:inset 0 0 18px rgba(0,0,0,.05)}
+#circuitTransformGroup{transform-origin:top left;min-width:850px;display:flex;justify-content:center;transition:transform .1s}
+#circuitContainer{width:100%;max-width:1000px}
+.circuit-wire{transition:stroke .2s,stroke-width .2s;cursor:pointer}
+.circuit-wire:hover{stroke-width:5px!important;filter:drop-shadow(0 0 4px currentColor)}
+
+/* ===== Tina 接線表 ===== */
+table.tn{border-collapse:collapse;width:100%;font-size:14.5px;background:#fff}
+table.tn th,table.tn td{border:1px solid #9aa3ae;padding:6px 9px;text-align:left;vertical-align:top}
+table.tn th{background:#d9dee4}
+table.tn .mono{font-family:var(--mono);font-weight:700}
+.note{background:#fff7e0;border:1px solid #e9c46a;border-radius:8px;padding:8px 12px;font-size:14px;margin-top:10px}
+
+/* ===== 練習模式 ===== */
+.only-practice{display:none}
+body.practice .only-practice{display:block}
+body.practice .key.only-practice{display:inline-flex}
+body.practice .only-teacher{display:none}
+.lock{border:2px dashed #9aa3ae;border-radius:10px;padding:18px;text-align:center;color:var(--mute);background:#f4f6f8}
+.eqchk{margin-top:12px}
+.eqchk input{width:100%;min-height:48px;padding:6px 12px;border:2px solid #8a929c;border-radius:9px;font-family:var(--mono);font-size:20px;font-weight:700}
+#eqFeedback{margin:8px 0 0;font-weight:700}
+#eqFeedback.ok{color:var(--ok)}#eqFeedback.bad{color:var(--bad)}
+
+/* ===== 視窗 ===== */
+.modal{position:fixed;inset:0;background:rgba(16,22,30,.62);z-index:60;display:none;align-items:center;justify-content:center;padding:14px}
+.modal.open{display:flex}
+.mbox{background:#f2f4f6;border:1px solid var(--edge);border-radius:14px;max-width:960px;width:100%;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.4);overflow:hidden}
+.mhead{display:flex;align-items:center;gap:10px;padding:10px 14px;background:linear-gradient(#e9ecf0,#d6dbe1);border-bottom:1px solid var(--edge)}
+.mhead h3{margin:0;font-size:17px;flex:1}
+.mbody{padding:14px;overflow:auto}
+textarea.code{width:100%;height:170px;background:var(--scr);color:#9cf83c;border:2px solid #3c4756;border-radius:9px;padding:10px;font-family:var(--mono);font-size:14px;resize:none}
+textarea.code.l{color:#5df3f8;height:130px}
+.cp{display:flex;justify-content:space-between;align-items:center;margin:10px 0 4px;font-family:var(--mono);font-weight:700;font-size:14px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#17202b;color:#fff;padding:10px 18px;border-radius:24px;opacity:0;pointer-events:none;transition:.25s;z-index:80;font-weight:600}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+footer{max-width:1320px;margin:0 auto;padding:6px 16px 28px;color:var(--mute);font-size:13px;font-family:var(--mono);text-align:center}
+
+/* ===== 學習單（螢幕預覽與列印） ===== */
+.ws{background:#fff;color:#000;font-family:var(--sans);padding:6mm 4mm;font-size:12.5px;line-height:1.45}
+.ws h1{text-align:center;font-size:20px;margin:0 0 4px}
+.ws .info{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;margin:4px 0}
+.ws .info u{display:inline-block;min-width:90px;border-bottom:1px solid #000;text-decoration:none}
+.ws .tk{font-size:14px;margin:8px 0}
+.ws .tk b{color:#c0392b;border-bottom:1px solid #c0392b}
+.ws table.tt{font-size:13px}
+.ws table.tt th,.ws table.tt td{border-color:#000;padding:3px 6px}
+.ws table.tt thead th{background:#f0f0f0}
+.ws table.tt thead tr:nth-child(2) th.hi{background:#1f3a6e;color:#fff}
+.ws table.tt td.dc{background:#fff5d6}
+.ws table.tt td.fill{height:26px}
+.ws table.tt tr.cur td{background:inherit}
+.wsmaps{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;margin-top:10px}
+.wsmap{border:1px solid #000;padding:6px;break-inside:avoid;page-break-inside:avoid}
+.wsmap .kplate{border:0;padding:4px 0;background:none;overflow:visible}
+.wsmap .kmx{zoom:.78}
+.wsmap .eqln{font-weight:700;font-family:var(--mono);margin-top:4px;min-height:26px}
+.wsmap .eqln .ov{border-top-color:currentColor}
+.ws.teacher .eqln{color:#c0392b}
+.wsbot{display:grid;grid-template-columns:240px 1fr;gap:14px;margin-top:10px;break-inside:avoid;page-break-inside:avoid}
+.wsbot .fig{background:#efefef;padding:10px;display:flex;justify-content:center}
+.wsbot .rules{border:1px solid #000;padding:8px 12px;font-size:12.5px}
+.wsbot .rules li{margin:4px 0}
+.wsbot .rules em{color:#d9531e;font-style:normal}
+.wseqs{margin-top:8px;font-family:var(--mono);font-weight:700;color:#c0392b;column-count:2}
+.ws-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+@media(max-width:700px){.wsmaps,.wsbot{grid-template-columns:1fr}}
+@media print{
+  @page{size:A4;margin:10mm}
+  html,body{background:#fff!important}
+  body{background-image:none!important}
+  .top,.flow,main,footer,#toast,.modal:not(#wsModal){display:none!important}
+  #wsModal{display:block!important;position:static;background:none;padding:0}
+  #wsModal .mbox{box-shadow:none;border:0;max-height:none;max-width:none;background:none;overflow:visible}
+  #wsModal .mhead,#wsModal .ws-toolbar{display:none!important}
+  #wsModal .mbody{padding:0;overflow:visible}
+  .ws{padding:0}
+  .ws .kmx{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  table.tt td,table.tt th,.kb,.kgrid svg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
 </head>
-<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col font-sans antialiased theme-emerald selection:bg-emerald-600 selection:text-white text-base sm:text-lg">
+<body class="theme-emerald">
 
-    <!-- GLOBAL SVG DEFINITIONS FOR LED GRADIENT -->
-    <svg width="0" height="0" class="absolute">
-        <defs>
-            <linearGradient id="led-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="var(--led-on-1)" />
-                <stop offset="50%" stop-color="var(--led-on-2)" />
-                <stop offset="100%" stop-color="var(--led-on-3)" />
-            </linearGradient>
-        </defs>
-    </svg>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="led-grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="var(--led-on-1)"/><stop offset="50%" stop-color="var(--led-on-2)"/><stop offset="100%" stop-color="var(--led-on-3)"/>
+    </linearGradient>
+  </defs>
+</svg>
 
-    <!-- TOP LIGHT HEADER BAR -->
-    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm py-1.5">
-        <div class="max-w-[1700px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
-            
-            <!-- Left Branding -->
-            <div class="flex items-center gap-3.5">
-                <div class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black text-2xl shadow-md shadow-emerald-600/20">
-                    ⚙
-                </div>
-                <div>
-                    <div class="flex items-center gap-2.5">
-                        <h1 class="font-black text-xl sm:text-2xl text-slate-900 tracking-wide">學號顯示電路 互動教學系統</h1>
-                        <span class="px-2.5 py-1 rounded text-xs sm:text-sm font-mono font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">明亮白底版</span>
-                    </div>
-                    <p class="text-sm text-slate-500 font-mono font-medium">Quine-McCluskey K-Map Solver & ANSI Logic Schematic Engine</p>
-                </div>
-            </div>
-
-            <!-- Top Action Nav Buttons -->
-            <div class="flex items-center gap-3 flex-wrap">
-                <button onclick="openModal('truthTableModal')" class="px-4 py-2 rounded-xl text-sm sm:text-base font-extrabold bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-300 transition flex items-center gap-2 shadow-sm">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
-                    全七段真值表
-                </button>
-
-                <button onclick="openModal('exportModal')" class="px-4 py-2 rounded-xl text-sm sm:text-base font-extrabold bg-slate-200 text-slate-800 hover:bg-slate-300 border border-slate-300 transition flex items-center gap-2 shadow-sm">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 18 8 18"/></svg>
-                    Verilog / LaTeX
-                </button>
-
-                <div class="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-300">
-                    <span class="text-sm font-extrabold text-slate-600">模式:</span>
-                    <button id="modeToggle" class="px-3.5 py-1.5 rounded-lg text-sm font-black transition-all shadow-sm bg-emerald-600 hover:bg-emerald-700 text-white">
-                        共陽極 (CA)
-                    </button>
-                </div>
-
-                <a href="index.html" target="_top" class="px-4 py-2 rounded-xl text-sm sm:text-base font-extrabold bg-emerald-600 text-white hover:bg-emerald-700 transition flex items-center gap-1.5 shadow-sm">
-                    <span>🏠 返回首頁</span>
-                </a>
-            </div>
-        </div>
-    </header>
-
-    <!-- STEP / PRESET SELECTION BAR -->
-    <div class="bg-slate-200/80 border-b border-slate-300 py-3 px-4 sm:px-6">
-        <div class="max-w-[1700px] mx-auto flex items-center gap-4 overflow-x-auto">
-            <span class="text-sm sm:text-base font-extrabold text-emerald-800 flex items-center gap-1.5 shrink-0 font-mono">
-                <span class="text-emerald-600 text-lg">≡</span> 選擇學號 Step 狀態 (數字點亮):
-            </span>
-            <div id="stepTabBar" class="flex items-center gap-2 shrink-0 overflow-x-auto py-1">
-                <!-- Injected by JS -->
-            </div>
-        </div>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <span class="pwr" aria-hidden="true"></span>
+      <div>
+        <h1>學號顯示電路 互動教學系統</h1>
+        <p>組合邏輯設計 · 卡諾圖化簡 · 共陽／共陰七段顯示器</p>
+      </div>
     </div>
-
-    <!-- MAIN DASHBOARD MASTER-DETAIL 2-COLUMN LAYOUT -->
-    <main class="flex-1 max-w-[1700px] w-full mx-auto p-4 sm:p-6 flex flex-col lg:flex-row gap-6">
-
-        <!-- LEFT SIDEBAR COLUMN -->
-        <aside class="w-full lg:w-[380px] xl:w-[410px] flex-none flex flex-col gap-6">
-            
-            <!-- Parameter Input Card -->
-            <div class="light-panel rounded-2xl p-5 space-y-4">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm sm:text-base font-extrabold text-emerald-700 uppercase tracking-wider font-mono flex items-center gap-2">
-                        <span>⚙</span> 七段顯示器 LED 主題主題
-                    </h2>
-                    <div class="flex items-center gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-300">
-                        <button onclick="setTheme('emerald')" class="w-5 h-5 rounded-full bg-emerald-500 hover:scale-110 transition shadow-sm" title="綠光 LED (預設/共陽極)"></button>
-                        <button onclick="setTheme('blue')" class="w-5 h-5 rounded-full bg-blue-600 hover:scale-110 transition shadow-sm" title="藍光 LED (共陰極)"></button>
-                        <button onclick="setTheme('red-orange')" class="w-5 h-5 rounded-full bg-orange-600 hover:scale-110 transition shadow-sm" title="紅光 LED"></button>
-                        <button onclick="setTheme('amber')" class="w-5 h-5 rounded-full bg-amber-500 hover:scale-110 transition shadow-sm" title="黃光 LED"></button>
-                    </div>
-                </div>
-
-                <div class="flex items-center gap-2.5">
-                    <input type="text" id="studentId" value="315001" maxlength="14" 
-                        class="w-full text-2xl font-mono font-extrabold tracking-widest px-4 py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none uppercase text-emerald-700"
-                        placeholder="學號..."
-                    >
-                    <select id="presetSelect" class="bg-slate-50 border border-slate-300 text-sm font-bold text-slate-800 rounded-xl px-3 py-3.5 outline-none hover:bg-slate-100">
-                        <option value="">快速範例...</option>
-                        <option value="315001" selected>預設: 315001</option>
-                        <option value="40953001">40953001</option>
-                        <option value="11250123">11250123</option>
-                        <option value="01234567">01234567</option>
-                        <option value="89ABCDEF">89ABCDEF</option>
-                    </select>
-                </div>
-
-                <!-- Playback Buttons -->
-                <div class="flex items-center gap-2 pt-1">
-                    <button id="stepPrevBtn" class="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition active:scale-95 shadow-sm" title="上一步">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg>
-                    </button>
-                    <button id="playBtn" class="flex-1 bg-emerald-600 text-white py-3 rounded-xl hover:bg-emerald-700 flex justify-center items-center gap-2 transition font-black text-base shadow-md shadow-emerald-600/20">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                        開始模擬
-                    </button>
-                    <button id="stepNextBtn" class="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition active:scale-95" title="下一步">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
-                    </button>
-                    <button id="resetBtn" class="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition active:scale-95" title="重置">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Single Digit Focused Display Card -->
-            <div class="light-panel rounded-2xl p-5 flex flex-col justify-between items-center relative overflow-hidden">
-                <div class="w-full flex items-center justify-between border-b border-slate-200 pb-3 mb-3">
-                    <div>
-                        <div class="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">當前 Step 狀態</div>
-                        <div class="flex items-baseline gap-2.5 mt-1">
-                            <span id="currentState" class="text-3xl font-extrabold text-emerald-700 font-mono">0</span>
-                            <span class="text-sm font-mono text-slate-600 font-bold">(2進位: <span id="currentBin" class="text-emerald-800 font-extrabold">0000</span>)</span>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-xs font-mono font-bold text-slate-500 uppercase tracking-wider">顯示字元</div>
-                        <div id="currentChar" class="text-4xl font-black text-emerald-700 font-mono">3</div>
-                    </div>
-                </div>
-
-                <div class="w-full flex items-center justify-center py-2">
-                    <div class="hw-led-casing p-5 flex items-center justify-center">
-                        <div class="hw-digit-slot px-6 py-5 flex items-center justify-center" id="singleDigitBay">
-                            <svg id="sevenSegSvg" width="165" height="245" viewBox="0 0 100 150">
-                                <!-- Injected by JS -->
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 7-Segment Boolean Equations Sidebar List -->
-            <div class="light-panel rounded-2xl p-5 flex flex-col flex-1">
-                <div class="flex items-center justify-between border-b border-slate-200 pb-3 mb-3">
-                    <h3 class="text-sm sm:text-base font-extrabold text-sky-700 uppercase tracking-wider font-mono flex items-center gap-2">
-                        <span>📋</span> 全七段布林方程式
-                    </h3>
-                    <span class="text-xs text-slate-500 font-mono font-bold">點擊切換 K-Map</span>
-                </div>
-
-                <div id="equationList" class="space-y-2.5 overflow-y-auto max-h-[420px] pr-1">
-                    <!-- Injected by JS -->
-                </div>
-            </div>
-
-        </aside>
-
-        <!-- RIGHT MAIN CONTENT COLUMN -->
-        <div class="flex-1 min-w-0 flex flex-col gap-6">
-            
-            <!-- Multi-Digit Display Panel Card -->
-            <div class="light-panel rounded-2xl p-5">
-                <div class="flex items-center justify-between mb-3">
-                    <h2 id="multiDigitModuleTitle" class="text-sm sm:text-base font-extrabold text-emerald-700 uppercase tracking-wider font-mono flex items-center gap-2.5">
-                        <span class="w-3.5 h-3.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                        7-Segment 顯示面板 (Hardware LED Display Module)
-                    </h2>
-                    <span class="text-xs sm:text-sm text-slate-500 font-mono font-bold">點擊卡片跳轉 Step</span>
-                </div>
-
-                <div class="hw-led-casing p-5 overflow-x-auto">
-                    <div id="multiDigitModule" class="flex items-center justify-center gap-4 min-w-max">
-                        <!-- Injected by JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main K-Map Analysis & Simplification Card -->
-            <div class="light-panel rounded-2xl p-5 sm:p-6 flex flex-col gap-5">
-                
-                <!-- Segment Selector Bar -->
-                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
-                    <div class="flex items-center gap-3.5">
-                        <span class="w-11 h-11 rounded-xl bg-emerald-100 border border-emerald-300 font-mono font-black text-2xl text-emerald-800 flex items-center justify-center shadow-sm" id="currentSegTitle">
-                            a
-                        </span>
-                        <div>
-                            <h2 class="text-base sm:text-xl font-black text-slate-900 flex items-center gap-2">
-                                段邏輯與卡諾圖化簡 (K-Map Analysis)
-                            </h2>
-                            <p class="text-xs sm:text-sm text-slate-500 font-mono font-medium">Quine-McCluskey Essential Prime Implicants</p>
-                        </div>
-                    </div>
-
-                    <!-- Segment Pills Buttons -->
-                    <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-300" id="segButtons">
-                        <!-- Injected by JS -->
-                    </div>
-                </div>
-
-                <!-- Boolean Equation Banner Bar (Dark Banner for Overbar High Contrast) -->
-                <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col gap-2.5 shadow-md">
-                    <span class="text-base sm:text-xl font-black text-amber-400 uppercase tracking-wider font-mono">
-                        最簡布林代數表示式 (BOOLEAN OVERBAR EXPRESSION):
-                    </span>
-                    <div id="mainEquation" class="font-mono text-3xl sm:text-4xl text-white font-black tracking-wider flex items-center gap-2 overflow-x-auto whitespace-nowrap py-1.5"></div>
-                </div>
-
-                <!-- K-Map Graphic Container (Textbook Outer ABC Variable Layout) -->
-                <div class="bg-white rounded-xl border border-slate-300 p-6 flex flex-col items-center justify-center relative min-h-[300px] shadow-sm">
-                    
-                    <div id="kmapGraphicBay" class="w-full flex justify-center py-2">
-                        <!-- Injected by JS with Corner Box & Outer ABC Variable Bars -->
-                    </div>
-
-                    <!-- Legend -->
-                    <div class="mt-4 text-xs font-mono text-slate-700 font-bold flex gap-5 flex-wrap justify-center">
-                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 bg-red-500/30 border border-red-500 rounded-sm"></span> 當前 Step</span>
-                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 border border-emerald-600 rounded-sm bg-emerald-500/20"></span> 圈選 (PI Group)</span>
-                        <span class="flex items-center gap-2"><span class="w-3.5 h-3.5 border border-emerald-600 rounded-sm border-dashed"></span> 環繞相鄰</span>
-                    </div>
-                </div>
-
-                <!-- Simplification Steps Box -->
-                <div class="bg-slate-50 rounded-xl p-4 sm:p-5 border border-slate-200 space-y-3">
-                    <h3 class="font-extrabold text-emerald-800 text-sm sm:text-base flex items-center gap-2 border-b border-slate-200 pb-2.5">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                        卡諾圖圈選詳解 (Simplification Steps):
-                    </h3>
-                    <ul id="simplificationSteps" class="space-y-2.5 text-base sm:text-lg text-slate-800 font-mono font-bold leading-relaxed">
-                        <!-- Injected by JS -->
-                    </ul>
-                </div>
-
-            </div>
-
-            <!-- Proteus Standard ANSI Schematic Canvas Card -->
-            <div class="light-panel rounded-2xl p-5 sm:p-6 flex flex-col">
-                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4 mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-xl bg-sky-100 border border-sky-300 flex items-center justify-center text-sky-700 font-extrabold text-xl">
-                            ⚡
-                        </div>
-                        <div>
-                            <h3 class="text-base sm:text-lg font-black text-slate-900">ANSI 標準邏輯電路圖 (Logic Gate Schematic Canvas)</h3>
-                            <p class="text-xs sm:text-sm text-slate-500 font-mono font-medium">Standard ANSI Logic Gate Symbols (NOT, AND, OR) with Compact Symmetrical Pins</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center gap-3">
-                        <div class="hidden sm:flex items-center gap-3 text-xs sm:text-sm font-mono pr-3 border-r border-slate-200 font-bold">
-                            <span class="flex items-center gap-1.5 text-red-600"><span class="w-3 h-3 rounded-full bg-red-600"></span> High (1)</span>
-                            <span class="flex items-center gap-1.5 text-sky-600"><span class="w-3 h-3 rounded-full bg-sky-600"></span> Low (0)</span>
-                        </div>
-
-                        <div class="flex items-center bg-slate-100 rounded-xl p-1.5 border border-slate-300">
-                            <button onclick="changeZoom(-0.1)" class="p-1.5 text-slate-700 hover:text-black transition font-bold" title="縮小">-</button>
-                            <span id="zoomVal" class="text-xs sm:text-sm font-mono px-2 text-emerald-700 font-extrabold">100%</span>
-                            <button onclick="changeZoom(0.1)" class="p-1.5 text-slate-700 hover:text-black transition font-bold" title="放大">+</button>
-                            <button onclick="resetZoom()" class="p-1.5 text-slate-700 hover:text-black transition border-l border-slate-300 ml-1 font-bold" title="重置">⟲</button>
-                        </div>
-
-                        <button onclick="exportSchematicSVG()" class="px-4 py-2 rounded-xl text-xs sm:text-sm bg-emerald-600 text-white font-black hover:bg-emerald-700 transition shadow-sm">
-                            下載 SVG 電路圖
-                        </button>
-                    </div>
-                </div>
-
-                <!-- SCHEMATIC CANVAS CONTAINER -->
-                <div id="circuitCanvasContainer" class="w-full overflow-x-auto proteus-grid rounded-xl border border-slate-300 p-4 min-h-[460px]">
-                    <div id="circuitTransformGroup" class="transition-transform duration-100 origin-top-left w-full min-w-[850px] flex justify-center">
-                        <div id="circuitContainer" class="w-full max-w-[1000px] flex justify-center"></div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-    </main>
-
-    <!-- FOOTER -->
-    <footer class="border-t border-slate-200 bg-white py-4 px-6 text-center text-xs sm:text-sm text-slate-500 font-mono font-medium">
-        Student ID Circuit Designer Pro &copy; 2026 | Standard ANSI Logic Gate Schematic Engine
-    </footer>
-
-    <!-- MODAL 1: TRUTH TABLE MODAL -->
-    <div id="truthTableModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-300 rounded-2xl max-w-4xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h3 class="text-base sm:text-lg font-extrabold text-emerald-800 flex items-center gap-2">
-                    <span>📊</span> 全七段顯示器真值表 (Full 7-Segment Truth Table)
-                </h3>
-                <button onclick="closeModal('truthTableModal')" class="text-slate-500 hover:text-black p-1.5 text-lg font-bold">✕</button>
-            </div>
-            <div class="p-6 overflow-y-auto flex-1">
-                <table class="w-full text-left border-collapse text-sm sm:text-base font-mono">
-                    <thead>
-                        <tr class="border-b border-slate-300 bg-slate-100 text-slate-800 uppercase font-extrabold">
-                            <th class="p-3">State</th>
-                            <th class="p-3">Input (Binary)</th>
-                            <th class="p-3 text-emerald-700">Char</th>
-                            <th class="p-3 text-center">a</th>
-                            <th class="p-3 text-center">b</th>
-                            <th class="p-3 text-center">c</th>
-                            <th class="p-3 text-center">d</th>
-                            <th class="p-3 text-center">e</th>
-                            <th class="p-3 text-center">f</th>
-                            <th class="p-3 text-center">g</th>
-                        </tr>
-                    </thead>
-                    <tbody id="truthTableBody" class="divide-y divide-slate-200">
-                        <!-- Injected by JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="top-act">
+      <button class="key" onclick="openModal('truthTableModal')">全七段真值表</button>
+      <button class="key" onclick="openWorksheet()">列印學習單</button>
+      <button class="key" onclick="openModal('exportModal')">Verilog / LaTeX</button>
+      <a class="key pri" href="index.html" target="_top">返回首頁</a>
     </div>
+  </div>
+</header>
 
-    <!-- MODAL 2: EXPORT MODAL -->
-    <div id="exportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-300 rounded-2xl max-w-3xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-            <div class="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h3 class="text-base sm:text-lg font-extrabold text-emerald-800 flex items-center gap-2">
-                    <span>💻</span> 邏輯導出的 Verilog 與 LaTeX 程式碼
-                </h3>
-                <button onclick="closeModal('exportModal')" class="text-slate-500 hover:text-black p-1.5 text-lg font-bold">✕</button>
+<nav class="flow" aria-label="學習流程">
+  <div class="flow-in">
+    <a href="#sec-panel" data-sec="sec-panel"><b>1</b>學號與顯示</a>
+    <a href="#sec-truth" data-sec="sec-truth"><b>2</b>真值表</a>
+    <a href="#sec-kmap" data-sec="sec-kmap"><b>3</b>卡諾圖化簡</a>
+    <a href="#sec-eq" data-sec="sec-eq"><b>4</b>化簡式彙整</a>
+    <a href="#sec-circuit" data-sec="sec-circuit"><b>5</b>邏輯閘電路圖</a>
+    <a href="#sec-tina" data-sec="sec-tina"><b>6</b>Tina 接線表</a>
+  </div>
+</nav>
+
+<main>
+  <!-- 1. 控制面板與顯示 -->
+  <section class="unit" id="sec-panel" aria-labelledby="h-panel">
+    <div class="plate"><span class="no">1</span><h2 id="h-panel">學號與顯示</h2><small>CONTROL · DISPLAY</small></div>
+    <div class="grid2">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="well" style="display:flex;flex-direction:column;gap:12px">
+          <div class="field"><label for="studentId">學號（0～9、A～F、-）</label>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <input id="studentId" class="lcd" style="flex:1 1 200px;width:auto" type="text" value="315001" maxlength="14" autocomplete="off" spellcheck="false" placeholder="學號…">
+              <select id="presetSelect" class="sel" aria-label="快速範例">
+                <option value="">快速範例…</option>
+                <option value="315001" selected>預設：315001</option>
+                <option value="315040">315040（學習單範例）</option>
+                <option value="40953001">40953001</option>
+                <option value="11250123">11250123</option>
+                <option value="01234567">01234567</option>
+                <option value="89ABCDEF">89ABCDEF</option>
+              </select>
             </div>
-            <div class="p-6 overflow-y-auto flex-1 space-y-5">
-                <div>
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="text-sm font-bold text-slate-800 font-mono">Verilog HDL Hardware Module</span>
-                        <button onclick="copyText('verilogCode')" class="text-xs font-mono text-emerald-700 font-bold hover:underline">複製 Verilog</button>
-                    </div>
-                    <textarea id="verilogCode" readonly class="w-full h-44 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono text-sm text-lime-400 outline-none resize-none"></textarea>
-                </div>
-                <div>
-                    <div class="flex justify-between items-center mb-1.5">
-                        <span class="text-sm font-bold text-slate-800 font-mono">LaTeX Math Equations</span>
-                        <button onclick="copyText('latexCode')" class="text-xs font-mono text-sky-700 font-bold hover:underline">複製 LaTeX</button>
-                    </div>
-                    <textarea id="latexCode" readonly class="w-full h-32 bg-slate-900 border border-slate-800 rounded-xl p-3 font-mono text-sm text-cyan-400 outline-none resize-none"></textarea>
-                </div>
-            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button id="stepPrevBtn" class="key sq" title="上一步" aria-label="上一步"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polygon points="19 20 9 12 19 4 19 20"/><line x1="5" y1="19" x2="5" y2="5"/></svg></button>
+            <button id="playBtn" class="key pri" style="flex:1 1 140px"></button>
+            <button id="stepNextBtn" class="key sq" title="下一步" aria-label="下一步"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg></button>
+            <button id="resetBtn" class="key sq" title="重置" aria-label="重置"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></button>
+          </div>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+            <div class="field"><span class="lab">七段顯示器類型</span>
+              <button id="modeToggle" class="sw" type="button" data-mode="CA" aria-label="切換共陽極或共陰極"><span>共陽 CA</span><span>共陰 CC</span></button></div>
+            <div class="field"><span class="lab">LED 顏色</span>
+              <div class="theme-dots" id="themeDots">
+                <button class="dot" data-theme="emerald" aria-label="綠光" title="綠光"><i style="background:#22c55e"></i></button>
+                <button class="dot" data-theme="blue" aria-label="藍光" title="藍光"><i style="background:#2563eb"></i></button>
+                <button class="dot" data-theme="red-orange" aria-label="紅橘光" title="紅橘光"><i style="background:#ea580c"></i></button>
+                <button class="dot" data-theme="amber" aria-label="黃光" title="黃光"><i style="background:#eab308"></i></button>
+                <button class="dot" data-theme="cyan" aria-label="青光" title="青光"><i style="background:#06b6d4"></i></button>
+                <button class="dot" data-theme="violet" aria-label="紫光" title="紫光"><i style="background:#a855f7"></i></button>
+              </div></div>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;border-top:1px dashed #b9c0c9;padding-top:10px">
+            <button id="practiceToggle" class="key" type="button" aria-pressed="false">練習模式：關</button>
+            <button id="revealAll" class="key only-practice" type="button" style="display:none">顯示全部答案</button>
+            <span class="hint">練習模式會隱藏答案，讓學生自己填真值表、化簡後輸入式子，系統即時檢查。</span>
+          </div>
         </div>
+        <div class="well">
+          <div class="lab" style="margin-bottom:6px">共陽極七段顯示器規則</div>
+          <ol id="ruleList" style="margin:0;padding-left:20px;font-size:14px"></ol>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="read">
+          <div>STATE 狀態<b id="currentState">0</b></div>
+          <div>BINARY 二進位<b id="currentBin">000</b></div>
+          <div>CHAR 顯示字元<b id="currentChar">3</b></div>
+        </div>
+        <div class="screen big"><svg id="sevenSegSvg" width="190" height="270" viewBox="-12 -8 124 166" role="img" aria-label="目前步驟的七段顯示器"></svg></div>
+      </div>
     </div>
+    <div class="screen digits" style="margin-top:14px">
+      <div class="lab" style="color:#9fb4c9;margin-bottom:6px" id="multiDigitModuleTitle">DISPLAY MODULE</div>
+      <div class="digits-in" id="multiDigitModule"></div>
+    </div>
+  </section>
 
+  <!-- 2. 真值表 -->
+  <section class="unit" id="sec-truth" aria-labelledby="h-truth">
+    <div class="plate"><span class="no">2</span><h2 id="h-truth">真值表</h2><small>TRUTH TABLE</small><span class="sp"></span>
+      <button class="key" onclick="openModal('truthTableModal')">放大檢視</button></div>
+    <p class="hint" style="margin:0 8px 10px" id="truthNote"></p>
+    <div class="ttwrap" id="truthInline"></div>
+  </section>
 
-    <!-- JAVASCRIPT LOGIC ENGINE -->
-    <script>
+  <!-- 3. 卡諾圖 -->
+  <section class="unit" id="sec-kmap" aria-labelledby="h-kmap">
+    <div class="plate"><span class="no">3</span><h2 id="h-kmap">卡諾圖化簡</h2><small>K-MAP · QUINE-MCCLUSKEY</small><span class="sp"></span>
+      <div class="segpills" id="segButtons" role="group" aria-label="選擇七段顯示器的段"></div></div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="eqbar"><div class="lab">最簡布林代數式（上橫線＝反相）</div><div id="mainEquation"></div></div>
+      <div class="kplate" id="kmapPlate">
+        <div id="kmapGraphicBay"></div>
+        <div class="legend" id="kmapLegend">
+          <span><i style="background:rgba(220,38,38,.25);border:1px solid #dc2626"></i>目前步驟</span>
+          <span><i style="background:rgba(22,163,74,.2);border:1px solid #16a34a"></i>圈選群組</span>
+          <span><i style="border:1.5px dashed #16a34a"></i>環繞相鄰</span>
+          <span><b style="font-family:var(--mono);color:#128a4a">X</b> 不在乎（Don't care）</span>
+        </div>
+      </div>
+      <div class="well" id="stepsWell">
+        <div class="lab" style="margin-bottom:6px">圈選詳解</div>
+        <ul class="steps" id="simplificationSteps"></ul>
+      </div>
+      <div class="well eqchk only-practice">
+        <label class="lab" for="eqInput">自我檢查：輸入「<span id="eqSegName">a</span>」的化簡式</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+          <input id="eqInput" type="text" autocomplete="off" spellcheck="false" placeholder="例如 C'B'A + CA'" style="flex:1 1 220px">
+          <button id="eqCheckBtn" class="key pri" type="button">檢查</button>
+        </div>
+        <p id="eqFeedback" role="status"></p>
+        <p class="hint">寫法：<code>'</code> 代表反相（C'）、<code>+</code> 代表 OR、相鄰相乘代表 AND；也可用 <code>!C</code>、<code>~C</code>。只要邏輯正確（Don't care 可自由取值）就算對。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 化簡式彙整 -->
+  <section class="unit" id="sec-eq" aria-labelledby="h-eq">
+    <div class="plate"><span class="no">4</span><h2 id="h-eq">七段化簡式彙整</h2><small>SEGMENT EQUATIONS</small></div>
+    <div id="eqArea"></div>
+  </section>
+
+  <!-- 5. 邏輯閘電路圖 -->
+  <section class="unit" id="sec-circuit" aria-labelledby="h-circ">
+    <div class="plate"><span class="no">5</span><h2 id="h-circ">邏輯閘電路圖</h2><small>ANSI LOGIC SCHEMATIC</small></div>
+    <div class="bar">
+      <div class="legend2"><span style="color:#dc2626"><i style="background:#dc2626"></i>High (1)</span><span style="color:#0284c7"><i style="background:#0284c7"></i>Low (0)</span></div>
+      <span class="sp"></span>
+      <div class="zoom"><button onclick="changeZoom(-0.1)" aria-label="縮小">－</button><span id="zoomVal">100%</span><button onclick="changeZoom(0.1)" aria-label="放大">＋</button><button onclick="resetZoom()" aria-label="重設縮放">⟲</button></div>
+      <button class="key pri" onclick="exportSchematicSVG()">下載 SVG 電路圖</button>
+    </div>
+    <div class="cvs" id="circuitCanvasContainer"><div id="circuitTransformGroup"><div id="circuitContainer"></div></div></div>
+  </section>
+
+  <!-- 6. Tina 接線表 -->
+  <section class="unit" id="sec-tina" aria-labelledby="h-tina">
+    <div class="plate"><span class="no">6</span><h2 id="h-tina">Tina 接線對照表</h2><small>GATE LIST FOR TINA</small></div>
+    <div id="tinaArea"></div>
+  </section>
+</main>
+<footer>學號顯示電路互動教學系統 · 運算結果與「組合邏輯電路設計 CBA 學號顯示器」學習單一致（C 為最高位 MSB，A 為最低位 LSB）</footer>
+
+<!-- 視窗：真值表 -->
+<div class="modal" id="truthTableModal" role="dialog" aria-modal="true" aria-labelledby="m1t">
+  <div class="mbox">
+    <div class="mhead"><h3 id="m1t">全七段顯示器真值表</h3><button class="key sq" onclick="closeModal('truthTableModal')" aria-label="關閉">✕</button></div>
+    <div class="mbody"><p class="hint" id="truthNote2" style="margin-top:0"></p><div class="ttwrap" id="truthModalBox"></div></div>
+  </div>
+</div>
+<!-- 視窗：匯出 -->
+<div class="modal" id="exportModal" role="dialog" aria-modal="true" aria-labelledby="m2t">
+  <div class="mbox" style="max-width:760px">
+    <div class="mhead"><h3 id="m2t">Verilog 與 LaTeX 程式碼</h3><button class="key sq" onclick="closeModal('exportModal')" aria-label="關閉">✕</button></div>
+    <div class="mbody">
+      <div class="cp"><span>Verilog HDL Module</span><button class="key" onclick="copyText('verilogCode')">複製 Verilog</button></div>
+      <textarea id="verilogCode" class="code" readonly></textarea>
+      <div class="cp"><span>LaTeX 布林式</span><button class="key" onclick="copyText('latexCode')">複製 LaTeX</button></div>
+      <textarea id="latexCode" class="code l" readonly></textarea>
+    </div>
+  </div>
+</div>
+<!-- 視窗：學習單 -->
+<div class="modal" id="wsModal" role="dialog" aria-modal="true" aria-labelledby="m3t">
+  <div class="mbox" style="max-width:900px">
+    <div class="mhead"><h3 id="m3t">列印學習單</h3><button class="key sq" onclick="closeModal('wsModal')" aria-label="關閉">✕</button></div>
+    <div class="mbody">
+      <div class="ws-toolbar">
+        <button class="key lit" id="wsStudent" type="button">學生版（留白）</button>
+        <button class="key" id="wsTeacher" type="button">教師答案版</button>
+        <button class="key pri" id="wsPrint" type="button">列印／存成 PDF</button>
+        <span class="hint" style="align-self:center">依目前的學號與共陽／共陰設定產生；列印時瀏覽器可選「另存為 PDF」。</span>
+      </div>
+      <div id="wsBox"></div>
+    </div>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
         // --- CONSTANTS & DATA STRUCTURES ---
         const SEGMENTS = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
         const SEGMENT_PATTERNS = {
@@ -527,20 +502,6 @@
             "21,73 28,67 72,67 79,73 72,79 28,79"  // g (middle horizontal)
         ];
 
-        // --- STATE ---
-        let state = {
-            studentId: "315001",
-            isPlaying: false,
-            currentStep: 0,
-            selectedSegment: 0,
-            isCommonAnode: true,
-            speed: 800,
-            timerId: null,
-            zoom: 1.0,
-            theme: 'emerald'
-        };
-
-        // --- HELPERS ---
         const toBin = (v, n) => v.toString(2).padStart(n, '0');
         const getGrayCodes = (n) => {
             if (n <= 0) return [''];
@@ -550,31 +511,26 @@
         };
         const countSetBits = (n) => n.toString(2).split('0').join('').length;
 
-        // GRAPHICAL BOOLEAN OVERBAR HELPERS (HIGH-CONTRAST DARK TEXT FOR LIGHT BG)
-        function renderTermWithOverbarHTML(t, isDarkBg = false) {
-            if (t.termStr === "1") {
-                return `<span class="font-black font-mono ${isDarkBg ? 'text-white' : 'text-slate-950'} text-xl sm:text-2xl">1</span>`;
-            }
-            return t.literals.map(l => {
-                if (l.invert) {
-                    const cls = isDarkBg 
-                        ? 'border-t-2 border-lime-400 text-lime-400 font-black' 
-                        : 'border-t-2 border-emerald-700 text-emerald-800 font-black';
-                    return `<span class="inline-block ${cls} px-0.5 leading-none font-mono text-xl sm:text-2xl" title="NOT ${l.char}">${l.char}</span>`;
-                } else {
-                    const cls = isDarkBg ? 'text-white font-black' : 'text-slate-950 font-black';
-                    return `<span class="inline-block ${cls} px-0.5 leading-none font-mono text-xl sm:text-2xl">${l.char}</span>`;
-                }
-            }).join('');
-        }
+/* ---------- 狀態 ---------- */
+let state = {
+  studentId: "315001", isPlaying: false, currentStep: 0, selectedSegment: 0,
+  isCommonAnode: true, speed: 800, timerId: null, zoom: 1.0, theme: 'emerald',
+  practice: false, reveal: { truth:false, kmap:false, eq:false, circuit:false, tina:false },
+  ws: 'student', pin: {}
+};
+const $ = (id) => document.getElementById(id);
 
-        function renderExprWithOverbarsHTML(terms, isDarkBg = false) {
-            if (!terms || terms.length === 0) {
-                return `<span class="font-bold font-mono ${isDarkBg ? 'text-slate-400' : 'text-slate-500'} text-xl sm:text-2xl">0</span>`;
-            }
-            const plusCls = isDarkBg ? 'text-lime-400 font-black' : 'text-emerald-700 font-black';
-            return terms.map(t => renderTermWithOverbarHTML(t, isDarkBg)).join(` <span class="${plusCls} px-1 font-mono text-xl sm:text-2xl">+</span> `);
-        }
+/* ---------- 布林式（上橫線）呈現 ---------- */
+function renderTermWithOverbarHTML(t) {
+  if (t.termStr === "1") return `<span class="tm">1</span>`;
+  return `<span class="tm">` + t.literals.map(l => l.invert
+    ? `<span class="ov" title="NOT ${l.char}">${l.char}</span>`
+    : `<span>${l.char}</span>`).join('') + `</span>`;
+}
+function renderExprWithOverbarsHTML(terms) {
+  if (!terms || terms.length === 0) return `<span class="tm">0</span>`;
+  return terms.map(t => renderTermWithOverbarHTML(t)).join(` <span class="plus">+</span> `);
+}
 
         // --- QUINE-MCCLUSKEY ALGORITHM ---
         function solveKMap(targetIndices, dontCares, numVars) {
@@ -697,7 +653,7 @@
                 const selStroke = isSelected ? 'stroke="#ffffff" stroke-width="2.5px"' : '';
                 const clickAttr = isInteractive ? `onclick="selectSegment(${i})"` : '';
 
-                svgContent += `<g ${clickAttr} class="${isInteractive ? 'cursor-pointer' : ''}">
+                svgContent += `<g ${clickAttr} class="${isInteractive ? 'seg-click' : ''}">
                     <polygon points="${pointsStr}" class="${cls}" ${selStroke} />
                     <title>Segment ${SEGMENTS[i]} (${isOn ? 'ON' : 'OFF'})</title>
                 </g>`;
@@ -710,337 +666,336 @@
             return svgContent;
         }
 
-        // --- RENDER TOP STEP TAB BAR ---
-        function renderStepTabBar() {
-            const container = document.getElementById('stepTabBar');
-            const chars = state.studentId.split('');
-            chars.push('-');
+/* ---------- 運算（與原版完全相同的演算） ---------- */
+function computeResults(studentId, isCA) {
+  const numVars = Math.max(3, Math.ceil(Math.log2(studentId.length + 2)));
+  const maxCount = Math.pow(2, numVars);
+  const sequence = studentId.split('').map(c => SEGMENT_PATTERNS[c.toUpperCase()] || SEGMENT_PATTERNS['-']);
+  sequence.push(SEGMENT_PATTERNS['OFF']);
+  const results = SEGMENTS.map((_, segIdx) => {
+    const minterms = [];
+    const dontCares = [];
+    for (let i = 0; i < maxCount; i++) {
+      if (i < sequence.length) {
+        const isOn = sequence[i][segIdx] === 1;
+        if (isCA ? !isOn : isOn) minterms.push(i);
+      } else {
+        dontCares.push(i);
+      }
+    }
+    const terms = solveKMap(minterms, dontCares, numVars);
+    return { terms, expr: terms.length===0?"0":terms.map(t=>t.termStr).join(' + '), minterms, dontCares };
+  });
+  return { numVars, maxCount, sequence, results };
+}
+const levelOf = (on, isCA) => isCA ? (on ? 0 : 1) : (on ? 1 : 0);
+function inputLetters(numVars) { return numVars === 4 ? ['D','C','B','A'] : ['C','B','A']; }
+function rowInfo(i, studentId, sequence) {
+  const n = studentId.length;
+  if (i < n) return { kind: 'digit', label: studentId[i], pat: sequence[i] };
+  if (i === n) return { kind: 'off', label: '全暗', pat: SEGMENT_PATTERNS['OFF'] };
+  return { kind: 'x', label: 'X', pat: null };
+}
 
-            let html = '';
-            chars.forEach((c, idx) => {
-                const isCurr = idx === state.currentStep;
-                const tabCls = isCurr 
-                    ? 'bg-emerald-600 text-white font-black border-emerald-500 shadow-md shadow-emerald-600/20 scale-105' 
-                    : 'bg-white text-slate-800 hover:bg-slate-100 border-slate-300 font-bold';
+/* ---------- 真值表 ---------- */
+function buildTruthTableHTML(o) {
+  const { studentId, isCA, numVars, mode, curStep } = o;
+  const { sequence } = computeResults(studentId, isCA);
+  const letters = inputLetters(numVars), maxCount = Math.pow(2, numVars);
+  let h = `<table class="tt"><thead><tr><th rowspan="2">順序</th><th colspan="${numVars}">輸入<small>MSB → LSB</small></th><th colspan="7">輸出狀態（${isCA ? '共陽：0＝亮、1＝暗' : '共陰：1＝亮、0＝暗'}）</th><th rowspan="2">七段<br>顯示值</th></tr><tr>`;
+  letters.forEach(c => h += `<th class="hi">${c}</th>`);
+  SEGMENTS.forEach(s => h += `<th>${s}</th>`);
+  h += `</tr></thead><tbody>`;
+  for (let i = 0; i < maxCount; i++) {
+    const info = rowInfo(i, studentId, sequence);
+    const bin = toBin(i, numVars);
+    const prefilled = (info.kind !== 'digit') || i === 0;
+    h += `<tr class="${i === curStep ? 'cur' : ''}"><td>${i}</td>`;
+    bin.split('').forEach(b => h += `<td class="in">${b}</td>`);
+    SEGMENTS.forEach((_, s) => {
+      if (info.kind === 'x') { h += `<td class="dc">X</td>`; return; }
+      const lv = levelOf(info.pat[s] === 1, isCA);
+      if (mode === 'full' || (mode !== 'full' && prefilled && (mode === 'student' || mode === 'practice'))) {
+        h += `<td class="${lv === 0 ? (isCA ? 'on0' : 'on1') : (isCA ? 'on1' : 'on0')}">${lv}</td>`;
+      } else if (mode === 'practice') {
+        const key = `${studentId}|${isCA ? 'CA' : 'CC'}|${i}|${s}`;
+        const v = state.pin[key] || '';
+        const cls = v === '' ? '' : (String(lv) === v ? 'ok' : 'bad');
+        h += `<td><input class="tt-in ${cls}" data-key="${key}" data-exp="${lv}" maxlength="1" inputmode="numeric" autocomplete="off" aria-label="第 ${i} 列 ${SEGMENTS[s]} 段" value="${v}"></td>`;
+      } else {
+        h += `<td class="fill"></td>`;
+      }
+    });
+    let disp;
+    if (mode === 'full' || mode === 'practice') disp = info.label;
+    else disp = prefilled ? info.label : '';
+    h += `<td class="${info.kind === 'x' ? 'dc' : ''}">${disp}</td></tr>`;
+  }
+  return h + `</tbody></table>`;
+}
 
-                html += `<button onclick="setStep(${idx})" class="px-4 py-2 rounded-xl text-sm sm:text-base font-mono transition-all border ${tabCls} flex items-center gap-2">
-                    <span>#${idx}:</span>
-                    <span class="font-black text-base sm:text-lg">${c}</span>
-                </button>`;
+/* ---------- 卡諾圖（結構與尺寸沿用原版，供畫面與學習單共用） ---------- */
+function buildKMapHTML(result, numVars, opt) {
+  const rows = numVars === 4 ? 4 : 2, cols = 4;
+  const rBits = Math.log2(rows);
+  const rowCodes = getGrayCodes(rBits), colCodes = getGrayCodes(Math.log2(cols));
+  const rowChars = []; for (let b = numVars - 1; b >= numVars - rBits; b--) rowChars.push(String.fromCharCode(65 + b));
+  const colChars = []; for (let b = numVars - rBits - 1; b >= 0; b--) colChars.push(String.fromCharCode(65 + b));
+  const rowVarStr = rowChars.join(''), colVarStr = colChars.join('');
+  let html = `<div class="kmx">`;
+  html += `<div class="kbar-top"><div class="sp"></div><div class="kb t amber">${colChars[0] || 'B'}</div><div class="kb t green">${colChars[1] || 'A'}</div></div>`;
+  html += `<div class="kwrap">`;
+  html += `<div class="kleft" style="height:${rows * 58 + 48}px">`;
+  if (numVars === 3) {
+    html += `<div style="height:56px"></div><div class="kb l sky" style="height:56px">${rowChars[0] || 'C'}</div>`;
+  } else {
+    html += `<div style="height:56px"></div><div class="kb l purple" style="height:114px;margin-bottom:2px">${rowChars[1] || 'D'}</div><div class="kb l sky" style="height:114px">${rowChars[0] || 'C'}</div>`;
+  }
+  html += `</div><div class="kcol"><div class="khead"><div class="corner">${rowVarStr} \\ ${colVarStr}</div>`;
+  colCodes.forEach(c => html += `<div class="kc">${c}</div>`);
+  html += `</div><div class="krows"><div class="krowh">`;
+  rowCodes.forEach(r => html += `<div class="kr">${r}</div>`);
+  html += `</div><div class="kgrid">`;
+
+  const gridData = new Array(Math.pow(2, numVars)).fill(0);
+  result.minterms.forEach(m => gridData[m] = 1);
+  result.dontCares.forEach(d => gridData[d] = 2);
+
+  // 圈選矩形（幾何與原版相同）
+  const CELL_SIZE = 56;
+  let svgContent = '';
+  const axisSegments = (positions, size) => {
+    if (!positions || positions.length === 0) return [];
+    if (positions.length === size) return [{ start: 0, len: size }];
+    const sorted = [...positions].sort((a, b) => a - b);
+    let contig = true;
+    for (let i = 1; i < sorted.length; i++) { if (sorted[i] !== sorted[i - 1] + 1) { contig = false; break; } }
+    if (contig) return [{ start: sorted[0], len: sorted.length }];
+    const present = new Array(size).fill(false);
+    positions.forEach(p => present[p] = true);
+    const missing = [];
+    for (let i = 0; i < size; i++) if (!present[i]) missing.push(i);
+    if (missing.length === 0) return [{ start: 0, len: size }];
+    const start = (missing[missing.length - 1] + 1) % size;
+    const end = (missing[0] - 1 + size) % size;
+    if (start <= end) return [{ start, len: end - start + 1 }];
+    return [{ start, len: size - start }, { start: 0, len: end + 1 }];
+  };
+  if (opt.showGroups) {
+    result.terms.forEach((t, tIdx) => {
+      const fixedRow = {}, fixedCol = {};
+      t.literals.forEach(l => { const val = l.invert ? '0' : '1'; if (rowChars.includes(l.char)) fixedRow[l.char] = val; else fixedCol[l.char] = val; });
+      const rowPositions = rowCodes.map((code, idx) => idx).filter(idx => { const code = rowCodes[idx]; return Object.keys(fixedRow).every(ch => code[rowChars.indexOf(ch)] === fixedRow[ch]); });
+      const colPositions = colCodes.map((code, idx) => idx).filter(idx => { const code = colCodes[idx]; return Object.keys(fixedCol).every(ch => code[colChars.indexOf(ch)] === fixedCol[ch]); });
+      const rowSegs = axisSegments(rowPositions, rows), colSegs = axisSegments(colPositions, cols);
+      const wraps = rowSegs.length > 1 || colSegs.length > 1;
+      const inset = 3 + tIdx * 2, shrink = 6 + tIdx * 4;
+      rowSegs.forEach(rs => { colSegs.forEach(cs => {
+        const x = cs.start * CELL_SIZE + inset, y = rs.start * CELL_SIZE + inset;
+        const w = cs.len * CELL_SIZE - shrink, h = rs.len * CELL_SIZE - shrink;
+        svgContent += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${t.color.fill}" stroke="${t.color.stroke}" stroke-width="2.5" ${wraps ? 'stroke-dasharray="5,3"' : ''} />`;
+      }); });
+    });
+  }
+  html += `<svg ${opt.svgId ? `id="${opt.svgId}"` : ''} aria-hidden="true">${svgContent}</svg>`;
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const idx = parseInt(rowCodes[r] + colCodes[c], 2);
+      const val = gridData[idx];
+      const isCurr = opt.curStep === idx;
+      let txt = '', cls = '';
+      if (opt.showValues) { cls = val === 1 ? 'v1' : val === 2 ? 'vx' : 'v0'; txt = val === 2 ? 'X' : val; }
+      html += `<div class="kcell"><i class="mi">m${idx}</i><span class="${cls}">${txt}</span>${isCurr ? '<div class="now"></div>' : ''}</div>`;
+    }
+  }
+  html += `</div></div></div></div></div>`;
+  return html;
+}
+
+/* ---------- 七段顯示器 ---------- */
+const SEG_LABEL_POS = [[50,-2],[102,40],[102,112],[50,157],[-2,112],[-2,40],[104,77]];
+function segLabelsSvg() {
+  return SEGMENTS.map((s,i) => `<text x="${SEG_LABEL_POS[i][0]}" y="${SEG_LABEL_POS[i][1]}" text-anchor="middle" font-family="ui-monospace,Consolas,monospace" font-size="9" font-weight="700" fill="#8da0b5" pointer-events="none">${s}</text>`).join('');
+}
+function renderSevenSegment() {
+  const svg = $('sevenSegSvg');
+  const seqChar = (state.currentStep < state.studentId.length) ? state.studentId[state.currentStep] : 'OFF';
+  const pattern = SEGMENT_PATTERNS[seqChar.toUpperCase()] || SEGMENT_PATTERNS['OFF'];
+  svg.innerHTML = buildHardwareDigitSvgInner(pattern, state.selectedSegment, true, 1.15) + segLabelsSvg();
+  $('currentChar').innerText = seqChar;
+}
+function renderMultiDigitHardwareModule() {
+  const chars = state.studentId.split(''); chars.push('-');
+  let html = '';
+  chars.forEach((c, idx) => {
+    const isCurr = idx === state.currentStep;
+    const pattern = (idx < chars.length - 1) ? (SEGMENT_PATTERNS[c.toUpperCase()] || SEGMENT_PATTERNS['-']) : SEGMENT_PATTERNS['OFF'];
+    const label = idx < chars.length - 1 ? c : '全暗';
+    html += `<button type="button" class="digit ${isCurr ? 'cur' : ''}" onclick="setStep(${idx})" aria-label="第 ${idx} 步：${label}" aria-pressed="${isCurr}">
+      <small>#${idx}</small>
+      <svg width="64" height="98" viewBox="0 0 100 150">${buildHardwareDigitSvgInner(pattern, -1, false, 0.75)}</svg>
+      <div class="ch">${label}</div></button>`;
+  });
+  $('multiDigitModule').innerHTML = html;
+}
+
+/* ---------- 區塊渲染（含練習模式遮罩） ---------- */
+const isLocked = (k) => state.practice && !state.reveal[k];
+function lockHTML(k, text) { return `<div class="lock"><p style="margin:0 0 10px">${text}</p><button class="key pri" type="button" data-reveal="${k}">顯示答案</button></div>`; }
+
+function renderTruthSections(numVars) {
+  const mode = state.practice && !state.reveal.truth ? 'practice' : 'full';
+  const opts = { studentId: state.studentId, isCA: state.isCommonAnode, numVars, mode, curStep: state.currentStep };
+  const note = state.isCommonAnode
+    ? '共陽極：七段顯示器的 COM 接高電位，該段輸出 0 才會亮、1 為暗。表中數字是「邏輯電路輸出準位」。'
+    : '共陰極：七段顯示器的 COM 接地，該段輸出 1 才會亮、0 為暗。表中數字是「邏輯電路輸出準位」。';
+  $('truthNote').textContent = note + (mode === 'practice' ? '　請在空格輸入 0 或 1，系統會即時檢查。' : '　X ＝ 未使用狀態（Don\'t care）。');
+  $('truthNote2').textContent = note;
+  const html = buildTruthTableHTML(opts);
+  $('truthInline').innerHTML = html + (mode === 'practice' ? `<p class="ttprog" id="ttProg"></p><div style="margin-top:8px"><button class="key" data-reveal="truth" type="button">顯示答案</button></div>` : '');
+  $('truthModalBox').innerHTML = buildTruthTableHTML({ ...opts, mode: 'full' });
+  if (mode === 'practice') updatePracticeProgress();
+}
+function updatePracticeProgress() {
+  const inputs = [...document.querySelectorAll('#truthInline .tt-in')];
+  const ok = inputs.filter(i => i.classList.contains('ok')).length;
+  const bad = inputs.filter(i => i.classList.contains('bad')).length;
+  const el = $('ttProg'); if (!el) return;
+  el.textContent = `已答對 ${ok} / ${inputs.length} 格` + (bad ? `，有 ${bad} 格不正確（紅框）` : '') + (ok === inputs.length ? ' ✓ 全部正確！' : '');
+  el.style.color = bad ? 'var(--bad)' : 'var(--ok)';
+}
+
+function renderKMapSection(currentRes, numVars) {
+  const reveal = !isLocked('kmap');
+  $('kmapGraphicBay').innerHTML = buildKMapHTML(currentRes, numVars, { showValues: reveal, showGroups: reveal, curStep: state.currentStep, svgId: 'kmapSvgs' }) +
+    (reveal ? '' : `<div style="margin-top:12px;text-align:center"><p class="hint" style="margin:0 0 8px">依真值表自己填卡諾圖、畫圈、寫出化簡式；想對答案再按下面的按鈕。</p><button class="key pri" type="button" data-reveal="kmap">顯示答案</button></div>`);
+  $('kmapLegend').style.display = reveal ? '' : 'none';
+  $('stepsWell').style.display = reveal ? '' : 'none';
+  $('mainEquation').parentElement.style.display = reveal ? '' : 'none';
+}
+
+function renderEqSection(results) {
+  if (isLocked('eq')) { $('eqArea').innerHTML = lockHTML('eq', '七段化簡式已隱藏，先在卡諾圖自己化簡。'); return; }
+  $('eqArea').innerHTML = `<div class="eqgrid">` + SEGMENTS.map((s, i) => {
+    const sel = state.selectedSegment === i;
+    return `<button type="button" class="eqitem" aria-pressed="${sel}" onclick="selectSegment(${i})"><span class="sg">${s}</span><span class="ex">${s} = </span><span class="ex">${renderExprWithOverbarsHTML(results[i].terms)}</span></button>`;
+  }).join('') + `</div><p class="hint" style="margin:10px 8px 0">點選任一段，上方卡諾圖與電路圖會切換到那一段。</p>`;
+}
+
+function renderCircuitSection(currentRes, numVars) {
+  if (isLocked('circuit')) { $('circuitContainer').innerHTML = lockHTML('circuit', '電路圖已隱藏，化簡完成後按「顯示答案」對照。'); return; }
+  try { renderCircuit(currentRes.terms, numVars, state.selectedSegment); } catch (e) { console.error('renderCircuit Error:', e); }
+}
+
+/* ---------- Tina 接線表 ---------- */
+function termPlain(t) { return t.termStr === "1" ? "1" : t.literals.map(l => l.char + (l.invert ? "'" : "")).join(''); }
+function buildTinaHTML(results, numVars, isCA) {
+  const andName = n => `${n} 輸入 AND`;
+  const notSet = new Set(), andTerms = new Map(), orFuncs = new Map();
+  let h = `<div class="ttwrap"><table class="tn"><thead><tr><th>段</th><th>化簡式</th><th>NOT 閘（反相）</th><th>AND 閘</th><th>OR 閘</th></tr></thead><tbody>`;
+  SEGMENTS.forEach((s, i) => {
+    const terms = results[i].terms;
+    const expr = terms.length ? terms.map(termPlain).join(' + ') : '0';
+    const nots = new Set(); terms.forEach(t => t.literals.forEach(l => { if (l.invert) nots.add(l.char); }));
+    nots.forEach(c => notSet.add(c));
+    const ands = terms.filter(t => t.literals.length >= 2);
+    ands.forEach(t => andTerms.set(termPlain(t), t.literals.length));
+    let orCell = '—';
+    if (terms.length > 1) { orCell = `${terms.length} 輸入 OR`; if (!orFuncs.has(expr)) orFuncs.set(expr, terms.length); }
+    const same = SEGMENTS.slice(0, i).find((_, j) => (results[j].terms.length ? results[j].terms.map(termPlain).join(' + ') : '0') === expr);
+    const out = terms.length === 0 ? '接地（恆 0）' : (terms.length === 1 && terms[0].termStr === "1") ? '接電源（恆 1）' : '';
+    h += `<tr><td class="mono">${s}</td><td class="mono">${expr}${same ? `<br><span class="hint">＝ ${same} 段，可共用</span>` : ''}${out ? `<br><span class="hint">${out}</span>` : ''}</td>
+      <td class="mono">${nots.size ? [...nots].sort().map(c => c + "'").join('、') : '—'}</td>
+      <td>${ands.length ? ands.map(t => `${termPlain(t)}：${andName(t.literals.length)}`).join('<br>') : '—'}</td><td>${orCell}</td></tr>`;
+  });
+  h += `</tbody></table></div>`;
+  const andCount = andTerms.size;
+  h += `<div class="note"><b>共用後的閘數（相同乘積項、相同輸出只接一次）</b>：NOT 閘 ${notSet.size} 個（${[...notSet].sort().map(c => c + "'").join('、') || '無'}）、AND 閘 ${andCount} 個、OR 閘 ${orFuncs.size} 個。</div>`;
+  h += `<div class="note">${isCA
+    ? '共陽極接線：七段顯示器 COM 腳接 +5 V；a～g 各接對應化簡式的輸出（經限流電阻，阻值依實驗板規格），輸出為 0 時該段才亮。'
+    : '共陰極接線：七段顯示器 COM 腳接地；a～g 各接對應化簡式的輸出（經限流電阻，阻值依實驗板規格），輸出為 1 時該段才亮。'} 輸入 ${inputLetters(numVars).join('、')} 為狀態計數器的輸出（最高位 ${inputLetters(numVars)[0]}、最低位 A）。</div>`;
+  return h;
+}
+function renderTinaSection(results, numVars) {
+  if (isLocked('tina')) { $('tinaArea').innerHTML = lockHTML('tina', '接線表已隱藏，先自己決定要用哪些邏輯閘。'); return; }
+  $('tinaArea').innerHTML = buildTinaHTML(results, numVars, state.isCommonAnode);
+}
+
+/* ---------- 主畫面 ---------- */
+function renderInterface() {
+  renderMultiDigitHardwareModule();
+  $('modeToggle').dataset.mode = state.isCommonAnode ? 'CA' : 'CC';
+  $('playBtn').innerHTML = state.isPlaying
+    ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> 暫停`
+    : `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 開始模擬`;
+  const numVars = Math.max(3, Math.ceil(Math.log2(state.studentId.length + 2)));
+  $('currentState').innerText = state.currentStep;
+  $('currentBin').innerText = toBin(state.currentStep, numVars);
+  $('multiDigitModuleTitle').textContent = `DISPLAY MODULE · ${state.isCommonAnode ? '共陽 CA' : '共陰 CC'} · ${state.studentId.length} 位學號 + 全暗`;
+  $('segButtons').innerHTML = SEGMENTS.map((s, i) => `<button type="button" class="pill" aria-pressed="${state.selectedSegment === i}" onclick="selectSegment(${i})" aria-label="${s} 段">${s}</button>`).join('');
+  document.querySelectorAll('#themeDots .dot').forEach(b => b.setAttribute('aria-pressed', b.dataset.theme === state.theme));
+  $('ruleList').innerHTML = state.isCommonAnode
+    ? `<li>七段顯示器共有 7 段 LED（a、b、c、d、e、f、g），另有小數點 dot。</li><li>共陽極：COM 點必須接高電位。</li><li>要讓某段 LED 點亮，該段需接低電位（0）。</li><li>邏輯上，該段接 1 為「暗」，接 0 為「亮」。</li>`
+    : `<li>七段顯示器共有 7 段 LED（a、b、c、d、e、f、g），另有小數點 dot。</li><li>共陰極：COM 點必須接地（低電位）。</li><li>要讓某段 LED 點亮，該段需接高電位（1）。</li><li>邏輯上，該段接 1 為「亮」，接 0 為「暗」。</li>`;
+  calculateAndRenderLogic();
+}
+
+function calculateAndRenderLogic() {
+  const { numVars, results } = computeResults(state.studentId, state.isCommonAnode);
+  renderTruthSections(numVars);
+  renderEqSection(results);
+
+  const currentRes = results[state.selectedSegment];
+  $('eqSegName').textContent = SEGMENTS[state.selectedSegment];
+  $('mainEquation').innerHTML = `<span class="tm nm">${SEGMENTS[state.selectedSegment]}</span> <span class="plus">=</span> ${renderExprWithOverbarsHTML(currentRes.terms)}`;
+
+  const stepsHtml = currentRes.terms.map(t => {
+    const fixed = t.literals.map(l => l.invert ? `<span class="ov">${l.char}</span>=0` : `${l.char}=1`).join(', ');
+    return `<li><span class="tm">${renderTermWithOverbarHTML(t)}:</span> 圈選了 <strong>${t.covered.length}</strong> 個格子。保留固定變數 <strong>${fixed || '無'}</strong>。</li>`;
+  }).join('');
+  $('simplificationSteps').innerHTML = stepsHtml || '<li class="hint">無邏輯項（常數 0 輸出）</li>';
+
+  try { renderKMapSection(currentRes, numVars); } catch (e) { console.error('renderKMap Error:', e); }
+  renderCircuitSection(currentRes, numVars);
+  renderTinaSection(results, numVars);
+  updateModalsData(results, numVars);
+}
+
+function updateModalsData(results, numVars) {
+    const studentId = state.studentId, isCA = state.isCommonAnode;
+            let verilog = `// Verilog HDL Module for Student ID Display (${studentId})\n`;
+            verilog += `module student_id_decoder (\n`;
+            verilog += `    input  wire [${numVars-1}:0] in,\n`;
+            verilog += `    output wire [6:0] seg // {a,b,c,d,e,f,g}\n`;
+            verilog += `);\n\n`;
+
+            SEGMENTS.forEach((s, idx) => {
+                const exprStr = results[idx].terms.map(t => {
+                    if (t.termStr === "1") return "1'b1";
+                    return t.literals.map(l => l.invert ? `~in[${inputsToBitIndex(l.char, numVars)}]` : `in[${inputsToBitIndex(l.char, numVars)}]`).join(" & ");
+                }).join(" | ") || "1'b0";
+
+                verilog += `    assign seg[${6-idx}] = ${isCA ? '~(' + exprStr + ')' : exprStr};\n`;
             });
+            verilog += `\nendmodule\n`;
+            document.getElementById('verilogCode').value = verilog;
 
-            container.innerHTML = html;
-        }
-
-        // --- RENDER MULTI-DIGIT MODULE PANEL ---
-        function renderMultiDigitHardwareModule() {
-            const container = document.getElementById('multiDigitModule');
-            const chars = state.studentId.split('');
-            chars.push('-');
-
-            let html = '';
-            chars.forEach((c, idx) => {
-                const isCurr = idx === state.currentStep;
-                const pattern = (idx < chars.length - 1) 
-                    ? (SEGMENT_PATTERNS[c.toUpperCase()] || SEGMENT_PATTERNS['-'])
-                    : SEGMENT_PATTERNS['OFF'];
-
-                const slotClass = isCurr ? 'hw-digit-slot hw-digit-slot-active' : 'hw-digit-slot';
-                const innerSvg = buildHardwareDigitSvgInner(pattern, -1, false, 0.75);
-
-                const activePingColor = (state.theme === 'blue') ? 'bg-blue-400' : 'bg-lime-400';
-                const activeTextColor = (state.theme === 'blue') ? 'text-blue-400 font-extrabold' : 'text-lime-400 font-extrabold';
-
-                html += `<div onclick="setStep(${idx})" class="${slotClass} p-3.5 flex flex-col items-center cursor-pointer transition-all duration-200 hover:scale-105">
-                    <div class="text-xs font-mono font-bold text-slate-400 mb-1 flex items-center gap-1">
-                        <span>#${idx}</span>
-                        ${isCurr ? `<span class="w-2 h-2 rounded-full ${activePingColor} animate-ping"></span>` : ''}
-                    </div>
-                    <svg width="75" height="115" viewBox="0 0 100 150">
-                        ${innerSvg}
-                    </svg>
-                    <div class="mt-1 font-mono font-bold text-sm ${isCurr ? activeTextColor : 'text-slate-400'}">${c}</div>
-                </div>`;
+            let latex = `% Boolean Logic LaTeX Formulas (Overbar Notation)\n`;
+            SEGMENTS.forEach((s, idx) => {
+                const expr = results[idx].terms.map(t => {
+                    if (t.termStr === "1") return "1";
+                    return t.literals.map(l => l.invert ? `\\bar{${l.char}}` : l.char).join("");
+                }).join(" + ") || "0";
+                latex += `${s} = ${expr} \\\\\n`;
             });
+            document.getElementById('latexCode').value = latex;
+}
 
-            container.innerHTML = html;
-        }
-
-        // --- RENDER SINGLE FOCUSED 7-SEGMENT DISPLAY ---
-        function renderSevenSegment() {
-            const svg = document.getElementById('sevenSegSvg');
-            const seqChar = (state.currentStep < state.studentId.length) ? state.studentId[state.currentStep] : 'OFF';
-            const pattern = SEGMENT_PATTERNS[seqChar.toUpperCase()] || SEGMENT_PATTERNS['OFF'];
-
-            svg.innerHTML = buildHardwareDigitSvgInner(pattern, state.selectedSegment, true, 1.15);
-            document.getElementById('currentChar').innerText = seqChar;
-        }
-
-        // --- MAIN INTERFACE RENDER ---
-        function renderInterface() {
-            renderStepTabBar();
-            renderMultiDigitHardwareModule();
-            
-            // Mode Button
-            const modeBtn = document.getElementById('modeToggle');
-            modeBtn.innerText = state.isCommonAnode ? "共陽極 (CA)" : "共陰極 (CC)";
-            modeBtn.className = `px-3.5 py-1.5 rounded-lg text-sm font-black transition-all shadow-sm ${state.isCommonAnode ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`;
-
-            // Play Button
-            const playBtn = document.getElementById('playBtn');
-            playBtn.innerHTML = state.isPlaying 
-                ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> 暫停`
-                : `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg> 開始模擬`;
-            playBtn.className = `flex-1 py-3 rounded-xl flex justify-center items-center gap-2 transition font-black text-base shadow-md ${state.isPlaying ? 'bg-emerald-700 hover:bg-emerald-800 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'}`;
-
-            const numVars = Math.max(3, Math.ceil(Math.log2(state.studentId.length + 2)));
-            document.getElementById('currentState').innerText = state.currentStep;
-            document.getElementById('currentBin').innerText = toBin(state.currentStep, numVars);
-
-            // Dynamic Hardware Panel Title
-            const titleEl = document.getElementById('multiDigitModuleTitle');
-            if (titleEl) {
-                const themeTitle = (state.theme === 'blue') ? 'Blue LED Module (藍光 - 共陰極 CC)' : 'Green LED Module (綠光 - 共陽極 CA)';
-                titleEl.innerHTML = `<span class="w-3.5 h-3.5 rounded-full ${state.theme === 'blue' ? 'bg-blue-500' : 'bg-emerald-500'} animate-pulse"></span>
-                7-Segment 顯示面板 (${themeTitle})`;
-            }
-
-            // Segment Button Selector Pills (LOWERCASE a b c d e f g)
-            const btnHtml = SEGMENTS.map((s, i) => 
-                `<button onclick="selectSegment(${i})" class="w-9 h-9 rounded-lg font-mono font-black text-lg transition-all ${state.selectedSegment === i ? 'bg-emerald-600 text-white font-black scale-105 shadow-sm' : 'text-slate-700 hover:bg-slate-200'}">${s}</button>`
-            ).join('');
-            document.getElementById('segButtons').innerHTML = btnHtml;
-
-            calculateAndRenderLogic();
-        }
-
-        // --- CALCULATE LOGIC & RENDER K-MAP / CIRCUIT ---
-        function calculateAndRenderLogic() {
-            const numVars = Math.max(3, Math.ceil(Math.log2(state.studentId.length + 2)));
-            const maxCount = Math.pow(2, numVars);
-            const sequence = state.studentId.split('').map(c => SEGMENT_PATTERNS[c.toUpperCase()] || SEGMENT_PATTERNS['-']);
-            sequence.push(SEGMENT_PATTERNS['OFF']);
-
-            const results = SEGMENTS.map((_, segIdx) => {
-                const minterms = [];
-                const dontCares = [];
-                for (let i = 0; i < maxCount; i++) {
-                    if (i < sequence.length) {
-                        const isOn = sequence[i][segIdx] === 1;
-                        if (state.isCommonAnode ? !isOn : isOn) minterms.push(i);
-                    } else {
-                        dontCares.push(i);
-                    }
-                }
-                const terms = solveKMap(minterms, dontCares, numVars);
-                return { terms, expr: terms.length===0?"0":terms.map(t=>t.termStr).join(' + '), minterms, dontCares };
-            });
-
-            // 7-Segment Boolean Equations Sidebar List (Dark Text for High Contrast on Light BG)
-            const listHtml = SEGMENTS.map((s, i) => {
-                const isSel = state.selectedSegment === i;
-                return `<div onclick="selectSegment(${i})" class="p-3.5 rounded-xl cursor-pointer border transition-all ${isSel ? 'bg-emerald-50 border-emerald-500 shadow-md ring-2 ring-emerald-500/30' : 'bg-slate-50 border-slate-200 hover:bg-slate-100'}">
-                    <div class="flex items-center justify-between gap-2.5 overflow-x-auto whitespace-nowrap">
-                        <div class="flex items-center gap-2 shrink-0">
-                            <span class="w-8 h-8 rounded-lg font-mono font-black text-lg sm:text-xl flex items-center justify-center ${isSel ? 'bg-emerald-600 text-white font-black' : 'bg-slate-200 text-slate-800'}">${s}</span>
-                            <span class="font-mono text-lg sm:text-xl font-black ${isSel ? 'text-emerald-800' : 'text-slate-800'}">${s} =</span>
-                        </div>
-                        <div class="text-lg sm:text-xl font-mono text-slate-950 font-extrabold whitespace-nowrap overflow-x-auto flex items-center gap-1">
-                            ${renderExprWithOverbarsHTML(results[i].terms, false)}
-                        </div>
-                        ${isSel ? '<span class="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-ping shrink-0 ml-auto"></span>' : ''}
-                    </div>
-                </div>`;
-            }).join('');
-            document.getElementById('equationList').innerHTML = listHtml;
-
-            const currentRes = results[state.selectedSegment];
-            document.getElementById('currentSegTitle').innerText = SEGMENTS[state.selectedSegment];
-            
-            // Render Main Equation with OVERBAR notation (Dark Banner, isDarkBg = true)
-            document.getElementById('mainEquation').innerHTML = `<span class="font-black text-lime-400 text-3xl sm:text-4xl">${SEGMENTS[state.selectedSegment]}</span> <span class="text-slate-400 font-black px-2 text-3xl sm:text-4xl">=</span> ${renderExprWithOverbarsHTML(currentRes.terms, true)}`;
-
-            // Render Steps with OVERBAR notation (Light BG, isDarkBg = false)
-            const stepsHtml = currentRes.terms.map(t => {
-                const fixed = t.literals.map(l => l.invert ? `<span class="inline-block border-t-2 border-emerald-700 font-black text-emerald-800 text-lg sm:text-2xl">${l.char}</span>=0` : `${l.char}=1`).join(', ');
-                return `<li class="pl-1 text-slate-800 font-bold text-base sm:text-lg leading-relaxed"><span class="font-mono font-black text-xl sm:text-2xl text-emerald-700 mr-2">${renderTermWithOverbarHTML(t, false)}:</span> 圈選了 <strong class="text-slate-950 font-black">${t.covered.length}</strong> 個格子。保留固定變數 <strong class="text-emerald-800 font-mono">${fixed || '無'}</strong>。</li>`;
-            }).join('');
-            document.getElementById('simplificationSteps').innerHTML = stepsHtml || '<li class="text-slate-500 italic font-mono text-base">無邏輯項 (常數 0 Output)</li>';
-
-            // Safe Rendering to prevent one failure from blocking schematic
-            try {
-                renderKMap(currentRes, numVars);
-            } catch (errKMap) {
-                console.error("renderKMap Error:", errKMap);
-            }
-
-            try {
-                renderCircuit(currentRes.terms, numVars, state.selectedSegment);
-            } catch (errCircuit) {
-                console.error("renderCircuit Error:", errCircuit);
-            }
-
-            updateModalsData(results, numVars);
-        }
-
-        // --- RENDER TEXTBOOK K-MAP (WITH CORNER BOX & OUTER ABC VARIABLE BARS) ---
-        function renderKMap(result, numVars) {
-            const rows = numVars === 4 ? 4 : 2;
-            const cols = 4;
-            const rBits = Math.log2(rows);
-            const rowCodes = getGrayCodes(rBits);
-            const colCodes = getGrayCodes(Math.log2(cols));
-
-            const rowChars = [];
-            for (let b = numVars - 1; b >= numVars - rBits; b--) rowChars.push(String.fromCharCode(65 + b));
-            const colChars = [];
-            for (let b = numVars - rBits - 1; b >= 0; b--) colChars.push(String.fromCharCode(65 + b));
-
-            const rowVarStr = rowChars.join('');
-            const colVarStr = colChars.join('');
-
-            const kmapGraphicBay = document.getElementById('kmapGraphicBay');
-            if (!kmapGraphicBay) return;
-
-            let html = `<div class="flex flex-col items-center select-none font-mono">`;
-            
-            // 1. Top Outer Variable Indicator Bar (B & A span bars)
-            html += `<div class="flex ml-24 mb-1">`;
-            html += `<div class="w-14"></div>`; // spacer above col 00
-            html += `<div class="text-center text-xs font-black text-amber-800 bg-amber-100 border-b-2 border-amber-500 py-0.5 rounded-t font-mono mx-0.5" style="width: 114px;">${colChars[0] || 'B'}</div>`; // B=1 (cols 01 & 11)
-            html += `<div class="text-center text-xs font-black text-emerald-800 bg-emerald-100 border-b-2 border-emerald-500 py-0.5 rounded-t font-mono mx-0.5" style="width: 114px;">${colChars[1] || 'A'}</div>`; // A=1 (cols 11 & 10)
-            html += `</div>`;
-
-            // 2. Main Wrapper: Left Outer Bar + Corner Title/Header + Grid Body
-            html += `<div class="flex items-start">`;
-            
-            // Left Outer Variable Indicator Bar (C span bar)
-            html += `<div class="flex flex-col justify-end mr-1.5 pt-11" style="height: ${rows * 58 + 48}px;">`;
-            if (numVars === 3) {
-                html += `<div class="h-14"></div>`; // row 0 (C=0)
-                html += `<div class="h-14 flex items-center justify-center text-xs font-black text-sky-800 bg-sky-100 border-r-2 border-sky-500 px-1 rounded-l font-mono" style="height: 56px;">${rowChars[0] || 'C'}</div>`; // row 1 (C=1)
-            } else {
-                html += `<div class="h-14"></div>`; // row 00
-                html += `<div class="flex items-center justify-center text-xs font-black text-purple-800 bg-purple-100 border-r-2 border-purple-500 px-1 rounded-l font-mono mb-0.5" style="height: 114px;">${rowChars[1] || 'D'}</div>`; // D=1
-                html += `<div class="flex items-center justify-center text-xs font-black text-sky-800 bg-sky-100 border-r-2 border-sky-500 px-1 rounded-l font-mono" style="height: 114px;">${rowChars[0] || 'C'}</div>`; // C=1
-            }
-            html += `</div>`;
-
-            // Corner Box + Binary Headers + Grid Body
-            html += `<div class="flex flex-col">`;
-            
-            // Top Row: Corner Box + Binary Column Headers
-            html += `<div class="flex mb-1.5">`;
-            html += `<div class="w-16 h-10 bg-slate-900 text-amber-400 font-extrabold text-xs sm:text-sm flex items-center justify-center rounded-lg shadow-sm border border-slate-800 mr-2 shrink-0 font-mono tracking-wider">
-                ${rowVarStr} \\ ${colVarStr}
-            </div>`;
-            colCodes.forEach(c => {
-                html += `<div class="w-14 h-10 flex items-center justify-center text-base sm:text-lg font-extrabold font-mono text-slate-900 bg-slate-200 rounded-lg mx-0.5 border border-slate-300 shadow-sm">${c}</div>`;
-            });
-            html += `</div>`;
-
-            // Grid Row: Row Binary Headers + Grid Element
-            html += `<div class="flex">`;
-            html += `<div class="flex flex-col mr-2">`;
-            rowCodes.forEach(r => {
-                html += `<div class="w-16 h-14 flex items-center justify-center text-base sm:text-lg font-extrabold font-mono text-slate-900 bg-slate-200 rounded-lg my-0.5 border border-slate-300 shadow-sm" style="height: 56px;">${r}</div>`;
-            });
-            html += `</div>`;
-
-            // K-Map Grid Canvas
-            html += `<div id="kmapGrid" class="grid border-2 border-slate-400 bg-slate-50 relative rounded-xl overflow-hidden shadow-sm" style="grid-template-columns: repeat(${cols}, 1fr);">`;
-            
-            const gridData = new Array(Math.pow(2, numVars)).fill(0);
-            result.minterms.forEach(m => gridData[m] = 1);
-            result.dontCares.forEach(d => gridData[d] = 2);
-
-            html += `<svg id="kmapSvgs" class="absolute top-0 left-0 w-full h-full pointer-events-none z-10"></svg>`; 
-            
-            for(let r=0; r<rows; r++) {
-                for(let c=0; c<cols; c++) {
-                    const rBin = rowCodes[r];
-                    const cBin = colCodes[c];
-                    const idx = parseInt(rBin + cBin, 2);
-                    const val = gridData[idx];
-                    const isCurr = idx === state.currentStep;
-                    
-                    let txtCls = val===1 ? 'font-black text-slate-950 text-2xl' : val===2 ? 'text-emerald-700 font-black text-2xl' : 'text-slate-400';
-                    let txt = val===2 ? 'X' : val;
-                    
-                    html += `<div class="w-14 h-14 flex items-center justify-center font-mono border border-slate-300 relative z-0 hover:bg-slate-200/60 transition">
-                        <span class="${txtCls}">${txt}</span>
-                        ${isCurr ? '<div class="absolute inset-0 border-2 border-red-600 bg-red-600/20 pointer-events-none z-20 animate-pulse"></div>' : ''}
-                    </div>`;
-                }
-            }
-
-            html += `</div></div></div></div></div>`;
-            kmapGraphicBay.innerHTML = html;
-
-            // Draw SVG Prime Implicants Rectangles
-            const CELL_SIZE = 56;
-            const gridEl = document.getElementById('kmapGrid');
-            const svgEl = gridEl ? gridEl.querySelector('svg') : null;
-            if (!svgEl) return;
-
-            let svgContent = '';
-
-            const axisSegments = (positions, size) => {
-                if (!positions || positions.length === 0) return [];
-                if (positions.length === size) return [{ start: 0, len: size }];
-                const sorted = [...positions].sort((a, b) => a - b);
-                let contig = true;
-                for (let i = 1; i < sorted.length; i++) {
-                    if (sorted[i] !== sorted[i - 1] + 1) { contig = false; break; }
-                }
-                if (contig) return [{ start: sorted[0], len: sorted.length }];
-                
-                const present = new Array(size).fill(false);
-                positions.forEach(p => present[p] = true);
-                const missing = [];
-                for (let i = 0; i < size; i++) if (!present[i]) missing.push(i);
-                if (missing.length === 0) return [{ start: 0, len: size }];
-
-                const start = (missing[missing.length - 1] + 1) % size;
-                const end = (missing[0] - 1 + size) % size;
-                if (start <= end) return [{ start, len: end - start + 1 }];
-                return [{ start, len: size - start }, { start: 0, len: end + 1 }];
-            };
-
-            result.terms.forEach((t, tIdx) => {
-                const fixedRow = {};
-                const fixedCol = {};
-                t.literals.forEach(l => {
-                    const val = l.invert ? '0' : '1';
-                    if (rowChars.includes(l.char)) fixedRow[l.char] = val;
-                    else fixedCol[l.char] = val;
-                });
-                const rowPositions = rowCodes.map((code, idx) => idx).filter(idx => {
-                    const code = rowCodes[idx];
-                    return Object.keys(fixedRow).every(ch => code[rowChars.indexOf(ch)] === fixedRow[ch]);
-                });
-                const colPositions = colCodes.map((code, idx) => idx).filter(idx => {
-                    const code = colCodes[idx];
-                    return Object.keys(fixedCol).every(ch => code[colCodes.indexOf(ch)] === fixedCol[ch]);
-                });
-
-                const rowSegs = axisSegments(rowPositions, rows);
-                const colSegs = axisSegments(colPositions, cols);
-                const wraps = rowSegs.length > 1 || colSegs.length > 1;
-                const inset = 3 + tIdx * 2;
-                const shrink = 6 + tIdx * 4;
-
-                rowSegs.forEach(rs => {
-                    colSegs.forEach(cs => {
-                        const x = cs.start * CELL_SIZE + inset;
-                        const y = rs.start * CELL_SIZE + inset;
-                        const w = cs.len * CELL_SIZE - shrink;
-                        const h = rs.len * CELL_SIZE - shrink;
-                        svgContent += `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="6" fill="${t.color.fill}" stroke="${t.color.stroke}" stroke-width="2.5" ${wraps ? 'stroke-dasharray="5,3"' : ''} />`;
-                    });
-                });
-            });
-            svgEl.innerHTML = svgContent;
+        function inputsToBitIndex(char, numVars) {
+            const inputs = numVars === 4 ? ['D','C','B','A'] : ['C','B','A'];
+            const idx = inputs.indexOf(char);
+            return (numVars - 1) - idx;
         }
 
         const getLogicColor = (val) => val === 1 ? '#dc2626' : '#0284c7';
@@ -1091,7 +1046,7 @@
                 svg += `<line class="circuit-wire" x1="${notRailX}" y1="${ny}" x2="${notRailX}" y2="${height-30}" stroke="${getLogicColor(vInv)}" stroke-width="2.5" />`; 
                 
                 // NOT Variable Label
-                svg += `<text x="${notRailX}" y="25" text-anchor="middle" font-weight="bold" fill="#d97706" font-family="Fira Code, monospace" font-size="14">${char}'</text>`;
+                svg += `<text x="${notRailX}" y="25" text-anchor="middle" font-weight="bold" fill="#d97706" font-family="ui-monospace, Consolas, monospace" font-size="14">${char}'</text>`;
             });
 
             // Output Terminal Helper
@@ -1101,23 +1056,23 @@
                 outSvg += `<circle cx="${outX}" cy="${outY}" r="4" fill="${getLogicColor(stateVal)}" />`;
                 
                 if (exprText) {
-                    outSvg += `<text x="${width-200}" y="${outY-10}" text-anchor="middle" font-family="Fira Code, monospace" font-weight="bold" font-size="14" fill="#16a34a">${segName} = ${exprText}</text>`;
+                    outSvg += `<text x="${width-200}" y="${outY-10}" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-weight="bold" font-size="14" fill="#16a34a">${segName} = ${exprText}</text>`;
                 }
 
                 outSvg += `<rect x="${width-130}" y="${outY-18}" width="105" height="36" rx="8" fill="#ffffff" stroke="${getLogicColor(stateVal)}" stroke-width="2.5" />`;
-                outSvg += `<text x="${width-78}" y="${outY+5}" text-anchor="middle" font-family="Fira Code, monospace" font-weight="900" font-size="18" fill="#16a34a">${segName} (Out)</text>`;
+                outSvg += `<text x="${width-78}" y="${outY+5}" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-weight="900" font-size="18" fill="#16a34a">${segName} (Out)</text>`;
                 return outSvg;
             };
 
             if (terms.length === 0) {
                 const outY = height / 2;
                 svg += `<line class="circuit-wire" x1="60" y1="${outY}" x2="${width-130}" y2="${outY}" stroke="${getLogicColor(0)}" stroke-width="2.5" stroke-dasharray="6,4" />`;
-                svg += `<text x="${width/2}" y="${outY-12}" text-anchor="middle" fill="#0284c7" font-weight="bold" font-family="Fira Code, monospace" font-size="16">LOGIC 0 (GND)</text>`;
+                svg += `<text x="${width/2}" y="${outY-12}" text-anchor="middle" fill="#0284c7" font-weight="bold" font-family="ui-monospace, Consolas, monospace" font-size="16">LOGIC 0 (GND)</text>`;
                 svg += drawOutputTerminal(width-200, outY, 0, "0");
             } else if (terms.length === 1 && terms[0].termStr === "1") {
                 const outY = height / 2;
                 svg += `<line class="circuit-wire" x1="60" y1="${outY}" x2="${width-130}" y2="${outY}" stroke="${getLogicColor(1)}" stroke-width="2.5" />`;
-                svg += `<text x="${width/2}" y="${outY-12}" text-anchor="middle" fill="#dc2626" font-weight="bold" font-family="Fira Code, monospace" font-size="16">LOGIC 1 (VCC)</text>`;
+                svg += `<text x="${width/2}" y="${outY-12}" text-anchor="middle" fill="#dc2626" font-weight="bold" font-family="ui-monospace, Consolas, monospace" font-size="16">LOGIC 1 (VCC)</text>`;
                 svg += drawOutputTerminal(width-200, outY, 1, "1");
             } else {
                 let orInputY = [];
@@ -1140,7 +1095,7 @@
                         svg += `<line class="circuit-wire" x1="${railX}" y1="${y}" x2="${gateX + 42}" y2="${y}" stroke="${getLogicColor(sigVal)}" stroke-width="2.5" />`;
                         
                         const litLabelStr = lit.char + (lit.invert ? "'" : "");
-                        svg += `<text x="${gateX + 10}" y="${y - 8}" text-anchor="middle" font-family="Fira Code, monospace" font-weight="bold" font-size="14" fill="#d97706">${litLabelStr}</text>`;
+                        svg += `<text x="${gateX + 10}" y="${y - 8}" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-weight="bold" font-size="14" fill="#d97706">${litLabelStr}</text>`;
                         
                     } else {
                         let andOutput = 1;
@@ -1174,7 +1129,7 @@
                         
                         // Term Label over output wire
                         const termLabelStr = t.literals.map(l => l.char + (l.invert ? "'" : "")).join('');
-                        svg += `<text x="${gateX + 60}" y="${y - 8}" text-anchor="middle" font-family="Fira Code, monospace" font-weight="bold" font-size="13" fill="#d97706">${termLabelStr}</text>`;
+                        svg += `<text x="${gateX + 60}" y="${y - 8}" text-anchor="middle" font-family="ui-monospace, Consolas, monospace" font-weight="bold" font-size="13" fill="#d97706">${termLabelStr}</text>`;
                         
                         svg += `<circle cx="${gateX+42}" cy="${y}" r="3.5" fill="${getLogicColor(andOutput)}" />`;
                     }
@@ -1232,193 +1187,218 @@
             container.innerHTML = svg;
         }
 
-        // --- UPDATE MODALS DATA ---
-        function updateModalsData(results, numVars) {
-            const maxCount = Math.pow(2, numVars);
-            const sequence = state.studentId.split('').map(c => SEGMENT_PATTERNS[c.toUpperCase()] || SEGMENT_PATTERNS['-']);
-            sequence.push(SEGMENT_PATTERNS['OFF']);
+/* ---------- 練習：布林式檢查 ---------- */
+function parseBool(src, numVars) {
+  const s = src.replace(/\s+/g, '').toUpperCase().replace(/[’′]/g, "'").replace(/[＋∨|]/g, '+').replace(/[·∧&.]/g, '*').replace(/[～¬]/g, '~');
+  if (!s) return { error: '還沒有輸入式子' };
+  const allowed = 'ABCD'.slice(0, numVars);
+  let pos = 0, lits = 0;
+  const peek = () => s[pos];
+  const err = (m) => { throw new Error(m); };
+  function parseExpr() { let f = parseTerm(); const fs = [f]; while (peek() === '+') { pos++; fs.push(parseTerm()); } return (v) => fs.some(g => g(v)); }
+  function parseTerm() { const fs = [parseFactor()]; while (pos < s.length && (peek() === '*' || /[A-D01(!~]/.test(peek()))) { if (peek() === '*') pos++; fs.push(parseFactor()); } return (v) => fs.every(g => g(v)); }
+  function parseFactor() { let neg = 0; while (peek() === '!' || peek() === '~') { neg++; pos++; } let f = parsePrimary(); while (peek() === "'") { neg++; pos++; } return (v) => (neg % 2 ? !f(v) : f(v)); }
+  function parsePrimary() {
+    const c = peek();
+    if (c === '(') { pos++; const f = parseExpr(); if (peek() !== ')') err('括號沒有成對'); pos++; return f; }
+    if (c === '0') { pos++; return () => false; }
+    if (c === '1') { pos++; return () => true; }
+    if (c && /[A-Z]/.test(c)) {
+      if (!allowed.includes(c)) err(`變數「${c}」不存在，這題只有 ${allowed.split('').join('、')}`);
+      pos++; lits++; const bit = c.charCodeAt(0) - 65; return (v) => ((v >> bit) & 1) === 1;
+    }
+    err(c ? `看不懂「${c}」` : '式子不完整');
+  }
+  try { const fn = parseExpr(); if (pos < s.length) err(`看不懂「${s[pos]}」`); return { fn, lits }; } catch (e) { return { error: e.message }; }
+}
+function checkEquation() {
+  const { numVars, maxCount, results } = computeResults(state.studentId, state.isCommonAnode);
+  const res = results[state.selectedSegment];
+  const p = parseBool($('eqInput').value, numVars);
+  const fb = $('eqFeedback');
+  if (p.error) { fb.className = 'bad'; fb.textContent = '✗ ' + p.error; return; }
+  const wrong = [];
+  for (let i = 0; i < maxCount; i++) {
+    if (res.dontCares.includes(i)) continue;
+    const expect = res.minterms.includes(i);
+    if (p.fn(i) !== expect) wrong.push(i);
+  }
+  const best = res.terms.reduce((a, t) => a + t.literals.length, 0);
+  if (wrong.length) { fb.className = 'bad'; fb.textContent = `✗ 不正確：狀態 ${wrong.slice(0, 4).join('、')}${wrong.length > 4 ? ' …' : ''} 的輸出和真值表不一致（共 ${wrong.length} 個狀態）。`; return; }
+  fb.className = 'ok';
+  fb.textContent = p.lits <= best ? `✓ 正確，而且已經是最簡（${p.lits} 個文字）。` : `✓ 邏輯正確，但還可以再化簡（你用了 ${p.lits} 個文字，最簡約 ${best} 個）。`;
+}
 
-            let tbodyHtml = '';
-            for (let i = 0; i < maxCount; i++) {
-                const bin = toBin(i, numVars);
-                const char = (i < state.studentId.length) ? state.studentId[i] : (i === state.studentId.length ? '-' : 'OFF');
-                const pat = i < sequence.length ? sequence[i] : SEGMENT_PATTERNS['OFF'];
-                
-                tbodyHtml += `<tr class="${i === state.currentStep ? 'bg-emerald-100 text-slate-900 font-bold' : 'hover:bg-slate-100 text-slate-800'}">
-                    <td class="p-3 font-mono text-base">${i}</td>
-                    <td class="p-3 font-mono text-slate-800 font-bold text-base">${bin}</td>
-                    <td class="p-3 font-mono text-emerald-700 font-extrabold text-lg">${char}</td>
-                    ${pat.map(v => `<td class="p-3 text-center font-mono text-base ${v===1 ? 'text-emerald-700 font-bold' : 'text-slate-400'}">${v}</td>`).join('')}
-                </tr>`;
-            }
-            document.getElementById('truthTableBody').innerHTML = tbodyHtml;
+/* ---------- 學習單 ---------- */
+function staticSegFigure() {
+  const centers = [[50,15],[76,41],[76,105],[50,131],[24,105],[24,41],[50,73]];
+  let g = '';
+  VECTOR_POLYGONS.forEach((p, i) => { g += `<polygon points="${p}" fill="#e60000" /><rect x="${centers[i][0]-6}" y="${centers[i][1]-6}" width="12" height="12" fill="#fff" stroke="#000" stroke-width=".6"/><text x="${centers[i][0]}" y="${centers[i][1]+3.2}" text-anchor="middle" font-size="9" font-family="sans-serif">${SEGMENTS[i]}</text>`; });
+  return `<svg width="150" height="215" viewBox="8 2 84 144">${g}</svg>`;
+}
+function buildWorksheetHTML(teacher) {
+  const id = state.studentId, ca = state.isCommonAnode;
+  const { numVars, results } = computeResults(id, ca);
+  const n = id.length;
+  const letters = inputLetters(numVars);
+  let h = `<div class="ws ${teacher ? 'teacher' : 'student'}" id="wsPrintArea">`;
+  h += `<h1>數位邏輯設計，組合邏輯單元－學號顯示器${teacher ? '（教師答案版）' : ''}</h1>`;
+  h += `<div class="info"><span>班級：<u></u></span><span>座號：<u></u></span><span>姓名：<u></u></span></div>`;
+  h += `<div class="tk">顯示學號 <b>${id}</b> 之組合邏輯電路（配合${ca ? '共陽' : '共陰'}七段顯示器）　<span style="font-size:12px">輸出狀態 0～${n}，除以 ${n + 1}；輸入 ${letters.join(' ')}（${letters[0]} 為 MSB、A 為 LSB）</span></div>`;
+  h += buildTruthTableHTML({ studentId: id, isCA: ca, numVars, mode: teacher ? 'full' : 'student', curStep: -1 });
+  h += `<div class="wsmaps">`;
+  SEGMENTS.forEach((s, i) => {
+    const r = results[i];
+    h += `<div class="wsmap"><div class="kplate">${buildKMapHTML(r, numVars, { showValues: teacher, showGroups: teacher, curStep: -1, svgId: null })}</div>
+      <div class="eqln">${s} = ${teacher ? renderExprWithOverbarsHTML(r.terms) : ''}</div></div>`;
+  });
+  h += `</div>`;
+  if (teacher) {
+    h += `<div class="wseqs">` + SEGMENTS.map((s, i) => `<div>${s} = ${renderExprWithOverbarsHTML(results[i].terms)}</div>`).join('') + `</div>`;
+  }
+  const rules = ca
+    ? ['七段顯示器共有七段顯示的 LED，分別為 a, b, c, d, e, f, g，加上 dot。', '共陽極七段顯示器，<em>COM 點必須接高電位</em>。', '共陽極七段顯示器，要讓每段的 LED 點亮，則該段需接<em>低電位（零電位）</em>。', '數位邏輯正邏輯的概念則為，<em>該段接 1 則為「暗」，該段接 0 則為「亮」</em>。']
+    : ['七段顯示器共有七段顯示的 LED，分別為 a, b, c, d, e, f, g，加上 dot。', '共陰極七段顯示器，<em>COM 點必須接地（低電位）</em>。', '共陰極七段顯示器，要讓每段的 LED 點亮，則該段需接<em>高電位（1）</em>。', '數位邏輯正邏輯的概念則為，<em>該段接 1 則為「亮」，該段接 0 則為「暗」</em>。'];
+  h += `<div class="wsbot"><div class="fig">${staticSegFigure()}</div><div class="rules"><ol style="margin:0;padding-left:18px">${rules.map(r => `<li>${r}</li>`).join('')}</ol></div></div>`;
+  return h + `</div>`;
+}
+function renderWorksheet() {
+  $('wsBox').innerHTML = buildWorksheetHTML(state.ws === 'teacher');
+  $('wsStudent').classList.toggle('lit', state.ws === 'student');
+  $('wsTeacher').classList.toggle('lit', state.ws === 'teacher');
+}
+window.openWorksheet = () => { openModal('wsModal'); renderWorksheet(); };
 
-            let verilog = `// Verilog HDL Module for Student ID Display (${state.studentId})\n`;
-            verilog += `module student_id_decoder (\n`;
-            verilog += `    input  wire [${numVars-1}:0] in,\n`;
-            verilog += `    output wire [6:0] seg // {a,b,c,d,e,f,g}\n`;
-            verilog += `);\n\n`;
+/* ---------- 互動 ---------- */
+let lastFocus = null;
+window.openModal = (id) => { lastFocus = document.activeElement; $(id).classList.add('open'); const b = $(id).querySelector('button'); if (b) b.focus(); };
+window.closeModal = (id) => { $(id).classList.remove('open'); if (lastFocus && lastFocus.focus) lastFocus.focus(); };
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('.modal.open').forEach(m => closeModal(m.id)); });
+document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', (e) => { if (e.target === m) closeModal(m.id); }));
 
-            SEGMENTS.forEach((s, idx) => {
-                const exprStr = results[idx].terms.map(t => {
-                    if (t.termStr === "1") return "1'b1";
-                    return t.literals.map(l => l.invert ? `~in[${inputsToBitIndex(l.char, numVars)}]` : `in[${inputsToBitIndex(l.char, numVars)}]`).join(" & ");
-                }).join(" | ") || "1'b0";
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 1800); }
+window.copyText = (id) => {
+  const el = $(id); el.select();
+  const done = () => toast('已複製到剪貼簿');
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(el.value).then(done, () => { document.execCommand('copy'); done(); });
+  else { document.execCommand('copy'); done(); }
+};
 
-                verilog += `    assign seg[${6-idx}] = ${state.isCommonAnode ? '~(' + exprStr + ')' : exprStr};\n`;
-            });
-            verilog += `\nendmodule\n`;
-            document.getElementById('verilogCode').value = verilog;
+window.selectSegment = (idx) => { state.selectedSegment = idx; renderInterface(); renderSevenSegment(); };
+window.setStep = (step) => { state.currentStep = step; renderInterface(); renderSevenSegment(); };
+window.setTheme = (themeName) => {
+  state.theme = themeName;
+  document.body.className = document.body.className.replace(/theme-[\w-]+/g, '').trim() + ` theme-${themeName}`;
+  renderSevenSegment(); renderMultiDigitHardwareModule();
+  document.querySelectorAll('#themeDots .dot').forEach(b => b.setAttribute('aria-pressed', b.dataset.theme === themeName));
+};
+window.changeZoom = (delta) => {
+  state.zoom = Math.max(0.6, Math.min(2.0, state.zoom + delta));
+  $('zoomVal').innerText = `${Math.round(state.zoom * 100)}%`;
+  $('circuitTransformGroup').style.transform = `scale(${state.zoom})`;
+};
+window.resetZoom = () => { state.zoom = 1.0; $('zoomVal').innerText = '100%'; $('circuitTransformGroup').style.transform = 'scale(1)'; };
+window.exportSchematicSVG = () => {
+  const svgEl = $('schematicSvg'); if (!svgEl) { toast('請先顯示電路圖'); return; }
+  const svgData = new XMLSerializer().serializeToString(svgEl);
+  const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url;
+  a.download = `student_id_schematic_${state.studentId}_seg_${SEGMENTS[state.selectedSegment]}.svg`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+};
 
-            let latex = `% Boolean Logic LaTeX Formulas (Overbar Notation)\n`;
-            SEGMENTS.forEach((s, idx) => {
-                const expr = results[idx].terms.map(t => {
-                    if (t.termStr === "1") return "1";
-                    return t.literals.map(l => l.invert ? `\\bar{${l.char}}` : l.char).join("");
-                }).join(" + ") || "0";
-                latex += `${s} = ${expr} \\\\\n`;
-            });
-            document.getElementById('latexCode').value = latex;
-        }
+$('studentId').addEventListener('input', (e) => {
+  const val = e.target.value.toUpperCase().replace(/[^0-9A-F\-]/g, '');
+  if (val !== e.target.value) e.target.value = val;
+  state.studentId = val; state.currentStep = 0; state.pin = {};
+  renderInterface(); renderSevenSegment();
+});
+$('presetSelect').addEventListener('change', (e) => {
+  if (!e.target.value) return;
+  state.studentId = e.target.value; state.currentStep = 0; state.pin = {};
+  $('studentId').value = state.studentId;
+  renderInterface(); renderSevenSegment();
+});
+function startPlayback() {
+  state.timerId = setInterval(() => {
+    const len = state.studentId.length + 1;
+    state.currentStep = (state.currentStep + 1) % len;
+    renderInterface(); renderSevenSegment();
+  }, state.speed);
+}
+function stopPlayback() { state.isPlaying = false; clearInterval(state.timerId); }
+$('playBtn').addEventListener('click', () => {
+  state.isPlaying = !state.isPlaying;
+  if (state.isPlaying) startPlayback(); else clearInterval(state.timerId);
+  renderInterface();
+});
+$('stepPrevBtn').addEventListener('click', () => { stopPlayback(); const len = state.studentId.length + 1; state.currentStep = (state.currentStep - 1 + len) % len; renderInterface(); renderSevenSegment(); });
+$('stepNextBtn').addEventListener('click', () => { stopPlayback(); const len = state.studentId.length + 1; state.currentStep = (state.currentStep + 1) % len; renderInterface(); renderSevenSegment(); });
+$('resetBtn').addEventListener('click', () => { stopPlayback(); state.currentStep = 0; renderInterface(); renderSevenSegment(); });
+$('modeToggle').addEventListener('click', () => {
+  state.isCommonAnode = !state.isCommonAnode;
+  setTheme(state.isCommonAnode ? 'emerald' : 'blue');
+  state.pin = {};
+  renderInterface();
+});
+document.querySelectorAll('#themeDots .dot').forEach(b => b.addEventListener('click', () => setTheme(b.dataset.theme)));
 
-        function inputsToBitIndex(char, numVars) {
-            const inputs = numVars === 4 ? ['D','C','B','A'] : ['C','B','A'];
-            const idx = inputs.indexOf(char);
-            return (numVars - 1) - idx;
-        }
+// 練習模式
+function setPractice(on) {
+  state.practice = on;
+  state.reveal = { truth:false, kmap:false, eq:false, circuit:false, tina:false };
+  document.body.classList.toggle('practice', on);
+  $('practiceToggle').setAttribute('aria-pressed', on);
+  $('practiceToggle').textContent = '練習模式：' + (on ? '開' : '關');
+  $('practiceToggle').classList.toggle('lit', on);
+  $('revealAll').style.display = on ? '' : 'none';
+  $('eqFeedback').textContent = ''; $('eqInput').value = '';
+  renderInterface();
+}
+$('practiceToggle').addEventListener('click', () => setPractice(!state.practice));
+$('revealAll').addEventListener('click', () => { Object.keys(state.reveal).forEach(k => state.reveal[k] = true); renderInterface(); });
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-reveal]');
+  if (b) { state.reveal[b.dataset.reveal] = true; renderInterface(); }
+});
+document.addEventListener('input', (e) => {
+  const t = e.target;
+  if (!t.classList || !t.classList.contains('tt-in')) return;
+  let v = t.value.replace(/[^01]/g, '').slice(0, 1);
+  t.value = v; state.pin[t.dataset.key] = v;
+  t.classList.remove('ok', 'bad');
+  if (v !== '') t.classList.add(v === t.dataset.exp ? 'ok' : 'bad');
+  updatePracticeProgress();
+});
+$('eqCheckBtn').addEventListener('click', checkEquation);
+$('eqInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') checkEquation(); });
 
-        // --- EVENT HANDLERS & INTERACTIONS ---
-        window.selectSegment = (idx) => {
-            state.selectedSegment = idx;
-            renderInterface();
-            renderSevenSegment();
-        };
+// 學習單
+$('wsStudent').addEventListener('click', () => { state.ws = 'student'; renderWorksheet(); });
+$('wsTeacher').addEventListener('click', () => { state.ws = 'teacher'; renderWorksheet(); });
+$('wsPrint').addEventListener('click', () => { window.print(); });
 
-        window.setStep = (step) => {
-            state.currentStep = step;
-            renderInterface();
-            renderSevenSegment();
-        };
+// 流程列：目前所在區塊
+(function flowSpy() {
+  const links = [...document.querySelectorAll('.flow a')];
+  links.forEach(a => a.addEventListener('click', (e) => { e.preventDefault(); const el = $(a.dataset.sec); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }));
+  let ticking = false;
+  const update = () => {
+    ticking = false;
+    let cur = links[0].dataset.sec;
+    links.forEach(a => { const el = $(a.dataset.sec); if (el && el.getBoundingClientRect().top <= 140) cur = a.dataset.sec; });
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = links[links.length - 1].dataset.sec;
+    links.forEach(a => a.classList.toggle('on', a.dataset.sec === cur));
+    const on = document.querySelector('.flow a.on'); if (on && on.scrollIntoView) { const box = on.parentElement.parentElement; const l = on.offsetLeft - 16; if (Math.abs(box.scrollLeft - l) > 60) box.scrollTo({ left: l, behavior: 'smooth' }); }
+  };
+  window.addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(update); } }, { passive: true });
+  update();
+})();
 
-        window.setTheme = (themeName) => {
-            state.theme = themeName;
-            document.body.className = document.body.className.replace(/theme-\w+/g, '') + ` theme-${themeName}`;
-            renderSevenSegment();
-            renderMultiDigitHardwareModule();
-        };
-
-        window.changeZoom = (delta) => {
-            state.zoom = Math.max(0.6, Math.min(2.0, state.zoom + delta));
-            document.getElementById('zoomVal').innerText = `${Math.round(state.zoom * 100)}%`;
-            document.getElementById('circuitTransformGroup').style.transform = `scale(${state.zoom})`;
-        };
-        window.resetZoom = () => {
-            state.zoom = 1.0;
-            document.getElementById('zoomVal').innerText = '100%';
-            document.getElementById('circuitTransformGroup').style.transform = `scale(1)`;
-        };
-
-        window.exportSchematicSVG = () => {
-            const svgEl = document.getElementById('schematicSvg');
-            if (!svgEl) return;
-            const svgData = new XMLSerializer().serializeToString(svgEl);
-            const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `student_id_schematic_${state.studentId}_seg_${SEGMENTS[state.selectedSegment]}.svg`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        };
-
-        openModal = (id) => document.getElementById(id).classList.remove('hidden');
-        closeModal = (id) => document.getElementById(id).classList.add('hidden');
-        copyText = (id) => {
-            const el = document.getElementById(id);
-            el.select();
-            navigator.clipboard.writeText(el.value);
-            alert("已成功複製至剪貼簿！");
-        };
-
-        document.getElementById('studentId').addEventListener('input', (e) => {
-            let val = e.target.value.toUpperCase().replace(/[^0-9A-F\-]/g, '');
-            state.studentId = val;
-            state.currentStep = 0;
-            renderInterface();
-            renderSevenSegment();
-        });
-
-        document.getElementById('presetSelect').addEventListener('change', (e) => {
-            if (!e.target.value) return;
-            state.studentId = e.target.value;
-            state.currentStep = 0;
-            document.getElementById('studentId').value = state.studentId;
-            renderInterface();
-            renderSevenSegment();
-        });
-
-        function startPlayback() {
-            state.timerId = setInterval(() => {
-                const len = state.studentId.length + 1; 
-                state.currentStep = (state.currentStep + 1) % len;
-                renderInterface(); 
-                renderSevenSegment(); 
-            }, state.speed);
-        }
-
-        document.getElementById('playBtn').addEventListener('click', () => {
-            state.isPlaying = !state.isPlaying;
-            if (state.isPlaying) {
-                startPlayback();
-            } else {
-                clearInterval(state.timerId);
-            }
-            renderInterface();
-        });
-
-        document.getElementById('stepPrevBtn').addEventListener('click', () => {
-            state.isPlaying = false;
-            clearInterval(state.timerId);
-            const len = state.studentId.length + 1;
-            state.currentStep = (state.currentStep - 1 + len) % len;
-            renderInterface();
-            renderSevenSegment();
-        });
-
-        document.getElementById('stepNextBtn').addEventListener('click', () => {
-            state.isPlaying = false;
-            clearInterval(state.timerId);
-            const len = state.studentId.length + 1;
-            state.currentStep = (state.currentStep + 1) % len;
-            renderInterface();
-            renderSevenSegment();
-        });
-
-        document.getElementById('resetBtn').addEventListener('click', () => {
-            state.isPlaying = false;
-            clearInterval(state.timerId);
-            state.currentStep = 0;
-            renderInterface();
-            renderSevenSegment();
-        });
-
-        document.getElementById('modeToggle').addEventListener('click', () => {
-            state.isCommonAnode = !state.isCommonAnode;
-            if (!state.isCommonAnode) {
-                // Switch to Blue LED for Common Cathode mode
-                setTheme('blue');
-            } else {
-                // Switch to Green LED for Common Anode mode
-                setTheme('emerald');
-            }
-            renderInterface();
-        });
-
-        // INIT
-        renderSevenSegment();
-        renderInterface();
-
-    </script>
+// INIT
+renderSevenSegment();
+renderInterface();
+</script>
 </body>
 </html>
