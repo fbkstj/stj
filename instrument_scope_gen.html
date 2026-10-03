@@ -1,0 +1,1440 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>示波器與信號產生器操作教學</title>
+<style>
+:root{
+  --bg:#f3f4f6; --card:#ffffff; --ink:#1c2430; --mute:#5b6675; --line:#d6dbe2;
+  --accent:#0b6bcb; --ok:#14804a; --warn:#b45309; --hl:#ff7a1a;
+  --dev:#d9dce0; --dev2:#c4c8ce; --key:#f4f5f7; --keyline:#8a919b; --bezel:#1b1f25;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#12161c; --card:#1b212a; --ink:#e7ebf0; --mute:#9aa6b6; --line:#2f3946; --accent:#5aa9ff; --ok:#4cc38a; --warn:#f0a95a; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,"Microsoft JhengHei","PingFang TC",sans-serif}
+header{padding:16px 16px 8px;max-width:1400px;margin:0 auto}
+h1{font-size:22px;margin:0 0 2px}
+header p{margin:0;color:var(--mute);font-size:14px}
+.wrap{max-width:1400px;margin:0 auto;padding:0 16px 40px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.card h2{font-size:16px;margin:0 0 8px}
+#wire{display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;font-size:14px}
+#wire label{display:flex;align-items:center;gap:6px}
+select,input[type=number],button{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 8px}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:14px;align-items:start}
+@media(max-width:1000px){.grid{grid-template-columns:minmax(0,1fr)}}
+.grid>*{min-width:0}
+.devwrap{overflow-x:auto}
+svg.panel{width:100%;height:auto;display:block;min-width:620px;user-select:none;-webkit-user-select:none}
+.scopebox{position:relative;min-width:620px}
+canvas#scr{position:absolute;left:3.6%;top:6.2%;width:44.8%;height:46.2%;border-radius:3px;background:#000}
+.ctl{cursor:pointer;outline:none}
+.ctl .face{fill:var(--key);stroke:var(--keyline);stroke-width:1.4}
+.ctl:hover .face{stroke:var(--accent);stroke-width:2.2}
+.ctl:focus-visible .face{stroke:var(--accent);stroke-width:3}
+.ctl.sel .face{stroke:var(--hl);stroke-width:3}
+.ctl text{font:11px system-ui,"Microsoft JhengHei",sans-serif;fill:#1c2430;pointer-events:none;text-anchor:middle}
+.ctl.knob .face{fill:#8b929c}
+.ctl.knob .inner{fill:#b7bcc4;stroke:#6e7580;stroke-width:1.2;pointer-events:none}
+.ctl.knob .ind{stroke:#fff;stroke-width:3;stroke-linecap:round;pointer-events:none}
+.ctl.bnc .face{fill:#cfd3d9}
+.ctl.bnc .hole{fill:#2b3038;pointer-events:none}
+.ctl.bnc .pin{fill:#e6c24a;pointer-events:none}
+.ctl.softk .face{fill:#2a2f36;stroke:#0e1115}
+.lbl{font:11px system-ui,"Microsoft JhengHei",sans-serif;fill:#2b3340;text-anchor:middle;pointer-events:none}
+.lbl.l{text-anchor:start}
+.cable{fill:none;stroke-width:5;stroke-linecap:round;opacity:.9;pointer-events:none}
+#info h2{margin-bottom:2px}
+.tag{display:inline-block;font-size:12px;padding:0 7px;border-radius:9px;border:1px solid var(--line);color:var(--mute);margin-left:6px;vertical-align:middle}
+.tag.q{color:var(--warn);border-color:var(--warn)}
+.tag.m{color:var(--ok);border-color:var(--ok)}
+#info p{margin:6px 0}
+.tip{border-left:3px solid var(--accent);padding:2px 10px;background:color-mix(in srgb,var(--accent) 8%,transparent);margin:8px 0}
+.turn{display:flex;gap:8px;margin:8px 0;flex-wrap:wrap}
+.cur{font-family:ui-monospace,Consolas,monospace;color:var(--accent)}
+.hint{color:var(--mute);font-size:13px}
+ol.lessons{list-style:none;padding:0;margin:0}
+ol.lessons li{padding:8px 0;border-top:1px solid var(--line)}
+ol.lessons li:first-child{border-top:0}
+.ls{display:flex;gap:8px;align-items:flex-start}
+.chk{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;color:#fff;margin-top:2px}
+.done .chk{background:var(--ok);border-color:var(--ok)}
+.ls b{display:block}
+.ls span{color:var(--mute);font-size:13.5px}
+.mini{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;align-items:center;font-size:13.5px}
+.mini input{width:80px}
+.msg{font-size:13.5px;margin-top:4px}
+@media(max-width:1000px){#infocard{position:sticky;bottom:0;z-index:5;max-height:42vh;overflow:auto;box-shadow:0 -4px 14px rgba(0,0,0,.18)}}
+.ctl.hl .face{stroke:var(--hl);stroke-width:5;animation:pulse 1s ease-in-out infinite}
+.hl-dom{outline:3px solid var(--hl);outline-offset:3px;border-radius:6px;animation:pulse2 1s ease-in-out infinite}
+@keyframes pulse{50%{stroke-width:2;stroke-opacity:.4}}
+@keyframes pulse2{50%{outline-color:transparent}}
+@media(prefers-reduced-motion:reduce){.ctl.hl .face,.hl-dom{animation:none}}
+.gcard .gt{font-size:17px;font-weight:700;margin:2px 0}
+.gcard .gx{min-height:3.4em;margin:2px 0 8px}
+.gcard .gb{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.gcard .dots{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.gcard .dot{width:26px;height:8px;border-radius:4px;background:var(--line);border:0;padding:0;cursor:pointer}
+.gcard .dot.on{background:var(--hl)}
+.gcard .dot.past{background:var(--ok)}
+.gcard .ref{color:var(--mute);font-size:13px}
+.tbl{border-collapse:collapse;width:100%;font-size:13px;margin-top:6px}
+.tbl th,.tbl td{border:1px solid var(--line);padding:2px 4px;text-align:center}
+.tbl th{background:var(--bg)}
+#exam h3{font-size:14px;margin:12px 0 4px}
+#exam .req{margin:6px 0;padding-left:20px;font-size:13.5px}
+#exam .form{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:13.5px}
+#exam .form label{display:flex;align-items:center;gap:4px}
+#exam .form input[type=number]{width:70px}
+@media(max-width:600px){#exam .form{grid-template-columns:1fr}#exam .form label{flex-wrap:wrap}}
+.chkl{list-style:none;padding:0;margin:4px 0;font-size:13.5px}
+.chkl li{padding:2px 0}
+.chkl li.ok span{color:var(--ok);font-weight:700}
+.chkl li.bad span,.bad{color:var(--warn);font-weight:700}
+.chkl em{font-style:normal;color:var(--warn)}
+.hintl{padding-left:20px;font-size:13.5px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}
+.tabs button{flex:1;padding:6px 8px}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+#msw{font-weight:700}
+#msw.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+.lamp{display:inline-block;width:14px;height:14px;border-radius:50%;background:#445;border:1px solid #000}
+.dmm{border:1px solid var(--line);border-radius:8px;padding:8px;margin:8px 0;background:var(--bg)}
+.dmmscr{background:#c9d8b8;color:#152015;font:700 26px/1.2 ui-monospace,Consolas,monospace;text-align:right;padding:6px 10px;border-radius:4px;min-height:44px}
+.dmm .row{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:6px;font-size:13.5px}
+.touch{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13.5px;margin:8px 0}
+.seg{font:700 22px ui-monospace,Consolas,monospace;background:#111;color:#ff4030;padding:0 8px;border-radius:3px}
+#bigscr{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:50;display:none;align-items:center;justify-content:center;padding:12px;cursor:zoom-out}
+#bigscr canvas{max-width:96vw;max-height:88vh;width:auto;height:auto;aspect-ratio:5/3;background:#000;border-radius:6px}
+#bigscr .tip{position:fixed;bottom:10px;left:0;right:0;text-align:center;color:#cfd6df;font-size:13px}
+footer{color:var(--mute);font-size:13px;padding:6px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>示波器 GDS-2102E ＋ 信號產生器 MFG-2110　操作教學</h1>
+  <p>工業電子丙級術科用。點擊面板上的任何按鍵或旋鈕，右側會說明功能；旋鈕可點左半（逆時針）、右半（順時針）或用滑鼠滾輪轉動，雙擊相當於按下旋鈕。</p>
+</header>
+<div class="wrap">
+  <div class="card" id="wire">
+    <b>接線</b>
+    <label>示波器 CH1 接：
+      <select id="w1"><option value="none">（未接）</option><option value="comp">示波器自己的 2V 探棒補償輸出</option><option value="gen">MFG-2110 CH1 輸出</option><optgroup label="考試電路板（試題二）"><option value="pt:I">信號輸入端 I</option><option value="pt:J">量測點 J</option><option value="pt:K">量測點 K</option><option value="pt:L">量測點 L</option><option value="pt:M">量測點 M</option><option value="pt:N">量測點 N</option><option value="pt:O">量測點 O</option></optgroup><optgroup label="音樂盒（試題一）"><option value="aux">AUX IN（J8）</option></optgroup></select></label>
+    <label>示波器 CH2 接：
+      <select id="w2"><option value="none">（未接）</option><option value="comp">示波器自己的 2V 探棒補償輸出</option><option value="gen">MFG-2110 CH1 輸出</option><optgroup label="考試電路板（試題二）"><option value="pt:I">信號輸入端 I</option><option value="pt:J">量測點 J</option><option value="pt:K">量測點 K</option><option value="pt:L">量測點 L</option><option value="pt:M">量測點 M</option><option value="pt:N">量測點 N</option><option value="pt:O">量測點 O</option></optgroup><optgroup label="音樂盒（試題一）"><option value="aux">AUX IN（J8）</option></optgroup></select></label>
+    <label>探棒開關：CH1 <select id="sw1"><option value="1">×1</option><option value="10">×10</option></select> CH2 <select id="sw2"><option value="1">×1</option><option value="10">×10</option></select></label>
+    <label id="compbox">探棒補償螺絲：
+      <input type="range" id="comp" min="-1" max="1" step="0.02" value="0.6" style="width:150px"> <span class="cur" id="compv"></span></label>
+    <span>MFG 負載設定：<b id="loadv"></b><span class="hint">（在 MFG-2110 按 CH1 鍵 → F1 Load 更改）</span></span>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card gcard" id="guide">
+        <h2>開機自我調校　動畫指引</h2>
+        <div class="gt" id="gt"></div>
+        <div class="gx" id="gx"></div>
+        <div class="gb"><button id="gprev">◀ 上一步</button><button id="gplay">▶ 自動播放</button><button id="gnext">下一步 ▶</button><button id="grestart">重來</button><span class="ref" id="gref"></span></div>
+        <div class="dots" id="gdots"></div>
+      </div>
+      <div class="card">
+        <h2>示波器 GDS-2102E（100 MHz，2 通道）<button id="zoomscr" style="float:right;font-size:13px">放大螢幕畫面</button></h2>
+        <div class="devwrap"><div class="scopebox"><canvas id="scr" width="800" height="480"></canvas><svg id="scope" class="panel" viewBox="0 0 1000 590"></svg></div></div>
+      </div>
+      <div class="card gcard" id="guide2">
+        <h2>信號產生器　開機與輸出設定　動畫指引</h2>
+        <div class="gt" id="ht"></div>
+        <div class="gx" id="hx"></div>
+        <div class="gb"><button id="hprev">◀ 上一步</button><button id="hplay">▶ 自動播放</button><button id="hnext">下一步 ▶</button><button id="hrestart">重來</button><span class="ref" id="href"></span></div>
+        <div class="dots" id="hdots"></div>
+      </div>
+      <div class="card">
+        <h2>信號產生器 MFG-2110</h2>
+        <div class="devwrap"><svg id="gen" class="panel" viewBox="0 0 1000 350"></svg></div>
+      </div>
+      <footer>資料來源：GW Instek GDS-2000E、MFG-2000 系列使用手冊；題組與評分依「工業電子丙級術科測試試題（試題二 儀表操作與訊號量測）」。標示「待確認」的項目（選單層級、預設值、按鍵實際位置等）請對照考場實機。本頁為教學模擬，波形為計算產生，非真實量測。</footer>
+    </div>
+    <aside>
+      <div class="card" id="infocard"><div id="info"></div></div>
+      <div class="tabs"><button id="tab2" class="on">試題二　訊號量測</button><button id="tab1">試題一　音樂盒</button></div>
+      <div class="card" id="exam"><h2>丙級術科模擬：訊號量測（試題二）</h2>
+        <p class="hint" style="margin:0 0 8px">依試題二題組：設定信號產生器，用示波器同時量測輸入信號 V<sub>IH</sub>（CH1）與指定量測點（CH2）。</p>
+        <div class="mini"><select id="examsel"></select><button id="examdraw">抽題</button><button id="examauto">自動接線</button></div>
+        <div id="examinfo"></div>
+        <svg id="examckt" viewBox="0 0 360 255" style="width:100%;height:auto;color:var(--ink);font-family:inherit"></svg>
+        <details open><summary><b>動作要求（摘要）</b></summary><ul class="req">
+          <li>信號產生器：依題組設定波形、頻率、振幅；DC Offset＝0 V；Duty＝50%。</li>
+          <li>示波器：CH1、CH2 皆 DC 耦合、探棒衰減 1:1；兩通道基線置於 Y 軸中央（0 V）。</li>
+          <li>波形完整呈現 2～3 個週期；CH1 波峰至波谷占 3～6 格，CH2 占 2～5 格。</li>
+          <li>填寫答案卷：波形、頻率、振幅、TIME/DIV、CH1／CH2 VOLT/DIV。</li></ul></details>
+        <h3>答案卷－2 記錄</h3>
+        <div class="form">
+          <label>波形 <select id="rwave"><option value="">—</option><option value="sine">正弦波</option><option value="square">方波</option><option value="triangle">三角波</option></select></label>
+          <label>頻率 <input type="number" id="rfreq" step="any"><select id="rfu"><option value="1">Hz</option><option value="1000">kHz</option><option value="1000000">MHz</option></select></label>
+          <label>振幅 <input type="number" id="rvpp" step="any"> Vpp</label>
+          <label>TIME/DIV <input type="number" id="rtd" step="any"><select id="rtu"><option value="1e-6">µs</option><option value="1e-3">ms</option><option value="1">s</option></select></label>
+          <label>CH1 VOLT/DIV <input type="number" id="rv1" step="any"><select id="rv1u"><option value="1">V</option><option value="1e-3">mV</option></select></label>
+          <label>CH2 VOLT/DIV <input type="number" id="rv2" step="any"><select id="rv2u"><option value="1">V</option><option value="1e-3">mV</option></select></label>
+        </div>
+        <div class="mini"><button id="examcheck">檢查設定與評分</button><button id="examhint">提示</button><button id="resetall">全部重設</button></div>
+        <div id="examres"></div>
+      </div>
+      <div class="card" id="music" style="display:none"><h2>丙級術科模擬：音樂盒（試題一）</h2>
+        <p class="hint" style="margin:0 0 6px">電壓調整與輸入信號測試。電路為簡化模型，不是真實電路計算。</p>
+        <ul class="req" style="font-size:13.5px;padding-left:20px;margin:4px 0">
+          <li>SW1 ON：POWER 燈與綠色 LED 亮，有音樂聲。</li>
+          <li>調 SVR1 使 TP1＝12 V ± 1 V；TP2＝5 V ± 0.5 V；調 SVR2 使 TP3＝6 V ± 0.5 V（用三用電表量測）。</li>
+          <li>音量 0～7、音源可選兩種音樂。</li>
+          <li>信號產生器：正弦波 1 kHz、3 Vpp 從外部音源端（AUX IN）輸入，應有聲音。</li></ul>
+        <svg id="mboard" viewBox="0 0 360 250" style="width:100%;height:auto;font-family:inherit"></svg>
+        <div class="mini"><button id="msw">SW1：OFF</button><span class="lamp" id="mlamp" title="POWER 燈"></span><span class="hint" id="mstat"></span></div>
+        <div class="form" style="display:grid;grid-template-columns:1fr;gap:4px;font-size:13.5px;margin-top:6px">
+          <label>SVR1　<input type="range" id="msvr1" min="0" max="1" step="0.005" style="width:75%"></label>
+          <label>SVR2　<input type="range" id="msvr2" min="0" max="1" step="0.005" style="width:75%"></label>
+        </div>
+        <div class="dmm">
+          <div class="dmmscr"><span id="dmmv"></span></div>
+          <div class="hint" id="dmmn" style="min-height:1.4em"></div>
+          <div class="row">
+            <label>功能 <select id="dmmfn"><option value="DCV">DCV 直流電壓</option><option value="ACV">ACV 交流電壓</option><option value="OFF">OFF</option></select></label>
+            <label>檔位 <select id="dmmrng"><option value="0.2">200 mV</option><option value="2">2 V</option><option value="20" selected>20 V</option><option value="200">200 V</option><option value="600">600 V</option></select></label>
+            <label>紅棒 <select id="dmmred"><option value="-">未接</option><option value="TP1">TP1</option><option value="TP2">TP2</option><option value="TP3">TP3</option><option value="GND">GND</option><option value="J1">J1 腳1</option><option value="J1b">J1 腳2</option></select></label>
+            <label>黑棒 <select id="dmmblk"><option value="-">未接</option><option value="GND">GND</option><option value="TP1">TP1</option><option value="TP2">TP2</option><option value="TP3">TP3</option><option value="J1">J1 腳1</option><option value="J1b">J1 腳2</option></select></label>
+          </div>
+          <div class="hint" style="margin-top:4px">數位三用電表。檔位為通用示意，請對照考場電表的實際檔位。</div>
+        </div>
+        <div class="touch">
+          <span>音量 <button id="mvoldn">▼</button><span class="seg" id="mvol">3</span><button id="mvolup">▲</button></span>
+          <span>音源 <button id="msrc">切換</button> <b id="msrcn">音樂 1</b></span>
+          <button id="msnd">喇叭聲：關</button>
+        </div>
+        <label style="font-size:13.5px"><input type="checkbox" id="maux"> 信號產生器輸出接到 AUX IN（J8）</label>
+        <div class="hint" id="mauxl" style="display:none">上方「接線」區可把示波器 CH1 接到「音樂盒 AUX IN」量測輸入信號。</div>
+        <div class="mini"><button id="mdraw">重新抽題</button><button id="mcheck">檢查評分</button><button id="mhint">提示</button></div>
+        <div id="mres"></div>
+      </div>
+      </aside>
+  </div>
+</div>
+
+<div id="bigscr"><canvas id="bigcv" width="800" height="480"></canvas><div class="tip">點任一處或按 Esc 關閉</div></div>
+<script>
+"use strict";
+/* ============ 工具 ============ */
+const NS="http://www.w3.org/2000/svg";
+function svg(tag,attrs,parent,text){
+  const e=document.createElementNS(NS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]);
+  if(text!==undefined) e.textContent=text;
+  if(parent) parent.appendChild(e);
+  return e;
+}
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+function si(v,unit){
+  if(!isFinite(v)) return "---";
+  if(Math.abs(v)<1e-12) return "0 "+unit;
+  const a=Math.abs(v);
+  let e=clamp(Math.floor(Math.log10(a)/3),-4,3);
+  const val=v/Math.pow(10,3*e);
+  const p=["p","n","µ","m","","k","M","G"][e+4];
+  const d=Math.abs(val)<10?3:Math.abs(val)<100?2:1;
+  return val.toFixed(d)+" "+p+unit;
+}
+
+/* ============ 狀態 ============ */
+const VDIVS=[0.001,0.002,0.005,0.01,0.02,0.05,0.1,0.2,0.5,1,2,5,10];
+const TDIVS=[];
+for(let e=-9;e<=1;e++){ for(const m of [1,2,5]) TDIVS.push(m*Math.pow(10,e)); }
+TDIVS.push(100);
+const ti0=TDIVS.indexOf(1e-3), vi0=VDIVS.indexOf(1);
+
+function scopeDefault(){
+  return {on:true, run:true, armed:false, measure:false,
+    ch:[{on:true,vi:vi0,pos:0,coupling:"DC",probe:1},{on:false,vi:vi0,pos:0,coupling:"DC",probe:1}],
+    ti:ti0, hpos:0, trig:0};
+}
+function genDefault(){
+  return {on:true, wave:"sine", freq:1000, ampl:3, off:0, out:false, load:"50",
+    sel:"freq", buf:"", menu:"none", step:{freq:100,ampl:0.1,off:0.1}};
+}
+const S={sc:scopeDefault(), gen:genDefault(),
+  wire:{ch1:"none",ch2:"none",comp:0.6,sw1:1,sw2:1},
+  scMenu:{ch:0,until:0},
+  sel:null, cap:{t1:0,t2:0,trigd:false}, last:{trigd:false,periods:0,vppDiv:0},
+  latch:{default:false}, rot:{}};
+
+/* ============ 信號來源 ============ */
+const NONE={kind:"none",T:0,f:0,fn:()=>0,vpp:0,mean:0};
+function shape(w,p){
+  switch(w){
+    case "sine": return Math.sin(2*Math.PI*p);
+    case "square": return p<0.5?1:-1;
+    case "triangle": return p<0.5?(4*p-1):(3-4*p);
+    case "ramp": return 2*p-1;
+    case "pulse": return p<0.2?1:-1;
+  }
+  return 0;
+}
+function compFn(t){
+  const T=1e-3, p=((t/T)%1+1)%1, hi=p<0.5;
+  const tau=(hi?p:p-0.5)*T;
+  return (hi?2:0)+(hi?1:-1)*S.wire.comp*0.8*Math.exp(-tau/40e-6);
+}
+function genSrc(scale){
+  const g=S.gen; if(!g.out) return NONE;
+  const m=g.load==="50"?2:1, A=g.ampl*m, off=g.off*m;
+  if(g.wave==="noise") return {kind:"noise",T:0,f:0,fn:()=>scale*(off+(Math.random()-0.5)*A)};
+  const T=1/g.freq;
+  return {kind:"gen",T,f:g.freq,fn:t=>scale*(off+A/2*shape(g.wave,((t/T)%1+1)%1))};
+}
+function rawSrc(i){
+  const k=i===0?S.wire.ch1:S.wire.ch2;
+  if(k==="comp") return {kind:"comp",T:1e-3,f:1000,fn:compFn};
+  if(k==="gen") return genSrc(1);
+  if(k==="aux") return M.aux?genSrc(0.995):NONE;
+  if(k.startsWith("pt:")) return genSrc(netScale(k.slice(3)));
+  return NONE;
+}
+/* 套用耦合與探棒衰減：螢幕上看到的電壓 ＝ 實際電壓 × （示波器 Probe 設定 ÷ 探棒開關倍率） */
+function srcFor(i){
+  const raw=rawSrc(i), ch=S.sc.ch[i], sw=i===0?S.wire.sw1:S.wire.sw2;
+  if(raw.kind==="none"||ch.coupling==="GND") return NONE;
+  const gain=ch.probe/sw;
+  const mean=(ch.coupling==="AC"&&raw.kind!=="noise")?srcStats(raw).mean:0;
+  return Object.assign({},raw,{fn:t=>(raw.fn(t)-mean)*gain});
+}
+function srcStats(s){
+  if(s.kind==="none") return {min:0,max:0,mean:0,vpp:0};
+  if(s.kind==="noise"){const a=s.fn; return {min:-1,max:1,mean:0,vpp:2};}
+  let mn=1e9,mx=-1e9,sum=0,N=2000;
+  for(let k=0;k<N;k++){const v=s.fn(k*s.T/N); mn=Math.min(mn,v);mx=Math.max(mx,v);sum+=v;}
+  return {min:mn,max:mx,mean:sum/N,vpp:mx-mn};
+}
+function findTrig(){
+  const s=srcFor(0);
+  if(s.kind!=="comp"&&s.kind!=="gen") return null;
+  const lv=S.sc.trig, N=1200;
+  let prev=s.fn(0);
+  for(let k=1;k<=N;k++){
+    const v=s.fn(k*s.T/N);
+    if(prev<lv&&v>=lv) return ((k-1)+(lv-prev)/(v-prev))*s.T/N;
+    prev=v;
+  }
+  return null;
+}
+
+/* ============ 示波器動作 ============ */
+function autoset(){
+  const sc=S.sc; if(!sc.on) return;
+  let found=false, f=0;
+  for(let i=0;i<2;i++){
+    const s=srcFor(i); if(s.kind==="none") continue;
+    const st=srcStats(s); found=true;
+    if(s.kind==="gen"||s.kind==="comp"){ if(!f) f=s.f; }
+    sc.ch[i].on=true;
+    let vi=VDIVS.findIndex(v=>st.vpp/v<=6); if(vi<0) vi=VDIVS.length-1;
+    sc.ch[i].vi=Math.max(vi,0);
+    sc.ch[i].pos=-st.mean/VDIVS[sc.ch[i].vi];
+    if(i===0) sc.trig=st.mean;
+  }
+  if(!found){ flash("Autoset：未偵測到信號，請先接線並開啟信號產生器的 Output。"); return; }
+  if(!S.wire.ch1||S.wire.ch1==="none") sc.trig=srcStats(srcFor(1)).mean;
+  if(f){ let ti=TDIVS.findIndex(t=>10*t*f>=2); sc.ti=ti<0?TDIVS.length-1:ti; }
+  sc.hpos=0; sc.run=true; sc.armed=false;
+}
+function scMenuOpen(){ return performance.now()<S.scMenu.until; }
+function chPress(i){
+  const sc=S.sc; if(!sc.on) return;
+  const ch=sc.ch[i], open=scMenuOpen()&&S.scMenu.ch===i;
+  if(!ch.on){ ch.on=true; S.scMenu={ch:i,until:performance.now()+12000}; }
+  else if(open){ ch.on=false; S.scMenu.until=0; }
+  else S.scMenu={ch:i,until:performance.now()+12000};
+}
+function scSoft(k){
+  if(!scMenuOpen()){ flash("先按 CH1 或 CH2 鍵開啟通道選單，再用下方選單鍵設定"); return; }
+  const ch=S.sc.ch[S.scMenu.ch];
+  if(k===0) ch.coupling=ch.coupling==="DC"?"AC":ch.coupling==="AC"?"GND":"DC";
+  else if(k===1) ch.probe=ch.probe===1?10:1;
+  else flash("此選單項目本教學版未模擬");
+  S.scMenu.until=performance.now()+12000;
+}
+function flash(msg){ S.flash=msg; S.flashT=performance.now()+3500; }
+function defaultScope(){ S.sc=scopeDefault(); S.latch.default=true; }
+
+/* ============ 說明文字 ============ */
+const I={
+"o.measure":["Measure 量測鍵","設定並執行自動量測（頻率、週期、Vpp、Vrms…）。本教學版：按一下開／關畫面上的 CH1、CH2 量測值。","量測前先按 Autoset，讓波形穩定且螢幕上至少有一個完整週期，量測值才可信。","M"],
+"o.cursor":["Cursor 游標鍵","啟用游標，用兩條游標手動量測電壓差或時間差。","本教學版未模擬。丙級考試常用「數格子」搭配 VOLTS/DIV、TIME/DIV 讀值。","M"],
+"o.app":["APP 應用鍵","進入 GW Instek 內建應用（如 Go-NoGo、頻率響應等）。","本教學版未模擬；丙級術科通常用不到。","M"],
+"o.acquire":["Acquire 擷取鍵","設定擷取模式（取樣、峰值偵測、平均、分段記憶體）。","本教學版未模擬。","M"],
+"o.display":["Display 顯示鍵","設定顯示方式（向量／點、餘暉、格線亮度等）。","本教學版未模擬。","M"],
+"o.help":["Help 說明鍵","顯示說明選單；再按任一按鍵可看該鍵的說明。","本教學版未模擬。","M"],
+"o.saverecall":["Save/Recall 儲存／叫出","儲存或叫出波形、畫面、面板設定。","本教學版未模擬。","M"],
+"o.utility":["Utility 工具鍵","設定 Hardcopy 鍵、顯示時間、語言、探棒補償、校正，並進入檔案工具。","探棒補償相關選項在此；實際選單層級請以實機為準。","M"],
+"o.hardcopy":["Hardcopy 快速存檔鍵","依設定作為快速存檔或快速列印鍵。","本教學版未模擬。","M"],
+"o.autoset":["Autoset 自動設定","自動設定觸發、水平刻度與垂直刻度，讓信號穩定顯示。","接好信號後先按 Autoset 是最快的起手式。信號太小或頻率太低時可能失敗，需手動調整。","M"],
+"o.runstop":["Run/Stop 執行／停止","按一下凍結（Stop）畫面，再按一下繼續擷取（Run）。","畫面停止後仍可轉動刻度旋鈕放大或縮小觀察，方便數格子讀值。","M"],
+"o.single":["Single 單次觸發","把擷取模式設為單次：等到下一次觸發才擷取一次並停止。","觸發準位不在信號範圍內時會一直等待，畫面不更新。","M"],
+"o.default":["Default 預設值","把示波器還原為出廠預設設定。","開始新的量測題目前先按 Default，避免上一位考生的設定殘留。","M"],
+"o.hpos":["水平 POSITION 旋鈕","左右移動波形（調整觸發點在畫面上的位置）。按下旋鈕會歸零。","順時針轉動，波形往右移。","M"],
+"o.hscale":["水平 SCALE 旋鈕（TIME/DIV）","改變時基，也就是每一格代表多少時間。","順時針轉動，時間／格變小（波形展開）；逆時針變大（看到更多週期）。週期 ＝ 一個週期占的格數 × TIME/DIV。","M"],
+"o.zoom":["Zoom 縮放鍵","搭配水平 POSITION 旋鈕，把波形局部放大檢視。","本教學版未模擬。","M"],
+"o.play":["Play/Pause 播放／暫停","逐一檢視搜尋事件，或在縮放模式下播放波形。","本教學版未模擬。","M"],
+"o.search":["Search 搜尋鍵","進入搜尋功能選單，設定搜尋類型、來源與門檻。","本教學版未模擬。","M"],
+"o.setclear":["Set/Clear 設定／清除","搜尋時設定或清除關注點。","本教學版未模擬。","M"],
+"o.tlevel":["觸發 LEVEL 旋鈕","調整觸發準位（波形要穿越這個電壓才會觸發）。按下旋鈕準位歸零。","準位必須落在信號的最大值與最小值之間，畫面才會穩定；超出範圍時狀態會變成 Auto，波形左右亂跑。畫面右緣的橘色箭頭是準位位置。","M"],
+"o.tmenu":["Trigger Menu 觸發選單","開啟觸發選單，設定觸發類型、來源、斜率、耦合等。","本教學版固定為邊緣觸發、上升緣、來源 CH1。","M"],
+"o.t50":["50% 鍵","把觸發準位設在信號振幅的中間（50%）。","畫面不穩定時，按一下通常就能穩定。","M"],
+"o.tforce":["Force-Trig 強制觸發","強制立刻觸發一次。","本教學版未模擬。","M"],
+"o.vpos1":["CH1 垂直 POSITION 旋鈕","上下移動 CH1 波形。按下旋鈕回到中央。","順時針轉動，波形往上移。左側黃色「1」標記是 0 V 的位置。","M"],
+"o.vpos2":["CH2 垂直 POSITION 旋鈕","上下移動 CH2 波形。按下旋鈕回到中央。","順時針轉動，波形往上移。","M"],
+"o.vscale1":["CH1 垂直 SCALE 旋鈕（VOLTS/DIV）","改變 CH1 每格代表多少電壓。","順時針轉動，電壓／格變小（波形變高）。Vpp ＝ 波形上下占的格數 × VOLTS/DIV。","M"],
+"o.vscale2":["CH2 垂直 SCALE 旋鈕（VOLTS/DIV）","改變 CH2 每格代表多少電壓。","順時針轉動，電壓／格變小（波形變高）。","M"],
+"o.ch1":["CH1 鍵","開啟／關閉 CH1 並進入 CH1 設定選單（耦合、探棒衰減等）。","本教學版：切換 CH1 顯示。通道顯示為黃色。","M"],
+"o.ch2":["CH2 鍵","開啟／關閉 CH2 並進入 CH2 設定選單。","本教學版：切換 CH2 顯示。通道顯示為藍色。","M"],
+"o.math":["MATH 運算鍵（M）","設定數學運算波形（如 CH1＋CH2）。","本教學版未模擬。","M"],
+"o.ref":["REF 參考波形鍵（R）","設定或移除參考波形。","本教學版未模擬。","M"],
+"o.bus":["BUS 匯流排鍵（B）","設定並列與串列匯流排（UART、I2C、SPI、CAN、LIN）。","本教學版未模擬。","M"],
+"o.variable":["VARIABLE 可變旋鈕","在選單中增減數值或移動選項；搭配 Select 鍵確認。","本教學版未模擬選單。","M"],
+"o.select":["Select 選擇鍵","確認選單中的選項。","本教學版未模擬。","M"],
+"o.menuoff":["Menu Off 關閉選單","隱藏螢幕上的選單。","本教學版未模擬。","M"],
+"o.soft":["選單鍵（螢幕下方與右側）","用來選擇螢幕選單上顯示的項目；功能依目前選單而定。","本教學版未模擬選單內容。螢幕下方共 7 顆，右側為側邊選單鍵。","M"],
+"o.power":["POWER 電源鍵","開關示波器電源。","按一下可關閉／開啟畫面。","M"],
+"o.usb":["USB Host 連接埠","連接隨身碟，用來存檔或載入設定。","本教學版未模擬。","M"],
+"o.bnc1":["CH1 輸入（BNC）","接示波器探棒或 BNC 線，輸入阻抗 1 MΩ／16 pF，最大 300 Vrms。","探棒夾要接地端。上方「接線」區可選擇接什麼信號。","M"],
+"o.bnc2":["CH2 輸入（BNC）","與 CH1 相同規格的第二個輸入。","上方「接線」區可選擇接什麼信號。","M"],
+"o.ext":["EXT TRIG 外部觸發輸入","接外部觸發信號（僅 2 通道機型）。","本教學版未模擬。","M"],
+"o.comp":["探棒補償輸出（2V）","輸出 2 Vpp、1 kHz 方波，預設值用於探棒補償校正。旁邊的端子為接地。","把探棒接到此處，調整探棒上的補償螺絲，使方波邊角平整：邊緣有尖角表示過補償、圓弧表示欠補償。接線區可接 CH1 並拖曳「探棒補償螺絲」。","M"],
+"g.wave":["Waveform 波形鍵","選擇輸出波形類型。按下後用 F1～F6 選擇：F1 Sine、F2 Square、F3 Triangle、F4 Pulse、F5 Ramp、F6 Noise。","丙級常用正弦波與方波。選 Square 後 F1 可設 Duty，選 Pulse 後 F1 設 Width，選 Ramp 後 F1 設 Symmetry（本教學版未模擬這些參數；Pulse 以 20% 占空比表示）。","M"],
+"g.freq":["FREQ/Rate 頻率鍵","設定輸出頻率。FREQ 參數會反白，用數字鍵輸入數值後，按單位鍵 F2～F6（µHz、mHz、Hz、kHz、MHz）確認；也可用旋鈕與方向鍵微調。","MFG-2110 最高 10 MHz。輸入數字後一定要按單位鍵才會生效。","M"],
+"g.ampl":["AMPL 振幅鍵","設定輸出振幅。用數字鍵輸入後，按單位鍵 F2～F6（dBm、mVrms、Vrms、mVpp、Vpp）確認。","50 Ω 負載時範圍 1 mVpp～10 Vpp，High Z 時 2 mVpp～20 Vpp。若 MFG 設為 50 Ω、示波器輸入是 1 MΩ，示波器讀到的是設定值的 2 倍。要讀值相符，請把負載改為 High Z（CH1 鍵 → F1 Load → F2 High Z）。","M"],
+"g.off":["DC Offset 直流偏移鍵","設定輸出的直流偏移電壓。","考試要求「無偏移」時，確認此值為 0 V。用數字鍵輸入後按 F5（mVdc）或 F6（Vdc）。偏移範圍 ±5 V（50 Ω）、±10 V（High Z）。","M"],
+"g.util":["UTIL 工具鍵","儲存／叫出、韌體版本、校正、系統設定、雙通道功能、頻率計。","負載阻抗（50 Ω／高阻抗）設定也在系統設定中（細節待確認）。本教學版未模擬選單。","M"],
+"g.arb":["ARB 任意波形鍵","設定任意波形參數。","本教學版未模擬。按鍵位置待確認。","?"],
+"g.mod":["MOD／Sweep／Burst 鍵","設定調變、掃頻與脈衝串波形。","本教學版未模擬。按鍵位置待確認。","?"],
+"g.preset":["Preset 預設鍵","叫出預設狀態。","還原預設面板設定。手冊的預設值為：正弦波、1 kHz、3.000 Vpp、偏移 0 V、單位 Vpp、輸出端負載 50 Ω。","每次開始新題目前先按 Preset，可避免殘留設定。本教學版 Preset 後輸出為關閉。","M"],
+"g.out":["Output 輸出鍵（CH1）","開啟／關閉 CH1 輸出。燈亮表示輸出中。","沒有按 Output，示波器就看不到信號。這是最常忘記的步驟。","M"],
+"g.bnc":["CH1 輸出（BNC）","主輸出端，輸出阻抗 50 Ω。","用 BNC 線接到示波器 CH1。上方「接線」區可模擬此連接。","M"],
+"g.pulse":["Pulse 輸出","脈波信號輸出端（獨立的 Pulse 輸出）。","本教學版未模擬。","M"],
+"g.sync":["SYNC 同步輸出","輸出與主信號同步的 TTL 相容同步信號。","可用來做示波器外部觸發。本教學版未模擬。","M"],
+"g.usb":["USB Host 連接埠","連接隨身碟。","本教學版未模擬。","M"],
+"g.power":["Power 電源鍵","開關信號產生器電源。","按一下可關閉／開啟顯示。","M"],
+"g.wheel":["Scroll Wheel 旋鈕","用來修改數值與參數。","搭配方向鍵選擇要修改的位數（本教學版以「步進」表示）。順時針增加。","M"],
+"g.arrow":["方向鍵 ◀ ▶","編輯參數時選擇要修改的位數。","本教學版：◀ 放大步進（×10），▶ 縮小步進（÷10）。","M"],
+"g.chsel":["CH1／Pulse 通道選擇鍵","選擇要設定的輸出通道。按 CH1 鍵會開啟通道選單：F1 Load（負載）、F5 Phase（相位）。","設定負載：CH1 → F1 Load → F1「50 OHM」或 F2「High Z」→ F6 Return。同一個振幅設定在 High Z 下的實際輸出是 50 Ω 的 2 倍。Pulse 鍵本教學版未模擬。","M"],
+"g.num":["數字鍵盤","輸入數值與參數。","常與方向鍵、旋鈕搭配。輸入完成後要按單位鍵才會確認。「±」可切換正負號（用在偏移）。","M"],
+"g.soft":["F1～F6 功能鍵","啟動螢幕下方顯示的功能。","螢幕下方標籤會依目前選單改變：按 Waveform 後為波形名稱，輸入數值後為單位。","M"]
+};
+
+/* ============ 控制項註冊 ============ */
+const CTL={};
+function select(id){ S.sel=id; document.querySelectorAll(".ctl.sel").forEach(e=>e.classList.remove("sel"));
+  const e=document.querySelector('.ctl[data-id="'+id+'"]'); if(e) e.classList.add("sel"); renderInfo(); }
+
+function addCtl(root,o){
+  CTL[o.id]=o;
+  const g=svg("g",{class:"ctl "+o.kind,"data-id":o.id,tabindex:0,role:"button","aria-label":o.label||o.id},root);
+  o.g=g;
+  const k=o.kind;
+  if(k==="key"||k==="softk"){
+    svg("rect",{class:"face",x:o.x-o.w/2,y:o.y-o.h/2,width:o.w,height:o.h,rx:4},g);
+    if(o.label) svg("text",{x:o.x,y:o.y+4,"font-size":10},g,o.label);
+    if(o.fill) g.querySelector(".face").style.fill=o.fill;
+  }else if(k==="rkey"){
+    svg("circle",{class:"face",cx:o.x,cy:o.y,r:o.r},g);
+    if(o.label) svg("text",{x:o.x,y:o.y+4},g,o.label);
+    if(o.fill) g.querySelector(".face").style.fill=o.fill;
+  }else if(k==="knob"){
+    svg("circle",{class:"face",cx:o.x,cy:o.y,r:o.r},g);
+    svg("circle",{class:"inner",cx:o.x,cy:o.y,r:o.r*0.68},g);
+    o.ind=svg("line",{class:"ind",x1:o.x,y1:o.y-o.r*0.25,x2:o.x,y2:o.y-o.r*0.62},g);
+    o.rot=0;
+  }else if(k==="bnc"){
+    svg("circle",{class:"face",cx:o.x,cy:o.y,r:o.r},g);
+    svg("circle",{class:"hole",cx:o.x,cy:o.y,r:o.r*0.6},g);
+    svg("circle",{class:"pin",cx:o.x,cy:o.y,r:o.r*0.22},g);
+  }else if(k==="plain"){
+    svg("rect",{class:"face",x:o.x-o.w/2,y:o.y-o.h/2,width:o.w,height:o.h,rx:3},g);
+    if(o.label) svg("text",{x:o.x,y:o.y+4},g,o.label);
+  }
+  if(o.cap) svg("text",{class:"lbl",x:o.x+(o.cdx||0),y:o.y+(o.cdy||0)},root,o.cap);
+  return o;
+}
+function turnCtl(o,dir){
+  if(!o||!o.turn) return;
+  o.turn(dir);
+  if(o.ind){ o.rot+=dir*24; o.ind.setAttribute("transform","rotate("+o.rot+" "+o.x+" "+o.y+")"); }
+}
+function pressCtl(o){
+  if(!o) return;
+  if(o.press) o.press();
+}
+function wireCtl(root){
+  root.addEventListener("click",e=>{
+    const g=e.target.closest(".ctl"); if(!g) return;
+    const o=CTL[g.dataset.id]; select(o.id);
+    if(o.kind==="knob"){
+      const r=g.getBoundingClientRect();
+      turnCtl(o,e.clientX<r.left+r.width/2?-1:1);
+    }else pressCtl(o);
+    refresh();
+  });
+  root.addEventListener("dblclick",e=>{
+    const g=e.target.closest(".ctl"); if(!g) return;
+    const o=CTL[g.dataset.id]; if(o.kind==="knob"&&o.press){ o.press(); refresh(); }
+  });
+  root.addEventListener("wheel",e=>{
+    const g=e.target.closest(".ctl"); if(!g) return;
+    const o=CTL[g.dataset.id]; if(o.kind!=="knob") return;
+    e.preventDefault(); select(o.id); turnCtl(o,e.deltaY<0?1:-1); refresh();
+  },{passive:false});
+  root.addEventListener("keydown",e=>{
+    const g=e.target.closest(".ctl"); if(!g) return;
+    const o=CTL[g.dataset.id];
+    if(e.key==="Enter"||e.key===" "){ e.preventDefault(); select(o.id); if(o.kind==="knob"&&o.press) o.press(); else pressCtl(o); refresh(); }
+    else if((e.key==="ArrowLeft"||e.key==="ArrowRight")&&o.kind==="knob"){ e.preventDefault(); select(o.id); turnCtl(o,e.key==="ArrowRight"?1:-1); refresh(); }
+  });
+}
+
+/* ============ 示波器面板 ============ */
+const scopeSvg=document.getElementById("scope");
+(function buildScope(){
+  const R=scopeSvg;
+  svg("rect",{x:6,y:6,width:988,height:490,rx:16,fill:"var(--dev)",stroke:"var(--dev2)","stroke-width":2},R);
+  svg("rect",{x:6,y:490,width:988,height:94,rx:12,fill:"var(--dev2)"},R);
+  svg("rect",{x:26,y:22,width:468,height:318,rx:8,fill:"var(--bezel)"},R);
+  svg("text",{class:"lbl l",x:36,y:386,"font-size":13},R,"GW INSTEK   GDS-2102E   100 MHz  1 GS/s");
+  // 區塊框
+  const box=(x,y,w,h,t)=>{ svg("rect",{x,y,width:w,height:h,rx:8,fill:"none",stroke:"var(--keyline)","stroke-width":1.2},R);
+    svg("text",{class:"lbl",x:x+w/2,y:y+13,"font-weight":"bold"},R,t); };
+  box(592,118,286,142,"HORIZONTAL");
+  box(528,268,252,214,"VERTICAL");
+  box(902,222,86,208,"TRIGGER");
+  const add=o=>addCtl(R,o);
+  // 螢幕選單鍵
+  for(let i=0;i<7;i++) add({id:"o.sb"+i,kind:"softk",x:62+i*62,y:356,w:48,h:16,info:"o.soft",label:"",press(){ scSoft(i); }});
+  for(let i=0;i<6;i++) add({id:"o.ss"+i,kind:"rkey",x:508,y:58+i*44,r:9,info:"o.soft",press(){ flash("側邊選單鍵：功能依螢幕選單而定（本教學版未模擬）"); }});
+  add({id:"o.menuoff",kind:"key",x:508,y:326,w:34,h:16,label:"Off",info:"o.menuoff",press(){ S.scMenu.until=0; }});
+  // 上方功能鍵
+  const fk=[["Measure",625,40,"o.measure"],["Cursor",685,40,"o.cursor"],["APP",745,40,"o.app"],["Acquire",805,40,"o.acquire"],
+            ["Display",625,76,"o.display"],["Help",685,76,"o.help"],["Save/Recall",745,76,"o.saverecall"],["Utility",805,76,"o.utility"]];
+  for(const [l,x,y,id] of fk){
+    add({id,kind:"key",x,y,w:54,h:24,label:l,info:id,press(){
+      if(id==="o.measure"&&S.sc.on) S.sc.measure=!S.sc.measure; else flash(l+"（本教學版未模擬）"); }});
+  }
+  add({id:"o.autoset",kind:"key",x:946,y:36,w:58,h:26,label:"Autoset",fill:"#2b6fd6",info:"o.autoset",press(){autoset();}});
+  add({id:"o.runstop",kind:"key",x:946,y:82,w:58,h:26,label:"Run/Stop",info:"o.runstop",press(){ if(S.sc.on){S.sc.run=!S.sc.run;S.sc.armed=false;} }});
+  add({id:"o.single",kind:"key",x:946,y:128,w:58,h:26,label:"Single",info:"o.single",press(){ if(S.sc.on){S.sc.armed=true;S.sc.run=true;} }});
+  add({id:"o.default",kind:"key",x:946,y:174,w:58,h:26,label:"Default",info:"o.default",press(){ if(S.sc.on) defaultScope(); }});
+  const lblAuto=svg("text",{class:"lbl",x:946,y:208},R,"");
+  // VARIABLE
+  svg("text",{class:"lbl",x:556,y:34,"font-weight":"bold"},R,"VARIABLE");
+  add({id:"o.variable",kind:"knob",x:556,y:72,r:22,info:"o.variable",turn(){flash("VARIABLE 旋鈕：本教學版未模擬選單");},press(){}});
+  add({id:"o.select",kind:"key",x:556,y:124,w:44,h:20,label:"Select",info:"o.select",press(){flash("Select（本教學版未模擬）");}});
+  add({id:"o.hardcopy",kind:"key",x:556,y:162,w:54,h:20,label:"Hardcopy",info:"o.hardcopy",press(){flash("Hardcopy（本教學版未模擬）");}});
+  // HORIZONTAL
+  add({id:"o.search",kind:"key",x:632,y:150,w:50,h:20,label:"Search",info:"o.search",press(){flash("Search（本教學版未模擬）");}});
+  add({id:"o.setclear",kind:"key",x:692,y:150,w:56,h:20,label:"Set/Clear",info:"o.setclear",press(){flash("Set/Clear（本教學版未模擬）");}});
+  add({id:"o.zoom",kind:"key",x:770,y:150,w:46,h:20,label:"Zoom",info:"o.zoom",press(){flash("Zoom（本教學版未模擬）");}});
+  add({id:"o.play",kind:"key",x:782,y:230,w:46,h:20,label:"▶/❙❙",info:"o.play",press(){flash("Play/Pause（本教學版未模擬）");}});
+  add({id:"o.hpos",kind:"knob",x:660,y:212,r:24,info:"o.hpos",cap:"POSITION",cdy:-30,
+    turn(d){ S.sc.hpos=clamp(+(S.sc.hpos+d*0.2).toFixed(2),-20,20); },press(){ S.sc.hpos=0; }});
+  add({id:"o.hscale",kind:"knob",x:722,y:216,r:26,info:"o.hscale",cap:"SCALE",cdy:-32,
+    turn(d){ S.sc.ti=clamp(S.sc.ti-d,0,TDIVS.length-1); }});
+  // TRIGGER
+  add({id:"o.tlevel",kind:"knob",x:945,y:266,r:20,info:"o.tlevel",cap:"LEVEL",cdy:-26,
+    turn(d){ const v=VDIVS[S.sc.ch[0].vi]; S.sc.trig=+(S.sc.trig+d*v*0.1).toFixed(6); },press(){ S.sc.trig=0; }});
+  add({id:"o.tmenu",kind:"key",x:945,y:322,w:56,h:22,label:"Menu",info:"o.tmenu",press(){flash("Trigger Menu（本教學版固定為邊緣觸發、上升緣、來源 CH1）");}});
+  add({id:"o.t50",kind:"key",x:945,y:360,w:56,h:22,label:"50 %",info:"o.t50",press(){ const st=srcStats(srcFor(0)); if(srcFor(0).kind!=="none") S.sc.trig=(st.max+st.min)/2; }});
+  add({id:"o.tforce",kind:"key",x:945,y:398,w:56,h:22,label:"Force-Trig",info:"o.tforce",press(){flash("Force-Trig（本教學版未模擬）");}});
+  // VERTICAL
+  add({id:"o.vpos1",kind:"knob",x:572,y:318,r:19,info:"o.vpos1",cap:"POSITION",cdy:-25,
+    turn(d){ S.sc.ch[0].pos=+(S.sc.ch[0].pos+d*0.2).toFixed(2); },press(){ S.sc.ch[0].pos=0; }});
+  add({id:"o.vpos2",kind:"knob",x:728,y:318,r:19,info:"o.vpos2",cap:"POSITION",cdy:-25,
+    turn(d){ S.sc.ch[1].pos=+(S.sc.ch[1].pos+d*0.2).toFixed(2); },press(){ S.sc.ch[1].pos=0; }});
+  add({id:"o.math",kind:"rkey",x:650,y:312,r:11,label:"M",fill:"#f1a5c0",info:"o.math",press(){flash("MATH（本教學版未模擬）");}});
+  add({id:"o.ref",kind:"rkey",x:650,y:342,r:11,label:"R",fill:"#f4f1e4",info:"o.ref",press(){flash("REF（本教學版未模擬）");}});
+  add({id:"o.bus",kind:"rkey",x:650,y:372,r:11,label:"B",fill:"#9db4f0",info:"o.bus",press(){flash("BUS（本教學版未模擬）");}});
+  add({id:"o.ch1",kind:"key",x:586,y:388,w:48,h:22,label:"CH1",fill:"#f3e08a",info:"o.ch1",press(){ chPress(0); }});
+  add({id:"o.ch2",kind:"key",x:716,y:388,w:48,h:22,label:"CH2",fill:"#9fd0f5",info:"o.ch2",press(){ chPress(1); }});
+  add({id:"o.vscale1",kind:"knob",x:586,y:438,r:28,info:"o.vscale1",cap:"SCALE",cdy:-34,
+    turn(d){ S.sc.ch[0].vi=clamp(S.sc.ch[0].vi-d,0,VDIVS.length-1); }});
+  add({id:"o.vscale2",kind:"knob",x:716,y:438,r:28,info:"o.vscale2",cap:"SCALE",cdy:-34,
+    turn(d){ S.sc.ch[1].vi=clamp(S.sc.ch[1].vi-d,0,VDIVS.length-1); }});
+  // 前方
+  add({id:"o.power",kind:"rkey",x:56,y:536,r:19,info:"o.power",label:"",press(){ S.sc.on=!S.sc.on; if(S.sc.on) startBoot(2500); }});
+  svg("text",{class:"lbl",x:56,y:518},R,"POWER");
+  add({id:"o.usb",kind:"plain",x:300,y:536,w:44,h:26,label:"USB",info:"o.usb",press(){flash("USB（本教學版未模擬）");}});
+  add({id:"o.comp",kind:"bnc",x:392,y:536,r:12,info:"o.comp",cap:"2V",cdy:-18});
+  svg("text",{class:"lbl",x:392,y:572},R,"探棒補償");
+  svg("text",{class:"lbl",x:470,y:512,"font-weight":"bold"},R,"CH1");
+  add({id:"o.bnc1",kind:"bnc",x:470,y:538,r:18,info:"o.bnc1"});
+  svg("text",{class:"lbl",x:560,y:512,"font-weight":"bold"},R,"CH2");
+  add({id:"o.bnc2",kind:"bnc",x:560,y:538,r:18,info:"o.bnc2"});
+  svg("text",{class:"lbl",x:800,y:512,"font-weight":"bold"},R,"EXT TRIG");
+  add({id:"o.ext",kind:"bnc",x:800,y:538,r:18,info:"o.ext"});
+  // 接線顯示
+  S.cable1=svg("path",{class:"cable",stroke:"#d9b800",d:""},R);
+  S.cable2=svg("path",{class:"cable",stroke:"#2f8fe0",d:""},R);
+  S.autoLbl=lblAuto;
+  wireCtl(R);
+})();
+
+/* ============ 信號產生器面板 ============ */
+const genSvg=document.getElementById("gen");
+(function buildGen(){
+  const R=genSvg;
+  svg("rect",{x:6,y:6,width:988,height:338,rx:16,fill:"var(--dev)",stroke:"var(--dev2)","stroke-width":2},R);
+  svg("rect",{x:26,y:20,width:420,height:252,rx:8,fill:"var(--bezel)"},R);
+  svg("text",{class:"lbl l",x:36,y:316,"font-size":13},R,"GW INSTEK   MFG-2110   Multi-Channel Function Generator");
+  S.gdisp=svg("g",{},R);
+  const add=o=>addCtl(R,o);
+  for(let i=0;i<6;i++) add({id:"g.f"+(i+1),kind:"softk",x:68+i*64,y:290,w:50,h:16,info:"g.soft",
+    press(){ genSoft(i); }});
+  // 操作鍵
+  const ok=[["Waveform",500,48,"g.wave"],["FREQ/Rate",500,84,"g.freq"],["AMPL",500,120,"g.ampl"],["DC Offset",500,156,"g.off"],["UTIL",500,192,"g.util"]];
+  for(const [l,x,y,id] of ok) add({id,kind:"key",x,y,w:64,h:26,label:l,info:id,press(){ genOp(id); }});
+  const ok2=[["ARB",580,48,"g.arb"],["MOD…",580,84,"g.mod"],["Preset",580,120,"g.preset"]];
+  for(const [l,x,y,id] of ok2) add({id,kind:"key",x,y,w:56,h:26,label:l,info:id,press(){ genOp(id); }});
+  svg("text",{class:"lbl",x:540,y:224,"font-size":10},R,"按鍵實際排列待對照實機");
+  // 數字鍵
+  const nk=[["7",0,0],["8",1,0],["9",2,0],["4",0,1],["5",1,1],["6",2,1],["1",0,2],["2",1,2],["3",2,2],["0",0,3],[".",1,3],["±",2,3]];
+  for(const [l,c,r] of nk) add({id:"g.k"+l,kind:"key",x:672+c*42,y:48+r*36,w:36,h:28,label:l,info:"g.num",press(){ genKey(l); }});
+  // 右側
+  add({id:"g.power",kind:"rkey",x:900,y:48,r:14,info:"g.power",press(){ S.gen.on=!S.gen.on; if(S.gen.on) startGenBoot(1600); }});
+  svg("text",{class:"lbl",x:900,y:76},R,"POWER");
+  add({id:"g.wheel",kind:"knob",x:890,y:140,r:36,info:"g.wheel",
+    turn(d){ genTurn(d); }});
+  add({id:"g.ch1",kind:"key",x:790,y:196,w:44,h:20,label:"CH1",info:"g.chsel",press(){ genOp("g.ch1"); }});
+  add({id:"g.chp",kind:"key",x:838,y:196,w:46,h:20,label:"Pulse",info:"g.chsel",press(){flash("通道選擇鍵（本教學版未模擬）");}});
+  add({id:"g.left",kind:"key",x:820,y:228,w:40,h:22,label:"◀",info:"g.arrow",press(){ stepShift(1); }});
+  add({id:"g.right",kind:"key",x:868,y:228,w:40,h:22,label:"▶",info:"g.arrow",press(){ stepShift(-1); }});
+  // 輸出
+  add({id:"g.out",kind:"rkey",x:610,y:300,r:11,info:"g.out",press(){ S.gen.out=!S.gen.out; }});
+  S.led=svg("circle",{cx:610,cy:300,r:5,fill:"#555",style:"pointer-events:none"},R);
+  svg("text",{class:"lbl",x:610,y:324},R,"CH1");
+  add({id:"g.bnc",kind:"bnc",x:660,y:300,r:17,info:"g.bnc"});
+  svg("text",{class:"lbl",x:660,y:331},R,"50Ω");
+  add({id:"g.pulse",kind:"bnc",x:760,y:300,r:17,info:"g.pulse"});
+  svg("text",{class:"lbl",x:760,y:331},R,"Pulse");
+  add({id:"g.sync",kind:"bnc",x:840,y:300,r:17,info:"g.sync"});
+  svg("text",{class:"lbl",x:840,y:331},R,"SYNC");
+  add({id:"g.usb",kind:"plain",x:935,y:300,w:30,h:36,label:"USB",info:"g.usb",press(){flash("USB（本教學版未模擬）");}});
+  S.gcable=svg("path",{class:"cable",stroke:"#3a9a5c",d:""},R);
+  wireCtl(R);
+})();
+
+/* ============ 信號產生器邏輯 ============ */
+/* 依 MFG-2000 系列手冊 p.76–89：Waveform F1~F6、FREQ 單位 F2~F6、AMPL 單位 F2~F6、DC Offset F5/F6、CH1 鍵→F1 Load */
+const WAVES=[["sine","Sine"],["square","Square"],["triangle","Triangle"],["pulse","Pulse"],["ramp","Ramp"],["noise","Noise"]];
+function genLim(k){
+  const hz=S.gen.load==="hiz";
+  if(k==="freq") return [1e-6,1e7];
+  if(k==="ampl") return hz?[2e-3,20]:[1e-3,10];
+  return hz?[-10,10]:[-5,5];
+}
+function startGenBoot(ms){ S.gBootUntil=performance.now()+ms; setTimeout(()=>drawGenDisplay(),ms+60); }
+function genOp(id){
+  const g=S.gen; if(!g.on) return;
+  g.buf="";
+  if(id==="g.wave"){ g.menu="wave"; }
+  else if(id==="g.freq"){ g.sel="freq"; g.menu="num"; }
+  else if(id==="g.ampl"){ g.sel="ampl"; g.menu="num"; }
+  else if(id==="g.off"){ g.sel="off"; g.menu="num"; }
+  else if(id==="g.ch1"){ g.menu="ch"; }
+  else if(id==="g.preset"){ S.gen=Object.assign(genDefault(),{on:true}); }
+  else flash("此按鍵本教學版未模擬");
+}
+function rmsFactor(){ const w=S.gen.wave; return w==="square"?2:(w==="triangle"||w==="ramp")?2*Math.sqrt(3):2*Math.SQRT2; }
+function genUnits(){
+  const s=S.gen.sel, n=null;
+  if(s==="freq") return [n,["µHz",1e-6],["mHz",1e-3],["Hz",1],["kHz",1e3],["MHz",1e6]];
+  if(s==="ampl") return [n,
+    ["dBm",v=>2*Math.SQRT2*Math.sqrt(Math.pow(10,v/10)*1e-3*50)],
+    ["mVrms",v=>v*1e-3*rmsFactor()],["Vrms",v=>v*rmsFactor()],["mVpp",v=>v*1e-3],["Vpp",v=>v]];
+  return [n,n,n,n,["mVdc",v=>v*1e-3],["Vdc",v=>v]];
+}
+function genLabels(){
+  const g=S.gen;
+  if(g.menu==="wave") return WAVES.map(w=>w[1]);
+  if(g.menu==="num") return genUnits().map(u=>u?u[0]:"");
+  if(g.menu==="ch") return ["Load","","","","Phase",""];
+  if(g.menu==="load") return ["50 OHM","High Z","","","","Return"];
+  return ["","","","","",""];
+}
+function genSoft(i){
+  const g=S.gen; if(!g.on) return;
+  if(g.menu==="wave"){ g.wave=WAVES[i][0]; }
+  else if(g.menu==="num"){
+    const u=genUnits()[i]; if(!u) return;
+    if(g.buf!==""){
+      const v=parseFloat(g.buf);
+      if(isFinite(v)){
+        const conv=typeof u[1]==="function"?u[1](v):v*u[1];
+        const lim=genLim(g.sel);
+        g[g.sel]=clamp(conv,lim[0],lim[1]);
+        if(conv<lim[0]||conv>lim[1]) flash("超出範圍，已限制為 "+fmtGen(g.sel,g[g.sel]));
+      }else flash("數值格式錯誤");
+      g.buf="";
+    }else flash("請先用數字鍵輸入數值，再按單位鍵");
+  }
+  else if(g.menu==="ch"){
+    if(i===0) g.menu="load"; else if(i===4) flash("Phase 相位（本教學版未模擬）");
+  }
+  else if(g.menu==="load"){
+    if(i===0||i===1){ g.load=i===0?"50":"hiz"; const lim=genLim("ampl"); g.ampl=clamp(g.ampl,lim[0],lim[1]); }
+    else if(i===5) g.menu="ch";
+  }
+}
+function genKey(k){
+  const g=S.gen; if(!g.on) return;
+  if(g.menu!=="num"){ flash("請先按 FREQ/Rate、AMPL 或 DC Offset，再輸入數字"); return; }
+  if(k==="±"){ g.buf=g.buf.startsWith("-")?g.buf.slice(1):"-"+g.buf; return; }
+  if(k==="."&&g.buf.includes(".")) return;
+  if(g.buf.replace("-","").length>9) return;
+  g.buf+=k;
+}
+function genTurn(d){
+  const g=S.gen; if(!g.on) return;
+  const k=g.sel, lim=genLim(k);
+  g.buf="";
+  g[k]=clamp(+(g[k]+d*g.step[k]).toPrecision(12),lim[0],lim[1]);
+}
+function stepShift(dir){
+  const g=S.gen, k=g.sel;
+  g.step[k]=clamp(g.step[k]*(dir>0?10:0.1),1e-6,k==="freq"?1e6:1);
+}
+function fmtGen(k,v){
+  if(k==="freq") return si(v,"Hz");
+  if(k==="ampl") return si(v,"Vpp");
+  return si(v,"Vdc");
+}
+function waveIcon(w,x,y){
+  const p=[]; const W=70,H=22;
+  for(let i=0;i<=40;i++){
+    const t=i/40; let v;
+    if(w==="noise") v=Math.sin(i*7.3)*Math.cos(i*2.1)*0.9;
+    else v=shape(w,(t*2)%1);
+    p.push((i?"L":"M")+(x+t*W).toFixed(1)+" "+(y-v*H/2).toFixed(1));
+  }
+  return p.join("");
+}
+function drawGenDisplay(){
+  const G=S.gdisp, g=S.gen;
+  while(G.firstChild) G.removeChild(G.firstChild);
+  svg("rect",{x:36,y:30,width:400,height:232,rx:4,fill:g.on?"#0e2238":"#050607"},G);
+  S.led.setAttribute("fill",g.on&&g.out?"#ff3b30":"#555");
+  if(!g.on){ svg("text",{x:236,y:150,fill:"#6b7380","font-size":14,"text-anchor":"middle"},G,"POWER OFF"); return; }
+  const t=(x,y,s,c,sz,anch)=>svg("text",{x,y,fill:c||"#e6eef7","font-size":sz||14,"font-family":"ui-monospace,Consolas,monospace","text-anchor":anch||"start"},G,s);
+  if(performance.now()<S.gBootUntil){
+    t(236,140,"GW INSTEK  MFG-2110","#cfd6df",26,"middle");
+    t(236,175,"Loading…","#8d99a8",18,"middle");
+    return;
+  }
+  t(46,56,"CH1","#6fd2ff",18);
+  t(140,56,WAVES.find(w=>w[0]===g.wave)[1],"#ffd34d",20,"middle");
+  svg("path",{d:waveIcon(g.wave,205,52),fill:"none",stroke:"#ffd34d","stroke-width":2},G);
+  t(426,56,(g.load==="50"?"50Ω  ":"HiZ  ")+(g.out?"ON":"OFF"),g.out?"#4cff8a":"#8a95a5",18,"end");
+  const rows=[["freq","頻率 FREQ"],["ampl","振幅 AMPL"],["off","偏移 DC Offset"]];
+  rows.forEach(([k,l],i)=>{
+    const y=108+i*48, sel=g.sel===k;
+    if(sel) svg("rect",{x:42,y:y-28,width:388,height:42,rx:4,fill:"none",stroke:"#ffd34d","stroke-width":1.5},G);
+    t(50,y,l,"#9db4cc",15);
+    const disabled=k==="freq"&&g.wave==="noise";
+    const editing=sel&&g.menu==="num"&&g.buf!=="";
+    t(422,y,disabled?"---":(editing?g.buf+"_":fmtGen(k,g[k])),editing?"#ff9d4d":"#ffffff",28,"end");
+  });
+  const k=g.sel;
+  t(46,230,"旋轉步進："+(k==="freq"?si(g.step.freq,"Hz"):si(g.step[k],"V")),"#7e93aa",15);
+  if(g.menu==="num"&&g.buf==="") t(426,230,"輸入數字後按單位鍵","#7e93aa",14,"end");
+  // 軟鍵標籤
+  genLabels().forEach((l,i)=>{
+    const x=68+i*64;
+    if(l) svg("rect",{x:x-29,y:252-18,width:58,height:16,rx:2,fill:"#1d3d61"},G);
+    t(x,247,l,"#ffffff",13,"middle");
+  });
+}
+
+/* ============ 說明欄 ============ */
+function renderInfo(){
+  const box=document.getElementById("info");
+  const o=S.sel&&CTL[S.sel];
+  if(!o){ box.innerHTML='<h2>點選面板上的按鍵</h2><p class="hint">這裡會顯示名稱、功能與操作要點。</p>'; return; }
+  const d=I[o.info||o.id];
+  const tag=d[3]==="M"?'<span class="tag m">依手冊</span>':'<span class="tag q">待確認</span>';
+  let h='<h2>'+d[0]+tag+'</h2><p>'+d[1]+'</p><div class="tip">'+d[2]+'</div>';
+  if(o.turn){
+    h+='<div class="turn"><button data-t="-1">◀ 逆時針</button><button data-t="1">順時針 ▶</button>'+(o.press?'<button data-t="p">按下旋鈕</button>':'')+'</div>';
+    h+='<div class="hint">也可用滑鼠滾輪，或聚焦後按 ← →。</div>';
+  }
+  h+='<p class="cur" id="curval"></p>';
+  box.innerHTML=h;
+  box.querySelectorAll("button[data-t]").forEach(b=>b.onclick=()=>{
+    if(b.dataset.t==="p"){ o.press(); } else turnCtl(o,+b.dataset.t);
+    refresh();
+  });
+  updateCur();
+}
+function updateCur(){
+  const el=document.getElementById("curval"); if(!el||!S.sel) return;
+  const sc=S.sc, g=S.gen, id=S.sel; let t="";
+  const val={
+    "o.hpos":()=>"水平位置："+sc.hpos.toFixed(1)+" 格",
+    "o.hscale":()=>"TIME/DIV："+si(TDIVS[sc.ti],"s")+"／格",
+    "o.tlevel":()=>"觸發準位："+si(sc.trig,"V"),
+    "o.vpos1":()=>"CH1 位置："+sc.ch[0].pos.toFixed(1)+" 格",
+    "o.vpos2":()=>"CH2 位置："+sc.ch[1].pos.toFixed(1)+" 格",
+    "o.vscale1":()=>"CH1 VOLTS/DIV："+si(VDIVS[sc.ch[0].vi],"V")+"／格",
+    "o.vscale2":()=>"CH2 VOLTS/DIV："+si(VDIVS[sc.ch[1].vi],"V")+"／格",
+    "o.runstop":()=>"目前："+(sc.run?"Run":"Stop"),
+    "o.measure":()=>"量測顯示："+(sc.measure?"開":"關"),
+    "g.wave":()=>"目前波形："+WAVES.find(w=>w[0]===g.wave)[1],
+    "g.freq":()=>"頻率："+fmtGen("freq",g.freq),
+    "g.ampl":()=>"振幅："+fmtGen("ampl",g.ampl),
+    "g.off":()=>"偏移："+fmtGen("off",g.off),
+    "g.out":()=>"輸出："+(g.out?"ON":"OFF"),
+    "g.wheel":()=>"修改項目："+({freq:"頻率",ampl:"振幅",off:"偏移"})[g.sel]+"，步進 "+g.step[g.sel],
+  }[id];
+  el.textContent=val?val():"";
+}
+
+/* ============ 示波器螢幕繪製 ============ */
+const cv=document.getElementById("scr"), cx=cv.getContext("2d");
+const GX=56,GY=40,GW=690,GH=352,DW=69,DH=44;
+const COL=["#f5d90a","#35a7ff"];
+function drawScope(){
+  const sc=S.sc;
+  cx.fillStyle="#05080c"; cx.fillRect(0,0,800,480);
+  const bt=S.bootUntil-performance.now();
+  if(sc.on&&bt>0){
+    const pr=1-bt/S.bootLen;
+    cx.fillStyle="#cfd6df"; cx.font="bold 28px sans-serif"; cx.textAlign="center";
+    cx.fillText("GW INSTEK  GDS-2102E",400,210);
+    cx.font="20px sans-serif"; cx.fillStyle="#8d99a8"; cx.fillText("開機中…（實機約需 30 秒，此處加速）",400,248);
+    cx.strokeStyle="#4a5666"; cx.strokeRect(250,270,300,12); cx.fillStyle="#4cc3ff"; cx.fillRect(252,272,296*pr,8);
+    cx.textAlign="left"; S.last.trigd=false; return;
+  }
+  if(!sc.on){ cx.fillStyle="#2a3038"; cx.font="26px sans-serif"; cx.textAlign="center"; cx.fillText("POWER OFF",400,240); cx.textAlign="left"; S.last.trigd=false; return; }
+  // 格線
+  cx.strokeStyle="#26303c"; cx.lineWidth=1; cx.beginPath();
+  for(let i=0;i<=10;i++){ const x=GX+i*DW+0.5; cx.moveTo(x,GY); cx.lineTo(x,GY+GH); }
+  for(let j=0;j<=8;j++){ const y=GY+j*DH+0.5; cx.moveTo(GX,y); cx.lineTo(GX+GW,y); }
+  cx.stroke();
+  cx.strokeStyle="#3b4757"; cx.beginPath();
+  const yc=GY+GH/2, xc=GX+GW/2;
+  cx.moveTo(GX,yc+0.5); cx.lineTo(GX+GW,yc+0.5); cx.moveTo(xc+0.5,GY); cx.lineTo(xc+0.5,GY+GH);
+  for(let i=0;i<=50;i++){ const x=GX+i*DW/5+0.5; cx.moveTo(x,yc-3); cx.lineTo(x,yc+4); }
+  for(let j=0;j<=40;j++){ const y=GY+j*DH/5+0.5; cx.moveTo(xc-3,y); cx.lineTo(xc+4,y); }
+  cx.stroke();
+  // 觸發
+  const tdiv=TDIVS[sc.ti];
+  const tg=findTrig();
+  const trigd=tg!==null;
+  S.last.trigd=trigd&&sc.run;
+  const s1=srcFor(0), s2=srcFor(1);
+  const cap=S.cap;
+  const rnd=s=>s.T>0?Math.random()*s.T:0;
+  // 兩個通道的信號若來自同一個信號源（同一個時脈），就要和 CH1 同步，CH2 才不會一直移動
+  const clk=k=>k==="comp"?"comp":(k==="gen"||k==="aux"||k.startsWith("pt:"))?"gen":"none";
+  const sameClk=clk(S.wire.ch1)!=="none"&&clk(S.wire.ch1)===clk(S.wire.ch2);
+  if(sc.run){
+    cap.trigd=trigd;
+    cap.t1=trigd?tg:rnd(s1);
+    cap.t2=(sameClk&&s2.kind!=="none")?cap.t1:rnd(s2);
+  }
+  if(sc.armed&&trigd){ cap.trigd=true; cap.t1=tg; cap.t2=sameClk?tg:rnd(s2); sc.run=false; sc.armed=false; }
+  // 波形
+  cx.save(); cx.beginPath(); cx.rect(GX,GY,GW,GH); cx.clip();
+  [[0,s1,cap.t1],[1,s2,cap.t2]].forEach(([i,s,t0])=>{
+    const ch=sc.ch[i]; if(!ch.on) return;
+    const vd=VDIVS[ch.vi];
+    cx.strokeStyle=COL[i]; cx.lineWidth=2; cx.lineJoin="round"; cx.beginPath();
+    const n=GW*4;
+    for(let k=0;k<=n;k++){
+      const px=k/4;
+      const t=((px/GW)-0.5)*10*tdiv-sc.hpos*tdiv;
+      const v=s.fn(t0+t);
+      const y=yc-(v/vd+ch.pos)*DH;
+      if(k===0) cx.moveTo(GX+px,y); else cx.lineTo(GX+px,y);
+    }
+    cx.stroke();
+  });
+  cx.restore();
+  // 通道零位標記
+  cx.font="bold 18px monospace"; cx.textAlign="center";
+  sc.ch.forEach((ch,i)=>{
+    if(!ch.on) return;
+    const y=clamp(yc-ch.pos*DH,GY+10,GY+GH-10);
+    cx.fillStyle=COL[i]; cx.fillRect(GX-28,y-11,24,22); cx.fillStyle="#000"; cx.fillText(String(i+1),GX-16,y+6);
+  });
+  // 觸發標記
+  const ty=clamp(yc-(sc.trig/VDIVS[sc.ch[0].vi]+sc.ch[0].pos)*DH,GY+6,GY+GH-6);
+  cx.fillStyle="#ff7a1a"; cx.beginPath(); cx.moveTo(GX+GW+2,ty); cx.lineTo(GX+GW+26,ty-12); cx.lineTo(GX+GW+26,ty+12); cx.closePath(); cx.fill();
+  cx.fillStyle="#000"; cx.fillText("T",GX+GW+17,ty+6);
+  const tx=clamp(xc+sc.hpos*DW,GX,GX+GW);
+  cx.fillStyle="#ff7a1a"; cx.beginPath(); cx.moveTo(tx-9,GY-16); cx.lineTo(tx+9,GY-16); cx.lineTo(tx,GY-2); cx.closePath(); cx.fill();
+  // 狀態列（上方）
+  cx.textAlign="left"; cx.font="bold 22px monospace";
+  const status=!sc.run?(sc.armed?"Single?":"Stop"):(trigd?"Trig'd":"Auto");
+  cx.fillStyle="#cfd6df"; cx.fillText("1GS/s",GX,28);
+  cx.fillStyle=status==="Stop"?"#ff5a4d":(status==="Auto"||status==="Single?"?"#ffb84d":"#4cff8a");
+  cx.textAlign="center"; cx.fillText(status,GX+GW/2,28);
+  cx.fillStyle="#ffb066"; cx.textAlign="right"; cx.fillText("T "+si(sc.trig,"V"),GX+GW,28);
+  cx.textAlign="left";
+  // 下方資訊列：第一列為各通道刻度，第二列為時基
+  let bx=GX;
+  sc.ch.forEach((ch,i)=>{
+    if(!ch.on) return;
+    cx.fillStyle=COL[i]; cx.fillRect(bx,410,26,26); cx.fillStyle="#000"; cx.font="bold 20px monospace"; cx.textAlign="center"; cx.fillText(String(i+1),bx+13,430);
+    cx.textAlign="left"; cx.font="bold 24px monospace"; cx.fillStyle=COL[i];
+    cx.fillText(si(VDIVS[ch.vi],"V")+(ch.probe!==1?" "+ch.probe+"X":"")+(ch.coupling!=="DC"?" "+ch.coupling:""),bx+34,432); bx+=300;
+  });
+  cx.font="bold 24px monospace";
+  cx.fillStyle="#ffffff"; cx.fillText("M "+si(tdiv,"s"),GX,468);
+  cx.fillStyle="#9aa6b6"; cx.fillText("H "+(sc.hpos*tdiv===0?"0 s":si(sc.hpos*tdiv,"s")),GX+300,468);
+  // 通道選單（下方選單鍵）
+  if(scMenuOpen()){
+    const mc=sc.ch[S.scMenu.ch];
+    cx.fillStyle="#0a1018"; cx.fillRect(0,400,800,80);
+    const labs=["CH"+(S.scMenu.ch+1)+" 耦合 "+mc.coupling,"Probe "+mc.probe+"X","","","","",""];
+    labs.forEach((l,i)=>{ const x=6+i*113; cx.strokeStyle="#4a5666"; cx.lineWidth=2; cx.strokeRect(x,420,107,44);
+      cx.fillStyle="#e6eef7"; cx.font="bold 19px sans-serif"; cx.textAlign="center"; cx.fillText(l,x+53,449); });
+    cx.textAlign="left";
+  }
+  // 供練習判斷
+  const L=S.last; L.periods=s1.f>0?10*tdiv*s1.f:0;
+  const st1=srcStats(s1); L.vppDiv=st1.vpp/VDIVS[sc.ch[0].vi];
+  // 量測
+  if(sc.measure){
+    let y=GY+26; cx.font="bold 20px monospace";
+    [[0,s1],[1,s2]].forEach(([i,s])=>{
+      const ch=sc.ch[i]; if(!ch.on) return;
+      let vtxt="---",ftxt="---";
+      if(s.kind!=="none"){
+        const st=srcStats(s), per=s.f>0?10*tdiv*s.f:0;
+        const clipped=st.vpp/VDIVS[ch.vi]>8;
+        if(!clipped&&(s.kind!=="noise")) vtxt=si(st.vpp,"V");
+        if(s.f>0&&per>=1&&per<=500) ftxt=si(s.f,"Hz");
+      }
+      cx.fillStyle="rgba(0,0,0,.72)"; cx.fillRect(GX+GW-400,y-20,398,30);
+      cx.fillStyle=COL[i]; cx.fillText("CH"+(i+1)+" Vpp "+vtxt+"  f "+ftxt,GX+GW-394,y+2);
+      y+=34;
+    });
+  }
+  // 提示訊息
+  if(S.flash&&performance.now()<S.flashT){
+    cx.fillStyle="rgba(0,0,0,.82)"; cx.fillRect(GX+10,GY+GH-64,GW-20,44);
+    cx.fillStyle="#ffd34d"; cx.font="bold 20px sans-serif"; cx.fillText(S.flash,GX+22,GY+GH-34);
+  }
+}
+
+/* ============ 接線顯示與整體更新 ============ */
+function cablePath(x1,y1,x2,y2){ return "M"+x1+" "+y1+" C "+x1+" "+(y1+60)+" "+x2+" "+(y2+60)+" "+x2+" "+y2; }
+function updateCables(){
+  const p=(k,sx,sy)=>k==="comp"?cablePath(sx,sy+16,392,552):k==="gen"?"":"";
+  S.cable1.setAttribute("d",S.wire.ch1==="comp"?cablePath(470,556,392,550):"");
+  S.cable2.setAttribute("d",S.wire.ch2==="comp"?cablePath(560,556,392,550):"");
+}
+function refresh(){
+  updateCables(); drawGenDisplay(); updateMusic(); audioUpdate();
+  document.getElementById("loadv").textContent=S.gen.load==="50"?"50 Ω":"High Z"; updateCur();
+  document.getElementById("compbox").style.display=(S.wire.ch1==="comp"||S.wire.ch2==="comp")?"":"none";
+  document.getElementById("compv").textContent=S.wire.comp>0.05?"過補償（尖角）":S.wire.comp<-0.05?"欠補償（圓角）":"補償良好";
+  const lb=S.autoLbl; if(lb) lb.textContent="";
+}
+const bigEl=document.getElementById("bigscr"), bigCx=document.getElementById("bigcv").getContext("2d");
+function loop(){ drawScope(); updateCur(); if(bigEl.style.display==="flex") bigCx.drawImage(cv,0,0); requestAnimationFrame(loop); }
+document.getElementById("zoomscr").onclick=()=>{ bigEl.style.display="flex"; };
+bigEl.onclick=()=>{ bigEl.style.display="none"; };
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") bigEl.style.display="none"; });
+
+document.getElementById("w1").onchange=e=>{S.wire.ch1=e.target.value; refresh();};
+document.getElementById("w2").onchange=e=>{S.wire.ch2=e.target.value; if(e.target.value!=="none") S.sc.ch[1].on=S.sc.ch[1].on; refresh();};
+document.getElementById("comp").oninput=e=>{S.wire.comp=parseFloat(e.target.value); refresh();};
+document.getElementById("sw1").onchange=e=>{S.wire.sw1=+e.target.value; refresh();};
+document.getElementById("sw2").onchange=e=>{S.wire.sw2=+e.target.value; refresh();};
+document.getElementById("resetall").onclick=()=>{
+  S.sc=scopeDefault(); S.gen=genDefault(); S.wire={ch1:"none",ch2:"none",comp:0.6,sw1:1,sw2:1}; S.scMenu.until=0;
+  setWireUI(); document.getElementById("examres").innerHTML=""; refresh();
+};
+/* ============ 丙級術科模擬：試題二 波形量測 ============ */
+/* 題組資料抄自「工業電子丙級術科測試試題 試題二（儀表操作與訊號量測）測試題組」；Infinity 代表開路 */
+const OPEN=Infinity;
+const EXAMS=[
+ {n:1, RL1:1e3, RL2:5.1e3,RL3:220, RL4:8.2e3,RL5:0,   R7:100,R8:1.5e3,R11:47e3, wave:"sine",    f:1e3,  vpp:5,  pt:"J"},
+ {n:2, RL1:5.1e3,RL2:2e3, RL3:100, RL4:1.5e3,RL5:22e3, R7:330,R8:6.8e3,R11:0,    wave:"square",  f:5e3,  vpp:2,  pt:"N"},
+ {n:3, RL1:10e3,RL2:10e3, RL3:330, RL4:8.2e3,RL5:10e3, R7:470,R8:6.8e3,R11:22e3, wave:"triangle",f:20e3, vpp:10, pt:"M"},
+ {n:4, RL1:2e3, RL2:20e3, RL3:680, RL4:6.8e3,RL5:22e3, R7:220,R8:4.7e3,R11:47e3, wave:"square",  f:1e3,  vpp:5,  pt:"O"},
+ {n:5, RL1:20e3,RL2:1e3,  RL3:470, RL4:4.7e3,RL5:47e3, R7:680,R8:8.2e3,R11:0,    wave:"triangle",f:5e3,  vpp:15, pt:"M"},
+ {n:6, RL1:33e3,RL2:10e3, RL3:OPEN,RL4:0,    RL5:10e3, R7:680,R8:4.7e3,R11:22e3, wave:"sine",    f:5e3,  vpp:10, pt:"O"},
+ {n:7, RL1:10e3,RL2:51e3, RL3:470, RL4:4.7e3,RL5:OPEN, R7:470,R8:4.7e3,R11:47e3, wave:"sine",    f:20e3, vpp:2,  pt:"L"},
+ {n:8, RL1:82e3,RL2:33e3, RL3:330, RL4:OPEN, RL5:22e3, R7:220,R8:6.8e3,R11:10e3, wave:"square",  f:10e3, vpp:10, pt:"J"},
+ {n:9, RL1:5.1e3,RL2:20e3,RL3:220, RL4:1.5e3,RL5:10e3, R7:100,R8:1.5e3,R11:0,    wave:"triangle",f:5e3,  vpp:5,  pt:"N"},
+ {n:10,RL1:1e3, RL2:20e3, RL3:100, RL4:4.7e3,RL5:10e3, R7:470,R8:6.8e3,R11:82e3, wave:"sine",    f:10e3, vpp:15, pt:"O"},
+ {n:11,RL1:100e3,RL2:0,   RL3:680, RL4:6.8e3,RL5:82e3, R7:330,R8:6.8e3,R11:47e3, wave:"square",  f:10e3, vpp:2,  pt:"L"},
+ {n:12,RL1:0,   RL2:100e3,RL3:470, RL4:8.2e3,RL5:47e3, R7:220,R8:8.2e3,R11:10e3, wave:"triangle",f:20e3, vpp:15, pt:"K"}
+];
+S.exam=EXAMS[0];
+const WNAME={sine:"正弦波",square:"方波",triangle:"三角波"};
+const PTCOL={N:[1,1],O:[1,2],L:[2,1],M:[2,2],J:[3,1],K:[3,2]};
+function fmtR(v){ if(v===OPEN) return "開路"; if(v>=1000) return +(v/1000).toFixed(2)+"kΩ"; return v+"Ω"; }
+function netCols(){
+  const e=S.exam;
+  return [[e.RL5,10e3,e.R11],[e.R8,2.2e3,e.RL4],[150,e.RL3,e.R7]];
+}
+function netRatio(X){
+  if(X==="I") return 1;
+  const [c,k]=PTCOL[X], r=netCols()[c-1];
+  const open=r.findIndex(v=>v===OPEN);
+  if(open>=0){ // 開路：開路點以上的節點＝Vin，以下的節點＝0
+    return (k-1)<open?1:0;   // 節點 k 位於元件 k-1 與 k 之間（0 起算）
+  }
+  const tot=r[0]+r[1]+r[2];
+  return k===1?(r[1]+r[2])/tot:r[2]/tot;
+}
+function netRin(){
+  let g=0;
+  for(const r of netCols()){ if(r.includes(OPEN)) continue; g+=1/(r[0]+r[1]+r[2]); }
+  return g>0?1/g:1e12;
+}
+const RS=50; // 信號產生器輸出阻抗
+function netScale(X){ const R=netRin(); return netRatio(X)*R/(R+RS); }
+
+/* ---- 電路圖 ---- */
+function drawExamCkt(){
+  const el=document.getElementById("examckt"); el.innerHTML="";
+  const e=S.exam, cols=netCols(), xs=[70,185,300];
+  const names=[["RL5","R10","R11"],["R8","R9","RL4"],["R6","RL3","R7"]];
+  const nodes=[["N","O"],["L","M"],["J","K"]];
+  const yTop=40,yBot=232,ys=[92,142,192], y1=[117,167];
+  svg("line",{x1:30,y1:yTop,x2:340,y2:yTop,stroke:"currentColor","stroke-width":2},el);
+  svg("line",{x1:30,y1:yBot,x2:340,y2:yBot,stroke:"currentColor","stroke-width":2},el);
+  svg("text",{x:30,y:yTop-8,"font-size":13,"font-weight":700,fill:"currentColor"},el,"I（信號輸入端＋）");
+  svg("text",{x:30,y:yBot+16,"font-size":13,"font-weight":700,fill:"currentColor"},el,"H（信號輸入端－，接地）");
+  const probe=(x,y,label,col)=>{ svg("circle",{cx:x,cy:y,r:6,fill:col},el); svg("text",{x:x+9,y:y+4,"font-size":12,"font-weight":700,fill:col},el,label); };
+  probe(326,yTop,"CH1","#d9b800");
+  const hl=PTCOL[e.pt];
+  cols.forEach((col,ci)=>{
+    const x=xs[ci];
+    svg("line",{x1:x,y1:yTop,x2:x,y2:yBot,stroke:"currentColor","stroke-width":1.5,"stroke-opacity":.5},el);
+    col.forEach((v,ri)=>{
+      const open=v===OPEN;
+      svg("rect",{x:x-22,y:ys[ri]-13,width:44,height:26,rx:3,fill:"var(--card)",stroke:open?"#d33":"currentColor","stroke-width":1.6,"stroke-dasharray":open?"4 3":""},el);
+      svg("text",{x:x-26,y:ys[ri]+4,"font-size":10,"text-anchor":"end",fill:"currentColor","fill-opacity":.7},el,names[ci][ri]);
+      svg("text",{x,y:ys[ri]+4,"font-size":11,"text-anchor":"middle",fill:open?"#d33":"currentColor"},el,fmtR(v));
+    });
+    nodes[ci].forEach((nm,ki)=>{
+      const y=y1[ki], sel=nm===e.pt;
+      svg("circle",{cx:x,cy:y,r:sel?6:3.5,fill:sel?"#2f8fe0":"currentColor"},el);
+      svg("text",{x:x+(sel?10:7),y:y+4,"font-size":sel?14:12,"font-weight":700,fill:sel?"#2f8fe0":"currentColor"},el,nm+(sel?"（CH2）":""));
+    });
+  });
+}
+
+/* ---- 題組資訊 ---- */
+function renderExam(){
+  const e=S.exam;
+  document.getElementById("examsel").value=e.n;
+  const rows=[["RL1",e.RL1],["RL2",e.RL2],["RL3",e.RL3],["RL4",e.RL4],["RL5",e.RL5],["R7",e.R7],["R8",e.R8],["R11",e.R11]];
+  document.getElementById("examinfo").innerHTML=
+   '<table class="tbl"><tr>'+rows.map(r=>"<th>"+r[0]+"</th>").join("")+"</tr><tr>"+rows.map(r=>"<td>"+fmtR(r[1])+"</td>").join("")+"</tr></table>"+
+   '<p style="margin:8px 0"><b>函數波信號產生器：</b>'+WNAME[e.wave]+"、"+si(e.f,"Hz")+"、"+e.vpp+" Vpp（DC Offset＝0 V，Duty＝50%）<br>"+
+   "<b>波形量測點：</b>V<sub>"+e.pt+"H</sub>（CH2 接 "+e.pt+"，探棒接地端接 H）</p>";
+  drawExamCkt();
+  document.getElementById("examres").innerHTML="";
+}
+
+/* ---- 評分檢查（依評審表（二）波形量測與動作要求第 5、6 項） ---- */
+function errPts(err){ return err<=0.10?0:err<=0.20?5:10; }
+function unitVal(id,uid){ const v=parseFloat(document.getElementById(id).value); return isFinite(v)?v*parseFloat(document.getElementById(uid).value):NaN; }
+function runExamCheck(){
+  const e=S.exam, sc=S.sc, g=S.gen, tdiv=TDIVS[sc.ti];
+  const items=[]; let settingsDed=0, otherDed=0;
+  const add=(name,ok,pts,note,isSetting)=>{ items.push({name,ok,pts:ok?0:pts,note}); if(!ok){ if(isSetting) settingsDed+=pts; else otherDed+=pts; } };
+  const wired=S.wire.ch1==="pt:I"&&S.wire.ch2==="pt:"+e.pt;
+  add("接線：CH1 接信號輸入端 I，CH2 接 "+e.pt+"（並開啟 Output）",wired&&g.out,15,
+      wired?(g.out?"":"信號產生器 Output 未開啟"):"CH1 應接 I、CH2 應接 "+e.pt,false);
+  add("波形選用正確（"+WNAME[e.wave]+"）",g.wave===e.wave,15,"目前為 "+(WNAME[g.wave]||g.wave),false);
+  const ef=Math.abs(g.freq-e.f)/e.f;
+  add("頻率（週期）誤差 ≤ 10%",ef<=0.10,errPts(ef),"頻率誤差 "+(ef*100).toFixed(1)+"%",false);
+  let vIH=srcStats(rawSrc(0)).vpp, vPT=srcStats(rawSrc(1)).vpp;
+  if(!wired||!g.out){ vIH=0; vPT=0; }
+  const e1=Math.abs(vIH-e.vpp)/e.vpp;
+  add("CH1（V"+"IH）振幅誤差 ≤ 10%",e1<=0.10,errPts(e1),"V_IH 實際 "+si(vIH,"Vpp")+"，指定 "+e.vpp+" Vpp（誤差 "+(e1*100).toFixed(1)+"%）",false);
+  const expPT=e.vpp*netRatio(e.pt), e2=expPT>0?Math.abs(vPT-expPT)/expPT:0;
+  add("CH2（V"+e.pt+"H）振幅與理論值誤差 ≤ 10%",e2<=0.10,errPts(e2),"實際 "+si(vPT,"Vpp")+"，理論 "+si(expPT,"Vpp"),false);
+  const per=10*tdiv*g.freq;
+  add("波形完整顯示 2～3 個週期",per>=1.95&&per<=3.05,5,"目前約 "+per.toFixed(1)+" 個週期",false);
+  const d1=srcStats(srcFor(0)).vpp/VDIVS[sc.ch[0].vi], d2=srcStats(srcFor(1)).vpp/VDIVS[sc.ch[1].vi];
+  add("CH1 波峰至波谷占 3～6 格",d1>=2.95&&d1<=6.05,5,"目前 "+d1.toFixed(1)+" 格",false);
+  add("CH2 波峰至波谷占 2～5 格",d2>=1.95&&d2<=5.05,5,"目前 "+d2.toFixed(1)+" 格",false);
+  add("DC Offset ＝ 0 V",Math.abs(g.off)<0.005,5,"目前 "+fmtGen("off",g.off),true);
+  add("CH1 耦合為 DC",sc.ch[0].coupling==="DC",5,"目前 "+sc.ch[0].coupling,true);
+  add("CH2 耦合為 DC",sc.ch[1].coupling==="DC",5,"目前 "+sc.ch[1].coupling,true);
+  add("CH1 探棒衰減 1:1（探棒開關 ×1、示波器 Probe 1X）",sc.ch[0].probe===1&&S.wire.sw1===1,5,"開關 ×"+S.wire.sw1+"、示波器 "+sc.ch[0].probe+"X",true);
+  add("CH2 探棒衰減 1:1（探棒開關 ×1、示波器 Probe 1X）",sc.ch[1].probe===1&&S.wire.sw2===1,5,"開關 ×"+S.wire.sw2+"、示波器 "+sc.ch[1].probe+"X",true);
+  add("CH1 基線在 Y 軸中央（0 V 位置）",Math.abs(sc.ch[0].pos)<0.05,5,"目前位置 "+sc.ch[0].pos.toFixed(1)+" 格",true);
+  add("CH2 基線在 Y 軸中央（0 V 位置）",Math.abs(sc.ch[1].pos)<0.05,5,"目前位置 "+sc.ch[1].pos.toFixed(1)+" 格",true);
+  add("CH1、CH2 皆開啟顯示",sc.ch[0].on&&sc.ch[1].on,10,"請按 CH1、CH2 鍵",false);
+  const stable=S.last.trigd;
+  // 答案卷記錄核對
+  const rec=[];
+  const rw=document.getElementById("rwave").value, rf=unitVal("rfreq","rfu"), rv=parseFloat(document.getElementById("rvpp").value);
+  const rt=unitVal("rtd","rtu"), r1=unitVal("rv1","rv1u"), r2=unitVal("rv2","rv2u");
+  const near=(a,b)=>isFinite(a)&&Math.abs(a-b)/b<0.011;
+  rec.push(["波形",rw===g.wave]);
+  rec.push(["頻率",near(rf,g.freq)]);
+  rec.push(["振幅（信號產生器設定值）",isFinite(rv)&&Math.abs(rv-g.ampl)/g.ampl<0.011]);
+  rec.push(["TIME/DIV",near(rt,tdiv)]);
+  rec.push(["CH1 VOLT/DIV",near(r1,VDIVS[sc.ch[0].vi])]);
+  rec.push(["CH2 VOLT/DIV",near(r2,VDIVS[sc.ch[1].vi])]);
+  const sd=Math.min(settingsDed,30);
+  const total=otherDed+sd;
+  const box=document.getElementById("examres");
+  let h='<h3>檢查結果</h3><ul class="chkl">';
+  items.forEach(it=>{ h+='<li class="'+(it.ok?"ok":"bad")+'"><span>'+(it.ok?"✓":"✗")+"</span> "+it.name+(it.ok?"":'<em>　−'+it.pts+" 分　"+it.note+"</em>")+"</li>"; });
+  h+="</ul>";
+  h+='<p><b>預估扣分：'+total+' 分</b>（設定條件每處 5 分，合計最多扣 30 分）'+(stable?"":'<br><em class="bad">畫面目前不穩定（狀態不是 Trig\'d），請調整觸發準位或按 Autoset。</em>')+"</p>";
+  h+='<h3>答案卷記錄核對</h3><ul class="chkl">'+rec.map(r=>'<li class="'+(r[1]?"ok":"bad")+'"><span>'+(r[1]?"✓":"✗")+"</span> "+r[0]+(r[1]?"":"　與目前儀器設定不符或未填")+"</li>").join("")+"</ul>";
+  h+='<p class="hint">本模擬依評審表（二）估算扣分，實際以監評人員檢查為準。信號產生器輸出阻抗以 50 Ω 估算。</p>';
+  box.innerHTML=h;
+}
+function examHint(){
+  const e=S.exam, R=netRin();
+  const box=document.getElementById("examres");
+  box.innerHTML='<h3>提示</h3><ol class="hintl">'+
+   "<li>信號產生器依題組設定波形與頻率；DC Offset 確認為 0 V。</li>"+
+   "<li>電路板負載的等效電阻約 "+fmtR(Math.round(R))+"，信號產生器輸出阻抗為 50 Ω，所以示波器 CH1（V<sub>IH</sub>）量到的電壓會低於信號產生器設定值；若負載設定為 50 Ω，示波器又是高阻抗，讀數還會更大。請看著 CH1 調整振幅，使 V<sub>IH</sub> 的 Vpp 符合題組指定值（誤差 ±10% 內）。</li>"+
+   "<li>示波器：CH1、CH2 皆設 DC 耦合、探棒 1:1（探棒開關撥 ×1、示波器 Probe 1X）；兩通道位置旋鈕都按一下歸零。</li>"+
+   "<li>時基調到畫面有 2～3 個週期；CH1 波形占 3～6 格、CH2 占 2～5 格。</li>"+
+   "<li>CH2 的量測點 "+e.pt+" 的理論振幅約 "+si(e.vpp*netRatio(e.pt),"Vpp")+"（指定 V<sub>IH</sub> 為 "+e.vpp+" Vpp 時）。</li></ol>";
+}
+(function initExam(){
+  const sel=document.getElementById("examsel");
+  EXAMS.forEach(e=>{ const o=document.createElement("option"); o.value=e.n; o.textContent="題組 "+e.n; sel.appendChild(o); });
+  sel.onchange=()=>{ S.exam=EXAMS[+sel.value-1]; renderExam(); refresh(); };
+  document.getElementById("examdraw").onclick=()=>{ S.exam=EXAMS[Math.floor(Math.random()*EXAMS.length)]; renderExam(); refresh(); };
+  document.getElementById("examauto").onclick=()=>{
+    S.wire.ch1="pt:I"; S.wire.ch2="pt:"+S.exam.pt; S.sc.ch[1].on=true; setWireUI(); refresh(); };
+  document.getElementById("examcheck").onclick=runExamCheck;
+  document.getElementById("examhint").onclick=examHint;
+  renderExam();
+})();
+
+/* ============ 丙級術科模擬：試題一 音樂盒（電壓調整與輸入信號測試） ============ */
+/* 依試題一動作要求第 2、3、4、5 項。電壓與電路為簡化模型，非電路真實計算。 */
+const M={sw:false, svr1:0.30, svr2:0.72, vol:3, src:0, aux:false, snd:false,
+  dmm:{fn:"DCV",rng:20,red:"-",black:"-"}, used:{vol:false,src:new Set([0])}};
+function mTP(){
+  if(!M.sw) return {tp1:0,tp2:0,tp3:0,ac:0};
+  const tp1=9.5+5.5*M.svr1;
+  return {tp1, tp2:5.0+0.04*(tp1-12), tp3:tp1*(0.3+0.4*M.svr2), ac:15};
+}
+function mPowerOk(){ const t=mTP(); return M.sw&&t.tp1>=9&&t.tp2>=4; }
+function nodeV(n,t){ return n==="GND"?0:n==="TP1"?t.tp1:n==="TP2"?t.tp2:n==="TP3"?t.tp3:0; }
+function dmmReading(){
+  const d=M.dmm, t=mTP(); let v=0;
+  if(d.fn==="OFF") return {txt:"",note:"轉盤在 OFF"};
+  if(d.red==="-"||d.black==="-") return {txt:"0",note:"棒子未接好"};
+  if(d.fn==="DCV"){
+    if(d.red==="J1"||d.black==="J1") v=0; else v=nodeV(d.red,t)-nodeV(d.black,t);
+  }else if(d.fn==="ACV"){
+    v=(d.red==="J1"&&d.black==="J1b")||(d.red==="J1b"&&d.black==="J1")?t.ac:0;
+  }
+  if(Math.abs(v)>d.rng) return {txt:"OL",note:"超過量測範圍，請換較大的檔位"};
+  const dec=d.rng<=0.2?1:d.rng<=2?3:d.rng<=20?2:d.rng<=200?1:0;
+  if(d.rng===0.2) return {txt:(v*1000).toFixed(1)+" mV",note:""};
+  return {txt:v.toFixed(dec)+" V",note:""};
+}
+const BOARD={SVR2:[85,146],SVR1:[85,198],TP1:[278,188],TP3:[222,226],TP2:[319,229],GND:[197,22],J1:[318,42],J5:[24,169],J8:[255,226]};
+function drawBoard(){
+  const el=document.getElementById("mboard"); el.innerHTML="";
+  svg("rect",{x:10,y:10,width:340,height:232,rx:6,fill:"#1f6b3a",stroke:"#0e3a1f","stroke-width":2},el);
+  svg("rect",{x:20,y:18,width:150,height:96,rx:3,fill:"none",stroke:"#9cd6ae","stroke-dasharray":"4 3"},el);
+  svg("text",{x:95,y:68,"font-size":12,"text-anchor":"middle",fill:"#cfeedb"},el,"觸控子板");
+  const lab=(x,y,t,c)=>svg("text",{x,y,"font-size":11,"text-anchor":"middle",fill:c||"#e8f6ec"},el,t);
+  const tp=(name,key)=>{
+    const [x,y]=BOARD[key], g=svg("g",{style:"cursor:pointer",tabindex:0,role:"button","aria-label":"測試點 "+name},el);
+    svg("rect",{x:x-9,y:y-9,width:18,height:18,rx:2,fill:M.dmm.red===key?"#ff7a1a":M.dmm.black===key?"#333":"#e8c24a",stroke:"#000"},g);
+    svg("text",{x,y:y+4,"font-size":9,"text-anchor":"middle",fill:"#000"},g,name);
+    g.onclick=()=>{ if(key==="GND") M.dmm.black="GND"; else M.dmm.red=key; refresh(); };
+    g.onkeydown=e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); g.onclick(); } };
+  };
+  tp("TP1","TP1"); tp("TP2","TP2"); tp("TP3","TP3"); tp("GND","GND");
+  const pot=(name,key,val)=>{
+    const [x,y]=BOARD[key];
+    svg("rect",{x:x-18,y:y-14,width:36,height:28,rx:3,fill:"#2a6fd1",stroke:"#0b2a5c"},el);
+    svg("circle",{cx:x,cy:y,r:9,fill:"#e8e8e8",stroke:"#555"},el);
+    const a=(-135+270*val)*Math.PI/180;
+    svg("line",{x1:x,y1:y,x2:x+9*Math.sin(a),y2:y-9*Math.cos(a),stroke:"#222","stroke-width":2.5,"stroke-linecap":"round"},el);
+    lab(x,y+27,name);
+  };
+  pot("SVR1（調 TP1）","SVR1",M.svr1); pot("SVR2（調 TP3）","SVR2",M.svr2);
+  const con=(key,name)=>{ const [x,y]=BOARD[key]; svg("rect",{x:x-14,y:y-9,width:28,height:18,rx:2,fill:"#ddd",stroke:"#555"},el); lab(x,y+3,name,"#000"); };
+  con("J1","J1"); con("J5","J5"); con("J8","J8");
+  const [lx,ly]=[318,66];
+  svg("circle",{cx:lx,cy:ly,r:6,fill:M.sw?"#3dff6a":"#244",stroke:"#000"},el);
+  lab(lx,ly+16,"LED D5");
+  lab(318,28,"AC 15V 輸入");
+  lab(24,190,"喇叭"); lab(255,213,"AUX IN");
+  svg("text",{x:180,y:128,"font-size":11,"text-anchor":"middle",fill:"#cfeedb"},el,"點測試點可放紅棒；點 GND 放黑棒");
+}
+function mScore(){
+  const t=mTP(), items=[];
+  const add=(name,ok,pts,note)=>items.push({name,ok,pts,note});
+  const snd=mPowerOk()&&M.vol>0;
+  add("(1) SW1 ON，POWER 燈亮、綠色 LED 亮、有音樂聲",M.sw&&mPowerOk(),10,M.sw?"電壓不足":"SW1 未開啟");
+  add("(2) TP1 ＝ 12 V ± 1 V",M.sw&&Math.abs(t.tp1-12)<=1,15,"目前約 "+t.tp1.toFixed(2)+" V（調 SVR1）");
+  add("(3) TP2 ＝ 5 V ± 0.5 V",M.sw&&Math.abs(t.tp2-5)<=0.5,15,"目前約 "+t.tp2.toFixed(2)+" V（TP2 由 TP1 穩壓而來，先調好 TP1）");
+  add("(4) TP3 ＝ 6 V ± 0.5 V",M.sw&&Math.abs(t.tp3-6)<=0.5,15,"目前約 "+t.tp3.toFixed(2)+" V（調 SVR2，需在 TP1 調好之後）");
+  add("第 3 項：音量觸控可調整，顯示 0～7",M.used.vol,10,"尚未操作音量觸控子板");
+  add("第 4 項：音源選擇可選二種不同音樂輸出",M.used.src.has(0)&&M.used.src.has(1),15,"請把音源切到音樂 1 與音樂 2 各一次");
+  const g=S.gen, okSig=M.aux&&g.out&&g.wave==="sine"&&Math.abs(g.freq-1000)/1000<=0.1&&Math.abs(g.ampl*(g.load==="50"?2:1)-3)/3<=0.1&&M.src===2&&snd;
+  add("第 5 項：信號產生器正弦波 1 kHz、3 Vpp 輸入 AUX IN，應有聲音",okSig,15,
+      !M.aux?"信號產生器尚未接到 AUX IN":!g.out?"信號產生器 Output 未開":M.src!==2?"音源要切到外部音源（AUX）":"請確認波形、頻率、振幅（示波器量測 AUX IN 應為 3 Vpp）");
+  return items;
+}
+function updateMusic(){
+  if(!document.getElementById("mboard")) return;
+  drawBoard();
+  const t=mTP();
+  document.getElementById("msw").textContent=M.sw?"SW1：ON":"SW1：OFF";
+  document.getElementById("msw").className=M.sw?"on":"";
+  document.getElementById("mlamp").style.background=M.sw?"#3dff6a":"#445";
+  document.getElementById("mvol").textContent=M.vol;
+  document.getElementById("msrcn").textContent=["音樂 1","音樂 2","外部音源 AUX"][M.src];
+  document.getElementById("msnd").textContent=M.snd?"喇叭聲：開":"喇叭聲：關";
+  const r=dmmReading();
+  document.getElementById("dmmv").textContent=r.txt||"";
+  document.getElementById("dmmn").textContent=r.note||"";
+  document.getElementById("msvr1").value=M.svr1; document.getElementById("msvr2").value=M.svr2;
+  document.getElementById("mauxl").style.display=M.aux?"":"none";
+  document.getElementById("maux").checked=M.aux;
+  const ok=mPowerOk();
+  document.getElementById("mstat").textContent=!M.sw?"電源未開":ok?(M.vol===0?"電源正常，音量為 0":"電源正常，應有聲音"):"電壓不足，聲音異常";
+}
+/* ---- 聲音（Web Audio，需先按「喇叭聲」開啟） ---- */
+const AUD={ctx:null,osc:null,gain:null,timer:null,key:""};
+const TUNES=[[262,262,392,392,440,440,392,0,349,349,330,330,294,294,262,0],[330,392,440,392,330,294,262,294,330,330,330,0,294,294,294,0]];
+function audioStop(){ if(AUD.osc){ try{AUD.osc.stop();}catch(e){} AUD.osc=null; } clearInterval(AUD.timer); AUD.timer=null; AUD.key=""; }
+function audioUpdate(){
+  if(!AUD.ctx) return;
+  const g=S.gen;
+  let d=null;
+  if(M.snd&&mPowerOk()&&M.vol>0){
+    if(M.src===2){ if(M.aux&&g.out&&g.wave!=="noise") d={t:"aux"}; }
+    else d={t:"tune",n:M.src};
+  }
+  const key=d?JSON.stringify([d,M.vol,g.freq,g.wave,g.ampl,g.load]):"";
+  if(key===AUD.key) return;
+  audioStop(); if(!d) return;
+  AUD.key=key;
+  const c=AUD.ctx, osc=c.createOscillator(), gn=c.createGain();
+  osc.connect(gn); gn.connect(c.destination);
+  const lvl=M.vol/7*0.12;
+  if(d.t==="aux"){
+    osc.type=g.wave==="square"?"square":g.wave==="triangle"?"triangle":"sine";
+    osc.frequency.value=clamp(g.freq,20,20000);
+    gn.gain.value=lvl*clamp(g.ampl*(g.load==="50"?2:1)/3,0.1,1.5);
+  }else{
+    osc.type="triangle"; gn.gain.value=lvl;
+    let i=0; const seq=TUNES[d.n]; osc.frequency.value=seq[0]||1;
+    AUD.timer=setInterval(()=>{ i=(i+1)%seq.length; const f=seq[i]; gn.gain.value=f?lvl:0; if(f) osc.frequency.value=f; },320);
+  }
+  osc.start(); AUD.osc=osc; AUD.gain=gn;
+}
+(function initMusic(){
+  const $=id=>document.getElementById(id);
+  $("msw").onclick=()=>{ M.sw=!M.sw; refresh(); };
+  $("msvr1").oninput=e=>{ M.svr1=+e.target.value; refresh(); };
+  $("msvr2").oninput=e=>{ M.svr2=+e.target.value; refresh(); };
+  $("mvolup").onclick=()=>{ M.vol=Math.min(7,M.vol+1); M.used.vol=true; refresh(); };
+  $("mvoldn").onclick=()=>{ M.vol=Math.max(0,M.vol-1); M.used.vol=true; refresh(); };
+  $("msrc").onclick=()=>{ M.src=(M.src+1)%3; M.used.src.add(M.src); refresh(); };
+  $("msnd").onclick=()=>{
+    M.snd=!M.snd;
+    if(M.snd&&!AUD.ctx){ const C=window.AudioContext||window.webkitAudioContext; if(C) AUD.ctx=new C(); }
+    if(AUD.ctx&&AUD.ctx.state==="suspended") AUD.ctx.resume();
+    if(!M.snd) audioStop();
+    refresh();
+  };
+  $("maux").onchange=e=>{ M.aux=e.target.checked; refresh(); };
+  $("dmmfn").onchange=e=>{ M.dmm.fn=e.target.value; refresh(); };
+  $("dmmrng").onchange=e=>{ M.dmm.rng=+e.target.value; refresh(); };
+  $("dmmred").onchange=e=>{ M.dmm.red=e.target.value; refresh(); };
+  $("dmmblk").onchange=e=>{ M.dmm.black=e.target.value; refresh(); };
+  $("mdraw").onclick=()=>{ M.svr1=Math.round(Math.random()*100)/100; M.svr2=Math.round(Math.random()*100)/100; $("mres").innerHTML=""; refresh(); };
+  $("mcheck").onclick=()=>{
+    const items=mScore(); let ded=0;
+    let h='<h3>檢查結果</h3><ul class="chkl">';
+    items.forEach(it=>{ if(!it.ok) ded+=it.pts; h+='<li class="'+(it.ok?"ok":"bad")+'"><span>'+(it.ok?"✓":"✗")+"</span> "+it.name+(it.ok?"":"<em>　−"+it.pts+" 分　"+it.note+"</em>")+"</li>"; });
+    h+='</ul><p><b>預估扣分：'+ded+' 分</b></p><p class="hint">依評審表（一）「裝置功能」項目估算；TP1、TP2、TP3 實際由監評人員在場確認。</p>';
+    $("mres").innerHTML=h;
+  };
+  $("mhint").onclick=()=>{
+    $("mres").innerHTML='<h3>提示</h3><ol class="hintl"><li>先開 SW1，確認 POWER 燈與綠色 LED 亮。</li><li>三用電表轉到直流電壓（DCV）20 V 檔，黑棒接 GND，紅棒接 TP1；轉動 SVR1，使 TP1 ＝ 12 V ± 1 V。</li><li>紅棒移到 TP2，確認約 5 V ± 0.5 V（TP2 由 TP1 穩壓產生）。</li><li>紅棒移到 TP3，轉動 SVR2，使 TP3 ＝ 6 V ± 0.5 V。</li><li>調整順序：先 SVR1，再 SVR2（TP3 會隨 TP1 改變）。量測前要選對檔位，檔位太小會顯示 OL。</li><li>輸入測試：信號產生器設定正弦波、1 kHz、3 Vpp（注意負載設定，用示波器量 AUX IN 確認 3 Vpp），勾選「接到 AUX IN」，音源切到外部音源，開啟喇叭聲。</li></ol>';
+  };
+  updateMusic();
+})();
+
+document.getElementById("tab2").onclick=()=>{ document.getElementById("exam").style.display=""; document.getElementById("music").style.display="none"; document.getElementById("tab2").classList.add("on"); document.getElementById("tab1").classList.remove("on"); };
+document.getElementById("tab1").onclick=()=>{ document.getElementById("exam").style.display="none"; document.getElementById("music").style.display=""; document.getElementById("tab1").classList.add("on"); document.getElementById("tab2").classList.remove("on"); };
+
+/* ============ 動畫指引（示波器、信號產生器共用引擎） ============ */
+S.bootUntil=0; S.bootLen=1; S.gBootUntil=0;
+function startBoot(ms){ S.bootLen=ms; S.bootUntil=performance.now()+ms; }
+const GR={raf:0};
+function setWireUI(){
+  document.getElementById("w1").value=S.wire.ch1; document.getElementById("w2").value=S.wire.ch2;
+  document.getElementById("comp").value=S.wire.comp;
+  document.getElementById("sw1").value=S.wire.sw1; document.getElementById("sw2").value=S.wire.sw2;
+}
+function animComp(from,to,ms){
+  cancelAnimationFrame(GR.raf);
+  const t0=performance.now();
+  const f=now=>{
+    const p=clamp((now-t0)/ms,0,1), e=p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+    S.wire.comp=+(from+(to-from)*e).toFixed(3); setWireUI(); refresh();
+    if(p<1) GR.raf=requestAnimationFrame(f);
+  };
+  GR.raf=requestAnimationFrame(f);
+}
+function setHl(ids){
+  document.querySelectorAll(".ctl.hl").forEach(e=>e.classList.remove("hl"));
+  document.querySelectorAll(".hl-dom").forEach(e=>e.classList.remove("hl-dom"));
+  ids.forEach(id=>{
+    if(id[0]==="#"){ const e=document.querySelector(id); if(e){e.style.display=""; e.classList.add("hl-dom");} }
+    else{ const e=document.querySelector('.ctl[data-id="'+id+'"]'); if(e) e.classList.add("hl"); }
+  });
+}
+const GUIDES=[];
+function makeGuide(p,steps,reset,introT,introX){
+  const G={n:0,playing:false,seq:[],adv:null,steps,started:false};
+  const $=s=>document.getElementById(p+s);
+  G.clearSeq=()=>{ G.seq.forEach(clearTimeout); G.seq=[]; cancelAnimationFrame(GR.raf); };
+  G.pause=()=>{ G.playing=false; clearTimeout(G.adv); $("play").textContent="▶ 自動播放"; };
+  G.go=function(n){
+    GUIDES.forEach(o=>{ if(o!==G) o.pause(); });
+    clearTimeout(G.adv); G.clearSeq();
+    n=clamp(n,0,steps.length-1); G.n=n; G.started=true;
+    reset();
+    for(let i=0;i<n;i++) runStep(steps[i],true);
+    const dur=runStep(steps[n],false);
+    setWireUI(); refresh();
+    const st=steps[n];
+    $("t").textContent=st.t; $("x").textContent=st.x; $("ref").textContent=st.ref||"";
+    document.querySelectorAll("#"+p+"dots .dot").forEach((d,i)=>{ d.classList.toggle("on",i===n); d.classList.toggle("past",i<n); });
+    $("prev").disabled=n===0; $("next").disabled=n===steps.length-1;
+    if(G.playing){
+      if(n===steps.length-1) G.pause();
+      else G.adv=setTimeout(()=>G.go(n+1),Math.max(st.d||0,dur+3000));
+    }
+  };
+  function runStep(st,instant){
+    if(st.seq){
+      let t=0;
+      st.seq.forEach(m=>{
+        if(instant){ if(m.do) m.do(true); }
+        else{
+          G.seq.push(setTimeout(()=>{ setHl(m.hl); if(m.do) m.do(false); refresh(); },t));
+          t+=m.w;
+        }
+      });
+      return t;
+    }
+    if(st.act) st.act(instant);
+    if(!instant) setHl(st.hl||[]);
+    return 0;
+  }
+  GUIDES.push(G);
+  const dots=$("dots");
+  steps.forEach((s,i)=>{ const b=document.createElement("button"); b.className="dot"; b.title=s.t; b.setAttribute("aria-label",s.t); b.onclick=()=>{G.pause();G.go(i);}; dots.appendChild(b); });
+  $("prev").onclick=()=>{G.pause();G.go(G.n-1);};
+  $("next").onclick=()=>{G.pause();G.go(G.started?G.n+1:0);};
+  $("play").onclick=()=>{
+    if(G.playing){ G.pause(); return; }
+    G.playing=true; $("play").textContent="⏸ 暫停";
+    G.go(!G.started||G.n===steps.length-1?0:G.n);
+  };
+  $("restart").onclick=()=>{ G.pause(); G.go(0); };
+  $("t").textContent=introT; $("x").textContent=introX; $("prev").disabled=true;
+  return G;
+}
+
+/* ---- 示波器：開機自我調校 ---- */
+const SC_STEPS=[
+ {t:"1. 開機",x:"接好電源線後，按下前面板左下角的 POWER 鍵。顯示器約 30 秒後啟動（動畫已加速）。示波器會回復上次關機前的設定。",ref:"手冊 p.28",hl:["o.power"],
+  act(i){ S.sc.on=true; if(!i) startBoot(2800); }},
+ {t:"2. 按 Default 還原出廠設定",x:"每次開始新的量測前，先按 Default，把示波器還原為預設值，避免上一位使用者的設定殘留。",ref:"手冊 p.29",hl:["o.default"],
+  act(){ defaultScope(); }},
+ {t:"3. 接上探棒：CH1 接到 2V 補償輸出",x:"把探棒的 BNC 接到 CH1 輸入，探針尖接前面板的「2V」探棒補償輸出，鱷魚夾接旁邊的接地端。該輸出預設為 2 Vpp、1 kHz 方波。探棒上的 ×1／×10 開關撥到 ×10。",ref:"手冊 p.29、p.265",hl:["o.bnc1","o.comp"],
+  act(){ S.wire.ch1="comp"; S.wire.comp=0.7; S.wire.sw1=10; setWireUI(); }},
+ {t:"4. 按 CH1 鍵啟動通道",x:"按下 CH1 鍵，讓 CH1 亮起並顯示。信號接了卻看不到波形時，先檢查通道鍵有沒有亮。",ref:"手冊 p.266、p.268",hl:["o.ch1"],
+  act(){ S.sc.ch[0].on=true; }},
+ {t:"5. 設定耦合與探棒衰減（螢幕選單）",x:"用螢幕下方的選單鍵：Coupling（耦合）設為 DC；Probe（探棒）→ Voltage，衰減設為 10X，要與探棒上的開關一致。本模擬已簡化，不顯示這個選單。",ref:"手冊 p.266；選單位置待確認",hl:["o.sb0","o.sb1","o.sb2","o.sb3"],
+  act(){ S.sc.ch[0].probe=10; S.scMenu={ch:0,until:performance.now()+9000}; } },
+ {t:"6. 按 Autoset",x:"按 Autoset 後，補償方波會自動出現在畫面上。注意此時方波的邊角通常有尖角或圓角，因為探棒還沒有調好。",ref:"手冊 p.266",hl:["o.autoset"],
+  act(){ autoset(); }},
+ {t:"7. 顯示類型設為 Vector",x:"按 Display 鍵，把顯示類型（Display type）設為 Vector（向量），波形邊緣才會連續，方便看出方波是否平整。本模擬已固定為向量顯示。",ref:"手冊 p.266",hl:["o.display"],
+  act(){} },
+ {t:"8. 轉動探棒上的補償螺絲",x:"用小螺絲起子轉探棒上的補償調整點，讓方波盡可能平整：邊角有尖角表示過補償（Over）、圓弧表示欠補償（Under）。看著螢幕慢慢調到正好（Normal）。",ref:"手冊 p.267",hl:["#compbox"],d:6500,
+  act(i){ if(i){ S.wire.comp=0; setWireUI(); } else animComp(S.wire.comp,0,4500); }},
+ {t:"9. 確認結果",x:"方波邊角平整、狀態顯示 Trig'd、Vpp 約 2 V，就完成探棒補償。已為你開啟 Measure 量測值，可以對照讀數。CH2 的探棒也要重複同樣步驟。",ref:"",hl:["o.measure"],
+  act(){ S.sc.measure=true; }},
+ {t:"10.（選用）內部校正 SPC 與垂直自我校正",x:"長時間使用或環境溫度改變時可做：Utility → System → SPC，開始前要拔掉所有探棒與線，且機器需預熱至少 30 分鐘；垂直精準度校正在 Utility → System → more 1 of 3 → Self Cal，需要用 BNC 線把後面板 CAL 輸出接到各通道。考場是否要求請以題目為準，本模擬未模擬這些選單。",ref:"手冊 p.263–265",hl:["o.utility"],
+  act(){} }
+];
+function scReset(){
+  S.sc=scopeDefault(); S.wire.ch1="none"; S.wire.ch2="none"; S.wire.comp=0.7; S.wire.sw1=1; S.wire.sw2=1; S.scMenu.until=0;
+  S.bootUntil=0; S.latch.default=false; S.flash=null;
+}
+makeGuide("g",SC_STEPS,scReset,"按「自動播放」或「下一步」開始",
+  "這個動畫會示範示波器開機後的標準調校流程：開機 → Default → 接探棒 → Autoset → 調補償螺絲。每一步會閃爍標出要按的零件，示波器畫面也會同步變化。");
+
+/* ---- 信號產生器：開機與輸出設定 ---- */
+const P=(hl,fn,w)=>({hl,do:fn,w});
+const GEN_STEPS=[
+ {t:"1. 開機",x:"接好電源線，按下前面板的 POWER 鍵，螢幕會先顯示載入畫面，之後就可以使用。",ref:"手冊 p.25–26",
+  seq:[P(["g.power"],i=>{ S.gen.on=true; if(!i) startGenBoot(1600); },2200)]},
+ {t:"2. 按 Preset 還原預設值",x:"按 Preset 還原預設面板設定：正弦波、1 kHz、3.000 Vpp、偏移 0 V、輸出端負載 50 Ω。每次開始新題目前先做這一步。",ref:"手冊 p.72（預設值）",
+  seq:[P(["g.preset"],()=>genOp("g.preset"),1500)]},
+ {t:"3. 選擇波形：Waveform → F1 Sine",x:"按 Waveform 鍵，螢幕下方出現波形選單，按 F1 選擇 Sine（正弦波）。F2 是 Square（方波）、F3 Triangle、F4 Pulse、F5 Ramp、F6 Noise。",ref:"手冊 p.76–83",
+  seq:[P(["g.wave"],()=>genOp("g.wave"),1500),P(["g.f1"],()=>genSoft(0),1500)]},
+ {t:"4. 設定頻率：1 kHz",x:"按 FREQ/Rate 鍵，FREQ 會反白。用數字鍵輸入 1，再按單位鍵 F5（kHz）確認。沒按單位鍵，數字不會生效。單位鍵 F2～F6 依序是 µHz、mHz、Hz、kHz、MHz。",ref:"手冊 p.85",
+  seq:[P(["g.freq"],()=>genOp("g.freq"),1300),P(["g.k1"],()=>genKey("1"),1100),P(["g.f5"],()=>genSoft(4),1500)]},
+ {t:"5. 設定振幅：2 Vpp",x:"按 AMPL 鍵，用數字鍵輸入 2，再按 F6（Vpp）確認。單位鍵 F2～F6 依序是 dBm、mVrms、Vrms、mVpp、Vpp，注意不要誤選 Vrms。",ref:"手冊 p.86",
+  seq:[P(["g.ampl"],()=>genOp("g.ampl"),1300),P(["g.k2"],()=>genKey("2"),1100),P(["g.f6"],()=>genSoft(5),1500)]},
+ {t:"6. 設定直流偏移：0 V",x:"按 DC Offset 鍵，用數字鍵輸入 0，再按 F6（Vdc）確認。考試要求「無偏移」時，一定要確認這項是 0 V。",ref:"手冊 p.87",
+  seq:[P(["g.off"],()=>genOp("g.off"),1300),P(["g.k0"],()=>genKey("0"),1100),P(["g.f6"],()=>genSoft(5),1500)]},
+ {t:"7. 設定負載：CH1 → F1 Load → F2 High Z",x:"信號產生器預設輸出端負載是 50 Ω，但示波器輸入是 1 MΩ（高阻抗），兩者不一致時示波器讀到的電壓會是設定值的 2 倍。按 CH1 鍵 → F1 Load → F2 High Z → F6 Return，讓讀值與設定值相符。考題若另有規定，以題目為準。",ref:"手冊 p.83–84",
+  seq:[P(["g.ch1"],()=>genOp("g.ch1"),1300),P(["g.f1"],()=>genSoft(0),1300),P(["g.f2"],()=>genSoft(1),1500),P(["g.f6"],()=>genSoft(5),1300)]},
+ {t:"8. 按 Output 開啟輸出",x:"按 Output 鍵（CH1 旁的燈），燈亮、螢幕右上角顯示 ON，才有信號輸出。沒按這一步，示波器就看不到波形，這是最常忘記的步驟。",ref:"手冊 p.17",
+  seq:[P(["g.out"],()=>{ S.gen.out=true; },1800)]},
+ {t:"9. 用 BNC 線接到示波器 CH1",x:"把 BNC 線從 MFG-2110 的 CH1 輸出接到示波器 CH1 輸入。畫面上方「接線」區已自動選為「MFG-2110 CH1 輸出」。",ref:"",
+  seq:[P(["g.bnc","o.bnc1"],()=>{ S.wire.ch1="gen"; setWireUI(); },2000)]},
+ {t:"10. 在示波器按 Autoset 並讀值",x:"在示波器按 Autoset，應該看到穩定的 1 kHz、2 Vpp 正弦波。已為你開啟 Measure 量測值：Vpp 應約 2 V，頻率應為 1 kHz。若讀到 4 V，檢查第 7 步的負載設定。",ref:"",
+  seq:[P(["o.autoset"],()=>autoset(),1800),P(["o.measure"],()=>{ S.sc.measure=true; },1200)]}
+];
+function genReset(){
+  S.sc=scopeDefault(); S.wire.ch1="none"; S.wire.ch2="none"; S.wire.comp=0; S.wire.sw1=1; S.wire.sw2=1; S.scMenu.until=0;
+  S.gen=genDefault(); S.gen.on=false; S.gen.load="50"; S.bootUntil=0; S.gBootUntil=0;
+  S.flash=null;
+}
+makeGuide("h",GEN_STEPS,genReset,"按「自動播放」或「下一步」開始",
+  "這個動畫會示範信號產生器的標準設定流程：開機 → Preset → 波形 → 頻率 → 振幅 → 偏移 → 負載 → Output → 接示波器驗證。每一步會閃爍標出要按的鍵，並同步操作面板。");
+
+// 使用者自己操作面板或接線時，暫停動畫指引，避免指引把使用者的設定覆蓋掉
+document.addEventListener("pointerdown",e=>{
+  if(e.target.closest(".gcard")) return;
+  if(!e.target.closest(".ctl,#wire,#exam,#music")) return;
+  GUIDES.forEach(g=>{ if(g.playing||g.seq.length){ g.pause(); g.clearSeq(); } });
+},true);
+select("o.autoset"); refresh(); requestAnimationFrame(loop);
+</script>
+</body>
+</html>

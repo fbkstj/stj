@@ -27,6 +27,9 @@ https://fbkstj.github.io/www/ai_guardian_project_guide.html
 基本電學筆記：RC 充電與放電（手稿＋整理版）：
 https://fbkstj.github.io/stj/elec_rc_notes.html
 
+【儀器操作】示波器 GDS-2102E＋信號產生器 MFG-2110 操作教學（含丙級術科試題一、試題二模擬）：
+https://fbkstj.github.io/stj/instrument_scope_gen.html
+
 【專題實作】智慧管家系統（開發手冊）：
 https://fbkstj.github.io/stj/smart_butler_project_guide.html
 
