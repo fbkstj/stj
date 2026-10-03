@@ -10,17 +10,23 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 
     <style>
+        /* 色系：學術深藍（2026-10-03 由青綠→藍改成深藍→亮藍）。
+           --accent-purple / --accent-teal 沿用舊變數名稱，實際值已換成靛藍系。 */
         :root {
-            --bg: #f8fafc;
+            --bg: #f7f9fc;
             --card-bg: #ffffff;
-            --border: #e2e8f0;
+            --border: #dfe6f1;
             --text-main: #0f172a;
-            --text-muted: #475569;
-            --primary: #0369a1;
-            --primary-glow: rgba(3, 105, 161, 0.1);
-            --accent-purple: #9333ea;
-            --accent-teal: #0f766e;
+            --text-muted: #4a5568;
+            --primary: #1e40af;
+            --primary-glow: rgba(30, 64, 175, 0.1);
+            --accent-purple: #4338ca;
+            --accent-teal: #4338ca;
             --accent-gold: #b45309;
+            --nav-a: #1e3a8a;
+            --nav-b: #1d4ed8;
+            --tint-bg: #e8eefb;
+            --tint-ink: #1e3a8a;
             --font-display: "Outfit", "Noto Sans TC", sans-serif;
             --sidebar-w: 300px;
         }
@@ -55,7 +61,7 @@
             position: sticky;
             top: 0;
             z-index: 10000;
-            background: linear-gradient(90deg, #0f766e 0%, #0369a1 100%);
+            background: linear-gradient(90deg, var(--nav-a) 0%, var(--nav-b) 100%);
             color: #ffffff;
             padding: 0 1.5rem;
             display: flex;
@@ -263,7 +269,7 @@
             .mega-col.has-flyout:hover > .mega-heading,
             .mega-col.has-flyout.fly-open > .mega-heading,
             .mega-col.has-flyout.kb-open > .mega-heading {
-                background: linear-gradient(90deg, #0f766e 0%, #0369a1 100%); color: #ffffff; border-color: transparent;
+                background: linear-gradient(90deg, var(--nav-a) 0%, var(--nav-b) 100%); color: #ffffff; border-color: transparent;
             }
             .mega-col.has-flyout:hover > .mega-heading::after,
             .mega-col.has-flyout.fly-open > .mega-heading::after,
@@ -308,7 +314,7 @@
         .pw-box .pw-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
         .pw-box button { font: inherit; font-size: 0.92rem; padding: 8px 16px; border-radius: 8px; cursor: pointer;
                          border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; }
-        .pw-box button.primary { background: #0369a1; border-color: #0369a1; color: #ffffff; font-weight: 700; }
+        .pw-box button.primary { background: var(--primary); border-color: var(--primary); color: #ffffff; font-weight: 700; }
         .pw-box button:disabled { opacity: 0.6; cursor: wait; }
 
         .map-row {
@@ -359,14 +365,14 @@
         }
 
         .nav-sub-item:hover {
-            background: #e0f2fe;
-            color: #0c4a6e;
+            background: var(--tint-bg);
+            color: var(--tint-ink);
         }
 
         .nav-sub-item.active {
             font-weight: 700;
-            color: #0369a1;
-            background: #f0f9ff;
+            color: var(--primary);
+            background: #f3f7fe;
         }
 
         .sidebar-footer {
@@ -495,9 +501,9 @@
         }
 
         .card.feature .badge-year {
-            background-color: rgba(15, 118, 110, 0.1);
-            color: #115e59;
-            border-color: rgba(15, 118, 110, 0.15);
+            background-color: rgba(67, 56, 202, 0.1);
+            color: #3730a3;
+            border-color: rgba(67, 56, 202, 0.18);
         }
 
         .card-body h3 {
@@ -593,11 +599,11 @@
         }
         .nav-sub-item:focus-visible,
         .go-link:focus-visible {
-            outline-color: #0369a1;
+            outline-color: var(--nav-b);
         }
         .nav-sub-item:focus-visible {
-            background: #e0f2fe;
-            color: #0c4a6e;
+            background: var(--tint-bg);
+            color: var(--tint-ink);
         }
         .nav-sub.kb-open {
             display: grid;
@@ -1021,7 +1027,7 @@
                     <div class="card-icon" style="font-size: 1.8rem;">
                         📟
                     </div>
-                    <span class="badge-year" style="background: #0369a1; color: #fff;">115-09-14 課程</span>
+                    <span class="badge-year" style="background: var(--primary); color: #fff;">115-09-14 課程</span>
                 </div>
                 <div class="card-body">
                     <h3>【115-09-14 AI課程】ESP32 與 MQTT 智慧控制實作</h3>
