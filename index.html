@@ -9,26 +9,148 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 
+    <script>
+        /* 開頁前先套用上次選的樣式，避免閃一下預設色 */
+        (function () {
+            try {
+                var t = localStorage.getItem('stj-theme');
+                if (t && ['standard', 'light', 'soft', 'dark'].indexOf(t) >= 0) {
+                    document.documentElement.setAttribute('data-theme', t);
+                }
+            } catch (e) { /* 無痕模式讀不到就用預設 */ }
+        })();
+    </script>
+
     <style>
-        /* 色系：學術深藍（2026-10-03 由青綠→藍改成深藍→亮藍）。
-           --accent-purple / --accent-teal 沿用舊變數名稱，實際值已換成靛藍系。 */
-        :root {
-            --bg: #f7f9fc;
-            --card-bg: #ffffff;
-            --border: #dfe6f1;
-            --text-main: #0f172a;
-            --text-muted: #4a5568;
-            --primary: #1e40af;
-            --primary-glow: rgba(30, 64, 175, 0.1);
-            --accent-purple: #4338ca;
-            --accent-teal: #4338ca;
-            --accent-gold: #b45309;
-            --nav-a: #1e3a8a;
-            --nav-b: #1d4ed8;
-            --tint-bg: #e8eefb;
-            --tint-ink: #1e3a8a;
+        /* 顯示樣式（2026-10-03）：參考學校課表管理系統，共四種。
+           預設「標準」＝象牙白底＋深墨藍；另有淺色、柔和、深色。
+           切換方式：導覽列右側的「樣式」按鈕，選擇存在 localStorage（stj-theme）。
+           所有顏色都走下面的變數，改色請只改這一區。
+           --accent-purple / --accent-teal 沿用舊變數名稱，實際值已另行指定。 */
+        :root,
+        :root[data-theme="standard"] {
+            --bg: #f3eee3;
+            --card-bg: #fffdf7;
+            --surface: #fffdf7;
+            --surface-2: #f6f1e7;
+            --border: #e6ded0;
+            --line: #d5cbb9;
+            --text-main: #22303f;
+            --text-muted: #5b6672;
+            --heading-ink: #33414f;
+            --primary: #1e3a5f;
+            --primary-glow: rgba(30, 58, 95, 0.1);
+            --nav-a: #17293a;
+            --nav-b: #2c4a68;
+            --tint-bg: #e7eef5;
+            --tint-ink: #1e3a5f;
+            --active-bg: #eef3f8;
+            --chip-bg: #f0ebe0;
+            --chip-ink: #5b6672;
+            --accent-purple: #4a5b8c;
+            --accent-teal: #2f5d6b;
+            --accent-gold: #a3621a;
+            --icon-bg: rgba(31, 41, 55, 0.04);
+            --icon-line: rgba(31, 41, 55, 0.09);
+            --badge-bg: rgba(31, 41, 55, 0.05);
+            --card-shadow: rgba(31, 41, 55, 0.06);
+            --card-shadow-hover: rgba(31, 41, 55, 0.11);
+            --shadow: rgba(23, 41, 58, 0.25);
             --font-display: "Outfit", "Noto Sans TC", sans-serif;
             --sidebar-w: 300px;
+        }
+
+        /* 淺色：白底＋藍 */
+        :root[data-theme="light"] {
+            --bg: #eaf2f6;
+            --card-bg: #ffffff;
+            --surface: #ffffff;
+            --surface-2: #f4fafc;
+            --border: #dae6ec;
+            --line: #c3d4de;
+            --text-main: #14212e;
+            --text-muted: #4d5f6d;
+            --heading-ink: #2b3f4e;
+            --primary: #1e405b;
+            --primary-glow: rgba(30, 64, 91, 0.1);
+            --nav-a: #1e405b;
+            --nav-b: #2f6b8f;
+            --tint-bg: #e3f0f7;
+            --tint-ink: #17384f;
+            --active-bg: #f0f8fc;
+            --chip-bg: #eef5f9;
+            --chip-ink: #4d5f6d;
+            --accent-purple: #3f5a86;
+            --accent-teal: #1f6b7d;
+            --accent-gold: #99620f;
+            --icon-bg: rgba(20, 33, 46, 0.04);
+            --icon-line: rgba(20, 33, 46, 0.1);
+            --badge-bg: rgba(20, 33, 46, 0.05);
+            --card-shadow: rgba(20, 33, 46, 0.07);
+            --card-shadow-hover: rgba(20, 33, 46, 0.12);
+            --shadow: rgba(20, 50, 70, 0.25);
+        }
+
+        /* 柔和：暖米底＋褐 */
+        :root[data-theme="soft"] {
+            --bg: #ede4d3;
+            --card-bg: #fef9f3;
+            --surface: #fef9f3;
+            --surface-2: #f6ece0;
+            --border: #e3d6c4;
+            --line: #cfbda6;
+            --text-main: #2f261f;
+            --text-muted: #6a5c4e;
+            --heading-ink: #4a3d31;
+            --primary: #6b4f35;
+            --primary-glow: rgba(107, 79, 53, 0.12);
+            --nav-a: #3b2f26;
+            --nav-b: #6a5342;
+            --tint-bg: #efe3d4;
+            --tint-ink: #4a3a2c;
+            --active-bg: #f5ece0;
+            --chip-bg: #f1e7d9;
+            --chip-ink: #6a5c4e;
+            --accent-purple: #6a5342;
+            --accent-teal: #4a6158;
+            --accent-gold: #8a5a12;
+            --icon-bg: rgba(47, 38, 31, 0.04);
+            --icon-line: rgba(47, 38, 31, 0.1);
+            --badge-bg: rgba(47, 38, 31, 0.05);
+            --card-shadow: rgba(47, 38, 31, 0.07);
+            --card-shadow-hover: rgba(47, 38, 31, 0.12);
+            --shadow: rgba(47, 38, 31, 0.3);
+        }
+
+        /* 深色 */
+        :root[data-theme="dark"] {
+            --bg: #0e1720;
+            --card-bg: #141f2b;
+            --surface: #141f2b;
+            --surface-2: #1b2836;
+            --border: #263447;
+            --line: #35465c;
+            --text-main: #e6edf5;
+            --text-muted: #a8b6c6;
+            --heading-ink: #cbd7e4;
+            --primary: #8fc0e0;
+            --primary-glow: rgba(143, 192, 224, 0.14);
+            --nav-a: #0c1621;
+            --nav-b: #1b3a52;
+            --tint-bg: #1d3040;
+            --tint-ink: #cfe6f5;
+            --active-bg: #1f3345;
+            --chip-bg: #1e2b3a;
+            --chip-ink: #b7c5d4;
+            --accent-purple: #a6b6e8;
+            --accent-teal: #7fc3cf;
+            --accent-gold: #e0a95c;
+            --icon-bg: rgba(255, 255, 255, 0.06);
+            --icon-line: rgba(255, 255, 255, 0.13);
+            --badge-bg: rgba(255, 255, 255, 0.07);
+            --card-shadow: rgba(0, 0, 0, 0.45);
+            --card-shadow-hover: rgba(0, 0, 0, 0.6);
+            --shadow: rgba(0, 0, 0, 0.65);
         }
 
         * {
@@ -177,14 +299,14 @@
             top: 100%;
             left: 0;
             z-index: 99999;
-            background: #ffffff;
+            background: var(--surface);
             width: max-content;
             max-width: calc(100vw - 2rem);
             max-height: calc(100vh - 70px);
             overflow-y: auto;
             border-radius: 12px;
-            box-shadow: 0 14px 40px rgba(0,0,0,0.25);
-            border: 1px solid #cbd5e1;
+            box-shadow: 0 14px 40px var(--shadow);
+            border: 1px solid var(--line);
             padding: 0.9rem;
             display: none;
             margin-top: 2px;
@@ -232,11 +354,11 @@
         .mega-heading {
             font-size: 0.82rem;
             font-weight: 800;
-            color: #334155;
+            color: var(--heading-ink);
             letter-spacing: 0.04em;
             padding: 0.2rem 0.75rem 0.45rem;
             margin-bottom: 0.2rem;
-            border-bottom: 2px solid #e2e8f0;
+            border-bottom: 2px solid var(--border);
             white-space: nowrap;
         }
 
@@ -250,7 +372,7 @@
         .mega-col + .mega-col { margin-top: 4px; }
         button.mega-heading {
             display: block; width: 100%; text-align: left; font-family: inherit;
-            background: none; border: 0; border-bottom: 2px solid #e2e8f0; cursor: default;
+            background: none; border: 0; border-bottom: 2px solid var(--border); cursor: default;
         }
         .mega-list { display: flex; flex-direction: column; gap: 2px; }
         @media (min-width: 1081px) {
@@ -262,10 +384,10 @@
             .mega-col.has-flyout > .mega-heading {
                 display: flex; align-items: center; justify-content: space-between; gap: 1.2rem;
                 padding: 10px 14px; margin: 0; font-size: 0.92rem; font-weight: 800; letter-spacing: 0;
-                color: #0f172a; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+                color: var(--text-main); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px;
                 cursor: pointer; white-space: nowrap; transition: background 0.15s ease, color 0.15s ease;
             }
-            .mega-col.has-flyout > .mega-heading::after { content: '▸'; color: #64748b; font-size: 0.85rem; }
+            .mega-col.has-flyout > .mega-heading::after { content: '▸'; color: var(--text-muted); font-size: 0.85rem; }
             .mega-col.has-flyout:hover > .mega-heading,
             .mega-col.has-flyout.fly-open > .mega-heading,
             .mega-col.has-flyout.kb-open > .mega-heading {
@@ -277,8 +399,8 @@
             .mega-col.has-flyout > .mega-list {
                 position: absolute; left: 100%; top: 0; margin-left: 8px; z-index: 100000;
                 min-width: 280px; max-height: calc(100vh - 90px); overflow-y: auto;
-                background: #ffffff; border: 1px solid #cbd5e1; border-radius: 12px;
-                box-shadow: 0 16px 45px rgba(0, 0, 0, 0.28); padding: 0.5rem; display: none;
+                background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+                box-shadow: 0 16px 45px var(--shadow); padding: 0.5rem; display: none;
             }
             .mega-col.fly-left > .mega-list { left: auto; right: 100%; margin-left: 0; margin-right: 8px; }
             .mega-col.has-flyout:hover > .mega-list,
@@ -291,29 +413,29 @@
         .mega-col.mock-col.locked > .mega-list { display: none !important; }
         .mega-col.mock-col.locked > .mega-heading::after { content: '' !important; }
         .mock-group {
-            font-size: 0.8rem; font-weight: 800; color: #475569; letter-spacing: 0.04em;
+            font-size: 0.8rem; font-weight: 800; color: var(--text-muted); letter-spacing: 0.04em;
             padding: 0.45rem 0.75rem 0.2rem; white-space: nowrap;
         }
         .mock-group + .nav-sub-item { margin-top: 0; }
-        .mock-list-sep { border-top: 1px solid #e2e8f0; margin: 4px 0; }
-        .nav-sub-item .mock-date { margin-left: 1rem; font-size: 0.8rem; color: #475569; font-weight: 400; }
-        .nav-sub-item.mock-lock { color: #475569; font-size: 0.85rem; }
+        .mock-list-sep { border-top: 1px solid var(--border); margin: 4px 0; }
+        .nav-sub-item .mock-date { margin-left: 1rem; font-size: 0.8rem; color: var(--text-muted); font-weight: 400; }
+        .nav-sub-item.mock-lock { color: var(--text-muted); font-size: 0.85rem; }
 
         /* 密碼視窗 */
         .pw-bg { position: fixed; inset: 0; z-index: 200000; background: rgba(15, 23, 42, 0.55);
                  display: none; align-items: center; justify-content: center; padding: 16px; }
         .pw-bg.show { display: flex; }
-        .pw-box { background: #ffffff; color: #0f172a; width: min(360px, 100%); border-radius: 12px;
-                  padding: 22px 22px 18px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35); }
+        .pw-box { background: var(--surface); color: var(--text-main); width: min(360px, 100%); border-radius: 12px;
+                  padding: 22px 22px 18px; box-shadow: 0 20px 50px var(--shadow); }
         .pw-box h2 { margin: 0 0 4px; font-size: 1.1rem; }
-        .pw-box p { margin: 0 0 12px; font-size: 0.88rem; color: #475569; }
+        .pw-box p { margin: 0 0 12px; font-size: 0.88rem; color: var(--text-muted); }
         .pw-box input { width: 100%; box-sizing: border-box; padding: 10px 12px; font: inherit; font-size: 1rem;
-                        border: 1px solid #94a3b8; border-radius: 8px; }
+                        border: 1px solid var(--line); border-radius: 8px; }
         .pw-box .pw-msg { min-height: 1.3em; margin-top: 8px; font-size: 0.85rem; color: #b91c1c; }
-        .pw-box .pw-msg.busy { color: #475569; }
+        .pw-box .pw-msg.busy { color: var(--text-muted); }
         .pw-box .pw-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
         .pw-box button { font: inherit; font-size: 0.92rem; padding: 8px 16px; border-radius: 8px; cursor: pointer;
-                         border: 1px solid #cbd5e1; background: #f8fafc; color: #0f172a; }
+                         border: 1px solid var(--line); background: var(--surface-2); color: var(--text-main); }
         .pw-box button.primary { background: var(--primary); border-color: var(--primary); color: #ffffff; font-weight: 700; }
         .pw-box button:disabled { opacity: 0.6; cursor: wait; }
 
@@ -327,7 +449,7 @@
         .map-row .map-year {
             flex: 1;
             font-size: 0.92rem;
-            color: #334155;
+            color: var(--heading-ink);
             white-space: nowrap;
         }
 
@@ -335,13 +457,13 @@
             width: auto;
             padding: 0.35rem 0.65rem;
             font-size: 0.85rem;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--line);
         }
 
         .ext {
             margin-left: 0.5rem;
             font-size: 0.8em;
-            color: #475569;
+            color: var(--text-muted);
         }
 
         .nav-sub-item {
@@ -351,7 +473,7 @@
             text-align: left;
             padding: 0.5rem 0.75rem;
             font-size: 0.92rem;
-            color: #1e293b;
+            color: var(--text-main);
             white-space: nowrap;
             cursor: pointer;
             transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
@@ -372,7 +494,7 @@
         .nav-sub-item.active {
             font-weight: 700;
             color: var(--primary);
-            background: #f3f7fe;
+            background: var(--active-bg);
         }
 
         .sidebar-footer {
@@ -448,13 +570,13 @@
             transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+            box-shadow: 0 4px 6px -1px var(--card-shadow), 0 2px 4px -2px var(--card-shadow);
         }
 
         .card:hover {
             transform: translateY(-5px);
             border-color: var(--primary);
-            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+            box-shadow: 0 20px 25px -5px var(--card-shadow-hover), 0 8px 10px -6px var(--card-shadow-hover);
         }
 
         .card-top {
@@ -472,8 +594,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background-color: rgba(15, 23, 42, 0.03);
-            border: 1px solid rgba(15, 23, 42, 0.06);
+            background-color: var(--icon-bg);
+            border: 1px solid var(--icon-line);
             transition: transform 0.3s ease;
         }
 
@@ -489,21 +611,21 @@
             font-weight: 700;
             padding: 0.3rem 0.75rem;
             border-radius: 999px;
-            background-color: rgba(15, 23, 42, 0.04);
+            background-color: var(--badge-bg);
             color: var(--text-muted);
-            border: 1px solid rgba(15, 23, 42, 0.06);
+            border: 1px solid var(--icon-line);
         }
 
         .card.award .badge-year {
-            background-color: rgba(180, 83, 9, 0.1);
-            color: #92400e;
-            border-color: rgba(180, 83, 9, 0.15);
+            background-color: var(--badge-bg);
+            color: var(--accent-gold);
+            border-color: var(--icon-line);
         }
 
         .card.feature .badge-year {
-            background-color: rgba(67, 56, 202, 0.1);
-            color: #3730a3;
-            border-color: rgba(67, 56, 202, 0.18);
+            background-color: var(--badge-bg);
+            color: var(--accent-purple);
+            border-color: var(--icon-line);
         }
 
         .card-body h3 {
@@ -534,7 +656,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-top: 1px solid rgba(15, 23, 42, 0.06);
+            border-top: 1px solid var(--icon-line);
             padding-top: 1rem;
             margin-top: auto;
         }
@@ -570,6 +692,87 @@
 
         .card:hover .go-link {
             transform: translateX(3px);
+        }
+
+        /* 卡片內的小標籤 */
+        .chip {
+            font-size: 0.75rem;
+            background: var(--chip-bg);
+            color: var(--chip-ink);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        /* ---------- 顯示樣式切換列 ---------- */
+        .theme-pick {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            margin-left: 0.5rem;
+            padding: 3px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            flex-shrink: 0;
+        }
+
+        .theme-pick .theme-label {
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+            padding: 0 0.45rem 0 0.5rem;
+            white-space: nowrap;
+        }
+
+        .theme-btn {
+            font: inherit;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: #ffffff;
+            background: none;
+            border: none;
+            border-radius: 999px;
+            padding: 0.25rem 0.6rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .theme-btn:hover {
+            background: rgba(255, 255, 255, 0.18);
+        }
+
+        .theme-btn[aria-pressed="true"] {
+            background: #ffffff;
+            color: var(--nav-a);
+            font-weight: 800;
+        }
+
+        @media (max-width: 1400px) {
+            .theme-pick .theme-label { display: none; }
+            .theme-btn { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+        }
+
+        @media (max-width: 1080px) {
+            .theme-pick { margin: 0.5rem 0.9rem; align-self: flex-start; }
+            .theme-pick .theme-label { display: inline; }
+        }
+
+        /* 深色樣式：卡片內一張張寫死顏色的標籤與圖示改回可讀的中性色 */
+        :root[data-theme="dark"] .badge-year[style],
+        :root[data-theme="dark"] .category-tag[style] {
+            background: var(--badge-bg) !important;
+            color: var(--text-muted) !important;
+            border-color: var(--icon-line) !important;
+        }
+
+        :root[data-theme="dark"] .card-icon[style] {
+            color: var(--primary) !important;
+        }
+
+        :root[data-theme="dark"] .card-body span[style*="font-size: 0.75rem"] {
+            background: var(--chip-bg) !important;
+            color: var(--chip-ink) !important;
         }
 
         /* Footer Section */
@@ -973,6 +1176,14 @@
                 <span class="chip-label">🕒 網頁更新：</span><span class="updateTimeTop">2026-09-22 11:55</span>
             </div>
 
+            <div class="theme-pick" role="group" aria-label="顯示樣式">
+                <span class="theme-label">樣式</span>
+                <button type="button" class="theme-btn" data-theme-value="standard" aria-pressed="true">標準</button>
+                <button type="button" class="theme-btn" data-theme-value="light" aria-pressed="false">淺色</button>
+                <button type="button" class="theme-btn" data-theme-value="soft" aria-pressed="false">柔和</button>
+                <button type="button" class="theme-btn" data-theme-value="dark" aria-pressed="false">深色</button>
+            </div>
+
             <button class="nav-item" id="shareBtn" style="background: rgba(15, 23, 42, 0.3); border: 1px solid rgba(255, 255, 255, 0.25); font-size: 0.85rem;" title="複製目前頁面的網址" aria-label="複製本頁網址">
                 <span aria-hidden="true">🔗</span> <span class="share-label">複製本頁網址</span>
             </button>
@@ -991,7 +1202,7 @@
                     <div class="card-icon" style="color: #0d9488;">
                         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                     </div>
-                    <span class="badge-year" style="background: rgba(13, 148, 136, 0.15); color: #0d9488; border: 1px solid rgba(13, 148, 136, 0.3);">【專題製作】AI 視覺</span>
+                    <span class="badge-year" style="background: rgba(15, 118, 110, 0.15); color: #0f766e; border: 1px solid rgba(15, 118, 110, 0.3);">【專題製作】AI 視覺</span>
                 </div>
                 <div class="card-body">
                     <h3>【專題製作】WebCam AI 視覺與 YOLO 應用實務 (全 4 節課)</h3>
@@ -1411,9 +1622,9 @@
                     <h3>【專題製作】AI 視覺創客小學堂：用一顆 WebCam 打造生活智慧眼</h3>
                     <p>技術型高中「專題製作」入門教材：USB 鏡頭硬體檢測、常見環境地雷避坑、Antigravity 5 步闖關提示語、精選專題題目庫與學生知識包。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">👁️ YOLO11 Nano (CPU順跑)</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">💬 5步闖關提示語</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🛠️ 避坑防呆批次檔</span>
+                        <span class="chip">👁️ YOLO11 Nano (CPU順跑)</span>
+                        <span class="chip">💬 5步闖關提示語</span>
+                        <span class="chip">🛠️ 避坑防呆批次檔</span>
                         <span style="font-size: 0.75rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 知識包下載 (ZIP)</span>
                     </div>
                 </div>
@@ -1435,8 +1646,8 @@
                     <h3>導盲磚占用偵測：學生實作手冊</h3>
                     <p>用 USB 網路攝影機、YOLO11 與 OpenCV 偵測導盲磚上的機車、腳踏車與雜物，持續占用時語音提醒並產生報表。附硬體軟體清單、12 週流程、可執行程式包與評分表。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🚲 車輛＋雜物雙訊號</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">📊 準確率評估工具</span>
+                        <span class="chip">🚲 車輛＋雜物雙訊號</span>
+                        <span class="chip">📊 準確率評估工具</span>
                         <span style="font-size: 0.75rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 程式包下載 (ZIP)</span>
                     </div>
                 </div>
@@ -1458,8 +1669,8 @@
                     <h3>頭部障礙物警示帽：學生實作手冊</h3>
                     <p>帽子裝上鏡頭與雷射測距、筆電放在背包裡，補上白手杖探不到的頭部高度障礙。附配置圖、接線表、ESP32 與 Python 程式包、安全測試方法與評分表。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🧢 ToF 測距＋震動</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🎧 骨傳導語音提醒</span>
+                        <span class="chip">🧢 ToF 測距＋震動</span>
+                        <span class="chip">🎧 骨傳導語音提醒</span>
                         <span style="font-size: 0.75rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 程式包下載 (ZIP)</span>
                     </div>
                 </div>
@@ -1481,8 +1692,8 @@
                     <h3>地下室鐵捲門：ESP32 × MQTT 遠端控制</h3>
                     <p>不換主板、不動原本線路，加一片繼電器「代替手指按按鈕」，讓 2014 年的舊鐵捲門能用手機 App 與自製網頁開關。完整實作紀錄：現場勘查、接線圖、韌體七道防誤動作、三個踩過的坑與程式包。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🚪 繼電器點動觸發</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🔒 MQTT over TLS</span>
+                        <span class="chip">🚪 繼電器點動觸發</span>
+                        <span class="chip">🔒 MQTT over TLS</span>
                         <span style="font-size: 0.75rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 程式包下載 (ZIP)</span>
                     </div>
                 </div>
@@ -1504,8 +1715,8 @@
                     <h3>自行車後方來車警示：學生實作手冊</h3>
                     <p>用朝後拍攝的影片與 YOLO11 辨識後方車輛，從車框變大的速度估計還有幾秒到達，提早亮燈或嗶聲。附拍攝方法、原理圖解、標記與評估工具、ESP32 桌上模型與評分表。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🚲 到達時間估計</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">⏱️ 提早秒數評估工具</span>
+                        <span class="chip">🚲 到達時間估計</span>
+                        <span class="chip">⏱️ 提早秒數評估工具</span>
                         <span style="font-size: 0.75rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 程式包下載 (ZIP)</span>
                     </div>
                 </div>
@@ -1527,8 +1738,8 @@
                     <h3>AI 守望：公共場所 AI 監控通報</h3>
                     <p>用網路攝影機與 YOLO 判斷持械、倒地、奔逃、聚集，持續成立才警示，保全可在 5 秒內按警示盒取消誤報，再用 LINE 通報。附動作要求示意影片、七個程式關卡、演練影片標記與成效評估工具、ESP32 警示盒、12 週流程與評分表。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🎬 動作要求示意影片</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🚨 ESP32 警示盒＋取消鈕</span>
+                        <span class="chip">🎬 動作要求示意影片</span>
+                        <span class="chip">🚨 ESP32 警示盒＋取消鈕</span>
                         <span style="font-size: 0.75rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 程式包下載 (ZIP)</span>
                     </div>
                 </div>
@@ -1550,9 +1761,9 @@
                     <h3>智慧管家系統：開發實用手冊</h3>
                     <p>在 Windows 上整合長照監護、AI 對話與家電控制、留言板、智慧監視器，再加上用藥提醒、每日平安回報、一鍵求救、作息異常偵測，並透過 Discord 分級通報。L0～L15 共 16 個關卡，外加地震平安確認、防詐提醒、醫療資訊卡、毫米波雷達 4 個延伸關卡；每關附 AI 開發提示語（Claude Code、Antigravity 皆可）與檢核點，延伸關卡另有情境動畫。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🧭 16 個開發關卡</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🤖 Claude Code 提示語</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🎬 情境動畫</span>
+                        <span class="chip">🧭 16 個開發關卡</span>
+                        <span class="chip">🤖 Claude Code 提示語</span>
+                        <span class="chip">🎬 情境動畫</span>
                     </div>
                 </div>
                 <div class="card-footer">
@@ -1574,8 +1785,8 @@
                     <p>專題競賽書面報告的寫作格式範本（非得獎作品，數據為示範值）。免穿戴裝置，利用 WebCam 綠光微血管 rPPG 技術、臉部疲勞 EAR/MAR 與毫米波雷達，結合自律神經與咖啡因藥理學，精準推薦台灣 7-11（CITY CAFE / PRIMA）咖啡並由 ESP32 自動出杯。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
                         <span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-weight: bold;">💓 rPPG 遠端光電容積脈搏波</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🥱 疲勞 EAR / MAR 幾何</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🏪 7-11 CITY CAFE 決策矩陣</span>
+                        <span class="chip">🥱 疲勞 EAR / MAR 幾何</span>
+                        <span class="chip">🏪 7-11 CITY CAFE 決策矩陣</span>
                         <span style="font-size: 0.75rem; background: #ede9fe; color: #6d28d9; padding: 2px 8px; border-radius: 4px;">⚙️ ESP32 邊緣出杯閉環</span>
                     </div>
                 </div>
@@ -1597,8 +1808,8 @@
                     <h3>AirTouch 無接觸手勢＋語音遙控：學生實作手冊</h3>
                     <p>用 USB 鏡頭與 MediaPipe 手部關節點辨識 7 種手勢，加上中文語音指令，不碰鍵盤滑鼠控制 YouTube、PowerPoint 簡報、PDF 與 Teams／Zoom／Meet 會議，並依目前程式自動切換模式。附功能設計、原理圖解、評估工具與評分表。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🖐️ 手勢鎖＋防誤觸</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🖥️ 簡報／PDF／會議模式</span>
+                        <span class="chip">🖐️ 手勢鎖＋防誤觸</span>
+                        <span class="chip">🖥️ 簡報／PDF／會議模式</span>
                         <span style="font-size: 0.75rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 程式包下載 (ZIP)</span>
                     </div>
                 </div>
@@ -1623,7 +1834,7 @@
                         <span style="font-size: 0.75rem; background: #ccfbf1; color: #0f766e; padding: 2px 8px; border-radius: 4px; font-weight: bold;">🖐️ 3D 手勢 + 75% 懸浮 HUD</span>
                         <span style="font-size: 0.75rem; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px;">🛡️ 81組廣告獵犬 4.5s 秒殺</span>
                         <span style="font-size: 0.75rem; background: #ede9fe; color: #6d28d9; padding: 2px 8px; border-radius: 4px;">🎙️ AI 語音點歌換歌防重疊</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🎥 [F9] 雙軌 1080P 錄影</span>
+                        <span class="chip">🎥 [F9] 雙軌 1080P 錄影</span>
                     </div>
                 </div>
                 <div class="card-footer">
@@ -1646,8 +1857,8 @@
                     <h3>AMB82-Mini 影像物聯網入門：研習講義</h3>
                     <p>六節課從拍一張照片到手機遠端遙控：RTSP 影音串流、AP 模式網頁與 ngrok、拍照上傳 Google 雲端硬碟與試算表、LINE 推播、MP4 錄影與 TFT 顯示、Telegram Bot 控制。每節都有操作步驟、檢查點與排錯表，附六支已驗證可編譯的程式。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">📷 RTSP／MP4／AP 網頁</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">☁️ 雲端硬碟／試算表／LINE</span>
+                        <span class="chip">📷 RTSP／MP4／AP 網頁</span>
+                        <span class="chip">☁️ 雲端硬碟／試算表／LINE</span>
                         <span style="font-size: 0.75rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 程式包下載 (ZIP)</span>
                     </div>
                 </div>
@@ -1668,8 +1879,8 @@
                     <h3>AMB82-Mini AI 視覺辨識進階實作：研習講義</h3>
                     <p>第 2 天六節課：移動偵測與 QR Code、人臉辨識門禁、YOLO 電子圍籬與 MQTT 通報、訓練自己的模型並部署到板子、電腦端 MediaPipe 姿態辨識，最後用姿勢遙控板子。附姿勢判斷模擬器、圍籬座標換算器，以及已驗證可編譯的程式與電腦端測試。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🧠 YOLO／人臉辨識／自訓模型</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">📡 MQTT／MediaPipe 姿態</span>
+                        <span class="chip">🧠 YOLO／人臉辨識／自訓模型</span>
+                        <span class="chip">📡 MQTT／MediaPipe 姿態</span>
                         <span style="font-size: 0.75rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 程式包下載 (ZIP)</span>
                     </div>
                 </div>
@@ -1690,8 +1901,8 @@
                     <h3>筆電＋USB 攝影機 AI 視覺課程</h3>
                     <p>把 AMB82-Mini 兩天研習改成筆電＋USB 攝影機就能做：拍照、串流、手機網頁、雲端上傳、錄影、Telegram，到移動偵測、QR、人臉門禁、YOLO 電子圍籬＋MQTT、自訓模型、姿態遙控。每單元有情境模擬動畫、AI 提示語、參考程式，附示範影片與一鍵驗收。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🎬 13 個情境動畫</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">💬 42 則提示語</span>
+                        <span class="chip">🎬 13 個情境動畫</span>
+                        <span class="chip">💬 42 則提示語</span>
                         <span style="font-size: 0.75rem; background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 程式包下載 (ZIP)</span>
                     </div>
                 </div>
@@ -1713,9 +1924,9 @@
                     <h3>ESET 端點防毒與中控代理 (啟用與診斷 SOP)</h3>
                     <p>包含 ESET Management Agent 與 Endpoint Antivirus 的最佳安裝順序、VPN 0 秒即時觸發授權機制、一鍵重啟同步批次檔與四大階段健康診斷腳本。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🛡️ ESET Agent (EraAgentSvc)</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">⚡ VPN 0秒觸發</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🩺 四大階段診斷</span>
+                        <span class="chip">🛡️ ESET Agent (EraAgentSvc)</span>
+                        <span class="chip">⚡ VPN 0秒觸發</span>
+                        <span class="chip">🩺 四大階段診斷</span>
                         <span style="font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 2px 8px; border-radius: 4px; font-weight: bold;">📦 SKILL 包下載</span>
                     </div>
                 </div>
@@ -1737,9 +1948,9 @@
                     <h3>AI 數位研習自動化 (MCP 雙模式系統)</h3>
                     <p>涵蓋「即時達標通關型」與「掛機在線累積型」雙模式！落實人機接力分工，由 AI 全自動接管 1.0x 原速連播、0 秒秒解阻礙彈窗、自動防閒置維持、課後 Storyline 題庫 100 分通關與官方二進制 PDF 證書下載。</p>
                     <div style="margin-top: 0.8rem; display: flex; gap: 8px; flex-wrap: wrap;">
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🏛️ 臺北e大</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">⛑️ 職安署 iSafeel</span>
-                        <span style="font-size: 0.75rem; background: #f1f5f9; color: #475569; padding: 2px 8px; border-radius: 4px;">🎓 教育部磨課師+</span>
+                        <span class="chip">🏛️ 臺北e大</span>
+                        <span class="chip">⛑️ 職安署 iSafeel</span>
+                        <span class="chip">🎓 教育部磨課師+</span>
                         <span style="font-size: 0.75rem; background: #ecfdf5; color: #047857; padding: 2px 8px; border-radius: 4px; font-weight: bold;">⚡ MCP 原生特權操控</span>
                     </div>
                 </div>
@@ -2266,5 +2477,28 @@
     // Check route on initial load
     checkHashRoute();
 </script>
+<script>
+/* ---------- 顯示樣式切換（標準／淺色／柔和／深色） ---------- */
+(function () {
+    const THEMES = ['standard', 'light', 'soft', 'dark'];
+    const btns = document.querySelectorAll('.theme-btn');
+    if (!btns.length) return;
+
+    function current() {
+        const t = document.documentElement.getAttribute('data-theme');
+        return THEMES.indexOf(t) >= 0 ? t : 'standard';
+    }
+
+    function apply(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        btns.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.themeValue === theme)));
+        try { localStorage.setItem('stj-theme', theme); } catch (e) { /* 讀寫不到就只套用這次 */ }
+    }
+
+    btns.forEach(b => b.addEventListener('click', () => apply(b.dataset.themeValue)));
+    apply(current());
+})();
+</script>
+
 </body>
 </html>
