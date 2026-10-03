@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>音樂盒檢修指引</title>
+<style>
+:root{
+  --bg:#f3f4f6; --card:#fff; --ink:#1c2430; --mute:#5b6675; --line:#d6dbe2;
+  --accent:#0b6bcb; --ok:#14804a; --warn:#b45309; --bad:#c0302b; --hl:#ff7a1a;
+}
+@media (prefers-color-scheme:dark){
+  :root{ --bg:#12161c; --card:#1b212a; --ink:#e7ebf0; --mute:#9aa6b6; --line:#2f3946; --accent:#5aa9ff; --ok:#4cc38a; --warn:#f0a95a; --bad:#ff7a73; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.65 system-ui,"Microsoft JhengHei","PingFang TC",sans-serif}
+header{max-width:1100px;margin:0 auto;padding:14px 16px 4px}
+h1{font-size:22px;margin:0 0 2px}
+header p{margin:0;color:var(--mute);font-size:14px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px 40px}
+.safety{background:color-mix(in srgb,var(--bad) 12%,transparent);border:2px solid var(--bad);border-radius:10px;padding:8px 12px;margin:10px 0;font-size:14px}
+.safety b{color:var(--bad)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}
+.tabs button{flex:1 1 120px;padding:8px 10px;font-size:14px}
+.tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+button,select,input{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:4px 10px}
+button{cursor:pointer}
+button:hover{border-color:var(--accent)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:14px}
+.card h2{font-size:17px;margin:0 0 8px}
+.card h3{font-size:15px;margin:12px 0 4px}
+.symgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px}
+.sym{text-align:left;padding:10px 12px;border-radius:9px;line-height:1.4}
+.sym b{display:block;font-size:15px}
+.sym span{color:var(--mute);font-size:13px}
+.sym.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent)}
+.step{border-left:5px solid var(--accent);padding:6px 12px;margin:8px 0;background:color-mix(in srgb,var(--accent) 7%,transparent);border-radius:0 8px 8px 0}
+.step h3{margin:0 0 4px}
+.kv{display:grid;grid-template-columns:5.5em 1fr;gap:2px 8px;font-size:14px;margin:4px 0}
+.kv dt{color:var(--mute)}
+.kv dd{margin:0}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.btnrow .good{border-color:var(--ok);color:var(--ok)}
+.btnrow .badb{border-color:var(--bad);color:var(--bad)}
+.path{font-size:13px;color:var(--mute);margin:6px 0}
+.path li{margin:1px 0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border:1px solid var(--line);padding:4px 7px;text-align:left;vertical-align:top}
+th{background:var(--bg)}
+.tag{display:inline-block;font-size:12px;border:1px solid var(--line);border-radius:9px;padding:0 7px;margin-left:4px;color:var(--mute)}
+.tag.q{color:var(--warn);border-color:var(--warn)}
+.tag.m{color:var(--ok);border-color:var(--ok)}
+.tag.d{color:var(--accent);border-color:var(--accent)}
+.hint{color:var(--mute);font-size:13px}
+.check li{list-style:none;margin:3px 0}
+.check{padding-left:0}
+.check input{margin-right:6px}
+.scroll{overflow-x:auto}
+.rank{display:inline-block;width:1.6em;height:1.6em;line-height:1.6em;text-align:center;border-radius:50%;background:var(--accent);color:#fff;font-size:12px;margin-right:4px}
+svg text{font-family:inherit}
+footer{color:var(--mute);font-size:13px;padding:6px 0}
+@media(max-width:600px){.kv{grid-template-columns:1fr}.kv dt{margin-top:4px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>音樂盒檢修指引</h1>
+  <p>丙級工業電子術科試題一「音樂盒」（02800-100301）。選擇故障現象，依步驟量測，找出要更換的零件。</p>
+</header>
+<div class="wrap">
+  <div class="safety"><b>⚠ 安全提醒</b>：機殼內有 AC110V（電源線、SW1、F1、PT 初級）。更換任何零件前，<b>一定先關 SW1 並拔掉電源線插頭</b>，再等電解電容放電（C1 470 µF／35 V、C9 與 C10 470 µF／25 V 容量大，用電表確認兩端電壓低於 1 V）。通電量測時，單手操作，不要用手碰 AC110V 的接點與端子。</div>
+  <div class="tabs" id="tabs">
+    <button data-t="fix" class="on">故障檢修</button>
+    <button data-t="parts">零件與更換方法</button>
+    <button data-t="circuit">電路與測試點</button>
+    <button data-t="tbc">待確認項目</button>
+  </div>
+
+  <section id="p-fix">
+    <div class="card"><h2>1. 選擇故障現象</h2><div class="symgrid" id="symgrid"></div></div>
+    <div class="card" id="flowcard" style="display:none"><h2 id="flowtitle"></h2><div id="flow"></div></div>
+  </section>
+
+  <section id="p-parts" style="display:none">
+    <div class="card"><h2>零件總表與更換方法</h2>
+      <p class="hint">規格依電路圖與母板材料表（試題 PDF 第 16、24、25 頁）。「位置」欄的「子板」是我依材料表推論，標「待確認」。</p>
+      <div class="btnrow"><input id="psearch" placeholder="搜尋編號或名稱，例如 Q3、電解、保險絲" style="flex:1 1 220px">
+        <select id="pboard"><option value="">全部位置</option><option>機殼</option><option>母板</option><option>子板</option></select></div>
+      <div class="scroll"><table id="ptable"></table></div>
+    </div>
+    <div class="card"><h2>更換方法（依零件類型）</h2><div id="replaceall"></div></div>
+  </section>
+
+  <section id="p-circuit" style="display:none">
+    <div class="card"><h2>方塊圖與檢修順序</h2><div class="scroll"><svg id="blocks" viewBox="0 0 720 230" style="width:100%;min-width:560px;height:auto"></svg></div>
+      <p class="hint">信號走向：外部音源／音樂 IC → 信號選擇 → 音量控制 → 功率放大 → 喇叭。電源走向：AC → 整流 → 穩壓（TP1、TP2）→ 供應各電路。<b>電源沒調好，後面的檢查都沒有意義，所以一律先查電源（TP1、TP2、TP3），再查聲音。</b></p></div>
+    <div class="card"><h2>母板測試點位置（相對位置）</h2><div class="scroll"><svg id="board" viewBox="0 0 360 250" style="width:100%;max-width:520px;min-width:300px;height:auto"></svg></div></div>
+    <div class="card"><h2>測試點目標值</h2>
+      <table><tr><th>測試點</th><th>目標值</th><th>調整</th><th>來源</th></tr>
+      <tr><td>TP1（VCC_12V）</td><td>12 V ± 1 V</td><td>SVR1</td><td>試題動作要求第 2 項 <span class="tag m">依試題</span></td></tr>
+      <tr><td>TP2（VCC_5V）</td><td>5 V ± 0.5 V</td><td>不用調（由 TP1 穩壓而來）</td><td>同上</td></tr>
+      <tr><td>TP3（放大器輸出中點）</td><td>6 V ± 0.5 V</td><td>SVR2</td><td>同上</td></tr></table>
+      <p class="hint">量測：數位三用電表選直流電壓（DCV），黑棒接 GND 測試點，紅棒接 TP。先調 SVR1，再調 SVR2（TP3 會隨 TP1 改變）。</p></div>
+    <div class="card"><h2>母板與觸控子板的分工</h2>
+      <p><b>母板</b>（材料表第 24～25 頁）：整流與穩壓、功率放大、U1／U2 音樂 IC、R27～R34 音量分壓電阻、C3、AUX IN（J8、C14、R15）、喇叭（J5、C9）、CON1／CON2。</p>
+      <p><b>觸控子板</b><span class="tag q">推論，待確認</span>：觸控 IC（U16、U17）、邏輯 IC（U3～U15）、七段顯示器（D10、D11）等不在母板材料表，推論在子板上，經 CON1／CON2（8P 排母）接到母板。評審表（一）規定「更換觸控子板限 1 次，扣 20 分」，所以先確認母板側都正常，再決定是否換子板。</p></div>
+  </section>
+
+  <section id="p-tbc" style="display:none">
+    <div class="card"><h2>待確認項目</h2>
+      <p class="hint">電路圖上沒有標出、或圖面無法確認的內容，本頁的相關敘述都已標示「推論」或「待確認」。請對照考場實板與規格書。</p>
+      <ol id="tbclist"></ol></div>
+  </section>
+  <footer>資料來源：技術士技能檢定工業電子丙級術科測試試題（試題一 音樂盒：電路圖、接線圖、佈置圖、材料表）。標示「推論」的電壓與判斷是依電路推論，不是官方標準值。</footer>
+</div>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* ============ 零件資料（規格依母板材料表與電路圖） ============ */
+/* 欄位：[名稱, 規格, 位置, 類型, 備註] */
+const PARTS={
+ F1:["保險絲","0.5 A 管狀 20 mm","機殼","fuse",""],
+ SW1:["電源開關（帶燈）","AC250V／6A 帶燈","機殼","chassis","POWER 燈在開關內"],
+ PT:["電源變壓器","AC110V／15V，0.5 A","機殼","chassis","次級接 J1（橙色線 L6、L7）"],
+ J1:["Molex 2P 公座","2P 公座，接 AC15V","母板","conn",""],
+ D1:["整流二極體","LL4001（SMD LL-41），1 A；電路圖標 1N4001","母板","smd_diode","橋式整流 4 顆之一"],
+ D2:["整流二極體","LL4001（SMD LL-41），1 A","母板","smd_diode","橋式整流"],
+ D3:["整流二極體","LL4001（SMD LL-41），1 A","母板","smd_diode","橋式整流"],
+ D4:["整流二極體","LL4001（SMD LL-41），1 A","母板","smd_diode","橋式整流"],
+ C1:["電解電容","470 µF／35 V","母板","elec","整流後主濾波電容"],
+ R1:["電阻","1.2 kΩ 1/4 W","母板","res","D5 限流電阻"],
+ D5:["發光二極體","直徑 5 mm，綠色","母板","led","電源指示（板上綠色 LED）"],
+ R2:["電阻","2.7 kΩ 1/4 W","母板","res","D6 基準電壓限流"],
+ R3:["電阻","1.5 kΩ 1/4 W","母板","res","穩壓電路"],
+ R4:["電阻","470 Ω 1/4 W","母板","res","穩壓電路"],
+ R5:["電阻","1.5 kΩ 1/4 W","母板","res","穩壓電路"],
+ R6:["電阻","1 kΩ 3/4 W（SMD RC2010）","母板","res","穩壓電路"],
+ R7:["電阻","3.3 kΩ 1/4 W","母板","res","SVR1 上方分壓"],
+ R8:["電阻","3.3 kΩ 1/4 W","母板","res","SVR1 下方分壓"],
+ SVR1:["半可調電阻","2 kΩ（B 型）","母板","trimmer","調 TP1"],
+ D6:["齊納二極體","5.6 V 1/2 W","母板","zener","TP1 穩壓基準"],
+ Q1:["電晶體 NPN","2SC1815","母板","to92","穩壓電路"],
+ Q2:["電晶體 NPN","2SC1815","母板","to92","穩壓電路"],
+ Q3:["電晶體（調整元件）","2SB0766（SMD SOT-89）","母板","sot89","穩壓串聯調整，輸出 TP1"],
+ Q4:["電晶體 NPN","2SC1815","母板","to92","穩壓電路"],
+ Q5:["電晶體 NPN","2SC1815","母板","to92","TP2（5 V）射極跟隨"],
+ D7:["齊納二極體","5.6 V 1/2 W","母板","zener","TP2 基準"],
+ R9:["電阻","1 kΩ 3/4 W（SMD RC2010）","母板","res","D7 限流"],
+ R10:["電阻","1 kΩ 3/4 W（SMD RC2010）","母板","res","TP2 負載"],
+ C11:["陶瓷電容","0.1 µF／50 V","母板","cer","TP2 旁路"],
+ C12:["電解電容","47 µF／25 V","母板","elec","TP2 濾波"],
+ C4:["電解電容","10 µF／25 V","母板","elec","放大器輸入耦合（AUDIO_IN）"],
+ R16:["電阻","33 kΩ 1/4 W","母板","res","Q6 偏壓"],
+ R17:["電阻","22 kΩ 1/4 W","母板","res","Q6 偏壓"],
+ SVR2:["半可調電阻","100 kΩ（B 型）","母板","trimmer","調 TP3"],
+ R20:["電阻","4.7 kΩ 1/4 W","母板","res","放大器偏壓"],
+ C5:["電解電容","47 µF／25 V","母板","elec","放大器"],
+ R21:["電阻","2.2 kΩ 1/4 W","母板","res","放大器"],
+ R22:["電阻","1.5 kΩ 1/4 W","母板","res","放大器"],
+ R23:["電阻","1.2 kΩ 1/4 W","母板","res","放大器"],
+ C7:["電解電容","100 µF／25 V","母板","elec","放大器"],
+ C6:["電解電容","100 µF／25 V","母板","elec","放大器"],
+ C8:["陶瓷電容","100 pF／50 V","母板","cer","放大器高頻補償"],
+ R18:["電阻","680 Ω 1/4 W","母板","res","放大器"],
+ R19:["電阻","220 Ω 1/4 W","母板","res","放大器"],
+ Q6:["電晶體 PNP","2SA1015","母板","to92","放大器輸入級"],
+ Q7:["電晶體 NPN","2SC1815","母板","to92","放大器驅動級"],
+ R24:["電阻","470 Ω 1/4 W","母板","res","輸出級偏壓"],
+ D8:["二極體","LL4148（SMD SOD-80）","母板","smd_diode","輸出級偏壓（避免交越失真）"],
+ D9:["二極體","LL4148（SMD SOD-80）","母板","smd_diode","輸出級偏壓"],
+ Q8:["電晶體 NPN（輸出級）","2SD0874（SMD SOT-89）","母板","sot89","推挽輸出上臂"],
+ Q9:["電晶體 PNP（輸出級）","2SB0766（SMD SOT-89）","母板","sot89","推挽輸出下臂"],
+ R25:["電阻","1 Ω 1/4 W","母板","res","輸出射極電阻"],
+ R26:["電阻","1 Ω 1/4 W","母板","res","輸出射極電阻"],
+ C9:["電解電容","470 µF／25 V","母板","elec","輸出耦合電容（到喇叭）"],
+ C10:["電解電容","470 µF／25 V","母板","elec","放大器電源濾波"],
+ J5:["Molex 2P 公座","2P 公座（喇叭）","母板","conn",""],
+ SP:["喇叭","8 Ω，1/4 W，40×40 mm 平面式","機殼","chassis","接線 L8（紅）、L9（黑）"],
+ U1:["音樂積體電路 1","HT3810（圖上符號 UM66TXXL）","母板","ic","音樂 1"],
+ U2:["音樂積體電路 2","HT3810（圖上符號 UM66TXXL）","母板","ic","音樂 2"],
+ R13:["電阻","1 kΩ 3/4 W（SMD RC2010）","母板","res","U1 輸出"],
+ R14:["電阻","1 kΩ 3/4 W（SMD RC2010）","母板","res","U2 輸出"],
+ R15:["電阻","22 Ω 1/4 W","母板","res","AUX 輸入"],
+ C14:["電解電容","10 µF／25 V","母板","elec","AUX 輸入耦合"],
+ J8:["Molex 2P 公座","2P 公座（AUX IN）","母板","conn","接 3.5 mm 音源座，線 L10（紅）、L11（黑）"],
+ R27:["電阻","10 kΩ 1/4 W","母板","res","音量分壓（共 R27～R33 七顆）"],
+ R28:["電阻","10 kΩ 1/4 W","母板","res","音量分壓"],
+ R29:["電阻","10 kΩ 1/4 W","母板","res","音量分壓"],
+ R30:["電阻","10 kΩ 1/4 W","母板","res","音量分壓"],
+ R31:["電阻","10 kΩ 1/4 W","母板","res","音量分壓"],
+ R32:["電阻","10 kΩ 1/4 W","母板","res","音量分壓"],
+ R33:["電阻","10 kΩ 1/4 W","母板","res","音量分壓"],
+ R34:["電阻","120 kΩ 1/4 W","母板","res","音量分壓（串聯端）"],
+ C3:["電解電容","10 µF／25 V","母板","elec","音量輸出耦合"],
+ CON1:["杜邦 8P 單排母座","8P","母板","conn","連接觸控子板"],
+ CON2:["杜邦 8P 單排母座","8P","母板","conn","連接觸控子板"],
+ "子板":["觸控子板","含 T1／T2 觸控板、U16／U17 觸控 IC、U3～U15 邏輯 IC、D10／D11 七段顯示器","子板","daughter","零件清單待確認；更換限 1 次，扣 20 分"]
+};
+const BOARDTBC="位置為「子板」的零件，是依母板材料表推論；實際零件清單待確認。";
+
+/* ============ 更換方法（依零件類型） ============ */
+const TYPES={
+ elec:["電解電容","更換步驟：",[
+  "關 SW1、拔電源線，用電表確認電容兩端電壓低於 1 V（C1、C9、C10 容量大，先用 100 Ω 左右電阻放電）。",
+  "記下極性：本體有白色或灰色條紋的一端是負極，長腳是正極；對照佈置圖的「+」標示。",
+  "拆焊：先在焊點加少許新錫幫助熔化，再用吸錫器或吸錫線吸掉舊錫，把腳拔出。",
+  "換上相同容量、耐壓不低於原值的電容；極性不可反。電容腳要貼板，剪掉多餘的腳。",
+  "焊點要光亮、呈圓錐形，不可有冷焊或錫橋。",
+  "更換前先用電表量一下舊電容：漏電、短路或明顯鼓起都是壞了。"]],
+ smd_diode:["SMD 二極體（LL4001、LL4148）","更換步驟：",[
+  "斷電。記下陰極（有一條線的一端）的方向，拍照或畫記。",
+  "用烙鐵交替加熱兩端焊點（也可兩支烙鐵同時加熱），熔化後用鑷子夾起；不要拉扯焊墊。",
+  "新零件先用電表二極體檔確認：順向約 0.5～0.7 V，逆向顯示 OL（超出範圍）。",
+  "方向與舊零件相同，先焊一端定位，再焊另一端；每個焊點加熱不超過 3 秒。",
+  "LL4001（整流）與 LL4148（小信號）規格不同，不可互換。"]],
+ zener:["齊納二極體（D6、D7）","更換步驟：",[
+  "斷電後記下陰極（有環狀標記的一端）方向。",
+  "拆焊與換上方法同一般二極體；規格必須是 5.6 V、1/2 W。",
+  "齊納二極體要用逆向導通：電表二極體檔量不出齊納電壓，檢查時通電量其兩端電壓，D6、D7 兩端約 5.6 V（推論）。",
+  "方向裝反時兩端電壓會變成約 0.6 V，這是常見的組裝錯誤。"]],
+ to92:["TO-92 電晶體（2SC1815、2SA1015）","更換步驟：",[
+  "斷電。2SC1815 是 NPN，2SA1015 是 PNP，兩者不可互換。",
+  "記下平面（有字的一面）朝向，對照佈置圖的半圓標示。腳位通常是 E–C–B（平面朝自己、由左而右），請對照規格書確認 <span class='tag q'>待確認</span>。",
+  "拆焊後用電表二極體檔量：B–E、B–C 各像一顆二極體（約 0.55～0.75 V，方向依 NPN 或 PNP 而異），C–E 之間不應導通。",
+  "換上新零件，離板約 3 mm 焊接，避免過熱；焊完檢查三腳之間沒有錫橋。"]],
+ sot89:["SMD SOT-89 電晶體（Q3、Q8、Q9）","更換步驟：",[
+  "斷電。Q3、Q9 是 2SB0766（PNP）、Q8 是 2SD0874（NPN），不可互換，也不可用其他型號代替。",
+  "SOT-89 有三支腳與一個較大的中間散熱焊墊；腳位順序請看規格書與佈置圖 <span class='tag q'>待確認</span>，不要憑印象裝。",
+  "拆焊：先給三支腳與散熱墊都加錫，用烙鐵加熱後以鑷子取下，過程中避免過熱。",
+  "取下後用電表二極體檔確認新舊零件：壞掉的零件常見 C–E 短路。",
+  "對準焊墊，先焊一支腳定位，再焊其他兩支腳與散熱墊。"]],
+ res:["電阻","更換步驟：",[
+  "斷電後，把電阻一腳拆離電路板再量，在板上量會受其他零件影響。",
+  "色碼或電表確認阻值；偏差超過 5% 或開路都要換。",
+  "R6、R9、R10、R13、R14 是 1 kΩ 3/4 W 的 SMD（RC2010），其他多為 1/4 W 直插。"]],
+ cer:["陶瓷電容","更換步驟：",["斷電後拆焊，無極性。短路時電源電壓會被拉低，用電表歐姆檔量兩端應是開路（OL）。"]],
+ trimmer:["半可調電阻（SVR1、SVR2）","更換步驟：",[
+  "SVR1 是 2 kΩ（B 型），SVR2 是 100 kΩ（B 型）；規格不同，不可混用。",
+  "換上前先把新零件的滑臂調到中間位置，更換後再重新調整 TP1、TP3。",
+  "斷電後離板量總阻值：SVR1 約 2 kΩ、SVR2 約 100 kΩ，轉動時滑臂與兩端的電阻要連續變化，跳動或不通就是壞了。"]],
+ led:["發光二極體（D5）","更換步驟：",["長腳是正極（陽極）；板上標示依佈置圖。裝反不會亮。通電後綠色 LED 要亮，R1 1.2 kΩ 為限流電阻。"]],
+ fuse:["保險絲（F1）","更換步驟：",[
+  "只能換相同規格：0.5 A、管狀、20 mm。",
+  "保險絲熔斷多半是有過載或短路，換新之前先找出原因：D1～D4 是否短路、C1 是否短路、PT 次級或接線是否短路。",
+  "原因沒找到就直接換新保險絲，可能馬上又燒斷。"]],
+ chassis:["機殼零件（SW1、PT、SP、接線）","更換步驟：",[
+  "斷電並拔掉電源線。接線顏色：L1、L2 電源線，L3、L4 紅，L5 藍，L6、L7 橘（接 J1），L8 紅、L9 黑（喇叭），L10 紅、L11 黑（AUX）。",
+  "拆除前拍照記錄接線，更換後依接線圖（試題 PDF 第 17、20 頁）接回，並套上熱縮套管、整理束線帶。",
+  "更換 AC110V 側零件後，通電前再用電表確認沒有短路。"]],
+ conn:["連接器（J1、J5、J8、CON1、CON2）","更換步驟：",[
+  "先檢查焊點有沒有冷焊、斷腳、母座沒插緊，這些比換零件更常見。",
+  "CON1、CON2 是子板用的 8P 排母，檢查針腳有沒有彎曲、有沒有偏位插錯。",
+  "確認接線頭沒有鬆脫，再決定是否更換。"]],
+ ic:["音樂 IC（U1、U2）","更換步驟：",[
+  "斷電後拆焊；材料表型號為 HT3810（可用同規格品），圖上符號寫 UM66TXXL。",
+  "腳位與缺口方向請看佈置圖與規格書 <span class='tag q'>待確認</span>。",
+  "拆下前記下方向；裝反可能損壞 IC。"]],
+ daughter:["觸控子板","更換步驟（評審表限更換 1 次，扣 20 分）：",[
+  "先確認母板側都正常（電壓、CON1／CON2 焊點與插接、R27～R34、C3、U1／U2 與其輸出電阻），再決定是否換子板。",
+  "確認子板針腳沒有彎曲、插對方向，電源 5 V（TP2）正常。",
+  "確定是子板故障才更換；更換後重做第 3、4 項測試。"]]
+};
+
+/* ============ 測試與驗證清單 ============ */
+const VERIFY=[
+ "SW1 ON：POWER 燈亮，電路板綠色 LED 亮，並有音樂聲。",
+ "調 SVR1，TP1 ＝ 12 V ± 1 V。",
+ "TP2 ＝ 5 V ± 0.5 V。",
+ "調 SVR2，TP3 ＝ 6 V ± 0.5 V。（先調 SVR1，再調 SVR2）",
+ "音量觸控可調整，七段顯示 0～7，音量隨之改變。",
+ "音源選擇可切換兩種不同音樂。",
+ "信號產生器輸出正弦波 1 kHz、3 Vpp 到 AUX IN，應有聲音。"
+];
+
+/* ============ 結論（找到可疑零件時顯示） ============ */
+/* parts：[零件, 為什麼, 怎麼確認] 依機率排序 */
+const CONC={
+ power_in:{t:"AC 輸入前級有問題（保險絲、開關或變壓器）",parts:[
+   ["F1","保險絲最常熔斷；POWER 燈不亮多半是 F1 斷了","斷電後用電表歐姆檔量 F1 兩端，開路（OL）就是斷了；換新之前先找過載原因"],
+   ["SW1","開關損壞或接線鬆脫","斷電後量 SW1 的 ON 位置兩端是否導通；通電時帶燈開關內的燈會亮"],
+   ["PT","變壓器初級斷路，或接線 L3～L7 脫落","通電量 PT 次級 AC 電壓，J1 兩腳應約 AC15 V；沒電壓而 SW1、F1 正常，就檢查接線再換 PT"],
+   ["J1","母座、公座接觸不良或焊點冷焊","目視焊點，輕壓 J1 看電壓是否忽有忽無"]]},
+ bridge:{t:"整流電路（D1～D4）或濾波電容 C1 異常",parts:[
+   ["D1","橋式整流 4 顆之一斷路時，直流電壓偏低、漣波大；短路時 F1 容易熔斷","斷電後用二極體檔：順向約 0.5～0.7 V，逆向 OL"],
+   ["D2","同上","同上"],["D3","同上","同上"],["D4","同上","同上"],
+   ["C1","短路、漏電或容量衰減會使直流電壓過低，並使 TP1 無法調到 12 V","斷電放電後量兩端電阻，不應接近 0 Ω；換上後觀察直流電壓是否回升"]]},
+ led:{t:"電源指示 LED 電路（D5、R1）",parts:[
+   ["D5","極性裝反或損壞則不亮","對照極性，長腳是正極；通電量 D5 兩端有無約 2 V 順向電壓（推論）"],
+   ["R1","1.2 kΩ 斷路","斷電後離板量阻值應約 1.2 kΩ"]]},
+ reg_ref:{t:"穩壓基準與前級（TP1 沒有電壓）",parts:[
+   ["R2","D6 限流電阻斷路，基準電壓消失","斷電後離板量，應約 2.7 kΩ"],
+   ["D6","齊納二極體短路、斷路或方向裝反；兩端應約 5.6 V（推論）","通電量 D6 兩端電壓"],
+   ["Q1","穩壓前級電晶體損壞（B–E 或 C–E 短路／斷路）","斷電離板，用二極體檔量 B–E、B–C"],
+   ["Q2","同上","同上"],
+   ["Q4","同上","同上"],
+   ["R3","負載或偏壓電阻斷路","離板量，應約 1.5 kΩ"],
+   ["R5","同上","離板量，應約 1.5 kΩ"]]},
+ q3:{t:"調整元件 Q3 損壞（TP1 偏高且不隨 SVR1 改變，或完全沒有輸出）",parts:[
+   ["Q3","串聯調整元件 C–E 短路時，TP1 會接近整流後電壓、不隨 SVR1 變；斷路時 TP1 無輸出","斷電離板用二極體檔量；SMD SOT-89 腳位請看規格書"],
+   ["Q2","驅動電晶體損壞也會使 Q3 失控","斷電離板量 B–E、B–C"],
+   ["R6","Q3 偏壓電阻斷路（1 kΩ SMD）","離板量，應約 1 kΩ"],
+   ["R4","偏壓電阻異常","離板量，應約 470 Ω"]]},
+ svr1:{t:"SVR1 與取樣分壓（TP1 不隨 SVR1 改變，或範圍不對）",parts:[
+   ["SVR1","滑臂接觸不良、開路，轉動時 TP1 不變或跳動","斷電離板量總阻值約 2 kΩ，轉動時滑臂與兩端阻值要連續變化"],
+   ["R7","分壓電阻斷路或阻值變大，使 TP1 偏高","離板量，應約 3.3 kΩ"],
+   ["R8","同上，使 TP1 偏低","離板量，應約 3.3 kΩ"],
+   ["Q4","取樣回授電晶體損壞","斷電離板量 B–E、B–C"]]},
+ tp2:{t:"TP2（5 V）電路異常",parts:[
+   ["Q5","TP2 射極跟隨電晶體損壞，TP2 無電壓或偏高","斷電離板量 B–E、B–C，C–E 之間不應導通"],
+   ["D7","齊納二極體方向裝反或短路，TP2 會變成不到 1 V；斷路則偏高","通電量 D7 兩端約 5.6 V（推論）"],
+   ["R9","D7 限流電阻（1 kΩ SMD）斷路，TP2 無基準","離板量，應約 1 kΩ"],
+   ["R10","負載電阻斷路或損壞","離板量，應約 1 kΩ"],
+   ["C11","陶瓷電容短路，TP2 被拉到接地","斷電後量兩端，應是開路"],
+   ["C12","電解電容短路或漏電，TP2 被拉低","斷電放電後量兩端電阻"]]},
+ amp_bias:{t:"放大器偏壓電路異常（SVR2 調不到 6 V）",parts:[
+   ["SVR2","滑臂接觸不良、開路，TP3 不隨 SVR2 變化","斷電離板量總阻值約 100 kΩ"],
+   ["R16","偏壓電阻斷路或變值（33 kΩ）","離板量"],
+   ["R17","偏壓電阻異常（22 kΩ）","離板量"],
+   ["R20","偏壓電阻異常（4.7 kΩ）","離板量"],
+   ["Q6","輸入級電晶體損壞（2SA1015，PNP）","斷電離板量 B–E、B–C"],
+   ["Q7","驅動級電晶體損壞（2SC1815）","斷電離板量 B–E、B–C"],
+   ["D8","輸出級偏壓二極體斷路（LL4148）","斷電用二極體檔量"],
+   ["D9","同上","同上"]]},
+ amp_out_low:{t:"輸出級異常：TP3 接近 0 V",parts:[
+   ["Q9","下臂電晶體 C–E 短路時，輸出中點被拉到接地","斷電離板用二極體檔量；請看 SOT-89 腳位"],
+   ["Q8","上臂電晶體斷路或沒有偏壓，輸出中點上不去","同上"],
+   ["R25","射極電阻（1 Ω）斷路","離板量，應約 1 Ω"],
+   ["R26","同上","同上"],
+   ["C9","輸出耦合電容短路，輸出中點被喇叭拉到接地","斷電放電後量兩端電阻"]]},
+ amp_out_high:{t:"輸出級異常：TP3 接近 TP1（約 12 V）",parts:[
+   ["Q8","上臂電晶體 C–E 短路時，輸出中點被拉到電源","斷電離板用二極體檔量；請看 SOT-89 腳位"],
+   ["Q9","下臂電晶體斷路，輸出中點下不來","同上"],
+   ["Q7","驅動級異常也會使中點偏高","斷電離板量 B–E、B–C"],
+   ["D8","偏壓二極體短路或斷路","斷電用二極體檔量"],
+   ["D9","同上","同上"]]},
+ speaker:{t:"喇叭與輸出耦合（輸出級電壓正常但沒聲音）",parts:[
+   ["SP","喇叭線圈斷路或接線脫落","斷電後量喇叭電阻，約 8 Ω；OL 表示斷路"],
+   ["J5","喇叭接頭鬆脫或焊點冷焊","目視、搖動接頭看是否忽有忽無"],
+   ["C9","輸出耦合電容（470 µF）斷路或容量衰減，聲音很小或沒有","斷電放電後換一顆好的並聯測試（先斷電）；也可量其容量"],
+   ["Q8","輸出級損壞，中點偏移","量 TP3"],
+   ["Q9","同上","同上"]]},
+ front:{t:"信號沒進放大器：前級（音源、音量或子板）問題",parts:[
+   ["C4","耦合電容斷路，信號過不去","斷電放電後量；也可在 C4 兩端用示波器比較有信號與否"],
+   ["C3","音量輸出耦合電容斷路","同上"],
+   ["R34","音量分壓串聯電阻（120 kΩ）斷路或變值","斷電離板量，應約 120 kΩ"],
+   ["CON1","排母插接或焊點不良，子板信號斷掉","目視焊點與插接，重插子板"],
+   ["CON2","同上","同上"],
+   ["子板","以上母板側都正常時，才考慮子板故障（限換 1 次，扣 20 分）","先確認 TP2（5 V）正常"]]},
+ src_music:{t:"單一音樂音源沒聲音",parts:[
+   ["U1","音樂 IC 1 損壞或焊接不良（音樂 1 沒聲音時）","用示波器看 U1 輸出腳有無信號；電源腳（經子板開關供電）有無約 5 V"],
+   ["U2","音樂 IC 2 損壞或焊接不良（音樂 2 沒聲音時）","同上，看 U2"],
+   ["R13","U1 輸出電阻（1 kΩ SMD）斷路","離板量，應約 1 kΩ"],
+   ["R14","U2 輸出電阻（1 kΩ SMD）斷路","離板量，應約 1 kΩ"],
+   ["子板","音源切換開關在子板，若母板零件都正常","限換 1 次，扣 20 分；先確認 CON1、CON2"]]},
+ src_aux:{t:"外部音源（AUX IN）沒聲音",parts:[
+   ["J8","AUX 接頭或音源線 L10、L11 接線脫落","目視焊點；用示波器看 J8 兩腳有無 1 kHz 信號"],
+   ["C14","AUX 耦合電容（10 µF）斷路或極性裝反","斷電放電後量；注意極性"],
+   ["R15","輸入電阻（22 Ω）斷路","離板量，應約 22 Ω"],
+   ["子板","音源開關在子板，若以上都正常","限換 1 次，扣 20 分"]]},
+ weak:{t:"聲音小、失真或不正常",parts:[
+   ["D8","偏壓二極體斷路，輸出會有交越失真（聲音粗糙）","斷電用二極體檔量"],
+   ["D9","同上","同上"],
+   ["C9","輸出耦合電容容量衰減，聲音變小、低音不足","換一顆好的對照"],
+   ["C4","輸入耦合電容容量衰減，聲音變小","換一顆好的對照"],
+   ["C3","音量輸出耦合電容衰減","同上"],
+   ["Q6","輸入級電晶體特性變差","斷電離板量"],
+   ["Q7","驅動級電晶體特性變差","同上"],
+   ["R24","輸出級偏壓電阻變值","離板量，應約 470 Ω"]]},
+ vol_ladder:{t:"音量分壓電阻網路（母板側）",parts:[
+   ["R34","串聯 120 kΩ 斷路，音量固定不變或沒聲音","離板量，應約 120 kΩ"],
+   ["R27","分壓電阻斷路，音量級數不連續","離板量，應約 10 kΩ"],
+   ["R28","同上","同上"],["R29","同上","同上"],["R30","同上","同上"],["R31","同上","同上"],["R32","同上","同上"],["R33","同上","同上"],
+   ["C3","耦合電容斷路","斷電放電後量"],
+   ["CON1","排母插接不良","重插並檢查焊點"],
+   ["CON2","同上","同上"]]},
+ touch:{t:"觸控子板",parts:[
+   ["子板","母板側都確認正常、TP2（5 V）正常，音量或音源仍無反應：子板上的觸控 IC 或邏輯 IC 損壞（零件清單待確認）","限換 1 次，扣 20 分；更換前先確認 CON1、CON2 與電源"]]},
+ solder:{t:"焊接或接頭問題",parts:[
+   ["J1","焊點冷焊、斷腳，電源忽有忽無","目視焊點，必要時重焊"],
+   ["J5","焊點冷焊","重焊"],
+   ["J8","焊點冷焊","重焊"],
+   ["CON1","焊點冷焊或針腳彎曲","重焊"],
+   ["CON2","同上","同上"]]}
+};
+
+/* ============ 症狀與檢修流程 ============ */
+/* 節點：{t, how, ok（正常是…）, bad（不正常是…）, y, n, yl, nl}
+   y／n 為下一步 id，或 "!結論key"；yl／nl 為按鈕文字 */
+const SYMS=[
+ {id:"s1",t:"1. 電源開關 ON，POWER 燈或 LED 不亮",d:"沒反應、沒聲音",start:"s1a"},
+ {id:"s2",t:"2. TP1 無法調到 12 V",d:"無電壓、過低、過高、SVR1 無效",start:"s2a"},
+ {id:"s3",t:"3. TP2 不是 5 V",d:"TP2 無電壓或偏離 5 V ± 0.5 V",start:"s3a"},
+ {id:"s4",t:"4. TP3 無法調到 6 V",d:"SVR2 轉動無效或範圍不對",start:"s4a"},
+ {id:"s5",t:"5. 三個測試點電壓都調不到",d:"TP1、TP2、TP3 都不對（共同源頭）",start:"s5a"},
+ {id:"s6",t:"6. 某一個音源沒有聲音",d:"音樂 1、音樂 2 或外部音源其中一個無聲",start:"s6a"},
+ {id:"s7",t:"7. 完全沒有聲音",d:"所有音源都沒聲音",start:"s7a"},
+ {id:"s8",t:"8. 聲音很小、失真或不正常",d:"聲音小、破音、沙沙聲",start:"s8a"},
+ {id:"s9",t:"9. 音量無法調整",d:"觸控無反應、顯示不變、音量固定",start:"s9a"},
+ {id:"s10",t:"10. 音源無法切換",d:"觸控選音源沒反應",start:"s10a"}
+];
+const POWER_FIRST="先確認電源：TP1 ＝ 12 V ± 1 V、TP2 ＝ 5 V ± 0.5 V（如果不是，請先回到症狀 2、3、5 處理）";
+const NODES={
+ /* ---- 症狀 1 ---- */
+ s1a:{t:"機殼上 SW1 的 POWER 燈有沒有亮？",how:"插上電源線，打開 SW1，觀察帶燈開關的燈。",ok:"燈亮：AC 輸入（保險絲、開關）正常。",bad:"燈不亮。",y:"s1d",n:"s1b",yl:"燈亮",nl:"燈不亮"},
+ s1b:{t:"保險絲 F1 是否導通？",how:"關 SW1、拔電源線。用電表歐姆檔（或蜂鳴檔）量 F1 兩端。",ok:"導通（接近 0 Ω）。",bad:"開路（OL）。",y:"s1c",n:"!power_in",yl:"導通",nl:"開路（斷了）"},
+ s1c:{t:"通電後，PT 次級（J1 兩腳）有沒有約 AC15 V？",how:"電表選交流電壓（ACV）檔 200 V 以內。插電、SW1 ON，量 J1 兩腳（單手操作，不要碰 AC110V）。",ok:"約 15 V（15～17 V 均屬正常）。",bad:"0 V 或很低。",y:"s1d",n:"!power_in",yl:"約 15 V",nl:"沒電壓"},
+ s1d:{t:"電路板綠色 LED（D5）有沒有亮？",how:"SW1 ON，看母板右上方的綠色 LED。",ok:"亮：整流與濾波有直流電，症狀不在這裡。",bad:"不亮。",y:"s1e",n:"s1f",yl:"LED 亮（改查電壓或聲音）",nl:"LED 不亮"},
+ s1e:{t:"LED 亮但仍然沒反應：量 TP1。",how:"電表 DCV 20 V 檔，黑棒接 GND，紅棒接 TP1。",ok:"在 12 V 附近。",bad:"沒電壓或很低。",y:"!end_check",n:"!reg_ref",yl:"TP1 正常（改查聲音：症狀 7）",nl:"TP1 沒電壓"},
+ s1f:{t:"量 C1 兩端直流電壓。",how:"SW1 ON，電表 DCV 50 V 以上檔（或 200 V 檔），紅棒接 C1 正極、黑棒接負極。",ok:"約 18～20 V（依整流後空載推論，帶載會稍低）。",bad:"0 V 或明顯偏低。",y:"!led",n:"s1g",yl:"電壓正常",nl:"沒電壓或偏低"},
+ s1g:{t:"用二極體檔量 D1～D4（斷電、離板更準）。",how:"每顆順向約 0.5～0.7 V，逆向 OL。",ok:"四顆都正常。",bad:"有任何一顆順向不通或雙向都導通。",y:"!bridge",n:"!bridge",yl:"都正常（再查 C1）",nl:"有壞的"},
+ /* ---- 症狀 2 ---- */
+ s2a:{t:"先量 C1 兩端的直流電壓。",how:"SW1 ON，電表 DCV 200 V 檔，量 C1 兩端。",ok:"約 18～20 V（推論）。",bad:"0 V 或明顯偏低（例如低於 14 V）。",y:"s2b",n:"s5a",yl:"電壓正常",nl:"沒電壓或偏低"},
+ s2b:{t:"一邊慢慢轉 SVR1 到底，一邊看 TP1 讀值，變化是哪一種？",how:"DCV 20 V 檔，黑棒 GND、紅棒 TP1；把 SVR1 從一端轉到另一端。",ok:"",bad:"",choices:[
+    ["TP1 約 0 V，不隨 SVR1 變","!reg_ref"],
+    ["TP1 偏高（接近 C1 電壓），不隨 SVR1 變","!q3"],
+    ["TP1 會變，但範圍不含 12 V（整體偏低或偏高）","!svr1"],
+    ["TP1 跳動、不穩定","!bridge"],
+    ["TP1 可以調到 12 V","s2c"]]},
+ s2c:{t:"TP1 能調到 12 V，但放開後又跑掉或不穩？",how:"調好後輕敲板子，觀察讀值；再接示波器 DC 檔看 TP1 有沒有漣波。",ok:"穩定。",bad:"跳動或漣波大。",y:"!end_ok",n:"!svr1",yl:"穩定（完成）",nl:"仍跳動"},
+ /* ---- 症狀 3 ---- */
+ s3a:{t:"TP1 是否在 12 V ± 1 V？",how:"DCV 20 V 檔量 TP1。",ok:"在範圍內。",bad:"不在範圍內。",y:"s3b",n:"s2a",yl:"TP1 正常",nl:"TP1 不正常（先處理 TP1）"},
+ s3b:{t:"TP2 讀值是哪一種？",how:"黑棒 GND、紅棒 TP2。",ok:"",bad:"",choices:[
+    ["約 0 V","!tp2"],["偏低（2～4 V）","!tp2"],["偏高（高於 5.5 V，接近 TP1）","!tp2"],["約 5 V","!end_ok"]]},
+ /* ---- 症狀 4 ---- */
+ s4a:{t:"TP1、TP2 是否正常？",how:"量 TP1（12 V ± 1 V）與 TP2（5 V ± 0.5 V）。",ok:"兩者都在範圍內。",bad:"其中之一不對。",y:"s4b",n:"s5a",yl:"都正常",nl:"有一個不對"},
+ s4b:{t:"一邊轉 SVR2 一邊看 TP3，讀值是哪一種？",how:"黑棒 GND、紅棒 TP3；SVR2 從一端轉到另一端。",ok:"",bad:"",choices:[
+    ["TP3 約 0 V","!amp_out_low"],
+    ["TP3 接近 TP1（約 12 V）","!amp_out_high"],
+    ["TP3 固定在某個值，不隨 SVR2 變","!amp_bias"],
+    ["TP3 會變，但最大值或最小值到不了 6 V","!amp_bias"],
+    ["TP3 可以調到 6 V","!end_ok"]]},
+ /* ---- 症狀 5 ---- */
+ s5a:{t:"機殼 POWER 燈有沒有亮？",how:"SW1 ON，看帶燈開關。",ok:"亮。",bad:"不亮。",y:"s5b",n:"s1b",yl:"亮",nl:"不亮"},
+ s5b:{t:"J1 兩腳有沒有約 AC15 V？",how:"ACV 檔（200 V 以內），SW1 ON，量 J1 兩腳。單手操作。",ok:"約 15 V。",bad:"沒電壓。",y:"s5c",n:"!power_in",yl:"約 15 V",nl:"沒電壓"},
+ s5c:{t:"C1 兩端有沒有約 18～20 V 直流？",how:"DCV 200 V 檔。",ok:"有。",bad:"沒有或很低。",y:"s2b",n:"s5d",yl:"有（改查穩壓，進症狀 2）",nl:"沒有或很低"},
+ s5d:{t:"整流二極體與 C1 是否正常？",how:"斷電放電後，二極體檔量 D1～D4（順向約 0.5～0.7 V，逆向 OL）；歐姆檔量 C1 兩端不應接近 0 Ω。",ok:"都正常。",bad:"有異常。",y:"!solder",n:"!bridge",yl:"都正常（查焊點與接頭）",nl:"有異常"},
+ /* ---- 症狀 6 ---- */
+ s6a:{t:"電源（TP1、TP2、TP3）是否都正常？",how:POWER_FIRST,ok:"三點都在範圍內。",bad:"有異常。",y:"s6b",n:"s5a",yl:"電源正常",nl:"電源不正常"},
+ s6b:{t:"是哪一個音源沒聲音？",how:"在觸控子板切換音源，一個一個試。",ok:"",bad:"",choices:[
+    ["音樂 1 或音樂 2（其中一個）","!src_music"],["外部音源（AUX IN）","s6c"]]},
+ s6c:{t:"用示波器看 J8 兩腳有沒有信號（信號產生器 1 kHz、3 Vpp 正弦波，Output 要開）。",how:"CH1 探棒接 J8 腳 1、接地夾接腳 2（GND）。",ok:"看得到 1 kHz 信號。",bad:"沒有信號。",y:"!src_aux",n:"s6d",yl:"有信號（AUX 路徑後面有問題）",nl:"沒有信號"},
+ s6d:{t:"信號產生器本身輸出正常嗎？",how:"把示波器直接接到信號產生器 CH1 輸出看波形；確認 Output 燈亮、負載設定與振幅。",ok:"輸出正常。",bad:"沒有輸出。",y:"!src_aux",n:"!end_gen",yl:"輸出正常（查 J8 與接線）",nl:"沒有輸出"},
+ /* ---- 症狀 7 ---- */
+ s7a:{t:"電源（TP1、TP2、TP3）是否都正常？",how:POWER_FIRST,ok:"三點都在範圍內。",bad:"有異常。",y:"s7b",n:"s5a",yl:"電源正常",nl:"電源不正常"},
+ s7b:{t:"喇叭有沒有連接、有沒有「啪」聲？",how:"確認 J5 與喇叭接線。開、關 SW1 時聽喇叭是否有輕微的「啪」聲（輸出級有電流）。",ok:"有「啪」聲，輸出級大致有動作。",bad:"完全沒聲音。",y:"s7c",n:"s7d",yl:"有「啪」聲",nl:"沒有"},
+ s7c:{t:"用示波器看 C4 靠放大器那一端（AUDIO_IN）有沒有信號（切到有音樂的音源、音量 3 以上）。",how:"CH1 探棒接 C4 與 Q6 基極之間的節點，接地夾接 GND。",ok:"有信號。",bad:"沒信號。",y:"s7e",n:"!front",yl:"有信號（往後查輸出級）",nl:"沒有信號（往前查）"},
+ s7d:{t:"喇叭是否導通？",how:"斷電後量喇叭兩端電阻。",ok:"約 8 Ω。",bad:"OL（斷路）。",y:"s7e",n:"!speaker",yl:"約 8 Ω",nl:"OL"},
+ s7e:{t:"示波器看輸出（C9 靠喇叭那端）有沒有信號？",how:"CH1 接 C9 輸出端與 J5 之間，接地夾接 GND。",ok:"有信號但喇叭沒聲音。",bad:"沒信號。",y:"!speaker",n:"!amp_bias",yl:"有信號",nl:"沒信號"},
+ /* ---- 症狀 8 ---- */
+ s8a:{t:"TP1、TP2、TP3 是否都在範圍內？",how:POWER_FIRST,ok:"都正常。",bad:"有異常。",y:"s8b",n:"s5a",yl:"都正常",nl:"有異常"},
+ s8b:{t:"聲音小與失真，是哪一種？",how:"用信號產生器 1 kHz 正弦波（AUX IN）作為固定信號，示波器接在喇叭端看波形。",ok:"",bad:"",choices:[
+    ["聲音變小，波形正常","!weak"],
+    ["波形上下被削平（過載）","!amp_bias"],
+    ["波形在過零處有缺口（交越失真）","!weak"],
+    ["聲音有沙沙聲或嗡嗡聲","!bridge"]]},
+ /* ---- 症狀 9 ---- */
+ s9a:{t:"電源是否都正常？",how:POWER_FIRST,ok:"都正常。",bad:"有異常。",y:"s9b",n:"s5a",yl:"都正常",nl:"有異常"},
+ s9b:{t:"音量顯示的七段顯示器有沒有亮？",how:"SW1 ON，看觸控子板上的 VOLUME 七段顯示器。",ok:"有顯示數字。",bad:"完全不亮。",y:"s9c",n:"s9d",yl:"有顯示",nl:"不亮"},
+ s9c:{t:"觸控音量，數字會改變嗎？",how:"手指觸碰音量觸控板，看數字 0～7 是否變化。",ok:"數字會變，但聲音大小不變。",bad:"數字不變。",y:"!vol_ladder",n:"!touch",yl:"數字會變，但聲音不變",nl:"數字不變"},
+ s9d:{t:"子板的電源（TP2，5 V）正常嗎？CON1、CON2 插好了嗎？",how:"量 TP2，並檢查 CON1、CON2 排母的焊點與插接。",ok:"電源與插接都正常。",bad:"電源不對或插接不良。",y:"!touch",n:"!solder",yl:"都正常（子板故障）",nl:"插接不良"},
+ /* ---- 症狀 10 ---- */
+ s10a:{t:"電源是否都正常？",how:POWER_FIRST,ok:"都正常。",bad:"有異常。",y:"s10b",n:"s5a",yl:"都正常",nl:"有異常"},
+ s10b:{t:"音源顯示的七段顯示器有沒有亮？觸控時會變嗎？",how:"看 Source Counter 七段顯示器；觸碰音源觸控板。",ok:"數字會變。",bad:"不亮或不變。",y:"!src_music",n:"s10c",yl:"數字會變（但聲音不切換）",nl:"不亮或不變"},
+ s10c:{t:"CON1、CON2 插接與焊點是否正常？",how:"重插子板並檢查針腳。",ok:"正常。",bad:"不良。",y:"!touch",n:"!solder",yl:"正常（子板故障）",nl:"不良"}
+};
+/* 特殊結論 */
+CONC.end_ok={t:"此項已正常",parts:[],plain:"量測值已在範圍內，這個現象不必更換零件。請做下方的完整驗證。"};
+CONC.end_check={t:"電源正常，問題在別處",parts:[],plain:"TP1 正常。請回到上方，改選「完全沒有聲音」或其他現象。"};
+CONC.end_gen={t:"信號產生器沒有輸出",parts:[],plain:"問題不在音樂盒。確認信號產生器 Output 燈亮、波形與頻率設定、BNC 線；負載設定為 50 Ω 時，接 1 MΩ 輸入的示波器會量到 2 倍。"};
+
+/* ============ 狀態與繪製 ============ */
+const ST={sym:null,path:[],node:null,end:null};
+function renderSyms(){
+  $("symgrid").innerHTML=SYMS.map(s=>`<button class="sym ${ST.sym&&ST.sym.id===s.id?"on":""}" data-id="${s.id}"><b>${esc(s.t)}</b><span>${esc(s.d)}</span></button>`).join("");
+  $("symgrid").querySelectorAll("button").forEach(b=>b.onclick=()=>startSym(b.dataset.id));
+}
+function startSym(id){
+  ST.sym=SYMS.find(s=>s.id===id); ST.path=[]; ST.end=null; ST.node=ST.sym.start;
+  renderSyms(); renderFlow();
+  $("flowcard").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function go(next,label){
+  ST.path.push({node:ST.node,label});
+  if(next[0]==="!"){ ST.end=next.slice(1); ST.node=null; } else { ST.node=next; }
+  renderFlow();
+}
+function back(){
+  const p=ST.path.pop(); if(!p) return;
+  ST.node=p.node; ST.end=null; renderFlow();
+}
+function renderFlow(){
+  const card=$("flowcard"); card.style.display="";
+  $("flowtitle").textContent="2. 檢修步驟：" + ST.sym.t;
+  let h="";
+  if(ST.path.length){
+    h+='<ol class="path">'+ST.path.map(p=>{const n=NODES[p.node];return `<li>${esc(n.t)} → <b>${esc(p.label)}</b></li>`;}).join("")+"</ol>";
+  }
+  if(ST.node){
+    const n=NODES[ST.node];
+    h+=`<div class="step"><h3>第 ${ST.path.length+1} 步：${esc(n.t)}</h3><dl class="kv"><dt>怎麼量</dt><dd>${esc(n.how)}</dd>`;
+    if(n.ok) h+=`<dt>正常</dt><dd>${esc(n.ok)}</dd>`;
+    if(n.bad) h+=`<dt>不正常</dt><dd>${esc(n.bad)}</dd>`;
+    h+="</dl></div>";
+    h+='<div class="btnrow">';
+    if(n.choices){ n.choices.forEach((c,i)=>{ h+=`<button data-i="${i}">${esc(c[0])}</button>`; }); }
+    else{ h+=`<button class="good" data-r="y">${esc(n.yl)}</button><button class="badb" data-r="n">${esc(n.nl)}</button>`; }
+    h+="</div>";
+  }else{
+    h+=renderConc(CONC[ST.end]);
+  }
+  h+='<div class="btnrow">'+(ST.path.length?'<button id="bk">← 回上一步</button>':'')+'<button id="rs">重新選擇現象</button></div>';
+  $("flow").innerHTML=h;
+  $("flow").querySelectorAll("button[data-i]").forEach(b=>b.onclick=()=>{ const c=NODES[ST.node].choices[+b.dataset.i]; go(c[1],c[0]); });
+  $("flow").querySelectorAll("button[data-r]").forEach(b=>b.onclick=()=>{ const n=NODES[ST.node]; go(b.dataset.r==="y"?n.y:n.n,b.dataset.r==="y"?n.yl:n.nl); });
+  const bk=$("bk"); if(bk) bk.onclick=back;
+  $("rs").onclick=()=>{ ST.sym=null; ST.node=null; ST.end=null; ST.path=[]; $("flowcard").style.display="none"; renderSyms(); window.scrollTo({top:0,behavior:"smooth"}); };
+  $("flow").querySelectorAll("a[data-ref]").forEach(a=>a.onclick=e=>{ e.preventDefault(); showTab("parts"); $("psearch").value=a.dataset.ref; renderParts(); });
+  $("flow").querySelectorAll("a[data-type]").forEach(a=>a.onclick=e=>{ e.preventDefault(); showTab("parts"); const el=$("rep-"+a.dataset.type); if(el){ el.open=true; el.scrollIntoView({block:"start"}); } });
+}
+function renderConc(c){
+  let h=`<div class="step" style="border-color:var(--warn)"><h3>結論：${esc(c.t)}</h3></div>`;
+  if(c.plain){ h+=`<p>${esc(c.plain)}</p>`; }
+  const types=new Set();
+  if(c.parts.length){
+    h+='<p class="hint">依可能性排序（<b>推論</b>：是依電路推論的順序，一定要用量測確認後才換零件）。</p><div class="scroll"><table><tr><th>順序</th><th>零件</th><th>規格／位置</th><th>為什麼可疑</th><th>怎麼確認</th></tr>';
+    c.parts.forEach((p,i)=>{
+      const d=PARTS[p[0]]; types.add(d?d[3]:"");
+      h+=`<tr><td><span class="rank">${i+1}</span></td><td><a href="#" data-ref="${esc(p[0])}"><b>${esc(p[0])}</b></a> ${d?esc(d[0]):""}</td><td>${d?esc(d[1])+"<br><span class='hint'>"+esc(d[2])+(d[2]==="子板"?"（推論）":"")+"</span>":""}</td><td>${esc(p[1])}</td><td>${esc(p[2])}</td></tr>`;
+    });
+    h+="</table></div>";
+    h+='<h3>更換方法</h3><ul>'+[...types].filter(t=>TYPES[t]).map(t=>`<li><a href="#" data-type="${t}">${esc(TYPES[t][0])}的更換步驟</a></li>`).join("")+"</ul>";
+  }
+  h+='<h3>更換後驗證（依動作要求）</h3><ul class="check">'+VERIFY.map((v,i)=>`<li><label><input type="checkbox"> ${esc(v)}</label></li>`).join("")+"</ul>";
+  return h;
+}
+
+/* ---- 零件分頁 ---- */
+function renderParts(){
+  const q=$("psearch").value.trim().toLowerCase(), b=$("pboard").value;
+  const rows=Object.entries(PARTS).filter(([k,v])=>(!b||v[2]===b)&&(!q||(k+v[0]+v[1]+v[4]).toLowerCase().includes(q)));
+  $("ptable").innerHTML='<tr><th>編號</th><th>名稱</th><th>規格</th><th>位置</th><th>備註</th></tr>'+rows.map(([k,v])=>`<tr><td><b>${esc(k)}</b></td><td>${esc(v[0])}</td><td>${esc(v[1])}</td><td>${esc(v[2])}${v[2]==="子板"?' <span class="tag q">推論</span>':""}</td><td>${esc(v[4])}</td></tr>`).join("")||'<tr><td colspan="5">找不到符合的零件</td></tr>';
+}
+function renderReplace(){
+  $("replaceall").innerHTML=Object.entries(TYPES).map(([k,v])=>`<details id="rep-${k}" class="card" style="margin-bottom:8px"><summary><b>${esc(v[0])}</b></summary><p>${esc(v[1])}</p><ol>${v[2].map(s=>`<li>${s}</li>`).join("")}</ol></details>`).join("");
+}
+
+/* ---- 電路分頁 ---- */
+function drawBlocks(){
+  const el=$("blocks"); el.innerHTML="";
+  const NS="http://www.w3.org/2000/svg";
+  const mk=(t,a,tx)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(tx!==undefined)e.textContent=tx;el.appendChild(e);return e;};
+  const box=(x,y,w,h,l1,l2,c)=>{mk("rect",{x,y,width:w,height:h,rx:8,fill:"none",stroke:c||"currentColor","stroke-width":2});mk("text",{x:x+w/2,y:y+h/2-(l2?4:-5),"text-anchor":"middle","font-size":14,fill:"currentColor"},l1);if(l2)mk("text",{x:x+w/2,y:y+h/2+14,"text-anchor":"middle","font-size":11,fill:"currentColor","fill-opacity":.7},l2);};
+  const arr=(x1,y1,x2,y2)=>{mk("line",{x1,y1,x2,y2,stroke:"currentColor","stroke-width":2});const a=Math.atan2(y2-y1,x2-x1);mk("polygon",{points:`${x2},${y2} ${x2-9*Math.cos(a-0.4)},${y2-9*Math.sin(a-0.4)} ${x2-9*Math.cos(a+0.4)},${y2-9*Math.sin(a+0.4)}`,fill:"currentColor"});};
+  el.style.color="var(--ink)";
+  // 上排：信號
+  box(10,20,110,56,"外部音源","AUX IN（J8）");
+  box(10,96,110,56,"音樂 IC","U1、U2");
+  box(165,50,120,70,"信號選擇","子板 U14、U15");
+  box(330,50,120,70,"音量控制","R27～R34、子板");
+  box(495,50,110,70,"功率放大","Q6～Q9、TP3");
+  box(645,50,65,70,"喇叭","J5、SP");
+  arr(120,48,165,72);arr(120,124,165,100);arr(285,85,330,85);arr(450,85,495,85);arr(605,85,645,85);
+  // 下排：電源
+  box(10,170,110,50,"AC110V","SW1、F1、PT");
+  box(165,170,110,50,"整流濾波","D1～D4、C1");
+  box(330,170,120,50,"穩壓","TP1（12V）、TP2（5V）","var(--hl)");
+  arr(120,195,165,195);arr(275,195,330,195);
+  mk("text",{x:470,y:190,"font-size":12,fill:"currentColor","fill-opacity":.7},"TP1 供功率放大；TP2 供子板與邏輯電路");
+  arr(390,170,540,122);
+}
+function drawBoard(){
+  const el=$("board"); el.innerHTML="";
+  const NS="http://www.w3.org/2000/svg";
+  const mk=(t,a,tx)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(tx!==undefined)e.textContent=tx;el.appendChild(e);return e;};
+  mk("rect",{x:10,y:10,width:340,height:232,rx:6,fill:"#1f6b3a",stroke:"#0e3a1f","stroke-width":2});
+  mk("rect",{x:20,y:18,width:150,height:96,rx:3,fill:"none",stroke:"#9cd6ae","stroke-dasharray":"4 3"});
+  mk("text",{x:95,y:68,"font-size":12,"text-anchor":"middle",fill:"#cfeedb"},"觸控子板");
+  const P={SVR2:[85,146,"SVR2（調 TP3）","pot"],SVR1:[85,198,"SVR1（調 TP1）","pot"],TP1:[278,188,"TP1","tp"],TP3:[222,226,"TP3","tp"],TP2:[319,229,"TP2","tp"],GND:[197,22,"GND","tp"],J1:[318,42,"J1 AC15V","con"],J5:[24,169,"J5 喇叭","con"],J8:[255,226,"J8 AUX","con"]};
+  for(const k in P){ const [x,y,l,t]=P[k];
+    if(t==="tp"){ mk("rect",{x:x-9,y:y-9,width:18,height:18,rx:2,fill:"#e8c24a",stroke:"#000"}); mk("text",{x,y:y+4,"font-size":8.5,"text-anchor":"middle",fill:"#000"},l); }
+    else if(t==="pot"){ mk("rect",{x:x-18,y:y-14,width:36,height:28,rx:3,fill:"#2a6fd1",stroke:"#0b2a5c"}); mk("circle",{cx:x,cy:y,r:9,fill:"#e8e8e8",stroke:"#555"}); mk("line",{x1:x,y1:y,x2:x+6,y2:y-7,stroke:"#222","stroke-width":2.5}); mk("text",{x,y:y+27,"font-size":10,"text-anchor":"middle",fill:"#e8f6ec"},l); }
+    else { mk("rect",{x:x-18,y:y-9,width:36,height:18,rx:2,fill:"#ddd",stroke:"#555"}); mk("text",{x,y:y+3,"font-size":9,"text-anchor":"middle",fill:"#000"},l); }
+  }
+  mk("text",{x:180,y:128,"font-size":11,"text-anchor":"middle",fill:"#cfeedb"},"位置依佈置圖的相對位置，非精確座標");
+}
+const TBC=[
+ "穩壓電路 Q1、Q2、Q4 的精確分工，以及 SVR1 滑臂接到哪一顆電晶體基極（電路圖看得到零件，但回授路徑無法完全確認）。",
+ "三種音源（音樂 1、音樂 2、外部音源）的切換順序，以及 U11、U12 計數器的實際接線。",
+ "音量分壓網路的接地方式，以及 R27～R34 與 C3、放大器輸入的實際接法。",
+ "觸控子板上零件的實際清單與位置（本頁依材料表推論為：U3～U17、T1／T2、D10／D11 等）。",
+ "TO-92（2SC1815、2SA1015）與 SMD SOT-89（2SB0766、2SD0874）的腳位順序，請對照規格書與佈置圖。",
+ "除了 TP1、TP2、TP3 的目標值，圖上沒有標任何電壓。本頁標「約」或「推論」的數值（例如 C1 兩端約 18～20 V、D6／D7 兩端約 5.6 V）是依電路推論，不是官方標準值。",
+ "圖上音樂 IC 符號為 UM66TXXL，材料表為 HT3810（同規格品），實際腳位與缺口方向請看規格書。",
+ BOARDTBC
+];
+
+/* ---- 分頁 ---- */
+function showTab(t){
+  ["fix","parts","circuit","tbc"].forEach(k=>{ $("p-"+k).style.display=k===t?"":"none"; });
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
+}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>showTab(b.dataset.t));
+$("psearch").oninput=renderParts; $("pboard").onchange=renderParts;
+$("tbclist").innerHTML=TBC.map(s=>`<li>${esc(s)}</li>`).join("");
+renderSyms(); renderParts(); renderReplace(); drawBlocks(); drawBoard();
+</script>
+</body>
+</html>

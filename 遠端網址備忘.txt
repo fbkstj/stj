@@ -30,6 +30,9 @@ https://fbkstj.github.io/stj/elec_rc_notes.html
 【儀器操作】示波器 GDS-2102E＋信號產生器 MFG-2110 操作教學（含丙級術科試題一、試題二模擬）：
 https://fbkstj.github.io/stj/instrument_scope_gen.html
 
+【丙級術科】音樂盒檢修指引（試題一：故障現象、檢修步驟、更換零件）：
+https://fbkstj.github.io/stj/music_box_repair.html
+
 【專題實作】智慧管家系統（開發手冊）：
 https://fbkstj.github.io/stj/smart_butler_project_guide.html
 
