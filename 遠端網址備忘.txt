@@ -194,3 +194,4 @@ http://127.0.0.1:18456/remedial_mcu_app.html
 4. 啟動後，即可在瀏覽器瀏覽測試。
 https://fbkstj.github.io/stj/#page/garage_door_mqtt_project　地下室鐵捲門 ESP32 × MQTT 遠端控制（實作紀錄）
 https://fbkstj.github.io/stj/#page/skills_competition/index　技藝競賽：電腦修護第二站模擬試題（StatiCrypt 加密，目錄頁＋12 個版本）
+https://fbkstj.github.io/stj/#page/elder_fall_tracking_project_guide　居家長照跌倒偵測與自動追蹤（實作手冊＋動畫模擬；同資料夾 elder_fall_tracking_handbook.pdf 為 PDF 版）

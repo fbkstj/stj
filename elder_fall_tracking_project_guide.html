@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>【專題實作】居家長照跌倒偵測與自動追蹤｜實作手冊與動畫模擬</title>
+<meta name="description" content="高中職專題：用 Tapo C220 四鏡頭、YOLOv8 姿態偵測做出跌倒警報，並讓雲台鎖定追蹤跌倒的人。附情境動畫與四組互動模擬（跌倒計時、追蹤控制、顏色認人）、各階段 Claude Code 提示語與除錯速查表。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700;900&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --paper:#f7f4ee; --sheet:#ffffff; --ink:#1f2328; --muted:#555f69; --line:#ddd3c2;
+  --accent:#9a4f12; --accent-soft:#f6ecdc; --code-bg:#1f2328; --code-ink:#f1ebe0;
+  --ok:#1f6b3f; --ok-soft:#eaf5ee; --bad:#a4302a; --bad-soft:#fbeeec; --info:#2d4f78; --info-soft:#e9eff6;
+  --serif:"Noto Serif TC","PMingLiU",serif; --sans:"Noto Sans TC","Microsoft JhengHei",sans-serif;
+  --mono:"JetBrains Mono",Consolas,"Microsoft JhengHei",monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#16130e; --sheet:#1f1a13; --ink:#f1e9d8; --muted:#b9ab91; --line:#3a2f21;
+    --accent:#eba566; --accent-soft:#3a2a17; --code-bg:#0f0d09; --code-ink:#eadfca;
+    --ok:#7bd69a; --ok-soft:#18281e; --bad:#ee918a; --bad-soft:#35201d; --info:#8db8e8; --info-soft:#1a2431;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#16130e; --sheet:#1f1a13; --ink:#f1e9d8; --muted:#b9ab91; --line:#3a2f21;
+  --accent:#eba566; --accent-soft:#3a2a17; --code-bg:#0f0d09; --code-ink:#eadfca;
+  --ok:#7bd69a; --ok-soft:#18281e; --bad:#ee918a; --bad-soft:#35201d; --info:#8db8e8; --info-soft:#1a2431;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.75;padding-inline:16px;padding-block:0 72px}
+.wrap{max-width:980px;margin:0 auto}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+p{margin:0 0 12px;max-width:62em}
+ul,ol{margin:0 0 12px;padding-left:1.5em}
+li{margin-bottom:4px}
+code{font-family:var(--mono);font-size:.88em;background:var(--accent-soft);padding:1px 6px;border-radius:3px}
+.mono{font-family:var(--mono)}
+
+/* 封面 */
+header.cover{padding:40px 0 26px;border-bottom:3px solid var(--ink);margin-bottom:18px}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.14em;color:var(--accent);font-weight:600;margin:0 0 10px;text-transform:uppercase}
+h1{font-family:var(--serif);font-weight:900;font-size:clamp(30px,5.6vw,50px);line-height:1.2;margin:0 0 14px;text-wrap:balance}
+.lede{font-size:18px;color:var(--muted);max-width:44em}
+.lede b{color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 0;padding:0;list-style:none}
+.chips li{font-family:var(--mono);font-size:13px;border:1px solid var(--line);background:var(--sheet);padding:3px 12px;border-radius:999px;margin:0;color:var(--muted)}
+.coverlinks{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.btn{display:inline-block;font:inherit;font-size:15px;font-weight:700;text-decoration:none;border:1px solid var(--accent);background:var(--accent);color:var(--sheet);padding:7px 16px;cursor:pointer;min-height:40px}
+.btn.alt{background:var(--sheet);color:var(--accent)}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px 18px;padding:12px 0 18px;border-bottom:1px solid var(--line);font-size:15px}
+nav.toc a{text-decoration:none;color:var(--ink);padding:2px 0;border-bottom:2px solid transparent}
+nav.toc a:hover,nav.toc a:focus-visible{border-bottom-color:var(--accent);color:var(--accent)}
+nav.toc .n{font-family:var(--mono);font-size:12px;color:var(--accent);margin-right:5px}
+
+/* 章節 */
+section.page{padding:34px 0 8px;border-bottom:1px solid var(--line)}
+h2{font-family:var(--serif);font-size:clamp(24px,3.6vw,30px);line-height:1.3;margin:0 0 14px;text-wrap:balance;display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+h2 .tag{font-family:var(--mono);font-size:13px;font-weight:600;color:var(--sheet);background:var(--accent);padding:2px 9px;letter-spacing:.06em}
+h3{font-size:18px;margin:26px 0 8px;color:var(--accent)}
+h4{font-size:16px;margin:16px 0 6px}
+.box{border-left:5px solid var(--line);background:var(--sheet);padding:10px 16px 4px;margin:12px 0 16px;border-radius:0 4px 4px 0}
+.box .lb{font-family:var(--mono);font-size:12.5px;letter-spacing:.1em;font-weight:700;margin:0 0 4px;text-transform:uppercase}
+.box.ok{background:var(--ok-soft);border-left-color:var(--ok)} .box.ok .lb{color:var(--ok)}
+.box.bad{background:var(--bad-soft);border-left-color:var(--bad)} .box.bad .lb{color:var(--bad)}
+.box.info{background:var(--info-soft);border-left-color:var(--info)} .box.info .lb{color:var(--info)}
+.goal{background:var(--accent-soft);padding:10px 16px;border-radius:4px;margin:0 0 14px}
+.goal b{color:var(--accent)}
+
+/* 表格 */
+.tbl{overflow-x:auto;margin:8px 0 16px}
+.tbl:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:560px}
+th,td{border:1px solid var(--line);padding:6px 10px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft);font-weight:700}
+td.k{font-weight:700;white-space:nowrap}
+
+/* 提示語 / 程式碼 */
+.promptwrap{position:relative;margin:8px 0 16px}
+.promptwrap .lb{font-family:var(--mono);font-size:12.5px;letter-spacing:.1em;color:var(--accent);font-weight:700;margin:0 0 4px;text-transform:uppercase}
+.copy{position:absolute;top:0;right:0;font:inherit;font-size:13px;border:1px solid var(--accent);background:var(--sheet);color:var(--accent);padding:2px 12px;cursor:pointer;min-height:30px}
+pre{background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);font-size:13.5px;line-height:1.65;padding:14px 16px;overflow-x:auto;margin:0;border-radius:4px;white-space:pre-wrap;word-break:break-word}
+pre.cmd{margin:8px 0 14px}
+.ph{background:var(--accent);color:var(--sheet);border-radius:3px;padding:0 4px}
+details{background:var(--sheet);border:1px solid var(--line);border-radius:4px;margin:8px 0;padding:0}
+details summary{cursor:pointer;font-weight:700;padding:8px 14px;min-height:40px}
+details > div{padding:0 16px 6px}
+details.okd summary{color:var(--ok)} details.badd summary{color:var(--bad)}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0 16px}
+@media (max-width:640px){.cmp{grid-template-columns:1fr}}
+.cmp > div{padding:10px 14px 2px;border-left:5px solid var(--line);background:var(--sheet)}
+.cmp .g{border-left-color:var(--ok);background:var(--ok-soft)} .cmp .n{border-left-color:var(--bad);background:var(--bad-soft)}
+
+/* 圖與動畫 */
+figure{margin:12px 0 18px}
+figure img{width:100%;height:auto;border:1px solid var(--line);border-radius:4px;display:block}
+figcaption{font-size:14px;color:var(--muted);margin-top:6px}
+.dia,.sim{border:1px solid var(--line);background:var(--sheet);border-radius:6px;overflow:hidden}
+.dia svg,.sim svg{display:block;width:100%;height:auto}
+svg text{font-family:var(--sans);fill:var(--ink);font-size:14px}
+svg .sm{font-size:12px;fill:var(--muted)}
+svg .b{font-weight:700}
+svg .ln{stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round}
+svg .bg{fill:var(--paper);stroke:var(--line);stroke-width:1.5}
+svg .room{fill:var(--paper);stroke:var(--ink);stroke-width:2}
+svg .node{fill:var(--sheet);stroke:var(--ink);stroke-width:1.5}
+svg .acn{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+svg .okn{fill:var(--ok-soft);stroke:var(--ok);stroke-width:1.5}
+svg .cone{fill:var(--accent);fill-opacity:.2;stroke:var(--accent);stroke-width:1.5;stroke-dasharray:6 4}
+svg .shirt{fill:#2563eb;stroke:#14307a;stroke-width:1.5}
+svg .shirtB{fill:#dc2626;stroke:#7f1d1d;stroke-width:1.5}
+svg .head{fill:#f3c9a0;stroke:#6b4a2b;stroke-width:1.5}
+svg .arrow{stroke:var(--muted);stroke-width:2;fill:none}
+.sim [data-on]{opacity:0;transition:opacity .45s ease}
+.sim [data-on].show{opacity:1}
+.sim .pulse.show{animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@media (prefers-reduced-motion:reduce){.sim [data-on]{transition:none}.sim .pulse.show{animation:none}}
+.sim-bar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.sim-bar button,.ctl button{font:inherit;font-size:14px;border:1px solid var(--ink);background:var(--sheet);color:var(--ink);padding:4px 12px;cursor:pointer;min-height:38px}
+.sim-bar .dots{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.sim-bar .dots button{min-width:38px;padding:4px 0;font-family:var(--mono);font-size:13px}
+.sim-bar .dots button[aria-current="step"]{background:var(--accent);color:var(--sheet);border-color:var(--accent)}
+.sim-cap{margin:0;padding:10px 14px 12px;font-weight:700;min-height:3.4em;max-width:none}
+.sim-steps{margin:0;padding:0 14px 12px 2.3em;font-size:14.5px;color:var(--muted)}
+.sim-steps li.now{color:var(--ink);font-weight:700}
+
+/* 互動模擬 */
+.lab{border:1px solid var(--line);background:var(--sheet);border-radius:6px;padding:14px 16px 16px;margin:12px 0 18px}
+.cvwrap{overflow-x:auto}
+.cvwrap:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.lab canvas{display:block;width:100%;min-width:640px;height:auto;border:1px solid var(--line);border-radius:4px;background:var(--paper)}
+.lab svg{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:4px;background:var(--paper)}
+.ctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px 18px;margin:12px 0}
+.ctl fieldset{border:1px solid var(--line);border-radius:4px;padding:6px 12px 8px;margin:0}
+.ctl legend{font-weight:700;font-size:14px;padding:0 6px}
+.ctl label{display:block;font-size:14.5px;margin:3px 0}
+.ctl input[type=range]{width:100%;accent-color:var(--accent);min-height:28px}
+.ctl select{font:inherit;font-size:14.5px;padding:4px 6px;min-height:36px;max-width:100%;background:var(--sheet);color:var(--ink);border:1px solid var(--ink)}
+.ctl .val{font-family:var(--mono);color:var(--accent);font-weight:600}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.btnrow button{font:inherit;font-size:14.5px;border:1px solid var(--ink);background:var(--sheet);color:var(--ink);padding:5px 14px;cursor:pointer;min-height:40px}
+.btnrow button.pri{background:var(--accent);border-color:var(--accent);color:var(--sheet);font-weight:700}
+.readout{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
+.readout div{border:1px solid var(--line);border-radius:4px;padding:6px 10px;background:var(--paper)}
+.readout b{display:block;font-family:var(--mono);font-size:12px;color:var(--muted);font-weight:600}
+.readout span{font-family:var(--mono);font-size:17px;font-weight:700}
+.status{font-weight:700;padding:8px 12px;border-radius:4px;margin:8px 0;background:var(--accent-soft)}
+.status.good{background:var(--ok-soft);color:var(--ok)} .status.warnb{background:var(--bad-soft);color:var(--bad)}
+.note-s{font-size:14px;color:var(--muted);max-width:none}
+.bars{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:10px 0}
+.bars figure{margin:0;border:1px solid var(--line);border-radius:4px;padding:8px;background:var(--paper)}
+.bars figcaption{color:var(--ink);font-weight:700}
+
+footer{padding:28px 0 0;font-size:14px;color:var(--muted)}
+footer .btn{margin-right:8px}
+@media print{
+  nav.toc,.sim-bar,.sim-cap,.copy,.coverlinks,.ctl,.btnrow{display:none}
+  .sim [data-on]{opacity:1}
+  body{background:#fff;color:#000}
+  pre{background:#f3f3f3;color:#000;border:1px solid #bbb}
+  details > div{display:block}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="cover">
+  <p class="eyebrow">專題製作 · 長照居家 · AI 視覺</p>
+  <h1><span style="display:inline-block">居家長照跌倒偵測</span><span style="display:inline-block">與自動追蹤</span></h1>
+  <p class="lede">用 <b>四台 Tapo C220 攝影機</b>、<b>YOLOv8 姿態偵測</b>與 <b>Claude Code</b> 對話，一步一步做出：跌倒就拍照、通知家人，並讓<b>雲台自動鎖定追蹤</b>倒地的人，人站起來走動也持續跟著。這份手冊附<b>情境動畫與四組可以自己調參數的互動模擬</b>，先在網頁上看懂原理，再動手做。</p>
+  <ul class="chips" aria-label="專題重點">
+    <li>四鏡頭儀表板</li><li>AI 跌倒判定 3 秒</li><li>ONVIF 雲台</li><li>顏色特徵認人</li><li>LINE 警報</li><li>語音求救</li>
+  </ul>
+  <div class="coverlinks">
+    <a class="btn" href="#sims">先看動畫模擬</a>
+    <a class="btn alt" href="elder_fall_tracking_handbook.pdf" download>下載實作手冊 PDF（18 頁）</a>
+  </div>
+</header>
+
+<nav class="toc" aria-label="本頁目錄">
+  <a href="#overview"><span class="n">01</span>專題總覽</a>
+  <a href="#sims"><span class="n">02</span>動畫模擬</a>
+  <a href="#prep"><span class="n">03</span>事前準備</a>
+  <a href="#rules"><span class="n">04</span>對話原則</a>
+  <a href="#stages"><span class="n">05</span>九個實作階段</a>
+  <a href="#debug"><span class="n">06</span>除錯速查</a>
+  <a href="#params"><span class="n">07</span>參數與限制</a>
+  <a href="#safety"><span class="n">08</span>安全與界線</a>
+</nav>
+
+<!-- ===================== 01 總覽 ===================== -->
+<section class="page" id="overview">
+  <h2><span class="tag">01</span>專題總覽</h2>
+  <p>老人家在家跌倒，最怕的是「沒人發現」。這個專題把家裡的攝影機變成一個會判斷、會通知、還會轉頭看的助手：</p>
+  <ul>
+    <li><b>四鏡頭即時直播</b>：2×2 四分割，每台可單獨啟動、停止、放大。</li>
+    <li><b>AI 姿態判定</b>：標出每個人是「正常站立／正常坐姿／疑似倒地／跌倒倒地」，躺平<b>持續 3 秒</b>才算跌倒，彎腰撿東西不會誤報。</li>
+    <li><b>跌倒警報</b>：自動拍照存檔、LINE 通知家人、電腦播放安撫語音；確認安全後按「解除警報」才恢復偵測。</li>
+    <li><b>語音求救</b>：用「攝影機自己的麥克風」聽，喊「救命」就觸發同一套警報，而且知道是<b>哪個房間</b>。</li>
+    <li><b>鎖定追蹤</b>：跌倒後雲台自動把人拉回畫面中央；站起來走動也跟著；按「解除追蹤」或舉右手停止。</li>
+  </ul>
+
+  <h3>系統架構</h3>
+  <figure class="dia">
+    <svg viewBox="0 0 700 270" role="img" aria-labelledby="arT arD">
+      <title id="arT">系統架構圖</title>
+      <desc id="arD">四台 Tapo C220 攝影機經 RTSP stream2 傳影像、RTSP stream1 傳音訊、ONVIF 連接埠 2020 收發雲台指令，連到電腦；電腦內有擷取執行緒、YOLOv8 姿態偵測、跌倒判斷與追蹤邏輯、語音監聽；輸出到四分割儀表板、LINE 推播、拍照存檔、雲台追蹤與語音安撫。</desc>
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--muted)"/></marker></defs>
+      <rect class="acn" x="6" y="30" width="138" height="210" rx="8"/>
+      <text class="b" x="75" y="56" text-anchor="middle">Tapo C220 ×4</text>
+      <text class="sm" x="75" y="82" text-anchor="middle">鏡頭 + 麥克風</text>
+      <text class="sm" x="75" y="100" text-anchor="middle">雲台馬達</text>
+      <text class="sm" x="75" y="118" text-anchor="middle">要設「攝影機帳號」</text>
+      <line class="arrow" x1="146" y1="72" x2="236" y2="72" marker-end="url(#ah)"/>
+      <text class="sm mono" x="191" y="64" text-anchor="middle">RTSP stream2</text><text class="sm" x="191" y="90" text-anchor="middle">影像</text>
+      <line class="arrow" x1="146" y1="132" x2="236" y2="132" marker-end="url(#ah)"/>
+      <text class="sm mono" x="191" y="124" text-anchor="middle">RTSP stream1</text><text class="sm" x="191" y="150" text-anchor="middle">音訊</text>
+      <line class="arrow" x1="146" y1="200" x2="236" y2="200" marker-start="url(#ah)" marker-end="url(#ah)"/>
+      <text class="sm mono" x="191" y="192" text-anchor="middle">ONVIF :2020</text><text class="sm" x="191" y="218" text-anchor="middle">雲台指令</text>
+      <rect class="node" x="238" y="14" width="236" height="246" rx="8"/>
+      <text class="b" x="356" y="38" text-anchor="middle">電腦 · Windows + Python</text>
+      <rect class="acn" x="252" y="50" width="208" height="38" rx="5"/><text x="356" y="74" text-anchor="middle">擷取執行緒 ×4（OpenCV）</text>
+      <rect class="acn" x="252" y="98" width="208" height="38" rx="5"/><text x="356" y="122" text-anchor="middle">YOLOv8-Pose 姿態偵測</text>
+      <rect class="acn" x="252" y="146" width="208" height="38" rx="5"/><text x="356" y="170" text-anchor="middle">跌倒判斷 + 鎖定追蹤</text>
+      <rect class="acn" x="252" y="194" width="208" height="38" rx="5"/><text x="356" y="218" text-anchor="middle">語音監聽（ffmpeg）</text>
+      <line class="arrow" x1="476" y1="69" x2="546" y2="69" marker-end="url(#ah)"/>
+      <line class="arrow" x1="476" y1="117" x2="546" y2="117" marker-end="url(#ah)"/>
+      <line class="arrow" x1="476" y1="165" x2="546" y2="165" marker-end="url(#ah)"/>
+      <line class="arrow" x1="476" y1="213" x2="546" y2="213" marker-end="url(#ah)"/>
+      <rect class="okn" x="548" y="48" width="146" height="40" rx="5"/><text x="621" y="73" text-anchor="middle">四分割儀表板</text>
+      <rect class="okn" x="548" y="96" width="146" height="40" rx="5"/><text x="621" y="121" text-anchor="middle">LINE 推播家人</text>
+      <rect class="okn" x="548" y="144" width="146" height="40" rx="5"/><text x="621" y="169" text-anchor="middle">拍照存檔</text>
+      <rect class="okn" x="548" y="192" width="146" height="40" rx="5"/><text x="621" y="217" text-anchor="middle">雲台追蹤／語音</text>
+    </svg>
+  </figure>
+  <p class="note-s">影像與音訊走 RTSP（兩條不同串流），雲台走 ONVIF，三者都要連到<b>同一個區域網路</b>。</p>
+
+  <figure>
+    <img src="elder_fall_states.png" width="960" height="540" alt="AI 標籤的四種狀態：綠色正常站立、黃色正常坐姿、橘色疑似倒地、紅色跌倒倒地且字體放大，跌倒時右上角統計框轉紅" loading="lazy">
+    <figcaption>圖　AI 標籤的四種狀態（合成示意圖，非真實影像）。左上站立（綠）、右上坐姿（黃）、左下疑似倒地（橘，躺平未滿 3 秒）、右下跌倒倒地（紅，字體放大）。淺色底配深色字、深色底配白字。</figcaption>
+  </figure>
+</section>
+
+<!-- ===================== 02 動畫模擬 ===================== -->
+<section class="page" id="sims">
+  <h2><span class="tag">02</span>動畫模擬</h2>
+  <p>下面四組模擬<b>都在瀏覽器裡跑，不會開你的鏡頭</b>，用的公式和實作手冊裡的程式一致。先看情境動畫了解全貌，再用三組互動模擬自己調參數。</p>
+
+  <h3 id="simA">A　情境動畫：從跌倒到解除追蹤（7 步）</h3>
+  <p class="note-s">俯視圖：左上角是攝影機，虛線扇形是它看得到的範圍。按「播放」或點右邊的數字逐步看。</p>
+  <figure class="sim">
+    <svg viewBox="0 0 640 340" role="img" aria-labelledby="scT scD">
+      <title id="scT">跌倒偵測與鎖定追蹤情境動畫</title>
+      <desc id="scD">俯視房間，左上角有攝影機。穿藍衣的人先站立，接著躺下，三秒後被判定跌倒，系統拍照、通知家人、播放語音；鏡頭鎖定追蹤倒地者，他爬到另一處後站起來走動，系統用衣服顏色認出同一個人，最後他舉起右手解除追蹤。</desc>
+      <defs><clipPath id="roomclip"><rect x="20" y="20" width="600" height="240"/></clipPath></defs>
+      <rect class="room" x="20" y="20" width="600" height="240" rx="4"/>
+      <text class="sm" x="560" y="250" text-anchor="end">臥室（俯視）</text>
+      <g clip-path="url(#roomclip)">
+        <polygon class="cone" data-on="1-4" points="40,40 558,-6 368,443"/>
+        <polygon class="cone" data-on="5" points="40,40 560,58 316,481"/>
+        <polygon class="cone" data-on="6-7" points="40,40 517,-166 478,320"/>
+      </g>
+      <rect x="26" y="26" width="26" height="18" rx="3" style="fill:var(--ink)"/>
+      <circle cx="46" cy="35" r="5" style="fill:var(--accent)"/>
+      <text class="sm" x="24" y="64">鏡頭</text>
+
+      <!-- 路人 B（紅衣）：鎖定後出現，用來說明不會追錯人 -->
+      <g data-on="5-7">
+        <ellipse class="shirtB" cx="150" cy="205" rx="14" ry="8"/><circle class="head" cx="150" cy="205" r="7"/>
+        <text class="sm" x="150" y="232" text-anchor="middle">路人（紅衣）</text>
+      </g>
+
+      <!-- 人物 A（藍衣） -->
+      <g data-on="1">
+        <ellipse class="shirt" cx="300" cy="150" rx="15" ry="8"/><circle class="head" cx="300" cy="150" r="7"/>
+        <rect x="236" y="104" width="128" height="26" rx="4" style="fill:#00ff00"/><text class="b" x="300" y="122" text-anchor="middle" style="fill:#111">#1 正常站立</text>
+      </g>
+      <g data-on="2-4">
+        <ellipse class="shirt" cx="300" cy="150" rx="26" ry="9"/><circle class="head" cx="276" cy="150" r="7"/>
+      </g>
+      <g data-on="2">
+        <rect x="222" y="104" width="156" height="26" rx="4" style="fill:#ffa500"/><text class="b" x="300" y="122" text-anchor="middle" style="fill:#111">疑似倒地 (1.2s)</text>
+        <text class="sm" x="300" y="182" text-anchor="middle">躺平計時中，未滿 3 秒</text>
+      </g>
+      <g data-on="3-4" class="pulse">
+        <rect x="214" y="98" width="172" height="34" rx="4" style="fill:#ff0000"/><text class="b" x="300" y="122" text-anchor="middle" style="fill:#fff;font-size:19px">跌倒倒地 (3.0s)</text>
+      </g>
+      <g data-on="5">
+        <ellipse class="shirt" cx="360" cy="225" rx="26" ry="9"/><circle class="head" cx="336" cy="225" r="7"/>
+        <rect x="262" y="180" width="196" height="26" rx="4" style="fill:#b91c1c"/><text class="b" x="360" y="198" text-anchor="middle" style="fill:#fff">鎖定追蹤・記下藍色特徵</text>
+      </g>
+      <g data-on="6-7">
+        <ellipse class="shirt" cx="540" cy="80" rx="15" ry="8"/><circle class="head" cx="540" cy="80" r="7"/>
+      </g>
+      <g data-on="6">
+        <rect x="436" y="34" width="190" height="26" rx="4" style="fill:#00ff00"/><text class="b" x="531" y="52" text-anchor="middle" style="fill:#111">正常站立・同一人 ✔</text>
+        <text class="sm" x="530" y="108" text-anchor="middle">顏色距離 0.12（&lt; 0.6）</text>
+        <text class="sm" x="150" y="190" text-anchor="middle">紅衣 0.81（不像）</text>
+      </g>
+      <g data-on="7">
+        <path class="ln" d="M552,76 L566,56"/><circle class="head" cx="568" cy="53" r="4"/>
+        <rect x="412" y="34" width="214" height="26" rx="4" style="fill:#fff;stroke:#111"/><text class="b" x="519" y="52" text-anchor="middle" style="fill:#111">舉右手 → 解除追蹤</text>
+      </g>
+
+      <!-- 輸出列 -->
+      <rect class="bg" x="20" y="272" width="600" height="58" rx="6"/>
+      <g data-on="1-2"><text class="sm" x="320" y="306" text-anchor="middle">平常監看中：每 4 幀推論一次，標示姿態與人數</text></g>
+      <g data-on="3"><text class="sm" x="320" y="306" text-anchor="middle">躺平累積滿 3 秒 → 判定「跌倒倒地」，準備啟動警報流程</text></g>
+      <g data-on="4">
+        <rect class="okn" x="30" y="282" width="138" height="38" rx="5"/><text x="99" y="306" text-anchor="middle">📷 拍照存檔</text>
+        <rect class="okn" x="176" y="282" width="150" height="38" rx="5"/><text x="251" y="306" text-anchor="middle">LINE 通知家人</text>
+        <rect class="okn" x="334" y="282" width="138" height="38" rx="5"/><text x="403" y="306" text-anchor="middle">安撫語音</text>
+        <rect class="okn" x="480" y="282" width="130" height="38" rx="5"/><text x="545" y="306" text-anchor="middle">鏡頭往下看</text>
+      </g>
+      <g data-on="5-6"><text class="sm" x="320" y="306" text-anchor="middle">每 0.2 秒：算偏移 → 比例修正 → 雲台微轉（速度 1.0）</text></g>
+      <g data-on="7"><text class="sm" x="320" y="306" text-anchor="middle">追蹤停止；警報仍在，直到按「解除警報」</text></g>
+    </svg>
+    <ol class="sim-steps">
+      <li>平常：人站在畫面內，AI 標示「#1 正常站立」（綠）。</li>
+      <li>人躺下，AI 改標「疑似倒地」（橘）並開始計時，這時<b>還不會</b>通報。</li>
+      <li>躺平滿 3 秒 → 判定「跌倒倒地」（紅、字放大），警報觸發。</li>
+      <li>警報流程：拍照存檔、LINE 通知家人、電腦播放安撫語音、鏡頭往下看地面。</li>
+      <li>系統鎖定這個人並記下衣服的顏色特徵；人爬到別處，雲台跟著轉（路人紅衣不會被追）。</li>
+      <li>人站起來走到另一邊：姿態不再是「跌倒」，但顏色特徵對得上，仍判定是同一人並繼續追。</li>
+      <li>被追蹤者舉起右手（站著才算），追蹤停止；警報要由照護者按「解除警報」。</li>
+    </ol>
+  </figure>
+
+  <!-- ---------- B 跌倒計時 ---------- -->
+  <h3 id="simB">B　互動模擬：跌倒判定計時器（對應階段 3）</h3>
+  <p>選一種姿勢，拖曳「躺平持續秒數」，看標籤怎麼變。也可以按下面兩顆按鈕，比較「彎腰撿東西」和「真的跌倒」。</p>
+  <div class="lab" id="labB">
+    <svg viewBox="0 0 480 270" id="svgB" role="img" aria-labelledby="bT bD">
+      <title id="bT">姿勢與跌倒標籤示意</title>
+      <desc id="bD">依選擇的姿勢與躺平秒數顯示火柴人、外框、狀態標籤與右上角統計。</desc>
+      <rect x="0" y="0" width="480" height="270" style="fill:var(--paper)"/>
+      <line x1="0" y1="215" x2="480" y2="215" style="stroke:var(--line);stroke-width:2"/>
+      <g id="figStand" style="display:none">
+        <circle cx="120" cy="70" r="11" class="head"/><path class="ln" d="M120,81 V140 M120,95 L100,125 M120,95 L140,125 M120,140 L108,200 M120,140 L132,200"/>
+      </g>
+      <g id="figSit" style="display:none">
+        <circle cx="120" cy="110" r="11" class="head"/><path class="ln" d="M120,121 V165 M120,135 L102,160 M120,135 L138,160 M120,165 L160,168 L160,205 M120,165 L150,175 L150,205"/>
+      </g>
+      <g id="figLie" style="display:none">
+        <circle cx="62" cy="195" r="11" class="head"/><path class="ln" d="M74,196 H150 M92,196 L104,178 M110,196 L122,214 M150,196 L196,188 M150,196 L196,206"/>
+      </g>
+      <rect id="boxB" x="0" y="0" width="10" height="10" style="fill:none;stroke-width:3"/>
+      <g id="chipB"><rect id="chipRect" x="0" y="0" width="100" height="24" rx="4"/><text id="chipText" class="b" x="0" y="0" style="font-size:15px">　</text></g>
+      <rect id="hudRect" x="250" y="10" width="220" height="30" rx="5" style="fill:#0f0f0f"/>
+      <text id="hudText" x="0" y="30" style="fill:#00e6ff;font-size:13px;font-weight:700">　</text>
+      <text class="sm" x="12" y="256">人物外框顏色＝狀態；文字顏色依背景亮度自動選深／白</text>
+    </svg>
+    <div class="ctl">
+      <fieldset><legend>姿勢</legend>
+        <label><input type="radio" name="poseB" value="stand" checked> 站立</label>
+        <label><input type="radio" name="poseB" value="sit"> 坐姿</label>
+        <label><input type="radio" name="poseB" value="lie"> 躺平</label>
+      </fieldset>
+      <fieldset><legend>躺平持續秒數：<span class="val" id="lieTVal">0.0</span> 秒</legend>
+        <input type="range" id="lieT" min="0" max="8" step="0.1" value="0" aria-label="躺平持續秒數">
+        <p class="note-s" style="margin:4px 0 0">門檻 3.0 秒（程式裡的 <code>fall_duration_threshold</code>）</p>
+      </fieldset>
+    </div>
+    <div class="btnrow">
+      <button type="button" id="bBend">▶ 彎腰撿東西（躺平約 1.5 秒就站起）</button>
+      <button type="button" class="pri" id="bFall">▶ 真的跌倒（一直躺著）</button>
+    </div>
+    <p class="status" id="statB" role="status" aria-live="polite">選擇姿勢開始。</p>
+  </div>
+
+  <!-- ---------- C 追蹤模擬 ---------- -->
+  <h3 id="simC">C　互動模擬：雲台追蹤控制器（對應階段 7）</h3>
+  <p>上方是「鏡頭看到的畫面」：中間線是畫面中心，淺色帶是<b>死區</b>（人在帶內就不動）。下方折線是人相對畫面中心的偏移，越貼近 0 越好。先按「一鍵比較」看<b>舊版固定步長</b>與<b>現行比例修正</b>的差別，再自己拉參數。</p>
+  <div class="lab" id="labC">
+    <div class="cvwrap" tabindex="0" role="region" aria-label="雲台追蹤模擬畫布（窄螢幕可左右捲動）"><canvas id="cvC" width="760" height="384" role="img" aria-label="雲台追蹤模擬畫面：上方是鏡頭畫面與人的位置，中間是整個房間的小地圖，下方是偏移量隨時間的折線圖。"></canvas></div>
+    <div class="status" id="statC" role="status" aria-live="polite">按「開始」讓人站在畫面右側，觀察鏡頭怎麼把他拉回中央。</div>
+    <div class="readout" aria-label="即時數值">
+      <div><b>時間</b><span id="rTime">0.0 s</span></div>
+      <div><b>目前偏移</b><span id="rOff">+0.85</span></div>
+      <div><b>方向反轉（近 10 秒）</b><span id="rRev">0</span></div>
+      <div><b>雲台指令次數</b><span id="rMoves">0</span></div>
+    </div>
+    <div class="ctl">
+      <fieldset><legend>控制方式</legend>
+        <label><input type="radio" name="modeC" value="prop" checked> 比例修正（現行）</label>
+        <label><input type="radio" name="modeC" value="fixed"> 固定步長（舊版）</label>
+      </fieldset>
+      <fieldset><legend>死區：<span class="val" id="vDz">0.18</span></legend>
+        <input type="range" id="inDz" min="0.05" max="0.40" step="0.01" value="0.18" aria-label="死區（畫面半寬的比例）">
+      </fieldset>
+      <fieldset><legend>最大步長：<span class="val" id="vStep">0.12</span></legend>
+        <input type="range" id="inStep" min="0.03" max="0.40" step="0.01" value="0.12" aria-label="最大步長（雲台相對移動量）">
+      </fieldset>
+      <fieldset><legend>偵測抖動：<span class="val" id="vJit">6</span> 像素</legend>
+        <input type="range" id="inJit" min="0" max="30" step="1" value="6" aria-label="偵測抖動像素">
+      </fieldset>
+      <fieldset><legend>人的行為</legend>
+        <select id="selBeh" aria-label="人的行為">
+          <option value="still">站定不動</option>
+          <option value="slow" >慢慢走動（70 像素/秒）</option>
+          <option value="fast">快走來回（160 像素/秒）</option>
+        </select>
+      </fieldset>
+      <fieldset><legend>播放速度</legend>
+        <select id="selSpd" aria-label="播放速度"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option></select>
+      </fieldset>
+    </div>
+    <div class="btnrow">
+      <button type="button" class="pri" id="cStart">▶ 開始</button>
+      <button type="button" id="cReset">↺ 重置</button>
+      <button type="button" id="cPreOld">套用舊版：固定 0.2、死區 0.15</button>
+      <button type="button" id="cPreNew">套用現行：比例 0.12、死區 0.18</button>
+      <button type="button" id="cCompare">⚖ 一鍵比較（各跑 20 秒）</button>
+    </div>
+    <div id="cmpOut" aria-live="polite"></div>
+    <details>
+      <summary>這個模擬做了哪些簡化？</summary>
+      <div>
+        <ul>
+          <li>只模擬<b>水平轉動（pan）</b>；上下方向的做法相同。</li>
+          <li>畫面寬 640 單位；整個房間 2400 單位；假設雲台 <b>1.0 單位 ＝ 1200 單位位移</b>（約畫面寬的 1.9 倍）。真實比例依機型與變焦而異，<b>請自己量測你的雲台</b>（練習題）。</li>
+          <li>AI 位置每 <b>0.27 秒</b>才更新一次（約每 4 幀）、控制器每 <b>0.2 秒</b>修正一次、每次修正的轉動花 0.2 秒——和手冊相同，所以偶爾會用到「稍舊的位置」。</li>
+          <li>人離開畫面（偏移超過 ±1）就偵測不到，鏡頭停止追趕。</li>
+          <li>方向反轉＝連續兩次修正的方向相反；6 秒內 ≥ 3 次視為「來回震盪」。</li>
+        </ul>
+      </div>
+    </details>
+  </div>
+
+  <!-- ---------- D 顏色認人 ---------- -->
+  <h3 id="simD">D　互動模擬：用衣服顏色認出同一個人（對應階段 7）</h3>
+  <p>人一站起來，AI 就不再說他「跌倒」，怎麼知道還是同一個人？答案是<b>顏色直方圖</b>。按「① 鎖定」記下藍衣人的特徵，再按「② 他站起來」比對畫面中所有人。把<b>夜間紅外線灰階</b>打開，看看會發生什麼事。</p>
+  <div class="lab" id="labD">
+    <svg viewBox="0 0 520 190" id="svgD" role="img" aria-labelledby="dT dD2">
+      <title id="dT">顏色認人示意</title>
+      <desc id="dD2">畫面中有兩個人：藍衣人（目標）與另一個人。左邊是鎖定當下，右邊是站起來後的比對。</desc>
+      <rect x="0" y="0" width="520" height="190" style="fill:var(--paper)"/>
+      <g id="gD" >
+        <g id="pA1"><ellipse id="pA1b" cx="120" cy="120" rx="46" ry="14" class="shirt"/><circle cx="68" cy="120" r="12" class="head"/><text class="sm" x="120" y="155" text-anchor="middle">① 跌倒（藍衣）</text></g>
+        <g id="pA2" style="display:none"><rect id="pA2b" x="326" y="52" width="36" height="62" rx="10" class="shirt"/><circle cx="344" cy="40" r="12" class="head"/><text class="sm" x="344" y="140" text-anchor="middle">A：站起來走到這裡</text></g>
+        <g id="pB2" style="display:none"><rect id="pB2b" x="428" y="52" width="36" height="62" rx="10" class="shirtB"/><circle cx="446" cy="40" r="12" class="head"/><text class="sm" x="446" y="140" text-anchor="middle">B：另一個人</text></g>
+      </g>
+    </svg>
+    <div class="ctl">
+      <fieldset><legend>B 的衣服顏色</legend>
+        <select id="selB" aria-label="B 的衣服顏色">
+          <option value="0">紅色（差很多）</option>
+          <option value="120">綠色（差很多）</option>
+          <option value="205">淺藍色（和 A 很像）</option>
+        </select>
+      </fieldset>
+      <fieldset><legend>畫面模式</legend>
+        <label><input type="checkbox" id="chkGray"> 夜間紅外線（灰階）</label>
+      </fieldset>
+    </div>
+    <div class="btnrow">
+      <button type="button" class="pri" id="dLock">① 鎖定跌倒者（記下特徵）</button>
+      <button type="button" id="dMatch" disabled>② 他站起來，比對畫面中的人</button>
+      <button type="button" id="dReset">↺ 重置</button>
+    </div>
+    <div class="bars" id="barsD"></div>
+    <p class="status" id="statD" role="status" aria-live="polite">先按「① 鎖定」。</p>
+    <details>
+      <summary>顏色距離是怎麼算的？</summary>
+      <div>
+        <p>程式把人物外框裡的每個像素轉成 HSV，統計「色相（Hue）× 飽和度（Saturation）」的分布，得到一張直方圖。兩張直方圖 <code>p</code>、<code>q</code>（各自加總為 1）用 Bhattacharyya 距離比較：<code>d = √(1 − Σ√(pᵢ·qᵢ))</code>，0 表示完全一樣，1 表示完全不同（OpenCV：<code>cv2.compareHist(..., cv2.HISTCMP_BHATTACHARYYA)</code>）。距離小於 <b>0.6</b> 才算同一人。</p>
+        <p>灰階畫面裡，所有人的飽和度都是 0，直方圖幾乎一模一樣，所以<b>分不出誰是誰</b>——這就是夜間紅外線模式下顏色追蹤會失效的原因。</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ===================== 03 事前準備 ===================== -->
+<section class="page" id="prep">
+  <h2><span class="tag">03</span>事前準備</h2>
+  <h3>硬體與網路</h3>
+  <ul>
+    <li>TP-Link Tapo C220（或同系列有雲台的型號）一台以上，Tapo App 顯示在線。</li>
+    <li>一台 Windows 電腦（建議 16 GB 記憶體；沒有獨立顯卡也能跑，多鏡頭會吃 CPU）。</li>
+    <li>電腦與攝影機<b>在同一個區域網路、同一個網段</b>（例如都是 192.168.1.x）。路由器不可以把攝影機隔離（見第 06 節）。</li>
+    <li>知道每台攝影機的 IP；一支手機用來設定攝影機帳號與加 LINE 好友。</li>
+  </ul>
+  <h3>在 Tapo App 設定「攝影機帳號」</h3>
+  <ol>
+    <li>Tapo App → 點該台攝影機 → 右上角齒輪（設定）。</li>
+    <li>進階設定 → 攝影機帳號 → 自訂一組帳號與密碼（<b>跟登入 Tapo 的 TP-Link 雲端帳號不同</b>）。</li>
+    <li><b>每一台都要各設一次</b>。連線出現 <code>401 Unauthorized</code> 就是這台還沒設。</li>
+  </ol>
+  <h3>安裝軟體</h3>
+  <pre class="cmd">pip install opencv-python ultralytics onvif-zeep numpy pillow
+pip install SpeechRecognition pyttsx3 pycaw
+winget install Gyan.FFmpeg
+python --version     # 建議 3.11 或 3.12；torch 裝不起來時改用這兩個版本
+ffmpeg -version</pre>
+  <p class="note-s"><code>ultralytics</code> 會一併安裝 torch，檔案很大，<b>安裝到一半不要強制中斷</b>。<code>pytapo</code> 不需要安裝（韌體更新後已無法使用）。</p>
+  <h3>動手前先確認「連得到」</h3>
+  <pre class="cmd">Test-NetConnection -ComputerName 192.168.x.x -Port 554
+ffprobe -rtsp_transport tcp -show_streams rtsp://帳號:密碼@192.168.x.x:554/stream1</pre>
+  <p><code>TcpTestSucceeded : True</code> 才進下一步；<code>False</code> 或 ping「目的地不可達」先排除網路，<b>不要去改程式</b>。<code>stream1</code> 有影像＋音訊，<code>stream2</code> 只有影像。</p>
+  <div class="box bad"><p class="lb">機密規則</p>
+    <ul><li>攝影機帳密（<code>camera_config.py</code>）與 LINE token（<code>line_config.py</code>）只放自己電腦，<b>不貼進對話、不上傳 GitHub</b>。提示語裡說「密碼我會自己填進設定檔」。</li></ul></div>
+</section>
+
+<!-- ===================== 04 對話原則 ===================== -->
+<section class="page" id="rules">
+  <h2><span class="tag">04</span>與 AI 對話的六個原則</h2>
+  <div class="tbl" tabindex="0" role="region" aria-label="六個原則表">
+    <table>
+      <thead><tr><th scope="col">原則</th><th scope="col">怎麼做</th></tr></thead>
+      <tbody>
+        <tr><td class="k">1. 先說要什麼</td><td>講想要的結果，找哪個檔案、用哪個函式庫是 AI 的工作。</td></tr>
+        <tr><td class="k">2. 一次一個階段</td><td>先能動再求完整；驗收通過才進下一階段，出問題範圍小。</td></tr>
+        <tr><td class="k">3. 回報看到的</td><td>哪個按鈕、什麼操作、看到什麼、預期什麼，並貼上日誌。診斷交給 AI。</td></tr>
+        <tr><td class="k">4. 方向、顏色、聲音親自確認</td><td>「鏡頭往哪轉」「字看不看得清楚」AI 從截圖只能間接推測，容易判斷錯；直接說你看到的。</td></tr>
+        <tr><td class="k">5. 先驗證邏輯再上真機</td><td>能用假資料測的（換算公式、比對邏輯）要求 AI 先寫測試跑過。</td></tr>
+        <tr><td class="k">6. 收工前留一手</td><td>備份一份、把校準值與踩過的坑寫成紀錄，下次接得起來。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="cmp">
+    <div class="n"><p><b>避免</b></p><p>「怎麼怪怪的，你看一下。」</p><p>沒說哪個畫面、哪個按鈕，AI 只能整個系統重查。</p></div>
+    <div class="g"><p><b>建議</b></p><p>「按<b>地下室的停止按鈕</b>後，畫面<b>卡在最後一張</b>，沒有變成『串流已停止』。」</p><p>一句話鎖定到特定程式。</p></div>
+  </div>
+  <div class="cmp">
+    <div class="n"><p><b>避免</b></p><p>「追蹤不行。」</p><p>不知道是不動、太慢、還是方向錯。</p></div>
+    <div class="g"><p><b>建議</b></p><p>「人<b>站定不動</b>之後，鏡頭會<b>左右來回移動</b>停不下來。」</p><p>直接指出「過衝震盪」——到模擬 C 試試看。</p></div>
+  </div>
+  <p>本頁提示語中的 <span class="ph">【…】</span> 要換成你自己的內容。</p>
+</section>
+
+<!-- ===================== 05 實作階段 ===================== -->
+<section class="page" id="stages">
+  <h2><span class="tag">05</span>九個實作階段</h2>
+  <p>建議安排：<b>Level 1 基礎</b>（階段 0–2，1–2 次課）、<b>Level 2 進階</b>（階段 3–5，2 次課）、<b>Level 3 挑戰</b>（階段 6–8，2 次課）。提示語右上角可以一鍵複製。</p>
+
+  <h3 id="s0">階段 0　開場：建立專案與工作方式</h3>
+  <div class="goal"><b>目標：</b>讓 AI 知道你的環境與規則，先拿到分步計畫。這一步<b>不寫程式</b>。</div>
+  <div class="promptwrap"><p class="lb">提示語 0-1　開場</p><button class="copy" type="button">複製</button>
+<pre>我是【學校/科系】的學生，正在做「居家長照跌倒偵測與自動追蹤」專題。環境：Windows 11、Python 【版本】，攝影機是 TP-Link Tapo C220，共【數量】台，電腦和攝影機在同一個區域網路。請在資料夾【路徑】建立專案，之後所有檔案都放這裡。
+
+工作方式請照這樣：
+1. 一次只做一個功能，做完要實際執行驗證（截圖或日誌為證）再回報，不要只說「寫好了」。
+2. 帳號、密碼、IP 不要寫死在程式裡，集中放 camera_config.py。
+3. 遇到必須由我親自確認的事（例如鏡頭實際往哪個方向轉、有沒有聽到聲音），請直接問我，不要用猜的。
+4. 每次改完程式，告訴我怎麼重新啟動。
+
+先不要寫程式，告訴我你打算分成哪幾個步驟。</pre></div>
+  <details class="okd"><summary>驗收</summary><div><ul><li>AI 回覆分步計畫（單鏡頭 → 多鏡頭 → AI 偵測 → 雲台 → 警報 → 語音 → 追蹤）。</li><li>專案資料夾已建立。</li></ul></div></details>
+
+  <h3 id="s1">階段 1　連上單台攝影機看到畫面</h3>
+  <div class="goal"><b>目標：</b>用 Python 即時顯示一台攝影機，斷線會自動重連。</div>
+  <div class="promptwrap"><p class="lb">提示語 1-1　單鏡頭檢視</p><button class="copy" type="button">複製</button>
+<pre>請寫一支 01_camera_viewer.py：用 OpenCV 讀取 Tapo 攝影機的 RTSP 串流並顯示，按 q 離開。要求：
+- 網址格式 rtsp://帳號:密碼@IP:554/stream2（stream2 是低解析度副串流，較省效能）。
+- 用 TCP 傳輸：必須在 import cv2 之前設定 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"。
+- 讀取失敗要自動重連（等 2 秒再試），不可以讓整個視窗消失。
+- 帳號、密碼、IP 放 camera_config.py 的 CAMERAS 字典（名稱 → ip / username / password），並提供 rtsp_url(名稱) 函式。
+
+我的攝影機 IP 是【IP】，攝影機帳號是【Tapo App 設定的攝影機帳號】（密碼我會自己填進 camera_config.py，不要貼給你）。寫完請直接執行，並用截圖或日誌確認真的有畫面。</pre></div>
+  <details class="okd"><summary>驗收</summary><div><ul><li>視窗顯示即時畫面，時間戳記每秒在走。</li><li>拔掉攝影機電源再插回，程式自動恢復畫面。</li></ul></div></details>
+  <details class="badd"><summary>地雷與解法</summary><div><ul>
+    <li><b>401 Unauthorized</b> → 該台沒設「攝影機帳號」。</li>
+    <li><b>連不上、ping 目的地不可達</b> → 網路被隔離（見第 06 節），不是程式問題。</li>
+    <li><b>花屏斷幀</b> → 沒設 TCP，或設定放在 <code>import cv2</code> 之後（無效）。</li>
+    <li><b>視窗突然消失</b> → 讀取失敗時直接跳出迴圈，要改成重連。</li></ul></div></details>
+
+  <h3 id="s2">階段 2　四分割多鏡頭儀表板</h3>
+  <div class="goal"><b>目標：</b>2×2 視窗同時顯示四台，每台可獨立啟動、停止、放大。</div>
+  <div class="promptwrap"><p class="lb">提示語 2-1　儀表板</p><button class="copy" type="button">複製</button>
+<pre>請用 Tkinter 寫 tapo_multi_camera_dashboard.py，四台鏡頭 2×2 排列。每台一個 CameraFeed 類別，各自一個擷取執行緒，UI 用計時器定期取最新畫面顯示（不要在擷取執行緒裡操作 UI）。每張卡片要有：名稱與 IP、FPS、人數徽章（先放 0）、啟動/停止按鈕、放大按鈕（雙擊畫面也可以切換放大與四分割），上方工具列要有「全部啟動」「全部停止」。
+
+停止時畫面必須變成「串流已停止」的提示文字，不可以凍結在最後一張影像；停止後再啟動要能恢復。斷線要自動重連。攝影機名稱與 IP 都從 camera_config.py 讀取。寫完請實際操作「停止 → 啟動」並截圖給我看。</pre></div>
+  <details class="okd"><summary>驗收</summary><div><ul><li>四台同時出畫面，FPS 約 10–15。</li><li>按停止 → 變成「串流已停止」、FPS 歸零；再按啟動恢復。</li><li>雙擊放大，Esc 或再雙擊回四分割。</li></ul></div></details>
+  <details class="badd"><summary>地雷與解法</summary><div><ul>
+    <li><b>按停止後畫面凍結</b>：擷取執行緒剛讀完一張新影格、還沒寫入就被 <code>stop()</code> 清空，影格又被寫回去。寫入前檢查 <code>running</code>，結束後再清一次，UI 取畫面也判斷 <code>running</code>。</li>
+    <li><b>同時開四台，最後一台 30 秒逾時</b>：前幾台載入模型吃光 CPU。單獨重啟那台，或錯開啟動。</li></ul></div></details>
+
+  <h3 id="s3">階段 3　AI 姿態偵測：站、坐、跌倒　<a href="#simB" style="font-size:14px">→ 模擬 B</a></h3>
+  <div class="goal"><b>目標：</b>每台標示人數與姿態；躺平持續 3 秒才判定「跌倒倒地」。</div>
+  <div class="promptwrap"><p class="lb">提示語 3-1　姿態偵測模組</p><button class="copy" type="button">複製</button>
+<pre>請新增 ai_fall_detector.py，類別 AIFallDetector，用 ultralytics 的 yolov8n-pose.pt 偵測人與 17 個關鍵點，並整合進儀表板。要求：
+1. 省 CPU：推論尺寸 imgsz=256、信心 0.35；每 4 幀才真正推論一次，其餘幀沿用上次結果畫框，避免標註閃爍。
+2. 姿態判斷（COCO 關鍵點：5/6 肩、11/12 髖）：算「肩膀中點到髖部中點」連線相對水平的角度；角度小於 25° 且肩髖垂直落差 ≤ 20 像素 → 躺平。沒有肩髖關鍵點時，外框長寬比 < 0.55 也算躺平。站立：長寬比 ≥ 1.35 且角度 ≥ 65°；其餘為坐姿。關鍵點信心門檻 0.25。
+3. 持續時間：躺平要持續 3 秒才算「跌倒倒地」，未滿 3 秒顯示「疑似倒地」（避免彎腰撿東西誤判）。
+4. 標籤顏色：站立綠、坐姿黃、疑似倒地橘、跌倒倒地紅。注意 OpenCV 是 BGR 順序，紅色要寫成 (0,0,255)。
+5. 文字可讀性：淺色背景配深色字、深色背景配白字（用背景亮度自動判斷）；「跌倒倒地」的標籤字體要放大。
+6. 中文顯示：cv2.putText 不能顯示中文，請用 PIL 搭配微軟正黑體繪製。
+7. 畫面右上角顯示「空間人數 / 站立 / 坐姿（/ 跌倒）」統計。卡片標題的人數徽章也要更新。
+
+寫完請先用假的關鍵點資料測試四種狀態的畫面都能正確畫出來（不用等真人演），把四種狀態拼成一張圖給我看。</pre></div>
+  <details class="okd"><summary>驗收</summary><div><ul><li>站著顯示綠色「正常站立」，坐下變黃色「正常坐姿」。</li><li>在安全情況下躺下：先橘色「疑似倒地」計時，滿 3 秒變紅色「跌倒倒地」且字變大。</li><li>彎腰撿東西、快速蹲下<b>不會</b>變紅。</li></ul></div></details>
+  <details class="badd"><summary>地雷與解法</summary><div><ul>
+    <li><b>中文變問號</b> → 改用 PIL + <code>C:\Windows\Fonts\msjh.ttc</code>。</li>
+    <li><b>淺黃底配白字看不清</b> → 用亮度判斷文字顏色。</li>
+    <li><b>四鏡頭 CPU 滿載</b> → 加大推論間隔、縮小 <code>imgsz</code>，不要降低信心門檻硬撐。</li>
+    <li><b>紅色變藍色</b> → 忘了 OpenCV 是 BGR；連「警報框」這種細節也要用截圖驗證。</li></ul></div></details>
+
+  <h3 id="s4">階段 4　雲台控制：ONVIF 與方向校準</h3>
+  <div class="goal"><b>目標：</b>每台有上下左右、停止、歸位、巡航；按「▲」鏡頭就是往上看。</div>
+  <div class="promptwrap"><p class="lb">提示語 4-1　雲台模組</p><button class="copy" type="button">複製</button>
+<pre>請新增 tapo_controller.py，用 ONVIF 協定（連接埠 2020，套件 onvif-zeep）控制雲台。不要用 pytapo：2026 年 7 月 Tapo 韌體更新後私有協定交握改了，pytapo 登入會失敗。
+
+請先寫一小段程式查詢這台攝影機的 PTZ 能力（GetNodes、GetPresets、GetConfigurationOptions、GetStatus），把結果給我看，確認支援哪些功能（特別是有沒有「歸位」與速度範圍）再開始寫控制功能。
+
+功能：相對步進移動 relative_move(dx, dy, speed)（按一下動一小步，硬體自己煞車）、連續移動 + 停止、歸位、巡航。在儀表板每張卡片下方加：◀ ▲ ▼ ▶、停止、歸位、巡航。
+
+方向設計成：「按▲鏡頭要往上看」。每台攝影機在 camera_config.py 有 pan_invert / tilt_invert（1 或 -1）可調。不要自己猜方向：寫完告訴我怎麼測，我會回報鏡頭實際往哪邊轉，再由你調整。</pre></div>
+  <h4>方向校準流程（每台都要做）</h4>
+  <ol><li>按一次「▲」。</li><li>回報：「按▲之後，鏡頭<b>實際往下</b>（或往上）轉了。」</li><li>若相反，把該台 <code>tilt_invert</code> 改 -1（左右同理 <code>pan_invert</code>），<b>重啟程式</b>再確認。四台可能各不相同。</li></ol>
+  <details class="okd"><summary>驗收</summary><div><ul><li>四台各按 ▲▼◀▶，方向與箭頭一致。</li><li>停止鍵立即煞車；巡航後能回到大致正面。</li></ul></div></details>
+  <details class="badd"><summary>地雷與解法</summary><div><ul>
+    <li><b>改了 <code>tilt_invert</code> 完全沒反應</b> → 專案裡有<b>不只一份 <code>camera_config.py</code></b>，程式載入的是另一份。請 AI 印出 <code>camera_config.__file__</code>，並只留一份。</li>
+    <li><b>不要用截圖判斷方向</b>：特寫太近、紅外線灰階時分不出往上往下，直接回報你看到鏡頭怎麼轉。</li>
+    <li>雲台指令放背景執行緒，失敗時至少要 <code>print</code> 出錯誤。</li>
+    <li><b>進階挑戰：修正「歸位」</b>。Tapo 通常 <code>HomeSupported = False</code> 且沒有預設點，用 <code>AbsoluteMove(0,0)</code> 歸位會轉去看牆壁。改成先手動調好角度，用 <code>SetPreset</code> 存預設點，歸位時 <code>GotoPreset</code>。</li></ul></div></details>
+
+  <h3 id="s5">階段 5　跌倒警報流程與 LINE 通知</h3>
+  <div class="goal"><b>目標：</b>判定跌倒時自動拍照、LINE 通知、播放安撫語音；按「解除警報」才恢復偵測。</div>
+  <h4>先準備 LINE 通道（由你自己操作）</h4>
+  <ol>
+    <li>到 LINE Official Account Manager（manager.line.biz）建立官方帳號，完成手機簡訊認證。</li>
+    <li>在該帳號啟用 Messaging API，到 LINE Developers Console 取得 Channel access token（long-lived）。</li>
+    <li>手機掃 QR Code <b>加為好友</b>（broadcast 只發給已加好友的人）。token 放進 <code>line_config.py</code>。</li>
+  </ol>
+  <div class="box bad"><p class="lb">界線</p><ul>
+    <li>建立帳號、輸入密碼／驗證碼、綁定金流，就算你明確要求，AI 助理也會拒絕並教你怎麼做——這是保護你的帳號。</li>
+    <li>頻道類型要走「官方帳號啟用 Messaging API」；直接在 Developers Console 建的「LINE Login」頻道<b>不能</b>推播。</li></ul></div>
+  <div class="promptwrap"><p class="lb">提示語 5-1　警報流程</p><button class="copy" type="button">複製</button>
+<pre>請在儀表板加入「跌倒警報流程」。當某台鏡頭第一次被判定「跌倒倒地」時，依序做：
+1. 在 emergency_snapshots/ 存一張快照，檔名含鏡頭名稱與時間，影像上標示警報時間。
+2. 用 LINE Messaging API 的 broadcast 發一則通知（含鏡頭名稱、時間、空間人數）。推播請用獨立子行程（line_worker.py），並用標準函式庫 http.client，不要用 requests——有些電腦上 requests 呼叫外部 HTTPS 會卡死不理 timeout。
+3. 鏡頭自動往下微轉，看向地面。
+4. 用 pyttsx3 在電腦播放安撫語音（做成可開關，預設關閉）。
+
+用 is_emergency 旗標避免同一次跌倒重複通報。一定要同時提供「解除警報」按鈕：平常灰色不可按，警報中變紅色可按，按下才把旗標重設、恢復偵測下一次跌倒。LINE 失敗（例如額度用完回 HTTP 429）要把錯誤印出來，不可以整個程式當掉。測試時請不要真的發 LINE，先用假的函式代替，我確認流程正確後再接真的。</pre></div>
+  <details class="okd"><summary>驗收</summary><div><ul><li>（假推播）模擬跌倒 → 多一張快照、日誌顯示「準備推播」、「解除警報」變紅。</li><li>按「解除警報」→ 變灰、旗標重設；再模擬一次能再觸發。</li><li>（接真的 LINE）手機收到通知；測試次數要節制。</li></ul></div></details>
+  <details class="badd"><summary>地雷與解法</summary><div><ul>
+    <li><b>只通報一次，之後再怎麼跌都沒反應</b> → <code>is_emergency</code> 設 True 後沒有重設機制。</li>
+    <li><b>HTTP 429 "You have reached your monthly limit"</b> → 免費額度用完（測試狂觸發很容易）。等下個月、升級，或另開專屬官方帳號並換 token。</li>
+    <li><b>換新帳號後收不到</b> → 新帳號的好友要重新加。</li>
+    <li>雲台 <code>time.sleep</code> 放主執行緒會卡住擷取，要放背景執行緒。</li></ul></div></details>
+
+  <h3 id="s6">階段 6　語音求救：用攝影機自己的麥克風</h3>
+  <div class="goal"><b>目標：</b>對著任一台鏡頭喊「救命」，系統知道是<b>哪個房間</b>，並觸發同一套警報。</div>
+  <div class="box info"><p class="lb">先用指令驗證兩個事實</p><ul>
+    <li><b>stream2 完全沒有音訊軌，只有 stream1 有</b>（<code>pcm_alaw</code>、8 kHz、單聲道），用 <code>ffprobe</code> 分別檢查即可確認。語音監聽必須接 <code>stream1</code>，否則 ffmpeg 會一直等不到音訊而卡住。</li>
+    <li>用 <code>speech_recognition.Microphone()</code> 聽的是<b>電腦本機麥克風</b>，不是攝影機的。</li></ul></div>
+  <div class="promptwrap"><p class="lb">提示語 6-1　語音監聽</p><button class="copy" type="button">複製</button>
+<pre>請替每台攝影機各加一個「語音監聽」背景執行緒，並在工具列加一顆總開關「語音求救：開啟 / 關閉」（預設關閉）。要求：
+1. 用 ffmpeg 讀取該台的 RTSP stream1（-vn -acodec pcm_s16le -ac 1 -ar 16000 -f s16le pipe:1），每 3 秒一段。
+2. 巨響偵測：該段音量 RMS 大於 0.09 → 視為巨響/尖叫，觸發警報。
+3. 關鍵字偵測：用 SpeechRecognition 的 recognize_google(language="zh-TW") 轉文字，命中關鍵字清單（必須含「求救」「救命」「救我」「幫我」「跌倒」「好痛」「起不來」「緊急」等）就觸發警報。每次辨識到的文字都要 print 出來，方便除錯。
+4. 觸發後走跟跌倒警報同一套流程（拍照、LINE、安撫語音），訊息裡要寫明是哪一台鏡頭。觸發後休息數秒避免連發。
+
+寫完請先用 ffprobe 證明 stream1 有音訊軌，並抓 3 秒音訊算出 RMS 給我看，再讓我實際對鏡頭講話測試。</pre></div>
+  <details class="okd"><summary>驗收</summary><div><ul><li>日誌出現「[某鏡頭聽見]: 「…」」。</li><li>對鏡頭說「救命」→ 「解除警報」變紅，並拍照／語音／LINE。</li><li>安靜時不會一直誤觸發。</li></ul></div></details>
+  <details class="badd"><summary>地雷與解法</summary><div><ul>
+    <li><b>日誌有聽到「求救」卻沒觸發</b> → 關鍵字清單漏了這個詞本身（辨識正確 ≠ 命中清單）。</li>
+    <li><b>完全沒聲音、ffmpeg 卡住</b> → 接到 stream2 了。</li>
+    <li>總開關預設關閉，重啟後要再按；語音辨識需要網路。</li>
+    <li><b>無法從攝影機喇叭播放聲音</b>：實測 ONVIF 的 <code>GetAudioOutputs()</code> 回空值、<code>deviceio</code> 服務被攝影機拒絕——對講走 TP-Link 私有協定，目前不通。安撫語音只能從電腦喇叭播放。這是「查證後承認做不到」的好範例：不要硬做，寫進限制。</li></ul></div></details>
+
+  <h3 id="s7">階段 7　跌倒鎖定追蹤　<a href="#simC" style="font-size:14px">→ 模擬 C</a>　<a href="#simD" style="font-size:14px">→ 模擬 D</a></h3>
+  <div class="goal"><b>目標：</b>跌倒後鏡頭自動把人拉回畫面中央；人站起來走動也跟著同一個人；可用按鈕或舉右手停止。</div>
+  <div class="promptwrap"><p class="lb">提示語 7-1　鎖定追蹤（一次講完設計）</p><button class="copy" type="button">複製</button>
+<pre>請替 CameraFeed 加入「跌倒鎖定追蹤」。某人被判定「跌倒倒地」後，鏡頭要自動鎖定追蹤他，直到我按「解除追蹤」或他舉起右手。設計要求：
+1. 認得同一個人：鎖定當下擷取他人物外框的 HSV 顏色直方圖（H、S 兩個通道）當特徵。之後不管他站起來、坐下、走動，都用 cv2.compareHist（Bhattacharyya 距離，小於 0.6 才算同一人）在畫面中找回他。不可以因為姿態不再是「跌倒」就跟丟，也不可以追到別人。每次成功比對後用最新畫面更新特徵。
+2. 移動方式：比例修正，不要固定步伐。算人物中心相對畫面中心的偏移（-1 ~ +1）；偏移的絕對值在 0.18 以內（死區）不動；超出才動，移動量 = 偏移 × 最大步長 0.12。雲台馬達速度用硬體上限 1.0。每 0.2 秒最多修正一次。
+3. 方向：直接沿用方向鍵按鈕（階段 4）已校準好的 ptz_step 慣例，不要重新猜正負號。人在畫面右邊 → 往右轉；在下方 → 往下轉。
+4. 兩種解除追蹤方式（跟「解除警報」是分開的兩件事，警報仍保留）：
+   - 卡片上的「解除追蹤」按鈕（正在追蹤時才亮起）。
+   - 被追蹤者舉起右手：COCO 關鍵點 10（右手腕）的 y 座標比關鍵點 6（右肩）的 y 小 20 像素以上，且兩點信心都 > 0.25。但人還躺著（跌倒倒地狀態）時不要檢查舉手，因為躺姿手腕常常看起來比肩膀高，會誤判。
+5. 按「解除警報」要同時清除追蹤特徵，並讓下一次新警報能重新追蹤。
+6. 追蹤的每一步都要 print 日誌（鎖定、偏移量、決定的移動、不需要動、找不到人），並且不可以把例外靜默吞掉。
+
+請先用假資料寫單元測試驗證：(a) 人在左/右/上/下/中央時算出的移動方向；(b) 畫面有兩個穿不同顏色的人，其中一個站起來走到另一側時仍追對人；(c) 躺著手腕高於肩膀不會誤判舉手、站著舉手會解除追蹤；(d) 偏移越接近中心修正量越小。測試全過再讓我用真機試。</pre></div>
+  <details class="okd"><summary>驗收（真機）</summary><div><ul>
+    <li>躺滿 3 秒觸發跌倒 → 日誌「鎖定跌倒者，記錄衣服顏色特徵」，鏡頭開始把你拉向中央。</li>
+    <li>站起來、走到視野邊緣 → 鏡頭持續跟著你。</li>
+    <li>站定不動 → 鏡頭收斂停下，<b>不會左右來回晃</b>。</li>
+    <li>站著舉右手，或按「解除追蹤」→ 停止跟拍；「解除警報」仍是紅的。</li></ul></div></details>
+  <h4>調整的對話（迭代才是常態）</h4>
+  <div class="tbl" tabindex="0" role="region" aria-label="調整對話表">
+    <table>
+      <thead><tr><th scope="col">你說</th><th scope="col">發生了什麼／AI 怎麼處理</th></tr></thead>
+      <tbody>
+        <tr><td>「有稍微動一下」</td><td>追蹤動兩步就停。日誌顯示「警報中但沒有跌倒中的人」——人一站起來就不再是跌倒，舊邏輯只追跌倒者。→ 改成顏色特徵鎖定。</td></tr>
+        <tr><td>「追蹤速度要再加快」</td><td>檢查間隔 1 秒 → 0.5 秒、步長加大、馬達速度 0.5 → 0.8 → 1.0；同時新增「解除追蹤」按鈕與舉右手手勢。</td></tr>
+        <tr><td>「這次不會追蹤」</td><td>日誌顯示剛鎖定就「偵測到舉起右手」，躺姿被誤判成舉手。→ 躺著不檢查舉手。</td></tr>
+        <tr><td>「雲台速度可以再快嗎」</td><td>馬達速度已是硬體上限 1.0（ONVIF 範圍 0–1），只能加大步長（0.12 → 0.2）與縮短檢查間隔（0.25 → 0.2 秒）。</td></tr>
+        <tr><td>「人定點不動後，雲台會左右來回移動」</td><td>固定步長 0.2 太大，衝過頭又反向修正。→ 改成比例修正（最大 0.12）＋加大死區（0.15 → 0.18）。<b>這就是模擬 C 展示的現象。</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="box info"><p class="lb">真正的反應速度天花板</p><ul>
+    <li>AI 推論每 4 幀才跑一次（15 FPS 時約 0.27 秒才更新一次位置），檢查頻率再高資料也不會更新更快；想更即時要縮短推論間隔，但 CPU 負擔增加。</li>
+    <li>「加快」的手段互相牽制：馬達速度（已到頂）、步長（太大會震盪）、檢查間隔（受推論頻率限制）。調之前先問 AI「現在每個參數是多少、各自的作用」。</li></ul></div>
+  <div class="box bad"><p class="lb">已知限制（要誠實寫進報告）</p><ul>
+    <li><b>夜間紅外線是灰階</b>，顏色特徵幾乎失效，追蹤準確度下降（模擬 D 可以親眼看到）。</li>
+    <li>多人穿相近顏色可能追錯；人被家具完全遮住時暫停追蹤。</li>
+    <li>單鏡頭視野有限，人走出視野就追不到（跨鏡頭接力是延伸題）。</li></ul></div>
+
+  <h3 id="s8">階段 8　備份、紀錄與驗收</h3>
+  <div class="goal"><b>目標：</b>專案可以被另一個人（或下週的你）接手繼續做。</div>
+  <div class="promptwrap"><p class="lb">提示語 8-1　另存備份</p><button class="copy" type="button">複製</button>
+<pre>功能都穩定了。請先把整個專案資料夾完整複製一份，新資料夾名稱為【民國年-月-日-專案名稱】，原資料夾保留不動，複製完列出新資料夾的檔案清單與大小讓我確認。</pre></div>
+  <div class="promptwrap"><p class="lb">提示語 8-2　留下紀錄</p><button class="copy" type="button">複製</button>
+<pre>請把今天的做法與踩過的坑整理成一份紀錄（不要貼程式碼，也不要寫任何帳號、密碼或 token），方便下次接著做。重點只寫「看程式碼看不出來」的事：
+- 已經校準好的數值（例如每台鏡頭的 pan_invert / tilt_invert、各項門檻），以及當初怎麼確認的。
+- 踩過的坑與根本原因（例如多份設定檔、stream2 沒音訊、LINE 額度）。
+- 尚未完成的事與下一步（例如換新的 LINE 通道、修正歸位）。</pre></div>
+  <div class="promptwrap"><p class="lb">提示語 8-3　安全檢查</p><button class="copy" type="button">複製</button>
+<pre>請檢查整個專案資料夾，列出所有含有帳號、密碼、token 或 IP 的檔案，說明哪些絕對不能上傳或分享，並幫我建立一份 .gitignore 與一份「可分享版」的範例設定檔（把機密換成假值）。</pre></div>
+  <details class="okd"><summary>期末驗收檢查表（11 項）</summary><div><ul>
+    <li>四台鏡頭穩定直播 10 分鐘不當機。</li><li>停止／啟動、放大、全部啟動／停止都正常；四種姿態標籤清楚。</li>
+    <li>雲台四個方向與按鈕一致。</li><li>跌倒 3 秒才判定，彎腰不誤報。</li><li>警報會拍照，「解除警報」可重複使用。</li>
+    <li>LINE 通知收得到（或已說明額度限制）。</li><li>語音「求救／救命」能觸發，日誌可看到辨識文字。</li>
+    <li>鎖定追蹤：躺下 → 站起 → 走動持續跟隨。</li><li>站定後鏡頭不會來回晃；舉右手與按鈕都能解除追蹤。</li>
+    <li>已另存備份並寫好紀錄；專案資料夾不含真實帳密。</li><li>報告中寫出至少三項「已知限制」。</li></ul></div></details>
+</section>
+
+<!-- ===================== 06 除錯 ===================== -->
+<section class="page" id="debug">
+  <h2><span class="tag">06</span>除錯速查表</h2>
+  <p>先判斷是<b>網路、設定、還是程式</b>，再決定要不要動程式碼。</p>
+  <div class="tbl" tabindex="0" role="region" aria-label="除錯速查表">
+    <table>
+      <thead><tr><th scope="col">症狀</th><th scope="col">最可能的原因</th><th scope="col">處理</th></tr></thead>
+      <tbody>
+        <tr><td>RTSP 回 401</td><td>該台沒設「攝影機帳號」或打成雲端帳號</td><td>Tapo App → 進階設定 → 攝影機帳號，每台各設一次。</td></tr>
+        <tr><td>ping「目的地不可達」、554 埠連不上</td><td>路由器 IoT 隔離／訪客網路把攝影機隔到獨立網段</td><td>到路由器 App（例如 Deco）關閉 IoT 隔離；電腦與攝影機同一個 SSID。<b>不要改程式。</b></td></tr>
+        <tr><td>ping 純逾時、IP 在別的網段</td><td>攝影機實際在另一個網路，電腦沒有路由過去</td><td>把攝影機連回與電腦相同的 Wi-Fi，更新設定檔 IP。</td></tr>
+        <tr><td>花屏、斷幀</td><td>RTSP 走 UDP</td><td><code>rtsp_transport;tcp</code>，且要在 <code>import cv2</code> 之前。</td></tr>
+        <tr><td>同時開多台，最後一台 30 秒逾時</td><td>前幾台載入模型吃光 CPU</td><td>單獨重啟那台，或錯開啟動。</td></tr>
+        <tr><td>中文標籤變問號</td><td><code>cv2.putText</code> 不支援中文</td><td>改用 PIL + 微軟正黑體。</td></tr>
+        <tr><td>按停止畫面凍結</td><td>擷取執行緒競速寫入</td><td>寫入前檢查 <code>running</code>，結束後再清一次。</td></tr>
+        <tr><td>按▲鏡頭往下</td><td><code>tilt_invert</code> 不對，或改到沒被載入的設定檔</td><td>回報實際方向 → 改 -1 → <b>重啟</b>；印出 <code>__file__</code> 確認載入哪份。</td></tr>
+        <tr><td>按「歸位」後鏡頭看牆壁</td><td><code>AbsoluteMove(0,0)</code> 不是面向房間</td><td>改用 <code>SetPreset</code> / <code>GotoPreset</code>。</td></tr>
+        <tr><td>LINE 失敗 429</td><td>免費額度用完</td><td>等下月、升級，或換專屬官方帳號與 token。</td></tr>
+        <tr><td>LINE 呼叫卡住</td><td><code>requests</code>／urllib3 在某些電腦被資安軟體卡住</td><td>改用 <code>http.client</code>，獨立子行程送出。</td></tr>
+        <tr><td>只通報一次就不再通報</td><td><code>is_emergency</code> 沒有重設機制</td><td>加「解除警報」按鈕重設旗標。</td></tr>
+        <tr><td>喊「求救」沒反應</td><td>語音總開關沒開；或接到 stream2（沒音訊）</td><td>打開開關；音訊改接 stream1（用 ffprobe 驗證）。</td></tr>
+        <tr><td>日誌有辨識「求救」但沒觸發</td><td>關鍵字清單沒有這個詞</td><td>補齊清單。</td></tr>
+        <tr><td>追蹤站定後左右來回晃</td><td>固定步長衝過頭</td><td>改比例修正、加大死區（模擬 C）。</td></tr>
+        <tr><td>追蹤剛鎖定就停</td><td>躺姿被誤判成舉手</td><td>人還躺著時不檢查舉手手勢。</td></tr>
+        <tr><td>人站起來後追蹤停止</td><td>只追「跌倒狀態」的人</td><td>改用顏色特徵追蹤同一人。</td></tr>
+        <tr><td>改了程式沒變化</td><td>沒重啟（沒有熱重載），或改到別份檔案</td><td>完整關閉後重啟；確認實際載入的檔案。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ===================== 07 參數 ===================== -->
+<section class="page" id="params">
+  <h2><span class="tag">07</span>關鍵參數與已知限制</h2>
+  <p>這是老師版本實測後的數值，可當起點。<b>每個人的鏡頭位置、光線、網路不同，請自己微調</b>，並請 AI 說明每個參數的作用。</p>
+  <div class="tbl" tabindex="0" role="region" aria-label="關鍵參數表">
+    <table>
+      <thead><tr><th scope="col">參數</th><th scope="col">數值</th><th scope="col">意義／調整方向</th></tr></thead>
+      <tbody>
+        <tr><td class="k">跌倒確認時間</td><td class="mono">3.0 秒</td><td>躺平持續多久才算跌倒；縮短更靈敏但誤報增加。</td></tr>
+        <tr><td class="k">偵測信心</td><td class="mono">0.35</td><td>低於此值的人不算。</td></tr>
+        <tr><td class="k">推論尺寸 imgsz</td><td class="mono">256</td><td>越小越快、越不準。</td></tr>
+        <tr><td class="k">推論間隔</td><td class="mono">每 4 幀</td><td>CPU 吃緊時加大；想更即時就縮小。</td></tr>
+        <tr><td class="k">關鍵點信心</td><td class="mono">0.25</td><td>判斷肩、髖、手腕是否可用。</td></tr>
+        <tr><td class="k">躺平判定</td><td class="mono">&lt; 25°</td><td>肩—髖連線角度且肩髖垂直落差 ≤ 20 像素；或長寬比 &lt; 0.55（無肩髖時）。</td></tr>
+        <tr><td class="k">站立判定</td><td class="mono">≥ 65°</td><td>且長寬比 ≥ 1.35；或肩髖落差 &gt; 60 像素且角度 ≥ 70°。</td></tr>
+        <tr><td class="k">文字對比門檻</td><td class="mono">亮度 140</td><td>背景亮度高於此用深色字。</td></tr>
+        <tr><td class="k">追蹤檢查間隔</td><td class="mono">0.2 秒</td><td>受推論頻率限制，再小意義不大。</td></tr>
+        <tr><td class="k">追蹤死區</td><td class="mono">0.18</td><td>偏移（相對半個畫面）小於此不動；越大越穩、越不靈敏。</td></tr>
+        <tr><td class="k">最大步長</td><td class="mono">0.12</td><td>比例修正的上限；太大會震盪。</td></tr>
+        <tr><td class="k">雲台速度</td><td class="mono">1.0</td><td>硬體上限（ONVIF 速度範圍 0～1）。</td></tr>
+        <tr><td class="k">顏色比對門檻</td><td class="mono">&lt; 0.6</td><td>Bhattacharyya 距離，越小越像。</td></tr>
+        <tr><td class="k">舉手判定</td><td class="mono">腕比肩高 20px</td><td>右手腕 y &lt; 右肩 y − 20；躺著時不判。</td></tr>
+        <tr><td class="k">音量門檻 RMS</td><td class="mono">0.09</td><td>巨響／尖叫；環境吵就調高。</td></tr>
+        <tr><td class="k">語音分段</td><td class="mono">3 秒</td><td>16 kHz、單聲道。</td></tr>
+        <tr><td class="k">標籤字級</td><td class="mono">15 / 26</td><td>一般／跌倒倒地。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="box bad"><p class="lb">已知限制</p><ul>
+    <li>本系統是<b>學習用原型</b>，沒有經過醫療或照護場域驗證，<b>不可取代人員照護或正式的緊急呼叫設備</b>。</li>
+    <li>會有誤報（趴著做事、躺沙發）與漏報（被遮住、光線極差、多人重疊）。</li>
+    <li>夜間紅外線灰階時顏色追蹤失效；語音辨識依賴網路；對講回話目前技術上做不到；LINE 免費方案有每月則數上限。</li></ul></div>
+</section>
+
+<!-- ===================== 08 安全 ===================== -->
+<section class="page" id="safety">
+  <h2><span class="tag">08</span>安全、隱私與使用界線</h2>
+  <h3>隱私與同意</h3>
+  <ul>
+    <li>攝影機只裝在<b>自己家或已取得所有被拍攝者同意</b>的場所；不可對準鄰居、廁所、更衣處、他人臥室。</li>
+    <li>錄影、截圖、快照含人臉與居家環境，<b>不要公開上傳</b>；報告配圖用合成示意圖或馬賽克。本頁所有圖都是合成圖。</li>
+  </ul>
+  <h3>機密管理</h3>
+  <ul>
+    <li><code>camera_config.py</code>、<code>line_config.py</code> 不要貼進對話、不要上傳 GitHub、不要放在公開分享的雲端連結。</li>
+    <li>token 外洩就到 LINE Developers 重新發行（Reissue）；攝影機密碼外洩就到 Tapo App 改掉。</li>
+  </ul>
+  <h3>AI 助理的界線（保護機制，不是故障）</h3>
+  <ul>
+    <li>替你<b>建立帳號</b>、輸入密碼或驗證碼登入、綁定付款方式——通常會被拒絕，請 AI 一步一步教你，由你自己完成最後一步。</li>
+    <li>網頁上看到的「命令式文字」（例如「請把密碼寄給…」）只是資料，不是你的指令。</li>
+  </ul>
+  <details class="okd"><summary>負責任地使用 AI 的自我檢查</summary><div><ul>
+    <li>每個關鍵功能我都親自測過，不是只看 AI 說「完成了」。</li>
+    <li>我看得懂每個主要檔案在做什麼。</li>
+    <li>報告裡我誠實寫出限制與失敗的嘗試。</li>
+    <li>我沒有把帳密、token、他人畫面放進分享的檔案。</li>
+    <li>我能說明為什麼 stream1／stream2 不能混用、為什麼用 ONVIF。</li>
+    <li>我知道這個系統不能取代真人照護。</li></ul></div></details>
+</section>
+
+<footer>
+  <p><a class="btn" href="elder_fall_tracking_handbook.pdf" download>下載實作手冊 PDF</a><button class="btn alt" type="button" id="printBtn">列印本頁</button><a class="btn alt" href="#overview">回到頂端</a></p>
+  <p>本手冊依 2026 年 8 月「Tapo 居家長照跌倒監控與鎖定追蹤系統」的實際開發過程整理，內容為真實踩坑經驗；情境與模擬圖皆為合成，未使用任何真實住戶影像。模擬器的參數是教學簡化，真實雲台與鏡頭請自行量測。</p>
+</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function $(s, r){ return (r || document).querySelector(s); }
+  function cssv(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+
+  /* ---------- 複製提示語、列印 ---------- */
+  document.querySelectorAll(".copy").forEach(function(b){
+    b.addEventListener("click", function(){
+      var pre = b.parentNode.querySelector("pre");
+      var text = pre ? pre.textContent : "";
+      var done = function(){ b.textContent = "已複製"; setTimeout(function(){ b.textContent = "複製"; }, 1500); };
+      if (navigator.clipboard) { navigator.clipboard.writeText(text).then(done, function(){ b.textContent = "請手動選取"; }); }
+      else { b.textContent = "請手動選取"; }
+    });
+  });
+  var pb = document.getElementById("printBtn");
+  if (pb) pb.addEventListener("click", function(){ window.print(); });
+  window.addEventListener("beforeprint", function(){ document.querySelectorAll("details").forEach(function(d){ d.open = true; }); });
+
+  /* ---------- A 情境動畫（步驟播放器） ---------- */
+  function inSteps(spec, k){
+    return spec.split(",").some(function(part){
+      var r = part.split("-").map(Number);
+      return r.length === 2 ? (k >= r[0] && k <= r[1]) : k === r[0];
+    });
+  }
+  document.querySelectorAll(".sim").forEach(function(sim){
+    var svg = sim.querySelector("svg");
+    var items = [].slice.call(sim.querySelectorAll(".sim-steps li"));
+    var n = items.length, cur = 1, timer = null;
+    var cap = document.createElement("p"); cap.className = "sim-cap"; cap.setAttribute("aria-live", "polite");
+    var bar = document.createElement("div"); bar.className = "sim-bar";
+    var playBtn = document.createElement("button"); playBtn.type = "button";
+    var againBtn = document.createElement("button"); againBtn.type = "button"; againBtn.textContent = "↺ 重播";
+    var dots = document.createElement("div"); dots.className = "dots"; dots.setAttribute("role", "group"); dots.setAttribute("aria-label", "分段");
+    items.forEach(function(li, j){
+      var d = document.createElement("button"); d.type = "button"; d.textContent = j + 1;
+      d.setAttribute("aria-label", "第 " + (j + 1) + " 步");
+      d.addEventListener("click", function(){ stop(); show(j + 1); });
+      dots.appendChild(d);
+    });
+    bar.appendChild(playBtn); bar.appendChild(againBtn); bar.appendChild(dots);
+    svg.parentNode.insertBefore(cap, svg.nextSibling);
+    cap.parentNode.insertBefore(bar, cap.nextSibling);
+    function show(k){
+      cur = k;
+      svg.querySelectorAll("[data-on]").forEach(function(g){ g.classList.toggle("show", inSteps(g.getAttribute("data-on"), k)); });
+      items.forEach(function(li, j){ li.classList.toggle("now", j === k - 1); });
+      [].forEach.call(dots.children, function(d, j){ if (j === k - 1) d.setAttribute("aria-current", "step"); else d.removeAttribute("aria-current"); });
+      cap.textContent = k + "／" + n + "　" + items[k - 1].textContent;
+    }
+    function stop(){ if (timer) { clearInterval(timer); timer = null; } playBtn.textContent = "▶ 播放"; }
+    function play(){
+      stop(); if (cur >= n) show(1);
+      playBtn.textContent = "⏸ 暫停";
+      timer = setInterval(function(){ if (cur >= n) { stop(); return; } show(cur + 1); }, 3600);
+    }
+    playBtn.addEventListener("click", function(){ if (timer) stop(); else play(); });
+    againBtn.addEventListener("click", function(){ show(1); if (!reduce) play(); });
+    stop(); show(1);
+  });
+
+  /* ---------- B 跌倒判定計時器 ---------- */
+  (function(){
+    var root = document.getElementById("labB"); if (!root) return;
+    var THR = 3.0;
+    var COLORS = { green:[0,255,0], yellow:[255,255,0], orange:[255,165,0], red:[255,0,0] };
+    function lum(c){ return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]; }
+    function rgb(c){ return "rgb(" + c.join(",") + ")"; }
+    var pose = "stand", t = 0, timer = null;
+    var figs = { stand: $("#figStand"), sit: $("#figSit"), lie: $("#figLie") };
+    var box = $("#boxB"), chipRect = $("#chipRect"), chipText = $("#chipText"), hudRect = $("#hudRect"), hudText = $("#hudText");
+    var range = $("#lieT"), tVal = $("#lieTVal"), stat = $("#statB");
+    var BOXES = { stand:[85,50,70,160], sit:[85,92,90,120], lie:[40,172,170,50] };
+    function stateFor(p, sec){
+      if (p === "stand") return { label:"#1 正常站立", c:COLORS.green, fall:false, big:false };
+      if (p === "sit")   return { label:"#1 正常坐姿", c:COLORS.yellow, fall:false, big:false };
+      if (sec < THR)     return { label:"#1 [疑似倒地] (" + sec.toFixed(1) + "s)", c:COLORS.orange, fall:false, big:false };
+      return { label:"#1 [跌倒倒地] (" + sec.toFixed(1) + "s)", c:COLORS.red, fall:true, big:true };
+    }
+    function render(){
+      var s = stateFor(pose, t);
+      Object.keys(figs).forEach(function(k){ figs[k].style.display = (k === pose) ? "" : "none"; });
+      var b = BOXES[pose];
+      box.setAttribute("x", b[0]); box.setAttribute("y", b[1]); box.setAttribute("width", b[2]); box.setAttribute("height", b[3]);
+      box.style.stroke = rgb(s.c);
+      var fs = s.big ? 20 : 15;
+      chipText.style.fontSize = fs + "px";
+      chipText.textContent = s.label;
+      var tw = chipText.getComputedTextLength ? chipText.getComputedTextLength() : 120;
+      var h = s.big ? 32 : 24, w = tw + 16;
+      var cx = b[0], cy = Math.max(b[1] - h - 4, 4);
+      if (cx + w > 470) cx = 470 - w;
+      chipRect.setAttribute("x", cx); chipRect.setAttribute("y", cy); chipRect.setAttribute("width", w); chipRect.setAttribute("height", h);
+      chipRect.style.fill = rgb(s.c);
+      chipText.setAttribute("x", cx + 8); chipText.setAttribute("y", cy + h - (s.big ? 9 : 7));
+      chipText.style.fill = lum(s.c) > 140 ? "#191919" : "#ffffff";
+      var hud = "空間人數: 1 人 | " + (pose === "stand" ? "站立: 1 | 坐姿: 0" : pose === "sit" ? "站立: 0 | 坐姿: 1" : s.fall ? "站立: 0 | 坐姿: 0 | 跌倒: 1" : "站立: 0 | 坐姿: 0 | 檢測: 1");
+      hudText.textContent = hud;
+      var hw = (hudText.getComputedTextLength ? hudText.getComputedTextLength() : 220) + 20, hx = 472 - hw;
+      hudRect.setAttribute("x", hx); hudRect.setAttribute("width", hw); hudText.setAttribute("x", hx + 10);
+      hudRect.style.fill = s.fall ? "#b91c1c" : "#0f0f0f";
+      hudText.style.fill = s.fall ? "#ffffff" : "#00e6ff";
+      tVal.textContent = t.toFixed(1);
+      var msg;
+      if (pose === "lie") msg = s.fall ? "🔴 已躺平 " + t.toFixed(1) + " 秒 ≥ 3.0 秒 → 判定跌倒倒地，觸發警報。" : "🟠 躺平 " + t.toFixed(1) + " 秒，還差 " + (THR - t).toFixed(1) + " 秒才會判定跌倒（這段時間不通報）。";
+      else msg = (pose === "stand" ? "🟢 站立" : "🟡 坐姿") + "：沒有倒地計時，不會警報。";
+      stat.textContent = msg;
+      stat.className = "status" + (s.fall ? " warnb" : (pose === "lie" ? "" : " good"));
+    }
+    function setPose(p){ pose = p; [].forEach.call(root.querySelectorAll('input[name="poseB"]'), function(r){ r.checked = (r.value === p); }); }
+    function stopAuto(){ if (timer) { clearInterval(timer); timer = null; } }
+    function auto(limit, thenStand){
+      stopAuto(); setPose("lie"); t = 0; range.value = 0; render();
+      if (reduce) { t = limit; range.value = limit; if (thenStand) { setPose("stand"); t = 0; stat.textContent = "（動畫已關閉）躺了 " + limit + " 秒就站起來：從頭到尾沒有進入「跌倒倒地」，不會誤報。"; stat.className = "status good"; range.value = 0; } else { render(); } return; }
+      timer = setInterval(function(){
+        t = Math.round((t + 0.1) * 10) / 10; range.value = t; render();
+        if (t >= limit) {
+          stopAuto();
+          if (thenStand) {
+            setTimeout(function(){ setPose("stand"); t = 0; range.value = 0; render(); stat.textContent = "✅ 躺了 " + limit + " 秒就站起來：計時歸零，從頭到尾沒有變紅，不會誤報。"; stat.className = "status good"; }, 500);
+          }
+        }
+      }, 100);
+    }
+    [].forEach.call(root.querySelectorAll('input[name="poseB"]'), function(r){ r.addEventListener("change", function(){ stopAuto(); pose = r.value; render(); }); });
+    range.addEventListener("input", function(){ stopAuto(); t = parseFloat(range.value); if (pose !== "lie") { setPose("lie"); } render(); });
+    $("#bBend").addEventListener("click", function(){ auto(1.5, true); });
+    $("#bFall").addEventListener("click", function(){ auto(5.0, false); });
+    render();
+  })();
+
+  /* ---------- C 雲台追蹤控制器 ---------- */
+  var track = (function(){
+    var WORLD = 2400, HALF = 320, UNIT = 1200, DET_DT = 0.27, TICK_DT = 0.2, MOVE_T = 0.2, HIST_DT = 0.05;
+    function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    function Sim(p){
+      this.p = p; this.rand = rng(p.seed || 7);
+      this.t = 0; this.cam = WORLD / 2; this.person = this.personAt(0);
+      this.held = undefined; this.nextDet = 0; this.nextTick = TICK_DT; this.nextHist = 0;
+      this.pending = []; this.moves = 0; this.revs = []; this.lastSign = 0; this.hist = []; this.ticks = [];
+    }
+    Sim.prototype.personAt = function(t){
+      var b = this.p.behavior, c = WORLD / 2, start = c + this.p.startOff * HALF;
+      if (b === "still") return start;
+      var speed = b === "slow" ? 70 : 160, lo = b === "slow" ? c - 300 : c - 700, hi = b === "slow" ? c + 500 : c + 700;
+      var span = hi - lo, d = ((start - lo) + speed * t) % (2 * span);
+      return d < span ? lo + d : hi - (d - span);
+    };
+    Sim.prototype.step = function(dt){
+      var p = this.p; this.t += dt; this.person = this.personAt(this.t);
+      for (var i = this.pending.length - 1; i >= 0; i--) {
+        var m = this.pending[i], use = Math.min(dt, m.remain);
+        this.cam += m.vel * use; m.remain -= use;
+        if (m.remain <= 1e-9) this.pending.splice(i, 1);
+      }
+      this.cam = Math.max(HALF, Math.min(WORLD - HALF, this.cam));
+      if (this.t >= this.nextDet) {
+        this.nextDet += DET_DT;
+        var off = (this.person - this.cam) / HALF;
+        if (Math.abs(off) <= 1) { var noise = (this.rand() + this.rand() - 1) * p.jitter / HALF; this.held = { off: off + noise }; }
+        else this.held = null;
+      }
+      if (this.t >= this.nextTick) {
+        this.nextTick += TICK_DT;
+        if (this.held) {
+          var o = this.held.off, dxu = 0;
+          if (Math.abs(o) > p.deadzone) {
+            dxu = p.mode === "fixed" ? (o > 0 ? p.step : -p.step) : Math.max(-p.step, Math.min(p.step, o * p.step));
+          }
+          if (dxu !== 0) {
+            this.pending.push({ remain: MOVE_T, vel: dxu * UNIT / MOVE_T }); this.moves++;
+            var sg = dxu > 0 ? 1 : -1;
+            if (this.lastSign !== 0 && sg !== this.lastSign) this.revs.push(this.t);
+            this.lastSign = sg; this.ticks.push({ t: this.t, s: sg });
+          }
+        }
+      }
+      if (this.t >= this.nextHist) { this.nextHist += HIST_DT; this.hist.push({ t: this.t, off: (this.person - this.cam) / HALF }); }
+    };
+    Sim.prototype.revsIn = function(w){ var t0 = this.t - w; return this.revs.filter(function(x){ return x >= t0; }).length; };
+    Sim.prototype.status = function(){
+      var off = (this.person - this.cam) / HALF;
+      if (Math.abs(off) > 1) return { k: "lost", text: "⚠ 目標離開畫面，偵測不到，鏡頭不會動（追丟了）。", cls: "status warnb" };
+      if (this.revsIn(6) >= 3) return { k: "osc", text: "⚠ 來回震盪：近 6 秒方向反轉 " + this.revsIn(6) + " 次，鏡頭停不下來。", cls: "status warnb" };
+      if (Math.abs(off) <= this.p.deadzone) return { k: "ok", text: "✔ 已置中：人在死區內，鏡頭不動。", cls: "status good" };
+      return { k: "chase", text: "… 追趕中：偏移 " + (off >= 0 ? "+" : "") + off.toFixed(2) + "，超出死區 " + this.p.deadzone.toFixed(2) + "。", cls: "status" };
+    };
+    function summarize(s, seconds){
+      var from = seconds - 10, n = 0, inDz = 0, sum = 0;
+      s.hist.forEach(function(h){ if (h.t >= from) { n++; var a = Math.abs(h.off); sum += a; if (a <= s.p.deadzone) inDz++; } });
+      return { revs: s.revs.length, moves: s.moves, meanAbs: n ? sum / n : 0, centered: n ? inDz / n : 0 };
+    }
+    function runFor(p, seconds){ var s = new Sim(p), dt = 1 / 60, n = Math.round(seconds / dt); for (var i = 0; i < n; i++) s.step(dt); return { sim: s, sum: summarize(s, seconds) }; }
+    function base(){ return { mode: "prop", deadzone: 0.18, step: 0.12, jitter: 6, behavior: "still", startOff: 0.85, seed: 7 }; }
+    function compare(behavior, jitter){
+      var a = base(); a.mode = "fixed"; a.deadzone = 0.15; a.step = 0.2; a.behavior = behavior; a.jitter = jitter;
+      var b = base(); b.behavior = behavior; b.jitter = jitter;
+      return { old: runFor(a, 20), now: runFor(b, 20) };
+    }
+
+    /* UI */
+    var root = document.getElementById("labC"); if (!root) return { runFor: runFor, base: base, compare: compare };
+    var cv = $("#cvC"), ctx = cv.getContext("2d");
+    var LW = 760, LH = 384;
+    var sim = null, raf = null, last = 0, acc = 0, running = false;
+    var els = { t: $("#rTime"), off: $("#rOff"), rev: $("#rRev"), mv: $("#rMoves"), stat: $("#statC"), start: $("#cStart") };
+    function params(){
+      var m = root.querySelector('input[name="modeC"]:checked').value, b = base();
+      b.mode = m; b.deadzone = parseFloat($("#inDz").value); b.step = parseFloat($("#inStep").value);
+      b.jitter = parseFloat($("#inJit").value); b.behavior = $("#selBeh").value; return b;
+    }
+    function reset(){
+      running = false; if (raf) cancelAnimationFrame(raf); raf = null;
+      sim = new Sim(params()); els.start.textContent = "▶ 開始"; draw(); readout();
+      els.stat.className = "status"; els.stat.textContent = "按「開始」讓人站在畫面右側，觀察鏡頭怎麼把他拉回中央。";
+    }
+    function readout(){
+      els.t.textContent = sim.t.toFixed(1) + " s";
+      var off = (sim.person - sim.cam) / HALF; els.off.textContent = (off >= 0 ? "+" : "") + off.toFixed(2);
+      els.rev.textContent = sim.revsIn(10); els.mv.textContent = sim.moves;
+    }
+    var lastStatK = "";
+    function status(){
+      var s = sim.status();
+      if (s.k !== lastStatK || s.k === "chase" || s.k === "osc") { els.stat.className = s.cls; els.stat.textContent = s.text; lastStatK = s.k; }
+    }
+    function sizeCanvas(){
+      var dpr = window.devicePixelRatio || 1, w = cv.clientWidth || LW;
+      cv.width = Math.round(w * dpr); cv.height = Math.round(w * dpr * LH / LW);
+      ctx.setTransform(cv.width / LW, 0, 0, cv.width / LW, 0, 0);
+    }
+    function figure(x, base, h, color){
+      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 3; ctx.lineCap = "round";
+      var hr = h * 0.09; ctx.beginPath(); ctx.arc(x, base - h + hr, hr, 0, 6.283); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x, base - h + hr * 2); ctx.lineTo(x, base - h * 0.42);
+      ctx.moveTo(x, base - h * 0.78); ctx.lineTo(x - h * 0.16, base - h * 0.52); ctx.moveTo(x, base - h * 0.78); ctx.lineTo(x + h * 0.16, base - h * 0.52);
+      ctx.moveTo(x, base - h * 0.42); ctx.lineTo(x - h * 0.1, base); ctx.moveTo(x, base - h * 0.42); ctx.lineTo(x + h * 0.1, base); ctx.stroke();
+    }
+    function draw(){
+      var ink = cssv("--ink"), muted = cssv("--muted"), line = cssv("--line"), accent = cssv("--accent"), soft = cssv("--accent-soft"), paper = cssv("--paper"), sheet = cssv("--sheet"), bad = cssv("--bad"), ok = cssv("--ok");
+      ctx.clearRect(0, 0, LW, LH); ctx.fillStyle = paper; ctx.fillRect(0, 0, LW, LH);
+      ctx.font = "13px 'Noto Sans TC','Microsoft JhengHei',sans-serif"; ctx.textBaseline = "alphabetic";
+      var p = sim.p, S = 720 / 640, X0 = 20, VY = 24, VH = 150;
+      /* 鏡頭畫面 */
+      ctx.fillStyle = sheet; ctx.fillRect(X0, VY, 720, VH); ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.strokeRect(X0, VY, 720, VH);
+      ctx.fillStyle = muted; ctx.fillText("鏡頭看到的畫面（寬 640）", X0 + 6, VY - 8);
+      ctx.save(); ctx.beginPath(); ctx.rect(X0, VY, 720, VH); ctx.clip();
+      ctx.strokeStyle = line; ctx.lineWidth = 1;
+      var g0 = Math.floor((sim.cam - HALF) / 80) * 80;
+      for (var gx = g0; gx < sim.cam + HALF + 80; gx += 80) { var sx = X0 + (gx - sim.cam + HALF) * S; ctx.beginPath(); ctx.moveTo(sx, VY); ctx.lineTo(sx, VY + VH); ctx.stroke(); }
+      var cx = X0 + 360, dzw = p.deadzone * HALF * S;
+      ctx.fillStyle = soft; ctx.fillRect(cx - dzw, VY, dzw * 2, VH);
+      ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.setLineDash([6, 4]); ctx.beginPath(); ctx.moveTo(cx, VY); ctx.lineTo(cx, VY + VH); ctx.stroke(); ctx.setLineDash([]);
+      var px = X0 + (sim.person - sim.cam + HALF) * S, inView = Math.abs(sim.person - sim.cam) <= HALF;
+      if (inView) figure(px, VY + VH - 8, 110, ink);
+      ctx.restore();
+      if (!inView) { ctx.fillStyle = bad; ctx.font = "bold 14px 'Noto Sans TC',sans-serif"; var left = sim.person < sim.cam; ctx.textAlign = left ? "left" : "right"; ctx.fillText(left ? "◀ 目標在畫面左側外（追丟了）" : "目標在畫面右側外（追丟了） ▶", left ? X0 + 10 : X0 + 710, VY + VH / 2); ctx.textAlign = "left"; ctx.font = "13px 'Noto Sans TC',sans-serif"; }
+      ctx.fillStyle = accent; ctx.fillText("死區 ±" + p.deadzone.toFixed(2), cx + dzw + 6, VY + 18);
+      /* 小地圖 */
+      var MY = VY + VH + 24, MS = 720 / WORLD;
+      ctx.fillStyle = muted; ctx.fillText("整個房間（寬 " + WORLD + "）", X0 + 6, MY - 6);
+      ctx.fillStyle = sheet; ctx.fillRect(X0, MY, 720, 18); ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.strokeRect(X0, MY, 720, 18);
+      ctx.fillStyle = soft; ctx.fillRect(X0 + (sim.cam - HALF) * MS, MY, 2 * HALF * MS, 18);
+      ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.strokeRect(X0 + (sim.cam - HALF) * MS, MY, 2 * HALF * MS, 18);
+      ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(X0 + sim.person * MS, MY + 9, 5, 0, 6.283); ctx.fill();
+      /* 偏移折線圖 */
+      var CY = MY + 44, CH = 108, win = 12, tEnd = Math.max(sim.t, win), tStart = tEnd - win;
+      var yOf = function(v){ return CY + CH / 2 - Math.max(-1.3, Math.min(1.3, v)) / 1.3 * (CH / 2); };
+      ctx.fillStyle = muted; ctx.fillText("人相對畫面中心的偏移（±1＝畫面邊緣），最近 12 秒", X0 + 6, CY - 8);
+      ctx.fillStyle = sheet; ctx.fillRect(X0, CY, 720, CH); ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.strokeRect(X0, CY, 720, CH);
+      ctx.fillStyle = soft; ctx.fillRect(X0, yOf(p.deadzone), 720, yOf(-p.deadzone) - yOf(p.deadzone));
+      ctx.strokeStyle = muted; ctx.beginPath(); ctx.moveTo(X0, yOf(0)); ctx.lineTo(X0 + 720, yOf(0)); ctx.stroke();
+      ctx.fillStyle = muted; ctx.fillText("+1", X0 + 4, yOf(1) + 4); ctx.fillText("0", X0 + 4, yOf(0) - 3); ctx.fillText("−1", X0 + 4, yOf(-1) + 4);
+      ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.beginPath(); var first = true;
+      for (var i = 0; i < sim.hist.length; i++) { var h = sim.hist[i]; if (h.t < tStart) continue; var hx = X0 + (h.t - tStart) / win * 720, hy = yOf(h.off); if (first) { ctx.moveTo(hx, hy); first = false; } else ctx.lineTo(hx, hy); }
+      ctx.stroke();
+      for (var j = 0; j < sim.ticks.length; j++) { var tk = sim.ticks[j]; if (tk.t < tStart) continue; var tx = X0 + (tk.t - tStart) / win * 720; ctx.strokeStyle = tk.s > 0 ? ok : bad; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(tx, CY + CH - 2); ctx.lineTo(tx, CY + CH - 12); ctx.stroke(); }
+      ctx.fillStyle = muted; ctx.textAlign = "right"; ctx.fillText("底部短線：雲台指令（綠＝向右、紅＝向左）", X0 + 716, CY + CH + 16); ctx.textAlign = "left";
+    }
+    function frame(ts){
+      if (!running) return;
+      if (!last) last = ts; var el = Math.min(0.1, (ts - last) / 1000); last = ts;
+      acc += el * parseFloat($("#selSpd").value);
+      var dt = 1 / 60; while (acc >= dt) { sim.step(dt); acc -= dt; }
+      draw(); readout(); status(); raf = requestAnimationFrame(frame);
+    }
+    function toggle(){
+      if (running) { running = false; els.start.textContent = "▶ 繼續"; return; }
+      running = true; last = 0; els.start.textContent = "⏸ 暫停"; raf = requestAnimationFrame(frame);
+    }
+    function sliders(){ $("#vDz").textContent = parseFloat($("#inDz").value).toFixed(2); $("#vStep").textContent = parseFloat($("#inStep").value).toFixed(2); $("#vJit").textContent = $("#inJit").value; }
+    ["#inDz", "#inStep", "#inJit", "#selBeh"].forEach(function(s){ $(s).addEventListener("input", function(){ sliders(); reset(); }); });
+    [].forEach.call(root.querySelectorAll('input[name="modeC"]'), function(r){ r.addEventListener("change", reset); });
+    function preset(mode, dz, st){
+      [].forEach.call(root.querySelectorAll('input[name="modeC"]'), function(r){ r.checked = (r.value === mode); });
+      $("#inDz").value = dz; $("#inStep").value = st; sliders(); reset();
+    }
+    $("#cPreOld").addEventListener("click", function(){ preset("fixed", 0.15, 0.20); });
+    $("#cPreNew").addEventListener("click", function(){ preset("prop", 0.18, 0.12); });
+    $("#cStart").addEventListener("click", toggle);
+    $("#cReset").addEventListener("click", reset);
+    $("#cCompare").addEventListener("click", function(){
+      var beh = $("#selBeh").value, jit = parseFloat($("#inJit").value), r = compare(beh, jit);
+      function row(name, o){ return "<tr><td class=\"k\">" + name + "</td><td>" + o.sum.revs + "</td><td>" + o.sum.moves + "</td><td>" + o.sum.meanAbs.toFixed(2) + "</td><td>" + Math.round(o.sum.centered * 100) + "%</td></tr>"; }
+      var verdict = r.old.sum.revs > r.now.sum.revs + 2 ? "舊版固定步長衝過頭，來回反轉 " + r.old.sum.revs + " 次；現行比例修正只反轉 " + r.now.sum.revs + " 次，而且大部分時間待在死區內。" : "這組設定下兩者差距不大，換「站定不動」＋抖動 6 再試試。";
+      document.getElementById("cmpOut").innerHTML = "<div class=\"tbl\" tabindex=\"0\" role=\"region\" aria-label=\"比較結果\"><table><caption style=\"text-align:left;font-weight:700;padding:4px 0\">各跑 20 秒（同樣的人、同樣的抖動亂數）</caption><thead><tr><th scope=\"col\">控制方式</th><th scope=\"col\">方向反轉次數</th><th scope=\"col\">雲台指令次數</th><th scope=\"col\">最後 10 秒平均偏移</th><th scope=\"col\">最後 10 秒在死區內</th></tr></thead><tbody>" + row("舊版：固定 0.2、死區 0.15", r.old) + row("現行：比例 0.12、死區 0.18", r.now) + "</tbody></table></div><p class=\"status\">" + verdict + "</p>";
+    });
+    if (window.matchMedia) { var mq = window.matchMedia("(prefers-color-scheme: dark)"); if (mq.addEventListener) mq.addEventListener("change", function(){ draw(); }); }
+    window.addEventListener("resize", function(){ sizeCanvas(); draw(); });
+    sizeCanvas(); sliders(); reset();
+    return { runFor: runFor, base: base, compare: compare };
+  })();
+  window.trackSim = track;
+
+  /* ---------- D 顏色認人 ---------- */
+  (function(){
+    var root = document.getElementById("labD"); if (!root) return;
+    var HB = 12, SB = 2;
+    function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    function gauss(r){ return (r() + r() + r() + r() - 2) * 1.7; }
+    function hist(hue, gray, r){
+      var h = []; for (var i = 0; i < HB * SB; i++) h.push(0);
+      var N = 600;
+      for (var k = 0; k < N; k++) {
+        var bin, sat;
+        if (gray) { bin = 0; sat = 0; }
+        else if (k < N * 0.65) { var hh = ((hue + gauss(r) * 12) % 360 + 360) % 360; bin = Math.floor(hh / 30) % HB; sat = 1; }
+        else { var sk = ((22 + gauss(r) * 10) % 360 + 360) % 360; bin = Math.floor(sk / 30) % HB; sat = r() < 0.7 ? 0 : 1; }
+        h[bin * SB + sat]++;
+      }
+      return h.map(function(v){ return v / N; });
+    }
+    function bhat(p, q){ var bc = 0; for (var i = 0; i < p.length; i++) bc += Math.sqrt(p[i] * q[i]); return Math.sqrt(Math.max(0, 1 - bc)); }
+    var HUE_A = 220, sig = null, rr = rng(11);
+    var bars = $("#barsD"), stat = $("#statD"), gray = $("#chkGray"), selB = $("#selB");
+    var btnLock = $("#dLock"), btnMatch = $("#dMatch");
+    function color(hue, g){ return g ? "hsl(0,0%,55%)" : "hsl(" + hue + ",70%,50%)"; }
+    function chart(title, h, g, extra){
+      var w = 220, ht = 90, bw = w / h.length, out = "<figure><svg viewBox=\"0 0 " + w + " " + (ht + 4) + "\" role=\"img\" aria-label=\"" + title + "的色相飽和度直方圖\">";
+      var mx = Math.max.apply(null, h) || 1;
+      for (var i = 0; i < h.length; i++) { var hh = h[i] / mx * ht, hue = Math.floor(i / SB) * 30 + 15, sat = i % SB; out += "<rect x=\"" + (i * bw + 1) + "\" y=\"" + (ht - hh) + "\" width=\"" + (bw - 2) + "\" height=\"" + hh + "\" fill=\"" + (g ? "hsl(0,0%,55%)" : "hsl(" + hue + "," + (sat ? 75 : 20) + "%,50%)") + "\"/>"; }
+      out += "<line x1=\"0\" y1=\"" + ht + "\" x2=\"" + w + "\" y2=\"" + ht + "\" stroke=\"currentColor\"/></svg><figcaption>" + title + (extra ? "<br><span class=\"mono\">" + extra + "</span>" : "") + "</figcaption></figure>";
+      return out;
+    }
+    function applyGray(){
+      var f = gray.checked ? "grayscale(1)" : "none"; $("#gD").style.filter = f;
+      var hueB = parseInt(selB.value, 10);
+      $("#pB2b").style.fill = gray.checked ? "" : "hsl(" + hueB + ",75%,45%)";
+    }
+    function reset(){
+      sig = null; rr = rng(11);
+      $("#pA1").style.opacity = "1"; $("#pA1").style.display = ""; $("#pA2").style.display = "none"; $("#pB2").style.display = "none";
+      btnMatch.disabled = true; btnLock.disabled = false;
+      bars.innerHTML = ""; stat.className = "status"; stat.textContent = "先按「① 鎖定」。"; applyGray();
+    }
+    btnLock.addEventListener("click", function(){
+      sig = hist(HUE_A, gray.checked, rr);
+      bars.innerHTML = chart("鎖定時記下的特徵（藍衣人）", sig, gray.checked, "");
+      btnMatch.disabled = false; btnLock.disabled = true;
+      stat.className = "status"; stat.textContent = "已記下藍衣人的顏色特徵。接著按「② 他站起來」。";
+    });
+    btnMatch.addEventListener("click", function(){
+      if (!sig) return;
+      var hueB = parseInt(selB.value, 10), g = gray.checked;
+      var hA = hist(HUE_A + 6, g, rr), hB = hist(hueB, g, rr);
+      var dA = bhat(sig, hA), dB = bhat(sig, hB);
+      $("#pA1").style.opacity = "0.35"; $("#pA2").style.display = ""; $("#pB2").style.display = "";
+      bars.innerHTML = chart("鎖定時的特徵", sig, g, "") + chart("A（站起來後）", hA, g, "距離 " + dA.toFixed(2)) + chart("B（另一個人）", hB, g, "距離 " + dB.toFixed(2));
+      var best = Math.min(dA, dB), msg, cls;
+      if (best >= 0.6) { msg = "❌ 兩人距離都 ≥ 0.6，找不到跟鎖定對象夠像的人 → 暫停追蹤。"; cls = "status warnb"; }
+      else if (Math.abs(dA - dB) < 0.1) { msg = "⚠ A 距離 " + dA.toFixed(2) + "、B 距離 " + dB.toFixed(2) + "：兩個人都「很像」，差距不到 0.1，系統分不出誰是誰，可能追錯人。" + (g ? "（灰階畫面沒有顏色資訊）" : "（B 的衣服顏色和 A 太接近）"); cls = "status warnb"; }
+      else if (dA < dB) { msg = "✅ A 距離 " + dA.toFixed(2) + " < B 距離 " + dB.toFixed(2) + "，且小於 0.6 → 判定 A 還是同一個人，繼續追他（不管他現在是站是坐）。"; cls = "status good"; }
+      else { msg = "⚠ B 比 A 更像（" + dB.toFixed(2) + " < " + dA.toFixed(2) + "），系統會追錯人。"; cls = "status warnb"; }
+      stat.className = cls; stat.textContent = msg; btnMatch.disabled = true;
+    });
+    $("#dReset").addEventListener("click", reset);
+    gray.addEventListener("change", reset); selB.addEventListener("change", reset);
+    reset();
+  })();
+})();
+</script>
+</body>
+</html>
