@@ -17,6 +17,7 @@ window.US_MAP = {
   "2340": { us: ["LITE", "COHR", "^SOX"], why: "第三代半導體與矽光子轉型" },
   "2455": { us: ["LITE", "COHR", "SWKS", "QRVO"], why: "化合物半導體(磷化銦、砷化鎵),對照光通訊與射頻" },
   "3265": { us: ["AMKR", "^SOX", "AVGO"], why: "封測(AI ASIC、FCBGA),對照封測與 ASIC 大廠" },
+  "2305": { us: ["LITE", "COHR", "CIEN"], why: "光電子設備供貨光模組廠(新易盛、中際旭創),對照美國光通訊股" },
   "2330": { us: ["TSM", "NVDA", "^SOX"], why: "台積電 ADR、AI 晶片客戶與半導體指數" },
   "2317": { us: ["NVDA", "SMCI", "DELL"], why: "AI 伺服器代工,對照品牌與伺服器廠" },
   "2408": { us: ["MU", "WDC", "^SOX"], why: "記憶體,對照美光與儲存廠" }
