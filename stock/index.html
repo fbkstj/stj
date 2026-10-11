@@ -152,6 +152,21 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 .md table{margin:8px 0;font-size:calc(12.5px*var(--fs))} .md td,.md th{vertical-align:top}
 .md .tbl{overflow:auto;margin:8px 0}
 .page .tbl{overflow:auto}
+.udn-row{display:grid;grid-template-columns:calc(52px*var(--fs)) calc(92px*var(--fs)) minmax(0,1fr);gap:4px 12px;align-items:baseline;padding:8px 10px;border-bottom:1px solid var(--line)}
+.udn-row:hover{background:var(--panel2)}
+.udn-row .tm{color:var(--mute);font-variant-numeric:tabular-nums}
+.udn-row .ct{font-size:calc(12px*var(--fs));color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.udn-row a{color:var(--text);text-decoration:none;font-weight:600}
+.udn-row a:hover{color:var(--accent);text-decoration:underline}
+.udn-row .tg{grid-column:3;display:flex;gap:6px;flex-wrap:wrap}
+.udn-day{padding:6px 10px;background:#12161d;color:var(--mute);font-size:calc(12px*var(--fs));position:sticky;top:0;z-index:1;border-bottom:1px solid var(--line)}
+.pwb{font-size:calc(11px*var(--fs));padding:0 6px;border-radius:8px;background:#3a2f12;color:#f5b942;margin-left:6px;font-weight:400}
+.tagc{font-size:calc(12px*var(--fs));padding:0 8px;border-radius:10px;background:#1c2a3d;color:#8ec5ff;cursor:pointer}
+.tagc.w{background:#3b2a12;color:#ffc86b}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
+.chips button{background:var(--panel);color:var(--mute);border:1px solid var(--line);border-radius:14px;padding:2px 12px;cursor:pointer;font:inherit}
+.chips button.on{background:var(--panel2);color:var(--text);border-color:var(--accent)}
+.udn-q{background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font:inherit;min-width:min(260px,100%)}
 .cmpchip{display:inline-block;margin:2px 4px 2px 0;padding:1px 8px;border:1px solid var(--line);border-radius:10px;cursor:pointer;white-space:nowrap;font-size:calc(12px*var(--fs))}
 .cmpchip:hover{border-color:var(--accent)}
 td.clk{cursor:pointer}
@@ -170,6 +185,7 @@ td.clk{cursor:pointer}
     <button data-t="tables">總覽表</button>
     <button data-t="cmp">台美對照</button>
     <button data-t="us">美股</button>
+    <button data-t="udn">經濟日報</button>
     <button data-t="digest">新聞彙整</button>
     <button data-t="calendar">行事曆 / 待追蹤</button>
   </nav>
@@ -213,6 +229,7 @@ td.clk{cursor:pointer}
 <section class="tab" id="t-tables"><div class="page"><div class="wrap" id="tables"></div></div></section>
 <section class="tab" id="t-cmp"><div class="page"><div class="wrap" id="cmp"></div></div></section>
 <section class="tab" id="t-us"><div class="page"><div class="wrap" id="us"></div></div></section>
+<section class="tab" id="t-udn"><div class="page"><div class="wrap" id="udn"></div></div></section>
 <section class="tab" id="t-digest"><div class="page"><div class="wrap" id="digest"></div></div></section>
 <section class="tab" id="t-calendar"><div class="page"><div class="wrap" id="calendar"></div></div></section>
 
@@ -225,6 +242,7 @@ td.clk{cursor:pointer}
 <script src="data/digest.js"></script>
 <script src="data/us.js"></script>
 <script src="data/us_map.js"></script>
+<script src="data/udn_today.js"></script>
 <script>
 (function(){
 "use strict";
@@ -260,7 +278,8 @@ $("#nav").addEventListener("click", e => {
   if(b.dataset.t==="view") { renderChart(); resizeCharts(); }
   if(b.dataset.t==="flow") renderFlow();
   if(b.dataset.t==="us") renderUS();
-  if(b.dataset.t==="cmp") renderCmp();   // 分頁顯示後才畫圖,避免寬度為 0
+  if(b.dataset.t==="cmp") renderCmp();
+  if(b.dataset.t==="udn") renderUdn();   // 分頁顯示後才畫圖,避免寬度為 0
 });
 // 依需要載入個股日 K(data/k/{代號}.js);自選股已在 prices.js 內
 const kLoading = {};
@@ -795,6 +814,72 @@ function renderCmp(){
       <b>台股收盤後美股累計</b>:台股最近收盤之後,對應美股累計的漲跌;超過 ±1% 標示偏多或偏空,僅為歷史連動的參考,<b>不是預測也不構成買賣建議</b>。個股對照關係可自行編輯 data/us_map.js。</div>`;
 }
 $("#cmp").addEventListener("click", e => { const t = e.target.closest("[data-c]"); if(t) gotoStock(t.dataset.c); });
+
+// ---------- 經濟日報(今天的最新財經新聞清單) ----------
+const udnState = {range:"today", cat:"全部", q:"", fin:true, watch:false, tag:""};
+const FIN_CATS = new Set(["證券","產業","金融","期貨","理財","房市","商情","專欄","行情"]);
+const FIN_RE = /股|營收|財報|法說|央行|升息|降息|利率|匯率|台幣|油價|金價|通膨|CPI|關稅|出口|進口|AI|晶片|半導體|台積|美股|費半|ETF|外資|投信|自營|市值|營運|目標價|獲利|EPS|殖利率|公債|原油|能源|貿易|供應鏈|訂單|產業|科技|房市|房價|銀行|保險|基金|比特幣|黃金|經濟|GDP|景氣|投資|資本|併購|增資|市場|電價|製造|工廠|營建|面板|記憶體|PCB|伺服器|輝達|蘋果|特斯拉|微軟|估值|財經|企業|上市|櫃買|證交所|金管會/;
+const NOISE_RE = /開獎|星座|大樂透|威力彩|今彩|賓果/;
+function udnIsFin(x){
+  if(NOISE_RE.test(x.title)) return false;
+  if(FIN_CATS.has(x.cat)) return true;
+  return x.tags.length > 0 || FIN_RE.test(x.title);
+}
+function renderUdn(){
+  const el = $("#udn"), D = window.UDN;
+  if(!D || !D.items.length){ el.innerHTML = '<div class="headline">尚無經濟日報清單(data/udn_today.js)。每晚 22:30 的排程任務會更新。</div>'; return; }
+  const latest = D.latest, day0 = latest.slice(0,10);
+  const lt = new Date(latest.replace(" ","T")+":00");
+  const since = d => new Date(d.replace(" ","T")+":00");
+  let list = D.items.filter(x => {
+    if(udnState.range==="today") return x.t.startsWith(day0);
+    if(udnState.range==="24h") return lt - since(x.t) <= 24*3600*1000;
+    return true;
+  });
+  const base = list.length;
+  const finOnly = list.filter(udnIsFin);
+  if(udnState.fin) list = finOnly;
+  const catCount = {}; list.forEach(x => catCount[x.cat||"其他"] = (catCount[x.cat||"其他"]||0)+1);
+  const wl = new Set(WL.map(s => s.name));
+  const q = udnState.q.trim().toLowerCase();
+  const shown = list.filter(x => (udnState.cat==="全部" || (x.cat||"其他")===udnState.cat)
+      && (!udnState.watch || x.tags.some(t => wl.has(t)))
+      && (!udnState.tag || x.tags.includes(udnState.tag))
+      && (!q || x.title.toLowerCase().includes(q) || x.tags.some(t => t.toLowerCase().includes(q))));
+  const cats = ["全部"].concat(Object.keys(catCount).sort((a,b)=>catCount[b]-catCount[a]));
+  const seg = (id, items, cur) => `<div class="seg" data-id="${id}">${items.map(([k,t])=>`<button data-k="${k}" class="${cur===k?'on':''}">${t}</button>`).join("")}</div>`;
+  let lastDay = "", html = "";
+  for(const x of shown){
+    const dd = x.t.slice(0,10);
+    if(dd !== lastDay){ lastDay = dd; html += `<div class="udn-day">${dd}(週${"日一二三四五六"[new Date(dd+"T00:00:00").getDay()]})</div>`; }
+    html += `<div class="udn-row"><span class="tm">${x.t.slice(11)}</span><span class="ct" title="${esc(x.sub)}">${esc(x.cat||"")}${x.sub?" · "+esc(x.sub):""}</span>
+      <span><a href="https://money.udn.com/money/story/${esc(x.c)}/${esc(x.id)}" target="_blank" rel="noopener noreferrer">${esc(x.title)}</a>${x.pw?'<span class="pwb">訂閱</span>':''}</span>
+      ${x.tags.length?`<span class="tg">${x.tags.map(t=>`<span class="tagc ${wl.has(t)?'w':''}" data-tag="${esc(t)}">${esc(t)}</span>`).join("")}</span>`:""}</div>`;
+  }
+  el.innerHTML = `
+    <div class="note" style="margin:0 0 8px">經濟日報最新財經新聞 · 清單更新 ${esc(D.asof)} · 最新一則 ${esc(latest)}。只列標題與連結(內文請到經濟日報閱讀,標「訂閱」者需會員);相關個股由內文比對產生,橘色為你的自選股。</div>
+    <div class="fl-ctl">
+      <span class="lab">範圍</span>${seg("range",[["today","今天 "+day0.slice(5)],["24h","近 24 小時"],["all","全部(近 2 日)"]],udnState.range)}
+      <input class="udn-q" id="udnQ" placeholder="搜尋標題或個股" value="${esc(udnState.q)}">
+      <label style="cursor:pointer"><input type="checkbox" id="udnFin" ${udnState.fin?"checked":""}> 只看財經相關</label>
+      <label style="cursor:pointer"><input type="checkbox" id="udnWatch" ${udnState.watch?"checked":""}> 只看自選股</label>
+      ${udnState.tag?`<button class="chip-clear" data-clear="1" style="background:var(--panel2);color:var(--text);border:1px solid var(--accent);border-radius:14px;padding:2px 12px;cursor:pointer;font:inherit">個股:${esc(udnState.tag)} ✕</button>`:""}
+    </div>
+    <div class="chips" id="udnCats">${cats.map(c=>`<button data-k="${esc(c)}" class="${udnState.cat===c?'on':''}">${esc(c)}${c==="全部"?" "+list.length:" "+catCount[c]}</button>`).join("")}</div>
+    <div class="note" style="margin:0 0 6px">顯示 <b>${shown.length}</b> 則${udnState.fin?`(已排除 ${base-finOnly.length} 則政治、社會等非財經內容,可取消勾選)`:""}</div>
+    <div class="fl-chart">${html || '<div style="padding:16px" class="mute">沒有符合條件的新聞。</div>'}</div>`;
+}
+$("#udn").addEventListener("click", e => {
+  const sg = e.target.closest(".seg button"); if(sg){ udnState.range = sg.dataset.k; renderUdn(); return; }
+  const ch = e.target.closest("#udnCats button"); if(ch){ udnState.cat = ch.dataset.k; renderUdn(); return; }
+  const tg = e.target.closest("[data-tag]"); if(tg){ udnState.tag = tg.dataset.tag; renderUdn(); return; }
+  if(e.target.closest("[data-clear]")){ udnState.tag = ""; renderUdn(); }
+});
+$("#udn").addEventListener("change", e => {
+  if(e.target.id==="udnFin"){ udnState.fin = e.target.checked; renderUdn(); }
+  if(e.target.id==="udnWatch"){ udnState.watch = e.target.checked; renderUdn(); }
+});
+$("#udn").addEventListener("input", e => { if(e.target.id==="udnQ"){ udnState.q = e.target.value; const pos = e.target.selectionStart; renderUdn(); const n = $("#udnQ"); n.focus(); n.setSelectionRange(pos,pos); } });
 
 // ---------- 新聞彙整(把 台股新聞彙整.md 轉成簡易 HTML) ----------
 function mdToHtml(src){
