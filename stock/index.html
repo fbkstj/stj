@@ -210,6 +210,8 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 .pwb{font-size:calc(11px*var(--fs));padding:0 6px;border-radius:8px;background:#3a2f12;color:#f5b942;margin-left:6px;font-weight:400}
 .tagc{font-size:calc(12px*var(--fs));padding:0 8px;border-radius:10px;background:#1c2a3d;color:#8ec5ff;cursor:pointer}
 .tagc.w{background:#3b2a12;color:#ffc86b}
+.sl{color:#8ec5ff;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.sl:hover{color:var(--accent)}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
 .chips button{background:var(--panel);color:var(--mute);border:1px solid var(--line);border-radius:14px;padding:2px 12px;cursor:pointer;font:inherit}
 .chips button.on{background:var(--panel2);color:var(--text);border-color:var(--accent)}
@@ -327,8 +329,21 @@ const meta = window.PRICES_META || {};
 $("#meta").textContent = `彙整 ${window.WATCH_META.asof} · 股價資料至 ${(PRICES.TWII?PRICES.TWII.rows.at(-1)[0]:"—")}(抓取 ${meta.updated||"—"})`;
 
 // ---------- 分頁 ----------
+// ---- 瀏覽器「上一頁」支援:每次切換分頁或個股都會留下一筆歷史,並記住各分頁的捲動位置 ----
+let navRestoring = false, navSuppress = false;
+const navScroll = {};
+const tabNow = () => { const b = document.querySelector("#nav button.on"); return b ? b.dataset.t : "summary"; };
+function navPush(replace){
+  if(navRestoring || navSuppress) return;
+  const t = tabNow(), c = t === "view" ? current : null;
+  const url = "#" + t + (c ? "/" + encodeURIComponent(c) : "");
+  const st = {t, c};
+  if(replace) history.replaceState(st, "", url);
+  else if(location.hash !== url) history.pushState(st, "", url);
+}
 $("#nav").addEventListener("click", e => {
   const b = e.target.closest("button"); if(!b) return;
+  { const pg = document.querySelector(".tab.on .page"); if(pg) navScroll[tabNow()] = pg.scrollTop; }
   document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("on", x===b));
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x.id==="t-"+b.dataset.t));
   if(b.dataset.t==="view") { renderChart(); resizeCharts(); }
@@ -339,6 +354,7 @@ $("#nav").addEventListener("click", e => {
   if(b.dataset.t==="rank") renderRank();
   if(b.dataset.t==="arena") renderArena();
   if(b.dataset.t==="ccl") renderCcl();   // 分頁顯示後才畫圖,避免寬度為 0
+  navPush();
 });
 // 依需要載入個股日 K(data/k/{代號}.js);自選股已在 prices.js 內
 const kLoading = {};
@@ -363,7 +379,9 @@ function nameOf(code){
   const f = window.FLOW && window.FLOW.stocks[code]; return f ? f.n : code;
 }
 function gotoStock(code){
+  navSuppress = true;
   document.querySelector('#nav button[data-t="view"]').click();
+  navSuppress = false;
   select(code);
 }
 
@@ -498,6 +516,7 @@ $("#sortby").addEventListener("change", renderList);
 
 function select(code){
   current = code; renderList(); renderInfo();
+  if(tabNow() === "view") navPush();
   if(PRICES[code]){ renderChart(); return; }
   initCharts(); S_c.setData([]); S_v.setData([]);
   $("#ttl").textContent = `${nameOf(code)} ${code}`; $("#legend").textContent = "載入日 K 中…";
@@ -1106,6 +1125,38 @@ const udnState = {range:"today", cat:"全部", q:"", fin:true, watch:false, tag:
 const FIN_CATS = new Set(["證券","產業","金融","期貨","理財","房市","商情","專欄","行情"]);
 const FIN_RE = /股|營收|財報|法說|央行|升息|降息|利率|匯率|台幣|油價|金價|通膨|CPI|關稅|出口|進口|AI|晶片|半導體|台積|美股|費半|ETF|外資|投信|自營|市值|營運|目標價|獲利|EPS|殖利率|公債|原油|能源|貿易|供應鏈|訂單|產業|科技|房市|房價|銀行|保險|基金|比特幣|黃金|經濟|GDP|景氣|投資|資本|併購|增資|市場|電價|製造|工廠|營建|面板|記憶體|PCB|伺服器|輝達|蘋果|特斯拉|微軟|估值|財經|企業|上市|櫃買|證交所|金管會/;
 const NOISE_RE = /開獎|星座|大樂透|威力彩|今彩|賓果/;
+// ---- 個股名稱 → 代號;摘要內文中出現的個股自動變成可點的連結(跳到 K 線) ----
+let _n2c = null, _lkRe = null;
+function n2c(){
+  if(_n2c) return _n2c;
+  const m = new Map();
+  const F = window.FLOW ? window.FLOW.stocks : {};
+  const byName = {};
+  Object.entries(F).forEach(([c, x]) => { const n = x.n.replace(/\*/g, "").trim(); if(!(n in byName)) byName[n] = c; });
+  WL.forEach(x => m.set(x.name, x.code));
+  REF.forEach(r => { if(r.code !== "TWII") m.set(r.name, r.code); });
+  ["台積電","鴻海","廣達","台達電","光寶科","聯發科","南亞科","臻鼎-KY","欣興","景碩","南電","穩懋","華新科","國巨","光頡","台光電","台燿",
+   "緯創","緯穎","智邦","漢唐","京元電子","日月光投控","世芯-KY","台塑化","聯電","華邦電","威剛","宜鼎","台虹","金居","亞翔","川湖","信驊",
+   "禾伸堂","台勝科","合晶","九豪","凱美","環球晶","大立光","聯亞","台星科","瑞昱","矽格","旺宏","群聯","中鼎","高力"]
+    .forEach(n => { if(!m.has(n) && byName[n]) m.set(n, byName[n]); });
+  m.set("臻鼎", m.get("臻鼎-KY") || "4958"); m.set("京元電", m.get("京元電子") || "2449"); m.set("日月光", m.get("日月光投控") || "3711");
+  _n2c = m; return m;
+}
+function codeOfName(n){ const m = n2c(); return m.get(n) || m.get(String(n).replace(/\*/g, "")) || ""; }
+function lk(html){   // 輸入已 escape 的字串,回傳把個股名稱包成連結的字串
+  const m = n2c();
+  if(!_lkRe){
+    const names = [...m.keys()].filter(n => n.length >= 2).sort((a, b) => b.length - a.length)
+      .map(n => n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + (n === "台塑" ? "(?!化)" : n === "南亞" ? "(?!科)" : n === "臻鼎" ? "(?!-)" : ""));
+    _lkRe = new RegExp(names.join("|"), "g");
+  }
+  return html.replace(_lkRe, t => `<a class="sl" data-c="${m.get(t)}" title="看 ${t} K 線">${t}</a>`);
+}
+function tagChip(t, isWl){
+  const c = codeOfName(t);
+  return c ? `<span class="tagc ${isWl?'w':''}" data-c="${esc(c)}" title="看 ${esc(t)} K 線">${esc(t)}</span>`
+           : `<span class="tagc ${isWl?'w':''}" data-tag="${esc(t)}">${esc(t)}</span>`;
+}
 function udnIsFin(x){
   if(NOISE_RE.test(x.title)) return false;
   if(FIN_CATS.has(x.cat)) return true;
@@ -1140,25 +1191,25 @@ function renderUdn(){
     if(dd !== lastDay){ lastDay = dd; html += `<div class="udn-day">${dd}(週${"日一二三四五六"[new Date(dd+"T00:00:00").getDay()]})</div>`; }
     html += `<div class="udn-row"><span class="tm">${x.t.slice(11)}</span><span class="ct" title="${esc(x.sub)}">${esc(x.cat||"")}${x.sub?" · "+esc(x.sub):""}</span>
       <span><a href="https://money.udn.com/money/story/${esc(x.c)}/${esc(x.id)}" target="_blank" rel="noopener noreferrer">${esc(x.title)}</a>${x.pw?'<span class="pwb">訂閱</span>':''}</span>
-      ${x.tags.length?`<span class="tg">${x.tags.map(t=>`<span class="tagc ${wl.has(t)?'w':''}" data-tag="${esc(t)}">${esc(t)}</span>`).join("")}</span>`:""}</div>`;
+      ${x.tags.length?`<span class="tg">${x.tags.map(t=>tagChip(t, wl.has(t))).join("")}</span>`:""}</div>`;
   }
   const G = window.UDN_DIGEST;
   const wlSet = new Set(WL.map(s => s.name));
   const digest = G ? `<div class="dg"><h2>每日摘要 · ${esc(G.date)}</h2><div class="mute" style="font-size:calc(12px*var(--fs))">整理時間 ${esc(G.asof)} · 由 Claude 閱讀經濟日報全文後用自己的話整理,僅供參考,不構成買賣建議</div>
-      <p class="intro">${esc(G.intro)}</p>
+      <p class="intro">${lk(esc(G.intro))}</p>
       ${(G.before5||[]).length ? `<div class="b5"><h3>開盤前 ${G.before5.length} 件事</h3>
-        ${G.before5.map((b,i)=>`<div class="b5-row"><div class="b5-when">${i+1}. ${esc(b.when)}</div><div><h4>${esc(b.title)}</h4><p>${esc(b.body)}</p>
-          <div>${(b.tags||[]).map(t=>`<span class="tagc ${wlSet.has(t)?'w':''}" data-tag="${esc(t)}">${esc(t)}</span> `).join("")}</div></div></div>`).join("")}</div>` : ""}
-      ${G.items.map((it,i)=>`<div class="dg-item"><h3><span class="no">${i+1}.</span>${esc(it.title)}</h3>
-        <p>${esc(it.body)}</p>
-        <div class="src">${(it.tags||[]).map(t=>`<span class="tagc ${wlSet.has(t)?'w':''}" data-tag="${esc(t)}">${esc(t)}</span> `).join("")}
+        ${G.before5.map((b,i)=>`<div class="b5-row"><div class="b5-when">${i+1}. ${esc(b.when)}</div><div><h4>${lk(esc(b.title))}</h4><p>${lk(esc(b.body))}</p>
+          <div>${(b.tags||[]).map(t=>tagChip(t, wlSet.has(t))+" ").join("")}</div></div></div>`).join("")}</div>` : ""}
+      ${G.items.map((it,i)=>`<div class="dg-item"><h3><span class="no">${i+1}.</span>${lk(esc(it.title))}</h3>
+        <p>${lk(esc(it.body))}</p>
+        <div class="src">${(it.tags||[]).map(t=>tagChip(t, wlSet.has(t))+" ").join("")}
           ${(it.links||[]).map(l=>`<a href="https://money.udn.com/money/story/${esc(l.c)}/${esc(l.id)}" target="_blank" rel="noopener noreferrer">原文:${esc(l.t)} ↗</a>`).join("")}</div></div>`).join("")}
       ${G.impact ? `<h2 class="imp-h">對自選股的影響</h2>
-        <p class="intro" style="margin-top:0">${esc(G.impact.common)}</p>
+        <p class="intro" style="margin-top:0">${lk(esc(G.impact.common))}</p>
         ${G.impact.items.map(x=>{ const lt = {pos:"偏正面",neg:"偏負面",watch:"需留意",none:"無重大新消息"}[x.lean]||"";
           return `<div class="imp-row"><div><span class="nm" data-c="${esc(x.code)}">${esc(x.name)} <span class="mute">${esc(x.code)}</span></span><br><span class="lean ${esc(x.lean)}">${lt}</span></div>
-            <ul>${x.pts.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div>`; }).join("")}
-        ${(G.impact.quiet||[]).length ? `<div class="imp-row"><div><span class="lean none">其他自選股</span></div><ul><li>${G.impact.quiet.map(esc).join("、")}</li></ul></div>` : ""}
+            <ul>${x.pts.map(p=>`<li>${lk(esc(p))}</li>`).join("")}</ul></div>`; }).join("")}
+        ${(G.impact.quiet||[]).length ? `<div class="imp-row"><div><span class="lean none">其他自選股</span></div><ul><li>${G.impact.quiet.map(q=>lk(esc(q))).join("、")}</li></ul></div>` : ""}
         <div class="note" style="margin-top:8px">標籤只表示新聞與數據對該檔是偏正面或需要留意,不是買賣建議;「無重大新消息」代表本輪沒有新專文,不代表沒有風險。</div>` : ""}</div>` : "";
   el.innerHTML = `${digest}
     <div class="note" style="margin:0 0 8px">經濟日報最新財經新聞 · 清單更新 ${esc(D.asof)} · 最新一則 ${esc(latest)}。只列標題與連結(內文請到經濟日報閱讀,標「訂閱」者需會員);相關個股由內文比對產生,橘色為你的自選股。</div>
@@ -1174,6 +1225,7 @@ function renderUdn(){
     <div class="fl-chart">${html || '<div style="padding:16px" class="mute">沒有符合條件的新聞。</div>'}</div>`;
 }
 $("#udn").addEventListener("click", e => {
+  const sl = e.target.closest(".sl, .tagc[data-c]"); if(sl){ gotoStock(sl.dataset.c); return; }
   const nm = e.target.closest(".imp-row .nm"); if(nm){ gotoStock(nm.dataset.c); return; }
   const sg = e.target.closest(".seg button"); if(sg){ udnState.range = sg.dataset.k; renderUdn(); return; }
   const ch = e.target.closest("#udnCats button"); if(ch){ udnState.cat = ch.dataset.k; renderUdn(); return; }
@@ -1421,7 +1473,27 @@ function setFS(v){
 $("#fsUp").addEventListener("click", () => { const n = FS_STEPS.find(x => x > FS + 0.01); if(n) setFS(n); });
 $("#fsDown").addEventListener("click", () => { const n = [...FS_STEPS].reverse().find(x => x < FS - 0.01); if(n) setFS(n); });
 // 網址帶 #flow / #view / #tables / #calendar 時直接開啟該分頁(每日更新完成後會開啟 #flow)
-{ const hb = document.querySelector(`#nav button[data-t="${location.hash.slice(1)}"]`); if(hb) hb.click(); }
+{
+  const h = decodeURIComponent(location.hash.slice(1)).split("/");
+  const hb = document.querySelector(`#nav button[data-t="${h[0]}"]`);
+  navSuppress = true;
+  if(hb) hb.click();
+  if(h[0] === "view" && h[1]) select(h[1]);
+  navSuppress = false;
+  navPush(true);
+}
+window.addEventListener("popstate", e => {
+  const h = decodeURIComponent(location.hash.slice(1)).split("/");
+  const st = e.state || {t:h[0] || "summary", c:h[1] || null};
+  navRestoring = true;
+  try {
+    const b = document.querySelector(`#nav button[data-t="${st.t}"]`) || document.querySelector('#nav button[data-t="summary"]');
+    b.click();
+    if(st.t === "view" && st.c) select(st.c);
+    const y = navScroll[st.t];
+    if(y != null) setTimeout(() => { const pg = document.querySelector(".tab.on .page"); if(pg) pg.scrollTop = y; }, 30);
+  } finally { navRestoring = false; }
+});
 window.addEventListener("resize", resizeCharts);
 })();
 </script>
