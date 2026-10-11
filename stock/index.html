@@ -211,6 +211,7 @@ td.clk{cursor:pointer}
     <button data-t="summary" class="on">重點摘要</button>
     <button data-t="view">看盤 K 線</button>
     <button data-t="flow">資金流向</button>
+    <button data-t="rank">買超排行</button>
     <button data-t="tables">總覽表</button>
     <button data-t="cmp">台美對照</button>
     <button data-t="us">美股</button>
@@ -255,6 +256,7 @@ td.clk{cursor:pointer}
 </section>
 
 <section class="tab" id="t-flow"><div class="page"><div class="wrap" id="flow"></div></div></section>
+<section class="tab" id="t-rank"><div class="page"><div class="wrap" id="rank"></div></div></section>
 <section class="tab" id="t-tables"><div class="page"><div class="wrap" id="tables"></div></div></section>
 <section class="tab" id="t-cmp"><div class="page"><div class="wrap" id="cmp"></div></div></section>
 <section class="tab" id="t-us"><div class="page"><div class="wrap" id="us"></div></div></section>
@@ -309,7 +311,8 @@ $("#nav").addEventListener("click", e => {
   if(b.dataset.t==="flow") renderFlow();
   if(b.dataset.t==="us") renderUS();
   if(b.dataset.t==="cmp") renderCmp();
-  if(b.dataset.t==="udn") renderUdn();   // 分頁顯示後才畫圖,避免寬度為 0
+  if(b.dataset.t==="udn") renderUdn();
+  if(b.dataset.t==="rank") renderRank();   // 分頁顯示後才畫圖,避免寬度為 0
 });
 // 依需要載入個股日 K(data/k/{代號}.js);自選股已在 prices.js 內
 const kLoading = {};
@@ -844,6 +847,64 @@ function renderCmp(){
       <b>台股收盤後美股累計</b>:台股最近收盤之後,對應美股累計的漲跌;超過 ±1% 標示偏多或偏空,僅為歷史連動的參考,<b>不是預測也不構成買賣建議</b>。個股對照關係可自行編輯 data/us_map.js。</div>`;
 }
 $("#cmp").addEventListener("click", e => { const t = e.target.closest("[data-c]"); if(t) gotoStock(t.dataset.c); });
+
+// ---------- 外資+投信買超排行(固定表) ----------
+const rkState = {win:20, top:30, ind:"全部", watch:false};
+function epsNum(txt){            // 自選股的明年 EPS 預估文字 → 數字(範圍取中間值)
+  if(!txt || txt === "—") return null;
+  const nums = (String(txt).match(/\d+(?:\.\d+)?/g) || []).map(Number);
+  if(!nums.length) return null;
+  return String(txt).includes("~") && nums.length >= 2 ? (nums[0]+nums[1])/2 : nums[0];
+}
+function renderRank(){
+  const el = $("#rank"), F = window.FLOW;
+  if(!F){ el.innerHTML = '<div class="headline">尚無資料,請執行 update_all.bat。</div>'; return; }
+  const tmap = {}; Object.entries(F.theme).forEach(([g,o]) => o.codes.forEach(c => (tmap[c] = tmap[c]||[]).push(g)));
+  const wlBy = {}; WL.forEach(x => wlBy[x.code] = x);
+  const w = rkState.win;
+  let all = Object.entries(F.stocks).filter(([c,x]) => x.i).map(([c,x]) => {
+    const a = x.w[w], ft = a[0] + a[1];
+    const wl = wlBy[c], eps = wl ? epsNum(wl.eps27) : null;
+    return {c, x, f:a[0], t:a[1], ft, eps, pe: eps && eps > 0 ? x.c/eps : null, wl:!!wl};
+  });
+  const inds = ["全部"].concat([...new Set(all.map(r => r.x.i))].sort());
+  all.sort((a,b) => b.ft - a.ft);
+  let list = all.filter(r => (rkState.ind==="全部" || r.x.i===rkState.ind) && (!rkState.watch || r.wl));
+  const total = list.length;
+  list = list.slice(0, rkState.top);
+  const seg = (id, items, cur) => `<div class="seg" data-id="${id}">${items.map(([k,t])=>`<button data-k="${k}" class="${String(cur)===String(k)?'on':''}">${t}</button>`).join("")}</div>`;
+  const f1 = v => v==null ? "—" : fmt(v, 1);
+  const ym = (list.find(r => r.x.rv) || {x:{rv:[""]}}).x.rv[0];
+  el.innerHTML = `
+    <div class="note" style="margin:0 0 8px">依「外資 + 投信」近 ${w} 個交易日的淨買超金額由大到小排序(金額 = 淨買賣超張數 × 當日收盤價,估算,單位億元);資料至 ${F.last}。不含自營商與散戶。</div>
+    <div class="fl-ctl">
+      <span class="lab">期間</span>${seg("win", [[5,"5 日"],[10,"10 日"],[20,"20 日"],[60,"60 日"]], rkState.win)}
+      <span class="lab">顯示</span>${seg("top", [[20,"前 20"],[30,"前 30"],[50,"前 50"],[100,"前 100"]], rkState.top)}
+      <span class="lab">產業別</span><select id="rkInd" style="background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:6px;padding:4px 8px;font:inherit">${inds.map(i=>`<option ${i===rkState.ind?'selected':''}>${esc(i)}</option>`).join("")}</select>
+      <label style="cursor:pointer"><input type="checkbox" id="rkWatch" ${rkState.watch?'checked':''}> 只看自選股</label>
+    </div>
+    <div class="tbl"><table><thead><tr><th>#</th><th>個股</th><th class="n">收盤</th><th class="n">20日漲幅</th><th class="n">外資(億)</th><th class="n">投信(億)</th><th class="n">外+投(億)</th>
+      <th class="n">營收月增</th><th class="n">營收年增</th><th class="n">明年 EPS 預估</th><th class="n">預估 P/E</th><th>產業別 · 族群</th></tr></thead><tbody>
+      ${list.map((r,i)=>`<tr class="clk" data-c="${r.c}"><td class="mute">${i+1}</td>
+        <td><b>${esc(r.x.n)}</b> <span class="mute">${r.c}</span>${r.wl?' <span class="tagc w">自選</span>':''}</td>
+        <td class="n">${fmt(r.x.c)}</td><td class="n ${cls(r.x.r)}">${r.x.r==null?"—":pct(r.x.r)}</td>
+        <td class="n ${cls(r.f)}">${f1(r.f)}</td><td class="n ${cls(r.t)}">${f1(r.t)}</td><td class="n ${cls(r.ft)}"><b>${f1(r.ft)}</b></td>
+        <td class="n ${r.x.rv?cls(r.x.rv[1]):''}">${r.x.rv?pct(r.x.rv[1]):"—"}</td><td class="n ${r.x.rv?cls(r.x.rv[2]):''}">${r.x.rv?pct(r.x.rv[2]):"—"}</td>
+        <td class="n">${r.eps==null?"—":"約 "+fmt(r.eps)}</td><td class="n">${r.pe==null?"—":fmt(r.pe,1)}</td>
+        <td style="font-size:calc(12px*var(--fs));color:var(--mute)">${esc(r.x.i)}${(tmap[r.c]||[]).slice(0,2).map(g=>" · "+esc(g)).join("")}</td></tr>`).join("")}
+      </tbody></table></div>
+    <div class="note">符合條件共 ${total} 檔,顯示前 ${list.length} 檔。營收月增、年增為證交所與櫃買中心最新公布月份(目前為民國 ${esc(ym)});
+      「明年 EPS 預估」只有自選股有(取自彙整檔的法人預估,範圍取中間值),其他個股沒有收錄這項付費資料,預估 P/E = 收盤價 ÷ 明年 EPS。點任一列看 K 線。僅供參考,不構成買賣建議。</div>`;
+}
+$("#rank").addEventListener("click", e => {
+  const sg = e.target.closest(".seg button");
+  if(sg){ const id = sg.parentNode.dataset.id; rkState[id] = +sg.dataset.k; renderRank(); return; }
+  const tr = e.target.closest("tr.clk"); if(tr) gotoStock(tr.dataset.c);
+});
+$("#rank").addEventListener("change", e => {
+  if(e.target.id==="rkInd"){ rkState.ind = e.target.value; renderRank(); }
+  if(e.target.id==="rkWatch"){ rkState.watch = e.target.checked; renderRank(); }
+});
 
 // ---------- 經濟日報(今天的最新財經新聞清單) ----------
 const udnState = {range:"today", cat:"全部", q:"", fin:true, watch:false, tag:""};
