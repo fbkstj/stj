@@ -875,11 +875,13 @@ function renderRank(){
     const a = x.w[w], ft = a[0] + a[1];
     const wl = wlBy[c], eps = wl ? epsNum(wl.eps27) : null;
     const dd = x.d || [];
+    const qi = {1:1,5:2,10:3,20:4,60:5}[w];
     return {c, x, f:a[0], t:a[1], ft, eps, pe: eps && eps > 0 ? x.c/eps : null, wl:!!wl,
+      q: x.q ? x.q[0] : null, dq: x.q ? x.q[qi] : null,
       sf: streak(dd.map(v => v[0])), st: streak(dd.map(v => v[1])), sft: streak(dd.map(v => v[0] + v[1]))};
   });
   const inds = ["全部"].concat([...new Set(all.map(r => r.x.i))].sort());
-  const SK = {ft:r=>r.ft, sft:r=>r.sft*1e4 + r.ft, sf:r=>r.sf*1e4 + r.f, st:r=>r.st*1e4 + r.t};
+  const SK = {ft:r=>r.ft, sft:r=>r.sft*1e4 + r.ft, sf:r=>r.sf*1e4 + r.f, st:r=>r.st*1e4 + r.t, sq:r=>r.dq==null ? -1e9 : r.dq};
   all.sort((a,b) => SK[rkState.sort](b) - SK[rkState.sort](a));
   let list = all.filter(r => (rkState.ind==="全部" || r.x.i===rkState.ind) && (!rkState.watch || r.wl)
     && (!rkState.minStreak || r.sft >= rkState.minStreak));
@@ -897,21 +899,22 @@ function renderRank(){
       <label style="cursor:pointer"><input type="checkbox" id="rkWatch" ${rkState.watch?'checked':''}> 只看自選股</label>
     </div>
     <div class="fl-ctl">
-      <span class="lab">排序</span>${seg("sort", [["ft","買超金額"],["sft","外+投連買天數"],["sf","外資連買天數"],["st","投信連買天數"]], rkState.sort)}
+      <span class="lab">排序</span>${seg("sort", [["ft","買超金額"],["sft","外+投連買天數"],["sf","外資連買天數"],["st","投信連買天數"],["sq","外資持股增加"]], rkState.sort)}
       <span class="lab">外+投至少連買</span>${seg("minStreak", [[0,"不限"],[3,"3 日"],[5,"5 日"],[10,"10 日"]], rkState.minStreak)}
     </div>
-    <div class="tbl"><table><thead><tr><th>#</th><th>個股</th><th class="n">收盤</th><th class="n">20日漲幅</th><th class="n">外資(億)</th><th class="n">投信(億)</th><th class="n">外+投(億)</th><th class="n" title="外資由最近一日往回算,連續買超或賣超的交易日數">外資連續</th><th class="n">投信連續</th><th class="n">外+投連續</th>
+    <div class="tbl"><table><thead><tr><th>#</th><th>個股</th><th class="n">收盤</th><th class="n">20日漲幅</th><th class="n">外資(億)</th><th class="n">投信(億)</th><th class="n">外+投(億)</th><th class="n" title="外資由最近一日往回算,連續買超或賣超的交易日數">外資連續</th><th class="n">投信連續</th><th class="n">外+投連續</th><th class="n" title="全體外資及陸資持股占發行股數比率(證交所、櫃買中心)">外資持股%</th><th class="n" title="與期間起點前一日相比的變化,單位為百分點">${w} 日變化(pt)</th>
       <th class="n">營收月增</th><th class="n">營收年增</th><th class="n">明年 EPS 預估</th><th class="n">預估 P/E</th><th>產業別 · 族群</th></tr></thead><tbody>
       ${list.map((r,i)=>`<tr class="clk" data-c="${r.c}"><td class="mute">${i+1}</td>
         <td><b>${esc(r.x.n)}</b> <span class="mute">${r.c}</span>${r.wl?' <span class="tagc w">自選</span>':''}</td>
         <td class="n">${fmt(r.x.c)}</td><td class="n ${cls(r.x.r)}">${r.x.r==null?"—":pct(r.x.r)}</td>
         <td class="n ${cls(r.f)}">${f1(r.f)}</td><td class="n ${cls(r.t)}">${f1(r.t)}</td><td class="n ${cls(r.ft)}"><b>${f1(r.ft)}</b></td>
         <td class="n">${streakTxt(r.sf)}</td><td class="n">${streakTxt(r.st)}</td><td class="n">${streakTxt(r.sft)}</td>
+        <td class="n">${r.q==null?"—":fmt(r.q)+"%"}</td><td class="n ${cls(r.dq)}">${r.dq==null?"—":(r.dq>0?"+":"")+fmt(r.dq)}</td>
         <td class="n ${r.x.rv?cls(r.x.rv[1]):''}">${r.x.rv?pct(r.x.rv[1]):"—"}</td><td class="n ${r.x.rv?cls(r.x.rv[2]):''}">${r.x.rv?pct(r.x.rv[2]):"—"}</td>
         <td class="n">${r.eps==null?"—":"約 "+fmt(r.eps)}</td><td class="n">${r.pe==null?"—":fmt(r.pe,1)}</td>
         <td style="font-size:calc(12px*var(--fs));color:var(--mute)">${esc(r.x.i)}${(tmap[r.c]||[]).slice(0,2).map(g=>" · "+esc(g)).join("")}</td></tr>`).join("")}
       </tbody></table></div>
-    <div class="note">符合條件共 ${total} 檔,顯示前 ${list.length} 檔。「連續」欄為由最近一個交易日往回算,外資、投信或兩者合計連續買超(紅)或賣超(綠)的交易日數,與上方選的期間無關,最多回溯 60 個交易日。營收月增、年增為證交所與櫃買中心最新公布月份(目前為民國 ${esc(ym)});
+    <div class="note">符合條件共 ${total} 檔,顯示前 ${list.length} 檔。「連續」欄為由最近一個交易日往回算,外資、投信或兩者合計連續買超(紅)或賣超(綠)的交易日數,與上方選的期間無關,最多回溯 60 個交易日。「外資持股%」為全體外資及陸資持有股數占發行股數的比率,變化為與期間起點前一日相比的百分點差(受增資、除權與外資申報時點影響,僅供參考)。營收月增、年增為證交所與櫃買中心最新公布月份(目前為民國 ${esc(ym)});
       「明年 EPS 預估」只有自選股有(取自彙整檔的法人預估,範圍取中間值),其他個股沒有收錄這項付費資料,預估 P/E = 收盤價 ÷ 明年 EPS。點任一列看 K 線。僅供參考,不構成買賣建議。</div>`;
 }
 $("#rank").addEventListener("click", e => {
