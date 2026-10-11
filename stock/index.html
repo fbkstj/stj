@@ -151,6 +151,7 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 .md p{margin:8px 0;color:var(--text)} .md ol,.md ul{padding-left:26px;margin:8px 0} .md li{margin:10px 0}
 .md table{margin:8px 0;font-size:calc(12.5px*var(--fs))} .md td,.md th{vertical-align:top}
 .md .tbl{overflow:auto;margin:8px 0}
+.page .tbl{overflow:auto}
 .note{font-size:calc(12px*var(--fs));color:var(--mute);margin-top:8px}
 @media(max-width:1100px){#view{grid-template-columns:calc(220px*var(--fs)) minmax(0,1fr)} #info{display:none}}
 @media(max-width:700px){#view{grid-template-columns:1fr;grid-template-rows:180px 1fr} #list{border-right:0;border-bottom:1px solid var(--line)}}
@@ -164,6 +165,7 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
     <button data-t="view">看盤 K 線</button>
     <button data-t="flow">資金流向</button>
     <button data-t="tables">總覽表</button>
+    <button data-t="us">美股</button>
     <button data-t="digest">新聞彙整</button>
     <button data-t="calendar">行事曆 / 待追蹤</button>
   </nav>
@@ -205,6 +207,7 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 
 <section class="tab" id="t-flow"><div class="page"><div class="wrap" id="flow"></div></div></section>
 <section class="tab" id="t-tables"><div class="page"><div class="wrap" id="tables"></div></div></section>
+<section class="tab" id="t-us"><div class="page"><div class="wrap" id="us"></div></div></section>
 <section class="tab" id="t-digest"><div class="page"><div class="wrap" id="digest"></div></div></section>
 <section class="tab" id="t-calendar"><div class="page"><div class="wrap" id="calendar"></div></div></section>
 
@@ -215,6 +218,7 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 <script src="data/flow.js"></script>
 <script src="data/gindex.js"></script>
 <script src="data/digest.js"></script>
+<script src="data/us.js"></script>
 <script>
 (function(){
 "use strict";
@@ -225,6 +229,10 @@ let FS = 1.3;
 try { const v = parseFloat(localStorage.getItem("stock_fs")); if(v >= 0.9 && v <= 2.2) FS = v; } catch(e) {}
 document.documentElement.style.setProperty("--fs", FS);
 const PRICES = window.PRICES || {};
+const US = window.US || null, US_NAMES = {};
+if(US){ for(const [k,v] of Object.entries(US.series)){ PRICES[k] = {symbol:k, rows:v.r}; US_NAMES[k] = v.n; } }
+const isUS = c => Object.prototype.hasOwnProperty.call(US_NAMES, c);
+const volText = (c, v) => isUS(c) ? (v >= 1e6 ? (v/1e6).toFixed(2) + " 百萬股" : v.toLocaleString("en-US") + " 股") : v.toLocaleString("en-US") + " 張";
 const WL = window.WATCHLIST, REF = window.REFERENCE, S = window.SUMMARY;
 const ST = {disposal:"處置中", disposalNext:"即將處置", notice:"注意股", normal:"正常"};
 const ST_ORDER = {disposal:0, disposalNext:1, notice:2, normal:3};
@@ -244,7 +252,8 @@ $("#nav").addEventListener("click", e => {
   document.querySelectorAll("#nav button").forEach(x => x.classList.toggle("on", x===b));
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x.id==="t-"+b.dataset.t));
   if(b.dataset.t==="view") { renderChart(); resizeCharts(); }
-  if(b.dataset.t==="flow") renderFlow();   // 分頁顯示後才畫圖,避免寬度為 0
+  if(b.dataset.t==="flow") renderFlow();
+  if(b.dataset.t==="us") renderUS();   // 分頁顯示後才畫圖,避免寬度為 0
 });
 // 依需要載入個股日 K(data/k/{代號}.js);自選股已在 prices.js 內
 const kLoading = {};
@@ -264,6 +273,7 @@ function loadK(code){
   })().catch(e => { delete kLoading[code]; throw e; });
 }
 function nameOf(code){
+  if(US_NAMES[code]) return US_NAMES[code];
   const w = WL.concat(REF).find(s=>s.code===code); if(w) return w.name;
   const f = window.FLOW && window.FLOW.stocks[code]; return f ? f.n : code;
 }
@@ -390,6 +400,11 @@ function renderList(){
     const hits = Object.keys(F.stocks).filter(c => !inList(c) && F.stocks[c].i && (c.startsWith(q) || F.stocks[c].n.toLowerCase().includes(q))).slice(0, 40);
     if(hits.length) html += `<div class="grp">全市場搜尋 ${hits.length}${hits.length===40?"+":""} 檔</div>` + hits.map(mk).join("");
   }
+  if(US && current && isUS(current) && !inList(current) && !q) html = `<div class="grp">目前檢視</div>` + row(current, US_NAMES[current], null) + html;
+  if(US && q){
+    const hs = Object.keys(US_NAMES).filter(k => !inList(k) && (k.toLowerCase().includes(q) || US_NAMES[k].toLowerCase().includes(q))).slice(0, 20);
+    if(hs.length) html += `<div class="grp">美股搜尋 ${hs.length} 檔</div>` + hs.map(k => row(k, US_NAMES[k], null)).join("");
+  }
   $("#rows").innerHTML = html;
 }
 $("#rows").addEventListener("click", e => { const r=e.target.closest(".row"); if(r) select(r.dataset.c); });
@@ -510,7 +525,7 @@ function updateLegend(p){
   if(p && p.time){ const i = viewRows.findIndex(r=>r[0]===p.time); if(i>=0) idx=i; }
   const r = viewRows[idx]; if(!r) return;
   const prev = viewRows[idx-1], chg = prev ? r[4]-prev[4] : 0, pc = prev ? chg/prev[4]*100 : 0, c = cls(chg);
-  let h = `<b>${r[0]}</b>  開 ${fmt(r[1])}  高 ${fmt(r[2])}  低 ${fmt(r[3])}  收 <span class="${c}">${fmt(r[4])}</span>  <span class="${c}">${chg>=0?"+":""}${fmt(chg)} (${pct(pc)})</span>  量 ${fmt(r[5],0)} 張  `;
+  let h = `<b>${r[0]}</b>  開 ${fmt(r[1])}  高 ${fmt(r[2])}  低 ${fmt(r[3])}  收 <span class="${c}">${fmt(r[4])}</span>  <span class="${c}">${chg>=0?"+":""}${fmt(chg)} (${pct(pc)})</span>  量 ${volText(current, r[5])}  `;
   MAS.forEach(m => { if(!maOn[m.n]) return; const x = maData[m.n].find(v=>v.time===r[0]); if(x) h += `<span style="color:${m.c}">MA${m.n} ${fmt(x.value)}</span>  `; });
   if(bbOn && bbData){ const u=bbData.U.find(v=>v.time===r[0]), l=bbData.L.find(v=>v.time===r[0]);
     if(u&&l) h += `<span style="color:#94a3b8">BB ${fmt(u.value)} / ${fmt(l.value)}</span>  `; }
@@ -553,7 +568,7 @@ function renderInfo(){
         <div>近一年高 / 低</div><div>${fmt(hi)} / ${fmt(lo)}</div>
         <div>距高點</div><div class="${cls(i.c/hi-1)}">${pct((i.c/hi-1)*100)}</div>
         <div>距 20 日均線</div><div class="${cls(i.c-ma20)}">${pct((i.c/ma20-1)*100)}</div>
-        <div>5 日 / 20 日均量</div><div>${fmt(v5,0)} / ${fmt(v20,0)} 張</div>
+        <div>5 日 / 20 日均量</div><div>${volText(current, v5)} / ${volText(current, v20)}</div>
         <div>量比(5日/20日)</div><div>${fmt(v5/v20)}</div>
       </div>`;
   } else h += `<div class="mute">尚無股價資料</div>`;
@@ -646,6 +661,46 @@ function renderTables(){
     const tr = e.target.closest("tr.clk"); if(tr) gotoStock(tr.dataset.c);
   };
 }
+
+// ---------- 美股 ----------
+let usSort = "def";
+function renderUS(){
+  const el = $("#us");
+  if(!US){ el.innerHTML = '<div class="headline">尚無美股資料,請執行 fetch_us.py(或 update_all.bat)。</div>'; return; }
+  const st = k => { const r = US.series[k].r, n = r.length, c = r[n-1][4], p = r[n-2][4];
+    const g = m => n > m ? (c/r[n-1-m][4]-1)*100 : null;
+    const hi = Math.max(...r.slice(-250).map(x=>x[2]));
+    return {k, n:US.series[k].n, d:r[n-1][0], c, chg:c-p, pct:(c/p-1)*100, r5:g(5), r20:g(20), dh:(c/hi-1)*100, sp:r.slice(-30).map(x=>x[4])}; };
+  const spark = x => { const a = x.sp, mn = Math.min(...a), mx = Math.max(...a), w = 84, h = 26;
+    const pts = a.map((v,i) => `${(i/(a.length-1)*w).toFixed(1)},${(h-1-(v-mn)/(mx-mn||1)*(h-2)).toFixed(1)}`).join(" ");
+    return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline fill="none" stroke="${a.at(-1)>=a[0]?UP:DN}" stroke-width="1.6" points="${pts}"/></svg>`; };
+  const sk = {def:null, pct:x=>x.pct, r20:x=>x.r20==null?-1e9:x.r20};
+  const num = (v, d=2) => v==null ? "—" : fmt(v, d);
+  const pc = v => v==null ? "—" : pct(v);
+  const idx = ["^SOX","^IXIC","^GSPC","^DJI"].filter(k=>US.series[k]).map(st);
+  const seg = `<div class="seg" id="usSort">${[["def","預設"],["pct","單日漲跌"],["r20","20 日漲跌"]].map(([k,t])=>`<button data-k="${k}" class="${usSort===k?'on':''}">${t}</button>`).join("")}</div>`;
+  const group = g => {
+    let list = g.items.map(st);
+    if(sk[usSort]) list.sort((a,b)=>sk[usSort](b)-sk[usSort](a));
+    const avg = list.reduce((a,x)=>a+x.pct,0)/Math.max(1,list.length);
+    return `<h2 class="sec">${esc(g.name)} <span class="mute" style="font-size:.85em">平均單日 <b class="${cls(avg)}">${pct(avg)}</b></span></h2>
+      <div class="tbl"><table><thead><tr><th>名稱</th><th class="n">收盤</th><th class="n">漲跌</th><th class="n">漲跌%</th><th class="n">5日</th><th class="n">20日</th><th class="n">距一年高</th><th>近 30 日</th></tr></thead><tbody>
+      ${list.map(x=>`<tr class="clk" data-c="${esc(x.k)}"><td><b>${esc(x.n)}</b> <span class="mute">${esc(x.k)}</span></td>
+        <td class="n">${num(x.c)}</td><td class="n ${cls(x.chg)}">${x.chg>0?"+":""}${num(x.chg)}</td><td class="n ${cls(x.pct)}"><b>${pc(x.pct)}</b></td>
+        <td class="n ${cls(x.r5)}">${pc(x.r5)}</td><td class="n ${cls(x.r20)}">${pc(x.r20)}</td><td class="n ${cls(x.dh)}">${pc(x.dh)}</td><td>${spark(x)}</td></tr>`).join("")}</tbody></table></div>`;
+  };
+  el.innerHTML = `
+    <div class="note" style="margin:0 0 10px">美股最新收盤日 ${US.last}(加密貨幣含週末);點任一檔看 K 線。紅漲綠跌,與台股同一慣例。資料來源 Yahoo Finance,未還原股利。</div>
+    <div class="grid">${idx.map(x=>`<div class="card" style="cursor:pointer" data-c="${esc(x.k)}"><div class="k">${esc(x.n)} · ${x.d}</div>
+      <div class="v ${cls(x.chg)}">${num(x.c)}</div><div class="d ${cls(x.chg)}">${x.chg>0?"+":""}${num(x.chg)} (${pc(x.pct)})</div></div>`).join("")}</div>
+    <div class="fl-ctl"><span class="lab">排序</span>${seg}</div>
+    ${US.groups.filter(g=>g.name!=="指數與ETF").concat(US.groups.filter(g=>g.name==="指數與ETF")).map(group).join("")}
+    <div class="note">單日漲跌以最近兩個收盤計算;5 日、20 日為交易日數。成交量以「股」計,與台股「張」不同。僅供參考,不構成買賣建議。</div>`;
+}
+$("#us").addEventListener("click", e => {
+  const b = e.target.closest("#usSort button"); if(b){ usSort = b.dataset.k; renderUS(); return; }
+  const t = e.target.closest("[data-c]"); if(t) gotoStock(t.dataset.c);
+});
 
 // ---------- 新聞彙整(把 台股新聞彙整.md 轉成簡易 HTML) ----------
 function mdToHtml(src){
@@ -870,7 +925,7 @@ $("#flow").addEventListener("click", e => {
 });
 $("#flow").addEventListener("change", e => { if(e.target.id==="flowDaySel"){ flowDay = +e.target.value; renderFlow(); } });
 
-renderSummary(); renderTables(); renderCalendar(); renderDigest(); renderList(); renderInfo(); renderFlow();
+renderSummary(); renderTables(); renderCalendar(); renderDigest(); renderList(); renderInfo(); renderFlow(); renderUS();
 function setFS(v){
   FS = v; document.documentElement.style.setProperty("--fs", FS);
   try { localStorage.setItem("stock_fs", String(FS)); } catch(e) {}
