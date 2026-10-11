@@ -156,6 +156,14 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 .dg h2{margin:0 0 6px;font-size:calc(17px*var(--fs));color:var(--accent)}
 .dg .intro{font-size:calc(15px*var(--fs));line-height:1.75;margin:4px 0 12px}
 .dg-item{border-top:1px solid var(--line);padding:10px 0}
+.b5{margin:6px 0 16px;padding:10px 14px;background:#161b26;border:1px solid var(--line);border-radius:8px}
+.b5 h3{margin:0 0 8px;font-size:calc(16px*var(--fs));color:var(--accent)}
+.b5-row{display:grid;grid-template-columns:calc(118px*var(--fs)) minmax(0,1fr);gap:4px 14px;padding:9px 0;border-top:1px solid var(--line)}
+.b5-row:first-of-type{border-top:0}
+.b5-when{font-weight:700;color:#ffd27a;font-variant-numeric:tabular-nums}
+.b5-row h4{margin:0 0 3px;font-size:calc(15px*var(--fs))}
+.b5-row p{margin:2px 0 6px;font-size:calc(14px*var(--fs));line-height:1.75}
+@media(max-width:700px){.b5-row{grid-template-columns:1fr}}
 .imp-h{margin:18px 0 6px;padding-top:12px;border-top:2px solid var(--accent);font-size:calc(16px*var(--fs));color:var(--accent)}
 .imp-row{display:grid;grid-template-columns:calc(150px*var(--fs)) minmax(0,1fr);gap:4px 14px;padding:10px 0;border-top:1px solid var(--line)}
 .imp-row .nm{font-weight:700;cursor:pointer}
@@ -882,6 +890,9 @@ function renderUdn(){
   const wlSet = new Set(WL.map(s => s.name));
   const digest = G ? `<div class="dg"><h2>每日摘要 · ${esc(G.date)}</h2><div class="mute" style="font-size:calc(12px*var(--fs))">整理時間 ${esc(G.asof)} · 由 Claude 閱讀經濟日報全文後用自己的話整理,僅供參考,不構成買賣建議</div>
       <p class="intro">${esc(G.intro)}</p>
+      ${(G.before5||[]).length ? `<div class="b5"><h3>開盤前 ${G.before5.length} 件事</h3>
+        ${G.before5.map((b,i)=>`<div class="b5-row"><div class="b5-when">${i+1}. ${esc(b.when)}</div><div><h4>${esc(b.title)}</h4><p>${esc(b.body)}</p>
+          <div>${(b.tags||[]).map(t=>`<span class="tagc ${wlSet.has(t)?'w':''}" data-tag="${esc(t)}">${esc(t)}</span> `).join("")}</div></div></div>`).join("")}</div>` : ""}
       ${G.items.map((it,i)=>`<div class="dg-item"><h3><span class="no">${i+1}.</span>${esc(it.title)}</h3>
         <p>${esc(it.body)}</p>
         <div class="src">${(it.tags||[]).map(t=>`<span class="tagc ${wlSet.has(t)?'w':''}" data-tag="${esc(t)}">${esc(t)}</span> `).join("")}
