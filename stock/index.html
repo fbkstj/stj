@@ -1246,7 +1246,7 @@ function renderUdn(){
       ${G.items.map((it,i)=>`<div class="dg-item"><h3><span class="no">${i+1}.</span>${lk(esc(it.title))}</h3>
         <p>${lk(esc(it.body))}</p>
         <div class="src">${(it.tags||[]).map(t=>tagChip(t, wlSet.has(t))+" ").join("")}
-          ${(it.links||[]).map(l=>`<a href="https://money.udn.com/money/story/${esc(l.c)}/${esc(l.id)}" target="_blank" rel="noopener noreferrer">原文:${esc(l.t)} ↗</a>`).join("")}</div></div>`).join("")}
+          ${(it.links||[]).map(l=>`<a href="${esc(l.u || ("https://money.udn.com/money/story/"+l.c+"/"+l.id))}" target="_blank" rel="noopener noreferrer">原文:${esc(l.t)} ↗</a>`).join("")}</div></div>`).join("")}
       ${G.impact ? `<h2 class="imp-h">對自選股的影響</h2>
         <p class="intro" style="margin-top:0">${lk(esc(G.impact.common))}</p>
         ${G.impact.items.map(x=>{ const lt = {pos:"偏正面",neg:"偏負面",watch:"需留意",none:"無重大新消息"}[x.lean]||"";
