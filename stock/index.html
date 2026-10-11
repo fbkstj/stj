@@ -152,6 +152,9 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 .md table{margin:8px 0;font-size:calc(12.5px*var(--fs))} .md td,.md th{vertical-align:top}
 .md .tbl{overflow:auto;margin:8px 0}
 .page .tbl{overflow:auto}
+.cmpchip{display:inline-block;margin:2px 4px 2px 0;padding:1px 8px;border:1px solid var(--line);border-radius:10px;cursor:pointer;white-space:nowrap;font-size:calc(12px*var(--fs))}
+.cmpchip:hover{border-color:var(--accent)}
+td.clk{cursor:pointer}
 .note{font-size:calc(12px*var(--fs));color:var(--mute);margin-top:8px}
 @media(max-width:1100px){#view{grid-template-columns:calc(220px*var(--fs)) minmax(0,1fr)} #info{display:none}}
 @media(max-width:700px){#view{grid-template-columns:1fr;grid-template-rows:180px 1fr} #list{border-right:0;border-bottom:1px solid var(--line)}}
@@ -165,6 +168,7 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
     <button data-t="view">看盤 K 線</button>
     <button data-t="flow">資金流向</button>
     <button data-t="tables">總覽表</button>
+    <button data-t="cmp">台美對照</button>
     <button data-t="us">美股</button>
     <button data-t="digest">新聞彙整</button>
     <button data-t="calendar">行事曆 / 待追蹤</button>
@@ -207,6 +211,7 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 
 <section class="tab" id="t-flow"><div class="page"><div class="wrap" id="flow"></div></div></section>
 <section class="tab" id="t-tables"><div class="page"><div class="wrap" id="tables"></div></div></section>
+<section class="tab" id="t-cmp"><div class="page"><div class="wrap" id="cmp"></div></div></section>
 <section class="tab" id="t-us"><div class="page"><div class="wrap" id="us"></div></div></section>
 <section class="tab" id="t-digest"><div class="page"><div class="wrap" id="digest"></div></div></section>
 <section class="tab" id="t-calendar"><div class="page"><div class="wrap" id="calendar"></div></div></section>
@@ -219,6 +224,7 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 <script src="data/gindex.js"></script>
 <script src="data/digest.js"></script>
 <script src="data/us.js"></script>
+<script src="data/us_map.js"></script>
 <script>
 (function(){
 "use strict";
@@ -253,7 +259,8 @@ $("#nav").addEventListener("click", e => {
   document.querySelectorAll(".tab").forEach(x => x.classList.toggle("on", x.id==="t-"+b.dataset.t));
   if(b.dataset.t==="view") { renderChart(); resizeCharts(); }
   if(b.dataset.t==="flow") renderFlow();
-  if(b.dataset.t==="us") renderUS();   // 分頁顯示後才畫圖,避免寬度為 0
+  if(b.dataset.t==="us") renderUS();
+  if(b.dataset.t==="cmp") renderCmp();   // 分頁顯示後才畫圖,避免寬度為 0
 });
 // 依需要載入個股日 K(data/k/{代號}.js);自選股已在 prices.js 內
 const kLoading = {};
@@ -701,6 +708,93 @@ $("#us").addEventListener("click", e => {
   const b = e.target.closest("#usSort button"); if(b){ usSort = b.dataset.k; renderUS(); return; }
   const t = e.target.closest("[data-c]"); if(t) gotoStock(t.dataset.c);
 });
+
+// ---------- 台美對照 ----------
+let cmpMemo = null;
+function cmpPrep(){
+  if(cmpMemo) return cmpMemo;
+  const ret = rows => { const m = new Map(); for(let i=1;i<rows.length;i++) m.set(rows[i][0], rows[i][4]/rows[i-1][4]-1); return m; };
+  const close = rows => new Map(rows.map(r => [r[0], r[4]]));
+  const usRet = {}, usClose = {};
+  for(const k of Object.keys(US.series)){ usRet[k] = ret(US.series[k].r); usClose[k] = close(US.series[k].r); }
+  const usDates = US.series["^GSPC"].r.map(r => r[0]);       // 美股交易日(排除週末的加密貨幣日)
+  const prevUS = d => { let lo = 0, hi = usDates.length - 1, ans = null;   // 嚴格早於 d 的最近美股交易日
+    while(lo <= hi){ const m = (lo+hi) >> 1; if(usDates[m] < d){ ans = usDates[m]; lo = m+1; } else hi = m-1; } return ans; };
+  return cmpMemo = {usRet, usClose, usDates, prevUS};
+}
+const corr = (a, b) => { const n = a.length; if(n < 30) return null;
+  const ma = a.reduce((x,y)=>x+y,0)/n, mb = b.reduce((x,y)=>x+y,0)/n; let sab=0, saa=0, sbb=0;
+  for(let i=0;i<n;i++){ const da=a[i]-ma, db=b[i]-mb; sab+=da*db; saa+=da*da; sbb+=db*db; } return saa&&sbb ? sab/Math.sqrt(saa*sbb) : null; };
+const gain = (rows, m) => rows.length > m ? (rows[rows.length-1][4]/rows[rows.length-1-m][4]-1)*100 : null;
+
+function renderCmp(){
+  const el = $("#cmp");
+  if(!US || !window.US_MAP){ el.innerHTML = '<div class="headline">尚無美股對照資料,請先執行 fetch_us.py。</div>'; return; }
+  const P = cmpPrep(), MAP = window.US_MAP;
+  const pc = v => v==null ? "—" : pct(v), num = v => v==null ? "—" : fmt(v);
+  const usStat = k => { const r = US.series[k].r; return {k, n:US.series[k].n, c:r.at(-1)[4], d:gain(r,1), w:gain(r,5), m:gain(r,20)}; };
+  const avg = a => { const v = a.filter(x=>x!=null); return v.length ? v.reduce((x,y)=>x+y,0)/v.length : null; };
+
+  // 一、族群對照
+  const themeRows = (window.US_THEME_MAP || []).map(([tw, ug]) => {
+    const gi = window.GINDEX && GINDEX.theme[tw]; const grp = US.groups.find(g => g.name === ug);
+    if(!gi || !grp) return null;
+    const tr = i => i >= gi.length ? null : null;
+    const twG = m => gi.length > m ? (gi.at(-1)/gi.at(-1-m)-1)*100 : null;
+    // 美股群組等權指數
+    const syms = grp.items.filter(k => k !== "^SOX" && k !== "SMH" && k !== "SOXX");
+    const idx = [100]; const dates = P.usDates.slice(-130);
+    for(let i=1;i<dates.length;i++){ const rs = syms.map(k => P.usRet[k].get(dates[i])).filter(x => x!=null); idx.push(idx.at(-1)*(1+(rs.length ? rs.reduce((x,y)=>x+y,0)/rs.length : 0))); }
+    const uG = m => idx.length > m ? (idx.at(-1)/idx.at(-1-m)-1)*100 : null;
+    return {tw, ug, td:twG(1), tw5:twG(5), tw20:twG(20), ud:uG(1), u5:uG(5), u20:uG(20), twSeries:gi.slice(-60), usSeries:idx.slice(-60)};
+  }).filter(Boolean);
+  const spark2 = x => { const w = 120, h = 30, norm = a => a.map(v => v/a[0]); const A = norm(x.twSeries), B = norm(x.usSeries);
+    const all = A.concat(B), mn = Math.min(...all), mx = Math.max(...all);
+    const line = (a, col) => `<polyline fill="none" stroke="${col}" stroke-width="1.6" points="${a.map((v,i)=>`${(i/(a.length-1)*w).toFixed(1)},${(h-1-(v-mn)/(mx-mn||1)*(h-2)).toFixed(1)}`).join(" ")}"/>`;
+    return `<svg width="${w}" height="${h}">${line(A,"#f5b942")}${line(B,"#4f9cf9")}</svg>`; };
+
+  // 二、個股對照
+  const twDateLast = PRICES["2330"] ? PRICES["2330"].rows.at(-1)[0] : (window.FLOW && FLOW.last);
+  const baseUS = P.prevUS(twDateLast), lastUS = P.usDates.at(-1);
+  const stockRows = Object.keys(MAP).map(code => {
+    const pr = PRICES[code]; if(!pr) return null;
+    const rows = pr.rows, syms = MAP[code].us.filter(k => US.series[k]);
+    const st = syms.map(usStat);
+    // 連動度:台股當日漲跌 vs 前一個美股交易日(美股收盤後,台股隔日反應)
+    const xs = [], ys = [];
+    for(let i = Math.max(1, rows.length-121); i < rows.length; i++){
+      const d = rows[i][0], u = P.prevUS(d); if(!u) continue;
+      const rs = syms.map(k => P.usRet[k].get(u)).filter(v => v!=null); if(!rs.length) continue;
+      xs.push(rows[i][4]/rows[i-1][4]-1); ys.push(rs.reduce((a,b)=>a+b,0)/rs.length);
+    }
+    // 台股收盤後尚未反映的美股變動
+    let after = null;
+    if(baseUS && lastUS > baseUS){ const v = syms.map(k => { const b = P.usClose[k].get(baseUS), l = P.usClose[k].get(lastUS); return b && l ? (l/b-1)*100 : null; }).filter(x=>x!=null);
+      after = v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; }
+    return {code, name:nameOf(code), c:rows.at(-1)[4], d:gain(rows,1), w:gain(rows,5), m:gain(rows,20), date:rows.at(-1)[0],
+      st, ud:avg(st.map(x=>x.d)), u5:avg(st.map(x=>x.w)), u20:avg(st.map(x=>x.m)), r:corr(xs, ys), n:xs.length, after, why:MAP[code].why};
+  }).filter(Boolean);
+  const sigTxt = x => x.after==null ? "—" : x.after > 1 ? `<span class="up">偏多</span>` : x.after < -1 ? `<span class="dn">偏空</span>` : "中性";
+  const rTxt = x => x.r==null ? "—" : `<b>${x.r.toFixed(2)}</b> <span class="mute">(${x.n} 日)</span>`;
+
+  el.innerHTML = `
+    <div class="note" style="margin:0 0 10px">台股最新收盤日 ${twDateLast},美股最新收盤日 ${lastUS}。台股收盤後美股還有 ${baseUS && lastUS>baseUS ? "新的交易日" : "沒有新的交易日"}(比較基準為台股已反映的最近一個美股收盤 ${baseUS||"—"})。</div>
+    <h2 class="sec">族群對照(台股族群指數 vs 美股群組等權指數)</h2>
+    <div class="tbl"><table><thead><tr><th>台股族群</th><th class="n">單日</th><th class="n">5日</th><th class="n">20日</th><th>美股群組</th><th class="n">單日</th><th class="n">5日</th><th class="n">20日</th><th>近 60 日走勢<br><span class="mute" style="font-weight:400"><span style="color:#f5b942">━</span>台 <span style="color:#4f9cf9">━</span>美</span></th></tr></thead><tbody>
+    ${themeRows.map(x=>`<tr><td><b>${esc(x.tw)}</b></td><td class="n ${cls(x.td)}">${pc(x.td)}</td><td class="n ${cls(x.tw5)}">${pc(x.tw5)}</td><td class="n ${cls(x.tw20)}">${pc(x.tw20)}</td>
+      <td>${esc(x.ug)}</td><td class="n ${cls(x.ud)}">${pc(x.ud)}</td><td class="n ${cls(x.u5)}">${pc(x.u5)}</td><td class="n ${cls(x.u20)}">${pc(x.u20)}</td><td>${spark2(x)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="note">台股族群指數為我依成交值加權自建(見資金流向);美股群組為成分股等權平均,排除指數與 ETF。兩邊交易日曆不同,走勢圖依最近 60 個交易日對齊。</div>
+    <h2 class="sec">個股對照(台股 ↔ 對應美股)</h2>
+    <div class="tbl"><table><thead><tr><th>台股</th><th class="n">收盤</th><th class="n">單日</th><th class="n">20日</th><th>對應美股(單日)</th><th class="n">美股平均單日</th><th class="n">美股 20日</th><th class="n">連動度</th><th class="n">台股收盤後<br>美股累計</th><th>訊號</th></tr></thead><tbody>
+    ${stockRows.map(x=>`<tr><td class="clk" data-c="${x.code}"><b>${esc(x.name)}</b> <span class="mute">${x.code}</span><div class="note" style="margin:2px 0 0">${esc(x.why)}</div></td>
+      <td class="n">${num(x.c)}</td><td class="n ${cls(x.d)}">${pc(x.d)}</td><td class="n ${cls(x.m)}">${pc(x.m)}</td>
+      <td>${x.st.map(u=>`<span class="cmpchip" data-c="${esc(u.k)}">${esc(u.k.replace("^","")) } <b class="${cls(u.d)}">${pc(u.d)}</b></span>`).join(" ")}</td>
+      <td class="n ${cls(x.ud)}">${pc(x.ud)}</td><td class="n ${cls(x.u20)}">${pc(x.u20)}</td><td class="n">${rTxt(x)}</td>
+      <td class="n ${cls(x.after)}">${pc(x.after)}</td><td>${sigTxt(x)}</td></tr>`).join("")}</tbody></table></div>
+    <div class="note"><b>連動度</b>:近 120 個台股交易日,「前一個美股交易日的平均漲跌」與「台股當日漲跌」的相關係數(-1 到 1,越高代表台股越常跟著前一晚美股走;不代表因果)。
+      <b>台股收盤後美股累計</b>:台股最近收盤之後,對應美股累計的漲跌;超過 ±1% 標示偏多或偏空,僅為歷史連動的參考,<b>不是預測也不構成買賣建議</b>。個股對照關係可自行編輯 data/us_map.js。</div>`;
+}
+$("#cmp").addEventListener("click", e => { const t = e.target.closest("[data-c]"); if(t) gotoStock(t.dataset.c); });
 
 // ---------- 新聞彙整(把 台股新聞彙整.md 轉成簡易 HTML) ----------
 function mdToHtml(src){
