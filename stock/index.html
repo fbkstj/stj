@@ -152,6 +152,16 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 .md table{margin:8px 0;font-size:calc(12.5px*var(--fs))} .md td,.md th{vertical-align:top}
 .md .tbl{overflow:auto;margin:8px 0}
 .page .tbl{overflow:auto}
+.dg{background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:8px;padding:12px 16px;margin-bottom:16px}
+.dg h2{margin:0 0 6px;font-size:calc(17px*var(--fs));color:var(--accent)}
+.dg .intro{font-size:calc(15px*var(--fs));line-height:1.75;margin:4px 0 12px}
+.dg-item{border-top:1px solid var(--line);padding:10px 0}
+.dg-item h3{margin:0 0 4px;font-size:calc(15px*var(--fs));line-height:1.5}
+.dg-item .no{display:inline-block;min-width:1.7em;color:var(--accent)}
+.dg-item p{margin:4px 0 6px;font-size:calc(14px*var(--fs));line-height:1.8}
+.dg-item .src{font-size:calc(12px*var(--fs));color:var(--mute)}
+.dg-item .src a{color:#8ec5ff;margin-right:12px;text-decoration:none}
+.dg-item .src a:hover{text-decoration:underline}
 .udn-row{display:grid;grid-template-columns:calc(52px*var(--fs)) calc(92px*var(--fs)) minmax(0,1fr);gap:4px 12px;align-items:baseline;padding:8px 10px;border-bottom:1px solid var(--line)}
 .udn-row:hover{background:var(--panel2)}
 .udn-row .tm{color:var(--mute);font-variant-numeric:tabular-nums}
@@ -243,6 +253,7 @@ td.clk{cursor:pointer}
 <script src="data/us.js"></script>
 <script src="data/us_map.js"></script>
 <script src="data/udn_today.js"></script>
+<script src="data/udn_digest.js"></script>
 <script>
 (function(){
 "use strict";
@@ -856,7 +867,15 @@ function renderUdn(){
       <span><a href="https://money.udn.com/money/story/${esc(x.c)}/${esc(x.id)}" target="_blank" rel="noopener noreferrer">${esc(x.title)}</a>${x.pw?'<span class="pwb">訂閱</span>':''}</span>
       ${x.tags.length?`<span class="tg">${x.tags.map(t=>`<span class="tagc ${wl.has(t)?'w':''}" data-tag="${esc(t)}">${esc(t)}</span>`).join("")}</span>`:""}</div>`;
   }
-  el.innerHTML = `
+  const G = window.UDN_DIGEST;
+  const wlSet = new Set(WL.map(s => s.name));
+  const digest = G ? `<div class="dg"><h2>每日摘要 · ${esc(G.date)}</h2><div class="mute" style="font-size:calc(12px*var(--fs))">整理時間 ${esc(G.asof)} · 由 Claude 閱讀經濟日報全文後用自己的話整理,僅供參考,不構成買賣建議</div>
+      <p class="intro">${esc(G.intro)}</p>
+      ${G.items.map((it,i)=>`<div class="dg-item"><h3><span class="no">${i+1}.</span>${esc(it.title)}</h3>
+        <p>${esc(it.body)}</p>
+        <div class="src">${(it.tags||[]).map(t=>`<span class="tagc ${wlSet.has(t)?'w':''}" data-tag="${esc(t)}">${esc(t)}</span> `).join("")}
+          ${(it.links||[]).map(l=>`<a href="https://money.udn.com/money/story/${esc(l.c)}/${esc(l.id)}" target="_blank" rel="noopener noreferrer">原文:${esc(l.t)} ↗</a>`).join("")}</div></div>`).join("")}</div>` : "";
+  el.innerHTML = `${digest}
     <div class="note" style="margin:0 0 8px">經濟日報最新財經新聞 · 清單更新 ${esc(D.asof)} · 最新一則 ${esc(latest)}。只列標題與連結(內文請到經濟日報閱讀,標「訂閱」者需會員);相關個股由內文比對產生,橘色為你的自選股。</div>
     <div class="fl-ctl">
       <span class="lab">範圍</span>${seg("range",[["today","今天 "+day0.slice(5)],["24h","近 24 小時"],["all","全部(近 2 日)"]],udnState.range)}
