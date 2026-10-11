@@ -181,6 +181,15 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 .dg-item .src{font-size:calc(12px*var(--fs));color:var(--mute)}
 .dg-item .src a{color:#8ec5ff;margin-right:12px;text-decoration:none}
 .dg-item .src a:hover{text-decoration:underline}
+.cc{min-width:calc(150px*var(--fs));vertical-align:top;font-size:calc(12.5px*var(--fs));line-height:1.55}
+.cc .st{display:inline-block;padding:0 8px;border-radius:10px;font-weight:700;font-size:calc(12px*var(--fs));margin-bottom:3px}
+.cc.mass .st{background:#5b1d1d;color:#ff9a9a}
+.cc.ver .st{background:#4a3a14;color:#ffd27a}
+.cc.test .st{background:#1c2a3d;color:#8ec5ff}
+.cc.has .st{background:#262b36;color:#c3cad6}
+.cc.none .st{background:none;color:var(--mute);font-weight:400;padding:0}
+.cc .cf{color:var(--mute);font-size:calc(11px*var(--fs))}
+.cc a{color:#8ec5ff;text-decoration:none}
 .ar-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 0 14px}
 .ar-card h3{margin:0 0 4px;font-size:calc(16px*var(--fs))}
 .ar-card h3 .role{font-size:calc(12px*var(--fs));padding:0 8px;border-radius:10px;background:#3b2a12;color:#ffc86b;margin-left:8px;font-weight:600}
@@ -226,6 +235,7 @@ td.clk{cursor:pointer}
     <button data-t="us">美股</button>
     <button data-t="udn">經濟日報</button>
     <button data-t="arena">台股擂台</button>
+    <button data-t="ccl">CCL 進度</button>
     <button data-t="digest">新聞彙整</button>
     <button data-t="calendar">行事曆 / 待追蹤</button>
   </nav>
@@ -270,6 +280,7 @@ td.clk{cursor:pointer}
 <section class="tab" id="t-tables"><div class="page"><div class="wrap" id="tables"></div></div></section>
 <section class="tab" id="t-cmp"><div class="page"><div class="wrap" id="cmp"></div></div></section>
 <section class="tab" id="t-us"><div class="page"><div class="wrap" id="us"></div></div></section>
+<section class="tab" id="t-ccl"><div class="page"><div class="wrap" id="ccl"></div></div></section>
 <section class="tab" id="t-arena"><div class="page"><div class="wrap" id="arena"></div></div></section>
 <section class="tab" id="t-udn"><div class="page"><div class="wrap" id="udn"></div></div></section>
 <section class="tab" id="t-digest"><div class="page"><div class="wrap" id="digest"></div></div></section>
@@ -287,6 +298,7 @@ td.clk{cursor:pointer}
 <script src="data/udn_today.js"></script>
 <script src="data/udn_digest.js"></script>
 <script src="data/arena.js"></script>
+<script src="data/ccl_status.js"></script>
 <script>
 (function(){
 "use strict";
@@ -325,7 +337,8 @@ $("#nav").addEventListener("click", e => {
   if(b.dataset.t==="cmp") renderCmp();
   if(b.dataset.t==="udn") renderUdn();
   if(b.dataset.t==="rank") renderRank();
-  if(b.dataset.t==="arena") renderArena();   // 分頁顯示後才畫圖,避免寬度為 0
+  if(b.dataset.t==="arena") renderArena();
+  if(b.dataset.t==="ccl") renderCcl();   // 分頁顯示後才畫圖,避免寬度為 0
 });
 // 依需要載入個股日 K(data/k/{代號}.js);自選股已在 prices.js 內
 const kLoading = {};
@@ -939,6 +952,43 @@ $("#rank").addEventListener("change", e => {
   if(e.target.id==="rkInd"){ rkState.ind = e.target.value; renderRank(); }
   if(e.target.id==="rkWatch"){ rkState.watch = e.target.checked; renderRank(); }
 });
+
+// ---------- CCL 材料進度(M8 / M9 / M10 / PTFE) ----------
+function renderCcl(){
+  const el = $("#ccl"), C = window.CCL;
+  if(!C){ el.innerHTML = '<div class="headline">尚無資料(data/ccl_status.js)。</div>'; return; }
+  const ST = {mass:"量產出貨", ver:"已通過驗證", test:"驗證 / 送樣中", has:"有產品或布局", none:"未見資料"};
+  const CF = {company:"公司自述", broker:"券商報告", media:"媒體或業界", analyst:"分析師專欄", search:"搜尋摘要(未逐篇核對)"};
+  const cols = ["M8","M9","M10","PTFE"];
+  const wl = new Set(WL.map(x => x.code));
+  const link = l => l ? ` <a href="https://money.udn.com/money/story/${esc(l[0])}/${esc(l[1])}" target="_blank" rel="noopener noreferrer">原文↗</a>` : "";
+  const cell = c => c ? `<td class="cc ${esc(c.s)}"><span class="st">${ST[c.s]||""}</span><br>${c.s==="none" && (!c.t || c.t==="—") ? "" : esc(c.t)}
+      ${c.conf ? `<div class="cf">${esc(CF[c.conf]||"")}${c.d?" · "+esc(c.d):""}${link(c.link)}</div>` : ""}</td>` : "<td></td>";
+  const flow = window.FLOW ? window.FLOW.stocks : {};
+  const rows = C.vendors.map(v => `<tr><td><b>${esc(v.name)}</b>${v.code?` <span class="mute clk" data-c="${esc(v.code)}" style="cursor:pointer">${esc(v.code)}</span>`:""}${wl.has(v.code)?' <span class="tagc w">自選</span>':''}<br><span class="mute" style="font-size:calc(12px*var(--fs))">${esc(v.role)}</span></td>
+    ${cols.map(k => cell(v.cells[k])).join("")}</tr>`).join("");
+  const cards = C.vendors.concat(C.copper||[]).filter(v => v.code && flow[v.code]).map(v => { const f = flow[v.code]; const ft = f.w["20"][0] + f.w["20"][1];
+    return `<div class="card" style="cursor:pointer" data-c="${esc(v.code)}"><div class="k">${esc(v.name)} ${esc(v.code)}</div><div class="v ${cls(f.r)}">${fmt(f.c)}</div>
+      <div class="d">20 日 <b class="${cls(f.r)}">${f.r==null?"—":pct(f.r)}</b> · 外資+投信 20 日 <b class="${cls(ft)}">${fmt(ft,1)}</b> 億</div></div>`; }).join("");
+  el.innerHTML = `
+    <div class="note" style="margin:0 0 8px">CCL(銅箔基板)M8、M9、M10 與 PTFE 的廠商進度對照 · 整理日期 ${esc(C.asof)}。資料來自經濟日報及搜尋摘要,用自己的話整理;「送樣」與「通過驗證」多為公司自述或媒體說法,各家 M 等級命名與驗證定義不一,請勿視為官方認證。不構成買賣建議。</div>
+    <div class="chips" style="margin-bottom:12px">${Object.entries(ST).map(([k,t])=>`<span class="cc ${k}" style="min-width:0"><span class="st">${t}</span></span>`).join(" ")}</div>
+    <div class="tbl"><table><thead><tr><th>廠商</th>${cols.map(k=>`<th>${k}</th>`).join("")}</tr></thead><tbody>${rows}</tbody></table></div>
+    ${(C.roadmap||[]).length ? `<h2 class="sec">平台與材料路線圖</h2>
+      <div class="grid">${C.roadmap.map(r=>`<div class="card"><div class="k">${esc(r.plat)}</div><div style="margin-top:6px">${r.items.map(i=>`<span class="tagc" style="margin-right:6px">${esc(i)}</span>`).join("")}</div></div>`).join("")}</div>
+      <div class="note">${esc(C.roadmapSource||"")}</div>` : ""}
+    ${(C.copper||[]).length ? `<h2 class="sec">上游:HVLP4 銅箔</h2>
+      <div class="tbl"><table><thead><tr><th>廠商</th><th>狀態</th><th>說明</th></tr></thead><tbody>
+      ${C.copper.map(c=>`<tr><td><b>${esc(c.name)}</b>${c.code?` <span class="mute clk" data-c="${esc(c.code)}" style="cursor:pointer">${esc(c.code)}</span>`:""}${wl.has(c.code)?' <span class="tagc w">自選</span>':''}</td>
+        <td class="cc ${esc(c.s)}"><span class="st">${ST[c.s]||""}</span></td><td>${esc(c.t)}<div class="cf" style="color:var(--mute)">${esc(CF[c.conf]||"")}${c.d?" · "+esc(c.d):""}</div></td></tr>`).join("")}</tbody></table></div>
+      <div class="note">${esc(C.copperNote||"")}</div>` : ""}
+    <h2 class="sec">股價與法人(可點選看 K 線)</h2><div class="grid">${cards}</div>
+    <h2 class="sec">時程里程碑</h2>
+    <div class="tbl"><table><tbody>${C.milestones.map(m=>`<tr><td style="white-space:nowrap;font-weight:700;color:var(--accent)">${esc(m.when)}</td><td>${esc(m.text)}${link(m.link)}</td></tr>`).join("")}</tbody></table></div>
+    <h2 class="sec">觀點與風險</h2>
+    <ul>${C.views.map(t=>`<li>${esc(t)}</li>`).join("")}${C.risks.map(t=>`<li class="mute">風險:${esc(t)}</li>`).join("")}</ul>`;
+}
+$("#ccl").addEventListener("click", e => { const t = e.target.closest("[data-c]"); if(t) gotoStock(t.dataset.c); });
 
 // ---------- 台股擂台 ----------
 async function renderArena(){
