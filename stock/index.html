@@ -181,6 +181,15 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 .dg-item .src{font-size:calc(12px*var(--fs));color:var(--mute)}
 .dg-item .src a{color:#8ec5ff;margin-right:12px;text-decoration:none}
 .dg-item .src a:hover{text-decoration:underline}
+.ar-card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 14px;margin:0 0 14px}
+.ar-card h3{margin:0 0 4px;font-size:calc(16px*var(--fs))}
+.ar-card h3 .role{font-size:calc(12px*var(--fs));padding:0 8px;border-radius:10px;background:#3b2a12;color:#ffc86b;margin-left:8px;font-weight:600}
+.ar-card h3 .org{font-size:calc(12px*var(--fs));color:var(--mute);font-weight:400;margin-left:8px}
+.ar-why{font-size:calc(14px*var(--fs));line-height:1.75;margin:8px 0 4px}
+.ar-view{font-size:calc(13px*var(--fs));line-height:1.7;color:var(--mute);margin:4px 0 0}
+.star{color:var(--accent);font-weight:700}
+.kp{font-size:calc(11px*var(--fs));padding:0 6px;border-radius:8px;background:#1c2a3d;color:#8ec5ff;margin-left:4px}
+.nw{font-size:calc(11px*var(--fs));padding:0 6px;border-radius:8px;background:#2b2236;color:#d3a8ff;margin-left:4px}
 .udn-row{display:grid;grid-template-columns:calc(52px*var(--fs)) calc(92px*var(--fs)) minmax(0,1fr);gap:4px 12px;align-items:baseline;padding:8px 10px;border-bottom:1px solid var(--line)}
 .udn-row:hover{background:var(--panel2)}
 .udn-row .tm{color:var(--mute);font-variant-numeric:tabular-nums}
@@ -216,6 +225,7 @@ td.clk{cursor:pointer}
     <button data-t="cmp">台美對照</button>
     <button data-t="us">美股</button>
     <button data-t="udn">經濟日報</button>
+    <button data-t="arena">台股擂台</button>
     <button data-t="digest">新聞彙整</button>
     <button data-t="calendar">行事曆 / 待追蹤</button>
   </nav>
@@ -260,6 +270,7 @@ td.clk{cursor:pointer}
 <section class="tab" id="t-tables"><div class="page"><div class="wrap" id="tables"></div></div></section>
 <section class="tab" id="t-cmp"><div class="page"><div class="wrap" id="cmp"></div></div></section>
 <section class="tab" id="t-us"><div class="page"><div class="wrap" id="us"></div></div></section>
+<section class="tab" id="t-arena"><div class="page"><div class="wrap" id="arena"></div></div></section>
 <section class="tab" id="t-udn"><div class="page"><div class="wrap" id="udn"></div></div></section>
 <section class="tab" id="t-digest"><div class="page"><div class="wrap" id="digest"></div></div></section>
 <section class="tab" id="t-calendar"><div class="page"><div class="wrap" id="calendar"></div></div></section>
@@ -275,6 +286,7 @@ td.clk{cursor:pointer}
 <script src="data/us_map.js"></script>
 <script src="data/udn_today.js"></script>
 <script src="data/udn_digest.js"></script>
+<script src="data/arena.js"></script>
 <script>
 (function(){
 "use strict";
@@ -312,7 +324,8 @@ $("#nav").addEventListener("click", e => {
   if(b.dataset.t==="us") renderUS();
   if(b.dataset.t==="cmp") renderCmp();
   if(b.dataset.t==="udn") renderUdn();
-  if(b.dataset.t==="rank") renderRank();   // 分頁顯示後才畫圖,避免寬度為 0
+  if(b.dataset.t==="rank") renderRank();
+  if(b.dataset.t==="arena") renderArena();   // 分頁顯示後才畫圖,避免寬度為 0
 });
 // 依需要載入個股日 K(data/k/{代號}.js);自選股已在 prices.js 內
 const kLoading = {};
@@ -925,6 +938,117 @@ $("#rank").addEventListener("click", e => {
 $("#rank").addEventListener("change", e => {
   if(e.target.id==="rkInd"){ rkState.ind = e.target.value; renderRank(); }
   if(e.target.id==="rkWatch"){ rkState.watch = e.target.checked; renderRank(); }
+});
+
+// ---------- 台股擂台 ----------
+async function renderArena(){
+  const el = $("#arena"), A = window.ARENA;
+  if(!A){ el.innerHTML = '<div class="headline">尚無擂台資料(data/arena.js)。</div>'; return; }
+  el.innerHTML = '<div class="note">載入各檔 K 線與計算報酬中…</div>';
+  const codes = new Set();
+  A.weeks.forEach(w => Object.values(w.players).forEach(p => p.picks.forEach(k => codes.add(k[1]))));
+  await Promise.all([...codes].map(c => loadK(c).catch(() => null)));
+  const closeOn = (c, date, upTo) => {   // 取不晚於 date 的最近收盤
+    const r = PRICES[c] && PRICES[c].rows; if(!r) return null;
+    for(let i = r.length-1; i >= 0; i--) if(r[i][0] <= date) return {d:r[i][0], c:r[i][4]};
+    return null;
+  };
+  const latestDate = c => PRICES[c] ? PRICES[c].rows.at(-1)[0] : null;
+  const wlNames = new Set(WL.map(x => x.name));
+  const flow = window.FLOW ? window.FLOW.stocks : {};
+  const retOf = (c, base, end) => {
+    const b = closeOn(c, base); if(!b) return null;
+    const e = end ? closeOn(c, end) : (PRICES[c] ? {d:PRICES[c].rows.at(-1)[0], c:PRICES[c].rows.at(-1)[4]} : null);
+    if(!e || e.d <= b.d) return {b:b.c, e:b.c, r:null, d:e ? e.d : null};
+    return {b:b.c, e:e.c, r:(e.c/b.c-1)*100, d:e.d};
+  };
+  const pcl = v => v==null ? "—" : pct(v);
+  const rankRows = [], weekBlocks = [];
+  const prevHold = {};
+  A.weeks.forEach((w, wi) => {
+    Object.entries(w.players).forEach(([name, p]) => {
+      const rs = p.picks.map(k => { const x = retOf(k[1], w.base, w.end); return {n:k[0], c:k[1], opt:k[2]||{}, x}; });
+      const ok = rs.filter(r => r.x && r.x.r != null);
+      const eq = ok.length ? ok.reduce((a,r)=>a+r.x.r,0)/ok.length : null;
+      const hasW = rs.every(r => r.opt.w);
+      const wr = hasW && ok.length === rs.length ? ok.reduce((a,r)=>a+r.x.r*r.opt.w/100,0) : null;
+      p._calc = {rs, eq, wr, nOk: ok.length};
+    });
+  });
+  // 一、戰績(已結算的週)
+  const doneWeeks = A.weeks.filter(w => w.players && Object.values(w.players).some(p => p.report));
+  const boards = doneWeeks.map(w => {
+    const rows = Object.entries(w.players).filter(([n,p]) => p.report).map(([n,p]) => ({name:n, p, rep:p.report.ret, eq:p._calc.eq}))
+      .sort((a,b) => b.rep - a.rep);
+    return `<h2 class="sec">${esc(w.label)}戰績(${esc(w.base.slice(5))} 收盤 → ${esc(w.end.slice(5))} 收盤)</h2>
+      <div class="tbl"><table><thead><tr><th>名次</th><th>擂台主</th><th class="n">公布報酬</th><th class="n">本站等權重算</th><th>最佳一檔</th><th>最差一檔</th><th>持股</th></tr></thead><tbody>
+      ${rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${esc(r.name)}</b> <span class="mute">${esc(r.p.role)} · ${esc((A.players[r.name]||{}).nick||"")}</span></td>
+        <td class="n ${cls(r.rep)}"><b>${pct(r.rep)}</b></td><td class="n ${cls(r.eq)}">${pcl(r.eq)}</td>
+        <td>${esc(r.p.report.best[0])} <span class="${cls(r.p.report.best[1])}">${pct(r.p.report.best[1])}</span></td>
+        <td>${esc(r.p.report.worst[0])} <span class="${cls(r.p.report.worst[1])}">${pct(r.p.report.worst[1])}</span></td>
+        <td class="mute">${r.p.picks.length} 檔</td></tr>`).join("")}</tbody></table></div>
+      <div class="note">「本站等權重算」用本系統的收盤價、假設各檔等權;公布值的實際持股比重未揭露,所以兩者會有差異(例如持股集中在最看好標的時)。個股報酬與公布的最佳、最差一檔幾乎一致,可作為資料驗證。</div>`;
+  }).join("");
+  // 二、本週布局(最新一週)
+  const cur = A.weeks[A.weeks.length-1], prev = A.weeks.length > 1 ? A.weeks[A.weeks.length-2] : null;
+  const roleOrder = ["周冠軍","衛冕者","挑戰者"];
+  const names = Object.keys(cur.players).sort((a,b) => roleOrder.indexOf(cur.players[a].role) - roleOrder.indexOf(cur.players[b].role));
+  const cards = names.map(name => {
+    const p = cur.players[name], pi = A.players[name] || {};
+    const prevNames = prev && prev.players[name] ? new Set(prev.players[name].picks.map(k => k[0])) : new Set();
+    const rows = p._calc.rs.map(r => {
+      const f = flow[r.c], ft = f ? f.w["20"][0] + f.w["20"][1] : null;
+      const sector = f ? f.i : "";
+      return `<tr class="clk" data-c="${esc(r.c)}"><td>${r.opt.top?'<span class="star">★</span> ':''}<b>${esc(r.n)}</b> <span class="mute">${esc(r.c)}</span>${wlNames.has(r.n)?' <span class="tagc w">自選</span>':''}
+          ${prevNames.has(r.n)?'<span class="kp">續抱</span>':(prev?'<span class="nw">新增</span>':'')}${r.opt.w?` <span class="mute">${r.opt.w}%</span>`:''}</td>
+        <td class="n">${r.x ? fmt(r.x.b) : "—"}</td><td class="n ${cls(r.x&&r.x.r)}">${r.x && r.x.r!=null ? pct(r.x.r) : '<span class="mute">尚未開盤</span>'}</td>
+        <td class="n ${cls(f&&f.r)}">${f && f.r!=null ? pct(f.r) : "—"}</td><td class="n ${cls(ft)}">${ft==null?"—":fmt(ft,1)}</td>
+        <td class="mute" style="font-size:calc(12px*var(--fs))">${esc(sector)}</td></tr>`;
+    }).join("");
+    const eq = p._calc.eq;
+    return `<div class="ar-card"><h3>${esc(name)} <span class="mute" style="font-weight:400">「${esc(pi.nick||"")}」</span><span class="role">${esc(p.role)}</span><span class="org">${esc(pi.org||"")}</span></h3>
+      <div class="note" style="margin:0">${esc(pi.style||"")}</div>
+      <div class="tbl"><table><thead><tr><th>持股</th><th class="n">基準收盤</th><th class="n">本週至今</th><th class="n">20 日漲幅</th><th class="n">外資+投信 20 日(億)</th><th>產業別</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="note" style="margin:4px 0 0">本週至今(等權):<b class="${cls(eq)}">${eq==null?"尚未開盤":pct(eq)}</b>${p._calc.wr!=null?`;依公布比重加權:<b class="${cls(p._calc.wr)}">${pct(p._calc.wr)}</b>`:""}</div>
+      <p class="ar-why"><span class="star">最佳一檔理由</span>:${esc(p.why)}</p>
+      <p class="ar-view"><b>多空診斷</b>:${esc(p.view)}</p></div>`;
+  }).join("");
+  // 三、共識與重疊
+  const cnt = {};
+  names.forEach(n => cur.players[n].picks.forEach(k => { (cnt[k[0]] = cnt[k[0]] || {c:k[1], who:[]}).who.push(n); }));
+  const overlap = Object.entries(cnt).filter(([k,v]) => v.who.length >= 2);
+  const carried = [];
+  if(prev) names.forEach(n => { const pn = prev.players[n]; if(!pn) return; const ps = new Set(pn.picks.map(k=>k[0]));
+    cur.players[n].picks.forEach(k => { if(ps.has(k[0])) carried.push(`${n}:${k[0]}`); }); });
+  const consensus = `<h2 class="sec">共識與重疊</h2>
+    <div class="card"><div class="k">本週被兩位以上擂台主同時持有</div>
+      <div style="margin-top:6px">${overlap.length ? overlap.map(([k,v])=>`<span class="tagc ${wlNames.has(k)?'w':''}" data-c="${esc(v.c)}" style="cursor:pointer">${esc(k)}</span> <span class="mute">${v.who.map(esc).join("、")}</span>`).join("<br>") : '<span class="mute">本週沒有重疊持股</span>'}</div>
+      <div class="k" style="margin-top:10px">由上週續抱到本週</div>
+      <div style="margin-top:6px" class="mute">${carried.length ? carried.map(esc).join("、") : "—"}</div></div>`;
+  // 四、上週個股明細
+  const lastDone = doneWeeks[doneWeeks.length-1];
+  let detail = "";
+  if(lastDone){
+    const all = [];
+    Object.entries(lastDone.players).forEach(([n,p]) => p._calc.rs.forEach(r => all.push({who:n, ...r})));
+    all.sort((a,b) => (b.x&&b.x.r!=null?b.x.r:-1e9) - (a.x&&a.x.r!=null?a.x.r:-1e9));
+    detail = `<h2 class="sec">${esc(lastDone.label)}個股漲跌明細(依漲幅排序)</h2>
+      <div class="tbl"><table><thead><tr><th>個股</th><th>擂台主</th><th class="n">${esc(lastDone.base.slice(5))} 收盤</th><th class="n">${esc(lastDone.end.slice(5))} 收盤</th><th class="n">漲跌</th></tr></thead><tbody>
+      ${all.map(r=>`<tr class="clk" data-c="${esc(r.c)}"><td><b>${esc(r.n)}</b> <span class="mute">${esc(r.c)}</span></td><td>${esc(r.who)}</td>
+        <td class="n">${r.x?fmt(r.x.b):"—"}</td><td class="n">${r.x&&r.x.r!=null?fmt(r.x.e):"—"}</td><td class="n ${cls(r.x&&r.x.r)}">${r.x&&r.x.r!=null?pct(r.x.r):'<span class="mute">無資料</span>'}</td></tr>`).join("")}</tbody></table></div>
+      <div class="note">信昌電因現金減資停止交易,沒有可用價格,未列入重算。</div>`;
+  }
+  el.innerHTML = `
+    <div class="note" style="margin:0 0 8px"><b>${esc(A.season)}</b> · ${esc(A.about)} 以下由我依經濟日報〈台股擂台〉每週文章整理(用自己的話,不抄錄原文),報酬以本系統收盤價重算;不構成買賣建議。</div>
+    ${boards}
+    <h2 class="sec">${esc(cur.label)}布局(${esc(cur.published.slice(5))} 公布;基準 ${esc(cur.base.slice(5))} 收盤)</h2>
+    <div class="note" style="margin:0 0 8px">${esc(cur.note||"")} ★ 為擂台主自選的「最佳一檔」;「自選」代表也在你的自選股內。點列可看 K 線。</div>
+    ${cards}
+    ${consensus}
+    ${detail}`;
+}
+$("#arena").addEventListener("click", e => {
+  const t = e.target.closest("[data-c]"); if(t) gotoStock(t.dataset.c);
 });
 
 // ---------- 經濟日報(今天的最新財經新聞清單) ----------
