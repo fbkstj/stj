@@ -156,6 +156,17 @@ table.rk .tg{font-size:calc(11px*var(--fs));color:var(--mute);white-space:normal
 .dg h2{margin:0 0 6px;font-size:calc(17px*var(--fs));color:var(--accent)}
 .dg .intro{font-size:calc(15px*var(--fs));line-height:1.75;margin:4px 0 12px}
 .dg-item{border-top:1px solid var(--line);padding:10px 0}
+.imp-h{margin:18px 0 6px;padding-top:12px;border-top:2px solid var(--accent);font-size:calc(16px*var(--fs));color:var(--accent)}
+.imp-row{display:grid;grid-template-columns:calc(150px*var(--fs)) minmax(0,1fr);gap:4px 14px;padding:10px 0;border-top:1px solid var(--line)}
+.imp-row .nm{font-weight:700;cursor:pointer}
+.imp-row .nm:hover{color:var(--accent)}
+.imp-row ul{margin:0;padding-left:1.2em;font-size:calc(14px*var(--fs));line-height:1.75}
+.lean{display:inline-block;margin-top:4px;padding:0 10px;border-radius:10px;font-size:calc(12px*var(--fs));font-weight:600}
+.lean.pos{background:#5b1d1d;color:#ff9a9a}
+.lean.neg{background:#1d3a26;color:#7ccf95}
+.lean.watch{background:#4a3a14;color:#ffd27a}
+.lean.none{background:#262b36;color:var(--mute)}
+@media(max-width:700px){.imp-row{grid-template-columns:1fr}}
 .dg-item h3{margin:0 0 4px;font-size:calc(15px*var(--fs));line-height:1.5}
 .dg-item .no{display:inline-block;min-width:1.7em;color:var(--accent)}
 .dg-item p{margin:4px 0 6px;font-size:calc(14px*var(--fs));line-height:1.8}
@@ -874,7 +885,14 @@ function renderUdn(){
       ${G.items.map((it,i)=>`<div class="dg-item"><h3><span class="no">${i+1}.</span>${esc(it.title)}</h3>
         <p>${esc(it.body)}</p>
         <div class="src">${(it.tags||[]).map(t=>`<span class="tagc ${wlSet.has(t)?'w':''}" data-tag="${esc(t)}">${esc(t)}</span> `).join("")}
-          ${(it.links||[]).map(l=>`<a href="https://money.udn.com/money/story/${esc(l.c)}/${esc(l.id)}" target="_blank" rel="noopener noreferrer">原文:${esc(l.t)} ↗</a>`).join("")}</div></div>`).join("")}</div>` : "";
+          ${(it.links||[]).map(l=>`<a href="https://money.udn.com/money/story/${esc(l.c)}/${esc(l.id)}" target="_blank" rel="noopener noreferrer">原文:${esc(l.t)} ↗</a>`).join("")}</div></div>`).join("")}
+      ${G.impact ? `<h2 class="imp-h">對自選股的影響</h2>
+        <p class="intro" style="margin-top:0">${esc(G.impact.common)}</p>
+        ${G.impact.items.map(x=>{ const lt = {pos:"偏正面",neg:"偏負面",watch:"需留意",none:"無重大新消息"}[x.lean]||"";
+          return `<div class="imp-row"><div><span class="nm" data-c="${esc(x.code)}">${esc(x.name)} <span class="mute">${esc(x.code)}</span></span><br><span class="lean ${esc(x.lean)}">${lt}</span></div>
+            <ul>${x.pts.map(p=>`<li>${esc(p)}</li>`).join("")}</ul></div>`; }).join("")}
+        ${(G.impact.quiet||[]).length ? `<div class="imp-row"><div><span class="lean none">其他自選股</span></div><ul><li>${G.impact.quiet.map(esc).join("、")}</li></ul></div>` : ""}
+        <div class="note" style="margin-top:8px">標籤只表示新聞與數據對該檔是偏正面或需要留意,不是買賣建議;「無重大新消息」代表本輪沒有新專文,不代表沒有風險。</div>` : ""}</div>` : "";
   el.innerHTML = `${digest}
     <div class="note" style="margin:0 0 8px">經濟日報最新財經新聞 · 清單更新 ${esc(D.asof)} · 最新一則 ${esc(latest)}。只列標題與連結(內文請到經濟日報閱讀,標「訂閱」者需會員);相關個股由內文比對產生,橘色為你的自選股。</div>
     <div class="fl-ctl">
@@ -889,6 +907,7 @@ function renderUdn(){
     <div class="fl-chart">${html || '<div style="padding:16px" class="mute">沒有符合條件的新聞。</div>'}</div>`;
 }
 $("#udn").addEventListener("click", e => {
+  const nm = e.target.closest(".imp-row .nm"); if(nm){ gotoStock(nm.dataset.c); return; }
   const sg = e.target.closest(".seg button"); if(sg){ udnState.range = sg.dataset.k; renderUdn(); return; }
   const ch = e.target.closest("#udnCats button"); if(ch){ udnState.cat = ch.dataset.k; renderUdn(); return; }
   const tg = e.target.closest("[data-tag]"); if(tg){ udnState.tag = tg.dataset.tag; renderUdn(); return; }
