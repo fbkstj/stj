@@ -1218,6 +1218,19 @@
                         </div>
                     </div>
                     <div class="mega-col has-flyout">
+                        <button class="mega-heading" type="button" aria-expanded="false">⚛️ 基本電學（上）第 1 章 電學基本概念</button>
+                        <div class="mega-list">
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/6pJypSPdXos">1-1 電的特性及應用<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/SB9l12IFDE0">1-2 電的單位、1-3 電能<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/XTPxAZ7zlDI">1-4 電荷<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/bK_GE2BxfnI">1-5 電壓<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/D3kr40W_0WI">1-6 電流<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/W5PsWrdQsuY">1-7 電功率（上）：功率、電能與電費<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/6ShFTpNI_b8">1-7 電功率（下）：損失與效率<span class="ext" aria-hidden="true">↗</span></button>
+                            <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/6pJypSPdXos?playlist=6pJypSPdXos,SB9l12IFDE0,XTPxAZ7zlDI,bK_GE2BxfnI,D3kr40W_0WI,W5PsWrdQsuY,6ShFTpNI_b8">全 7 集完整連播<span class="ext" aria-hidden="true">↗</span></button>
+                        </div>
+                    </div>
+                    <div class="mega-col has-flyout">
                         <button class="mega-heading" type="button" aria-expanded="false">⚡ 基本電學（上）第 2 章 電阻</button>
                         <div class="mega-list">
                             <button class="nav-sub-item" type="button" data-src="https://www.youtube.com/embed/d6x6vE6imyg">2-1 電阻及電導<span class="ext" aria-hidden="true">↗</span></button>
@@ -2263,9 +2276,11 @@
             }
 
             const listId = getPlaylistId(src);
+            // embed/第一集?playlist=第一集,第二集…：依序連播（清單要含第一集；watch_videos 頁不能放進 iframe）
+            const seq = (src.match(/[?&]playlist=([\w,-]+)/) || [])[1];
             if (videoId) {
-                targetSrc = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
-                if (ytDirectLink) ytDirectLink.href = `https://youtu.be/${videoId}`;
+                targetSrc = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0` + (seq ? `&playlist=${seq}` : '');
+                if (ytDirectLink) ytDirectLink.href = seq ? `https://www.youtube.com/watch_videos?video_ids=${seq}` : `https://youtu.be/${videoId}`;
                 if (frameBar) frameBar.style.display = 'flex';
             } else if (listId) {
                 // YouTube 播放清單頁不能放進 iframe，改用 videoseries 內嵌
