@@ -171,6 +171,17 @@ button,input{font:inherit;color:inherit}
 .live-item b{display:block}
 .live-item small{color:var(--muted);font-variant-numeric:tabular-nums}
 .live-idle{color:var(--warn)}
+.svpromo{background:linear-gradient(135deg,#00676a,#0a9a8f);color:#fff;border-radius:16px;padding:18px 22px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;box-shadow:var(--shadow);margin:0 0 16px}
+.svpromo b{font-size:1.25rem;display:block;margin-bottom:2px}
+.svpromo .sub{opacity:.96;font-size:.95rem;max-width:34em}
+.svpromo .btn,.svpop .btn.go{background:#fff;color:#00676a;font-weight:700;font-size:1.05rem;padding:11px 26px;border:0;border-radius:999px;animation:svpulse 1.8s infinite}
+@keyframes svpulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.75)}70%{box-shadow:0 0 0 14px rgba(255,255,255,0)}100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}}
+@media (prefers-reduced-motion:reduce){.svpromo .btn,.svpop .btn.go{animation:none}}
+.svpop{position:fixed;inset:0;background:rgba(8,20,24,.55);display:grid;place-items:center;z-index:60;padding:16px}
+.svpop .card{background:var(--surface);color:var(--ink);border-radius:20px;max-width:420px;width:100%;padding:26px 24px;text-align:center;display:grid;gap:12px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.svpop .card .big{font-size:3rem;line-height:1}
+.svpop .card h2{margin:0;font-size:1.3rem}
+.svpop .btn.go{background:linear-gradient(135deg,#00676a,#0a9a8f);color:#fff}
 .svq{display:grid;gap:6px;margin-bottom:14px}
 .svq>b{font-weight:600}
 .svbar{display:grid;grid-template-columns:minmax(110px,1.2fr) 3fr 64px;gap:8px;align-items:center;font-size:.92rem}
@@ -479,6 +490,7 @@ async function showHome(pre) {
   const passed = d.levels.filter(l => l.progress.passed).length;
   app.innerHTML = `
     ${subjectBar(d.subjects, d.subject && d.subject.id)}
+    ${d.surveyDone ? '' : `<section class="svpromo" role="region" aria-label="學習狀況問卷"><div><b>📝 3 分鐘，告訴老師你的學習狀況</b><span class="sub">哪裡有幫助？哪裡還卡住？你的回答會幫老師調整教學、提供協助。記名填寫，不影響成績。</span></div><button class="btn" id="svBtn" type="button">立刻填寫 ›</button></section>`}
     <section class="hello">
       <h1>${esc(d.student.name)}，繼續你的關卡</h1>
       <p class="muted">依序看完影片、通過測驗（${d.passScore} 分及格）就能解鎖下一關。在關卡頁面學習的時間會自動記錄成上課時數。</p>
@@ -488,9 +500,7 @@ async function showHome(pre) {
       <div class="stat"><span>累計學習時間</span><b>${d.minutes}<small>分鐘 · 約 ${d.periods} / ${d.periodsNeeded} 節</small></b></div>
       <div class="stat"><span>目前成績</span><b>${d.grade}<small>分${d.practical && d.practical.tasks.length ? `（測驗 ${d.quizGrade}・術科 ${d.practical.grade}）` : ''}</small></b></div>
     </section>
-    ${d.surveyDone
-      ? `<p class="note">✔ 已填寫學習狀況問卷。<button class="btn ghost sm" id="svBtn" type="button" style="margin-left:8px">修改問卷</button></p>`
-      : `<section class="panel" style="border-left:5px solid var(--warn)"><div class="row"><b>請填寫「學習狀況問卷」（約 2 分鐘）</b><button class="btn" id="svBtn" type="button">開始填寫</button></div><span class="hint">老師想了解你的學習狀況，幫助調整教學、提供協助；記名填寫，不影響成績。</span></section>`}
+    ${d.surveyDone ? `<p class="note">✔ 已填寫學習狀況問卷。<button class="btn ghost sm" id="svBtn" type="button" style="margin-left:8px">修改問卷</button></p>` : ''}
     <div class="section-title"><h2>關卡</h2><span class="hint">通過一關才會開放下一關</span></div>
     <ol class="trace">${d.levels.map(l => {
       const s = levelState(l), p = l.progress;
@@ -510,9 +520,27 @@ async function showHome(pre) {
   const svb = $('#svBtn'); if (svb) svb.onclick = () => showSurvey();
   // 問卷直達連結：網址後面加 #survey，登入後還沒填的學生會直接進問卷頁（只自動開一次）
   if (location.hash === '#survey' && !d.surveyDone && !window.__svOpened) { window.__svOpened = true; showSurvey(); }
+  else if (!d.surveyDone && !window.__svPop) { window.__svPop = true; svPopup(); }
 }
 
 /* ───── 學習狀況問卷（學生） ───── */
+function svPopup() {
+  const ov = document.createElement('div');
+  ov.className = 'svpop'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-label', '學習狀況問卷');
+  ov.innerHTML = `<div class="card"><div class="big">🙋</div><h2>老師想聽聽你的聲音</h2>
+    <p class="muted" style="margin:0">只要 3 分鐘，點選為主。<br>告訴老師哪裡有幫助、哪裡還卡住，老師會根據你的回答幫你。記名填寫，<b>不影響成績</b>。</p>
+    <button class="btn go" type="button" id="svGo">現在就填 ›</button>
+    <button class="btn ghost" type="button" id="svLater">等一下再說</button></div>`;
+  const close = () => { ov.remove(); document.removeEventListener('keydown', esc2); };
+  const esc2 = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', esc2);
+  document.body.appendChild(ov);
+  $('#svGo').onclick = () => { close(); showSurvey(); };
+  $('#svLater').onclick = close;
+  ov.onclick = e => { if (e.target === ov) close(); };
+  $('#svGo').focus();
+}
+
 async function showSurvey() {
   stopStudy(true);
   app.innerHTML = '<div class="loading">載入問卷…</div>';
