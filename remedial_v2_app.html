@@ -162,6 +162,15 @@ button,input{font:inherit;color:inherit}
 .codes td,.codes th{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
 .solve{margin:8px 0 2px;padding:10px 12px;border-radius:8px;background:var(--soft);border-left:3px solid var(--accent);font-size:.9rem}
 .solve b{display:block;margin-bottom:4px;color:var(--accent)}
+.live-box{background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--ok);border-radius:12px;padding:12px 16px;margin-bottom:12px}
+.live-box h2{font-size:1.05rem;display:flex;align-items:center;gap:8px}
+.live-dot{width:10px;height:10px;border-radius:50%;background:var(--ok);display:inline-block;animation:livep 1.6s infinite}
+@keyframes livep{0%,100%{opacity:1}50%{opacity:.25}}
+.live-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.live-item{border:1px solid var(--line);border-radius:10px;padding:8px 12px;background:var(--bg);min-width:190px}
+.live-item b{display:block}
+.live-item small{color:var(--muted);font-variant-numeric:tabular-nums}
+.live-idle{color:var(--warn)}
 .solve pre{margin:0;white-space:pre-wrap;font:13px/1.7 var(--sans);color:var(--ink)}details.solve summary{cursor:pointer;font-weight:700;color:var(--accent)}details.solve[open] summary{margin-bottom:6px}
 img.qfig{display:block;max-width:min(520px,100%);height:auto;margin:6px 0 10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}
 pre.sol{background:#10201f;color:#dbe7e4;border-radius:10px;padding:12px;margin:0 0 10px;overflow-x:auto;font:12.5px/1.55 Consolas,monospace;white-space:pre}
@@ -955,6 +964,37 @@ async function startQuiz(resume) {
 }
 
 /* ───── 教師後台 ───── */
+const hms = s => (s >= 3600 ? Math.floor(s / 3600) + ' 小時 ' : '') + Math.floor(s % 3600 / 60) + ' 分';
+function renderLive(d) {
+  const box = $('#liveBox');
+  if (!box) return;
+  const on = d.students.filter(s => s.online);
+  if (!on.length) {
+    box.innerHTML = `<div class="live-box" style="border-left-color:var(--line)"><h2>目前沒有人在線上</h2>
+      <p class="muted">學生開著關卡頁面學習時會出現在這裡（每 30 秒更新）。</p></div>`;
+    return;
+  }
+  box.innerHTML = `<div class="live-box"><h2><span class="live-dot"></span>目前在線 ${on.length} 人</h2>
+    <div class="live-list">${on.map(s => {
+      const o = s.online;
+      const idle = o.idleSec >= 90 ? `<span class="live-idle">　閒置 ${Math.floor(o.idleSec / 60)} 分</span>` : '';
+      return `<div class="live-item"><b>${esc(s.name)}</b>
+        <small>${esc(s.cls)} ${esc(s.seat)} 號</small>
+        <small>掛線 ${hms(o.connSec)}（${esc(o.since)} 起）${idle}</small>
+        <small>實際學習 ${o.activeMin} 分${o.levels ? '　關卡 ' + esc(o.levels) : ''}</small></div>`;
+    }).join('')}</div>
+    <p class="muted" style="margin-top:8px">「掛線」是這次連線的總時間，「實際學習」只算影片播放中與有在操作的時間。</p></div>`;
+}
+
+let liveTimer = null;
+function startLive() {
+  clearInterval(liveTimer);
+  liveTimer = setInterval(async () => {
+    if (!$('#liveBox') || ROLE !== 'teacher') return clearInterval(liveTimer);
+    try { const d = await api('getDashboard', TOKEN); renderLive(d); } catch (e) {}
+  }, 30000);
+}
+
 function cellOf(l, pass) {
   if (l.passed) return `<span class="pill ok">通過 ${l.best}</span>`;
   if (l.quizCount) return `<span class="pill ${l.attemptsLeft === 0 ? 'bad' : 'warn'}">${l.best} 分 · ${l.quizCount} 次</span>`;
@@ -977,6 +1017,7 @@ async function showTeacher(pre) {
   const avgMin = n ? Math.round(d.students.reduce((a, s) => a + s.minutes, 0) / n) : 0;
   app.innerHTML = `
     ${subjectBar(d.subjects, d.subject && d.subject.id)}
+    <div id="liveBox"></div>
     <div class="tbar">
       <div style="display:grid;gap:4px"><div class="eyebrow">${esc(d.info.school)} ${esc(d.info.year)} 學年度重補修 · 教師後台</div><h1>${esc(d.info.subject)}</h1>
         <p class="muted">${n} 位學生 · 全部關卡通過 ${allPass} 位 · 平均學習 ${avgMin} 分鐘（規定 ${d.info.periods} 節）</p></div>
@@ -1019,6 +1060,7 @@ async function showTeacher(pre) {
   });
   renderFixGrade(d);
   renderPracGrade(d);
+  renderLive(d); startLive();
   $('#refBtn').onclick = () => showTeacher();   // 不能直接給 showTeacher：點擊事件會被當成後台資料 pre
   bindSubjectBar(d.subject && d.subject.id);
   const boxes = () => [...app.querySelectorAll('input[name="mailSid"]:not(:disabled)')];
