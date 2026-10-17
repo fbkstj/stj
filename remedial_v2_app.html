@@ -841,16 +841,41 @@ function renderQuizBox() {
     ? `<p>最高 <b class="mono">${p.best}</b> 分，3 次都沒有全對。請依照下方說明訂正並拍照上傳，上傳完就能進下一關。</p>`
     : `<p>最高 <b class="mono">${p.best}</b> 分，作答次數已經用完，請找老師。</p>`;
   else html += `${p.quizCount ? `<p>目前最高 <b class="mono">${p.best}</b> 分，還沒通過。</p>` : ''}<div><button class="btn" id="quizBtn">開始測驗</button></div>`;
+  const sv = savedQuiz();
+  if (sv && !p.passed && p.videoDone && LEVEL.questionCount) {
+    const done = Object.keys(sv.answers || {}).length;
+    html += `<div class="panel" style="margin-top:10px"><div class="row"><b>有一份還沒交卷的測驗</b>
+      <span class="hint">已作答 ${done} / ${sv.qs.length} 題</span></div>
+      <div class="row"><button class="btn" id="resumeBtn">繼續上次的測驗</button>
+      <button class="btn ghost" id="dropBtn">放棄，重新出題</button></div></div>`;
+  }
   box.innerHTML = html;
-  if ($('#quizBtn')) $('#quizBtn').onclick = startQuiz;
+  if ($('#resumeBtn')) $('#resumeBtn').onclick = () => startQuiz(savedQuiz());
+  if ($('#dropBtn')) $('#dropBtn').onclick = () => { clearQuiz(); renderQuizBox(); };
+  if ($('#quizBtn')) $('#quizBtn').onclick = () => startQuiz();
   if ($('#nextBtn')) $('#nextBtn').onclick = () => showHome();
 }
 
-async function startQuiz() {
+// 作答進度（題目與已選答案）存在瀏覽器，頁面重新載入、手機鎖屏回來都還在
+const qkey = () => 'q:' + (LEVEL ? LEVEL.title + ':' + LEVEL.id : '');
+function saveQuiz(qs, answers) { try { sessionStorage.setItem(qkey(), JSON.stringify({ qs, answers, at: Date.now() })); } catch (e) {} }
+function clearQuiz() { try { sessionStorage.removeItem(qkey()); } catch (e) {} }
+function savedQuiz() {
+  try {
+    const v = JSON.parse(sessionStorage.getItem(qkey()) || 'null');
+    return v && v.qs && Date.now() - v.at < 6 * 3600 * 1000 ? v : null;   // 超過 6 小時就不續作
+  } catch (e) { return null; }
+}
+
+async function startQuiz(resume) {
   const box = $('#quizBox');
   box.innerHTML = '<p class="muted">載入題目…</p>';
   let qs;
-  try { qs = await api('getQuiz', TOKEN, LEVEL.id); } catch (e) { toast(e.message); return renderQuizBox(); }
+  if (resume && resume.qs) qs = resume.qs;
+  else {
+    try { qs = await api('getQuiz', TOKEN, LEVEL.id); } catch (e) { toast(e.message); return renderQuizBox(); }
+    saveQuiz(qs, {});
+  }
   box.innerHTML = `<div class="row"><h2>關卡測驗</h2><span class="hint">每題單選</span></div>
     <form id="quizForm">${qs.map((q, i) => `
       <fieldset class="q" data-no="${esc(q.no)}"><legend><span class="mono">${i + 1}.</span><span>${esc(q.text)}</span></legend>
@@ -859,13 +884,27 @@ async function startQuiz() {
       </fieldset>`).join('')}
       <div class="row" style="margin-top:12px"><span class="err" id="qerr"></span><button class="btn" type="submit" id="subBtn">交卷</button></div>
     </form>`;
+  const keep = () => {
+    const a = {};
+    qs.forEach(q => { const c = box.querySelector(`input[name="q${CSS.escape(q.no)}"]:checked`); if (c) a[q.no] = c.value; });
+    saveQuiz(qs, a);
+  };
+  if (resume && resume.answers) {
+    Object.keys(resume.answers).forEach(no => {
+      const el = box.querySelector(`input[name="q${CSS.escape(no)}"][value="${resume.answers[no]}"]`);
+      if (el) el.checked = true;
+    });
+    toast('已接續上次的作答');
+  }
+  box.querySelectorAll('#quizForm input').forEach(i => i.addEventListener('change', keep));
   box.scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('#quizForm').onsubmit = async ev => {
     ev.preventDefault();
     const answers = {}; let missing = 0;
     qs.forEach(q => { const c = box.querySelector(`input[name="q${CSS.escape(q.no)}"]:checked`); c ? answers[q.no] = c.value : missing++; });
     if (missing && !confirm(`還有 ${missing} 題沒作答，確定要交卷嗎？`)) return;
-    $('#subBtn').disabled = true;
+    const before = (LEVEL.progress && LEVEL.progress.quizCount) || 0;
+    $('#subBtn').disabled = true; $('#subBtn').textContent = '送出中…'; $('#qerr').textContent = '';
     try {
       const r = await api('submitQuiz', TOKEN, LEVEL.id, answers);
       r.results.forEach(x => {
@@ -883,6 +922,7 @@ async function startQuiz() {
           + (x.right ? `<span class="ans">正確答案：${esc(x.right)}</span>` : '');
         f.appendChild(d);
       });
+      clearQuiz();
       box.querySelectorAll('#quizForm input').forEach(i => { i.disabled = true; });
       LEVEL.progress = r.progress;
       const p = r.progress;
@@ -894,9 +934,23 @@ async function startQuiz() {
       box.prepend(result);
       $('#subBtn').remove();
       $('#homeBtn').onclick = () => showHome();
-      if ($('#retryBtn')) $('#retryBtn').onclick = startQuiz;
+      if ($('#retryBtn')) $('#retryBtn').onclick = () => { clearQuiz(); startQuiz(); };
       box.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } catch (e) { $('#qerr').textContent = e.message; $('#subBtn').disabled = false; }
+    } catch (e) {
+      // 交卷是寫入動作，不自動重送（會多算一次）。先查這次是不是其實已經送出成功了
+      let done = false;
+      try {
+        const lv = await api('getLevel', TOKEN, LEVEL.id);
+        if (lv && lv.progress && (lv.progress.quizCount || 0) > before) {
+          done = true; clearQuiz(); LEVEL = lv; renderProgress(lv.progress);
+          toast('這次作答其實已經送出了，成績已記錄');
+        }
+      } catch (e2) {}
+      if (!done) {
+        $('#qerr').textContent = (e.message || '送出失敗') + '　答案還留著，請再按一次「交卷」';
+        $('#subBtn').disabled = false; $('#subBtn').textContent = '交卷';
+      }
+    }
   };
 }
 
