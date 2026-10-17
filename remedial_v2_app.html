@@ -171,6 +171,14 @@ button,input{font:inherit;color:inherit}
 .live-item b{display:block}
 .live-item small{color:var(--muted);font-variant-numeric:tabular-nums}
 .live-idle{color:var(--warn)}
+.svq{display:grid;gap:6px;margin-bottom:14px}
+.svq>b{font-weight:600}
+.svbar{display:grid;grid-template-columns:minmax(110px,1.2fr) 3fr 64px;gap:8px;align-items:center;font-size:.92rem}
+.svbar .tr{background:var(--sunk);border-radius:6px;height:14px;overflow:hidden}
+.svbar .tr i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.phgrid{display:flex;flex-wrap:wrap;gap:10px}
+.phitem{width:168px;display:grid;gap:4px;font-size:.85rem}
+.phitem img{width:168px;height:126px;object-fit:cover;border-radius:8px;border:1px solid var(--line);cursor:zoom-in;background:var(--sunk)}
 .solve pre{margin:0;white-space:pre-wrap;font:13px/1.7 var(--sans);color:var(--ink)}details.solve summary{cursor:pointer;font-weight:700;color:var(--accent)}details.solve[open] summary{margin-bottom:6px}
 img.qfig{display:block;max-width:min(520px,100%);height:auto;margin:6px 0 10px;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px}
 pre.sol{background:#10201f;color:#dbe7e4;border-radius:10px;padding:12px;margin:0 0 10px;overflow-x:auto;font:12.5px/1.55 Consolas,monospace;white-space:pre}
@@ -480,6 +488,9 @@ async function showHome(pre) {
       <div class="stat"><span>累計學習時間</span><b>${d.minutes}<small>分鐘 · 約 ${d.periods} / ${d.periodsNeeded} 節</small></b></div>
       <div class="stat"><span>目前成績</span><b>${d.grade}<small>分${d.practical && d.practical.tasks.length ? `（測驗 ${d.quizGrade}・術科 ${d.practical.grade}）` : ''}</small></b></div>
     </section>
+    ${d.surveyDone
+      ? `<p class="note">✔ 已填寫學習狀況問卷。<button class="btn ghost sm" id="svBtn" type="button" style="margin-left:8px">修改問卷</button></p>`
+      : `<section class="panel" style="border-left:5px solid var(--warn)"><div class="row"><b>請填寫「學習狀況問卷」（約 2 分鐘）</b><button class="btn" id="svBtn" type="button">開始填寫</button></div><span class="hint">老師想了解你的學習狀況，幫助調整教學、提供協助；記名填寫，不影響成績。</span></section>`}
     <div class="section-title"><h2>關卡</h2><span class="hint">通過一關才會開放下一關</span></div>
     <ol class="trace">${d.levels.map(l => {
       const s = levelState(l), p = l.progress;
@@ -496,6 +507,45 @@ async function showHome(pre) {
   app.querySelectorAll('.lvcard:not(:disabled)').forEach(b => b.onclick = () => showLevel(b.dataset.id));
   bindSubjectBar(d.subject && d.subject.id);
   renderPractical(d.practical);
+  const svb = $('#svBtn'); if (svb) svb.onclick = () => showSurvey();
+}
+
+/* ───── 學習狀況問卷（學生） ───── */
+async function showSurvey() {
+  stopStudy(true);
+  app.innerHTML = '<div class="loading">載入問卷…</div>';
+  let sv;
+  try { sv = await api('getSurvey', TOKEN); } catch (e) { app.innerHTML = `<p class="loading">${esc(e.message)}</p>`; return; }
+  const a = sv.answers || {};
+  app.innerHTML = `
+    <section class="hello"><h1>學習狀況問卷</h1>
+      <p class="muted">記名填寫，只有老師看得到。目的是了解你的學習狀況、提供協助，不影響成績。選擇題都要回答。${sv.at ? '（上次填寫：' + esc(sv.at) + '，可以修改後重新送出。）' : ''}</p></section>
+    <form id="svForm" class="panel" novalidate>
+      ${sv.questions.map((q, i) => `<div class="svq"><b>${i + 1}. ${esc(q.text)}</b>
+        ${q.type === 'text'
+          ? `<textarea name="${esc(q.id)}" rows="3" maxlength="300" style="width:100%;font:inherit;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)">${esc(a[q.id] || '')}</textarea>`
+          : q.options.map(o => {
+              const on = q.type === 'multi' ? (a[q.id] || []).includes(o) : a[q.id] === o;
+              return `<label class="opt"><input type="${q.type === 'multi' ? 'checkbox' : 'radio'}" name="${esc(q.id)}" value="${esc(o)}" ${on ? 'checked' : ''}><span>${esc(o)}</span></label>`;
+            }).join('')}
+      </div>`).join('')}
+      <div class="row"><button class="btn ghost" id="svCancel" type="button">回首頁</button><span class="err" id="svMsg" role="status"></span><button class="btn" id="svSend" type="submit">送出問卷</button></div>
+    </form>`;
+  $('#svCancel').onclick = () => showHome();
+  $('#svForm').onsubmit = async ev => {
+    ev.preventDefault();
+    const out = {};
+    sv.questions.forEach(q => {
+      const els = [...app.querySelectorAll(`[name="${q.id}"]`)];
+      if (q.type === 'text') out[q.id] = els[0].value;
+      else if (q.type === 'multi') out[q.id] = els.filter(e => e.checked).map(e => e.value);
+      else { const c = els.find(e => e.checked); out[q.id] = c ? c.value : ''; }
+    });
+    const btn = $('#svSend'), msg = $('#svMsg');
+    btn.disabled = true; msg.textContent = '送出中…';
+    try { await api('submitSurvey', TOKEN, out); toast('問卷已送出，謝謝！'); showHome(); }
+    catch (e) { msg.textContent = e.message; btn.disabled = false; }
+  };
 }
 
 /* ───── 術科（Tinkercad） ───── */
@@ -1014,20 +1064,25 @@ async function showTeacher(pre) {
   $('#hdrTitle').textContent = d.info.subject;
   const n = d.students.length;
   const allPass = d.students.filter(s => s.levels.length && s.levels.every(l => l.passed)).length;
+  const GATE = '8';                                                    // 考試資格：完成到這一關
+  const gi = d.levels.findIndex(l => String(l.id) === GATE);           // 這一科沒有這一關就是 -1（不顯示這一欄）
+  const gateOk = s => gi >= 0 && !!(s.levels[gi] && s.levels[gi].passed);
+  const gateCount = d.students.filter(gateOk).length;
   const avgMin = n ? Math.round(d.students.reduce((a, s) => a + s.minutes, 0) / n) : 0;
   app.innerHTML = `
     ${subjectBar(d.subjects, d.subject && d.subject.id)}
     <div id="liveBox"></div>
     <div class="tbar">
       <div style="display:grid;gap:4px"><div class="eyebrow">${esc(d.info.school)} ${esc(d.info.year)} 學年度重補修 · 教師後台</div><h1>${esc(d.info.subject)}</h1>
-        <p class="muted">${n} 位學生 · 全部關卡通過 ${allPass} 位 · 平均學習 ${avgMin} 分鐘（規定 ${d.info.periods} 節）</p></div>
-      <div class="row"><button class="btn ghost" id="refBtn">重新整理</button><button class="btn" id="expBtn">下載成績單（Excel 可開）</button></div>
+        <p class="muted">${n} 位學生 · 全部關卡通過 ${allPass} 位 · 平均學習 ${avgMin} 分鐘（規定 ${d.info.periods} 節）${gi >= 0 ? ` · <b>已完成第 ${GATE} 關 ${gateCount} 位</b>` : ''}</p></div>
+      <div class="row">${gi >= 0 ? `<label class="opt" style="padding:6px 12px"><input type="checkbox" id="onlyGate"><span>只看已完成第 ${GATE} 關</span></label>` : ''}<button class="btn ghost" id="refBtn">重新整理</button><button class="btn" id="expBtn">下載成績單（Excel 可開）</button></div>
     </div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>學生</th>${d.levels.map(l => `<th title="${esc(l.title)}">關卡 ${esc(l.id)}</th>`).join('')}<th class="num">學習分鐘</th><th class="num">節數</th><th class="num">測驗</th>${d.practicals.length ? '<th class="num">術科</th>' : ''}<th class="num">學期成績</th><th class="num">建議填寫</th></tr></thead>
+      <thead><tr><th>學生</th>${gi >= 0 ? `<th title="通過第 ${GATE} 關的測驗才可以參加考試">完成第 ${GATE} 關</th>` : ''}${d.levels.map(l => `<th title="${esc(l.title)}">關卡 ${esc(l.id)}</th>`).join('')}<th class="num">學習分鐘</th><th class="num">節數</th><th class="num">測驗</th>${d.practicals.length ? '<th class="num">術科</th>' : ''}<th class="num">學期成績</th><th class="num">建議填寫</th></tr></thead>
       <tbody>${d.students.map((s, i) => `
-        <tr class="st" data-i="${i}" tabindex="0" aria-expanded="false">
+        <tr class="st" data-i="${i}" data-g="${gateOk(s) ? 1 : 0}" tabindex="0" aria-expanded="false">
           <td class="name"><b>${esc(s.name)}</b><small>${esc(s.cls)} ${esc(s.seat)} 號 · ${esc(s.sid)}${s.type ? ' · ' + esc(s.type) : ''}</small></td>
+          ${gi >= 0 ? `<td>${gateOk(s) ? '<span class="pill ok">✔ 已完成</span>' : `<span class="pill warn">未完成</span><br><small class="muted">已過 ${s.levels.slice(0, gi + 1).filter(l => l.passed).length}/${gi + 1} 關</small>`}</td>` : ''}
           ${s.levels.map(l => `<td>${cellOf(l, d.info.pass)}</td>`).join('')}
           <td class="num">${s.minutes}<br><small class="muted">影片 ${s.videoMin != null ? s.videoMin : 0}・測驗 ${s.quizMin != null ? s.quizMin : 0}</small></td>
           <td class="num">${s.periods}<span class="muted"> / ${d.info.periods}</span></td>
@@ -1036,12 +1091,15 @@ async function showTeacher(pre) {
           <td class="num">${s.grade}</td>
           <td class="num"><b>${s.suggested}</b></td>
         </tr>
-        <tr class="detail" data-for="${i}" hidden><td colspan="${d.levels.length + 7}">
+        <tr class="detail" data-for="${i}" hidden><td colspan="${d.levels.length + 7 + (gi >= 0 ? 1 : 0)}">
           ${s.sessions.length ? `<div class="sess">${s.sessions.map(x => `<span class="mono">${esc(x.date)} ${esc(x.start)}–${esc(x.end)}　${Math.round(x.minutes)} 分</span>`).join('')}</div>` : '<span class="muted">還沒有上課紀錄。</span>'}
-        </td></tr>`).join('') || `<tr><td colspan="${d.levels.length + 7}" class="muted">這一科還沒有學生。</td></tr>`}
+        </td></tr>`).join('') || `<tr><td colspan="${d.levels.length + 7 + (gi >= 0 ? 1 : 0)}" class="muted">這一科還沒有學生。</td></tr>`}
       </tbody></table></div>
     <div id="fixGrade"></div>
     <div id="pracGrade"></div>
+    <div id="progBox"></div>
+    <div id="surveyBox"></div>
+    <div id="photoBox"></div>
     <section class="panel" id="mailBox" aria-labelledby="mailTitle">
       <div class="row"><h2 id="mailTitle">寄送登入碼</h2><span class="hint">勾選要寄的學生，登入碼會寄到學生的學校信箱（由老師的 Gmail 寄出，每天上限約 100 封）</span></div>
       <div style="display:grid;gap:6px">${d.students.map(s => `
@@ -1054,12 +1112,24 @@ async function showTeacher(pre) {
       <tbody>${d.students.map(s => `<tr><td>${esc(s.cls)}</td><td>${esc(s.seat)}</td><td class="mono">${esc(s.sid)}</td><td>${esc(s.name)}</td><td class="mono">${esc(s.code || '')}</td></tr>`).join('')}</tbody></table>
     </details>
     <p class="note">學習分鐘只算有在學習的時間（影片播放中照算；作答時 5 分鐘沒碰滑鼠鍵盤就不算），下方分列影片與測驗。點學生那一列可以展開每次上課的日期與時間，照著填紙本點名單。「建議填寫」依紙本規定計算：修別為「重修」且達 60 分者填 60，其餘填實際分數；修別、登入碼、題目可以在 Supabase 後台的資料表修改（約 1 分鐘後生效）。</p>`;
+  const onlyGate = $('#onlyGate');
+  if (onlyGate) onlyGate.onchange = () => {
+    app.querySelectorAll('tr.st').forEach(tr => {
+      const hide = onlyGate.checked && tr.dataset.g !== '1';
+      tr.hidden = hide;
+      const det = app.querySelector(`tr.detail[data-for="${tr.dataset.i}"]`);
+      if (det && hide) det.hidden = true;
+    });
+  };
   app.querySelectorAll('tr.st').forEach(tr => {
     const toggle = () => { const det = app.querySelector(`tr.detail[data-for="${tr.dataset.i}"]`); det.hidden = !det.hidden; tr.setAttribute('aria-expanded', String(!det.hidden)); };
     tr.onclick = toggle; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } };
   });
   renderFixGrade(d);
   renderPracGrade(d);
+  renderProgBox();
+  renderSurveyBox();
+  renderPhotoBox();
   renderLive(d); startLive();
   $('#refBtn').onclick = () => showTeacher();   // 不能直接給 showTeacher：點擊事件會被當成後台資料 pre
   bindSubjectBar(d.subject && d.subject.id);
@@ -1099,6 +1169,101 @@ async function showTeacher(pre) {
 }
 
 /** 教師後台：訂正確認 */
+async function renderProgBox() {
+  const box = $('#progBox');
+  if (!box) return;
+  let r;
+  try { r = await api('getProgressReport', TOKEN); } catch (e) { box.innerHTML = `<section class="panel"><span class="err">${esc(e.message)}</span></section>`; return; }
+  if (!$('#progBox')) return;
+  const sgn = v => v == null ? '—' : (v > 0 ? '+' + v : String(v));
+  const col = v => v == null ? '' : v > 0 ? 'color:var(--ok)' : v < 0 ? 'color:var(--bad)' : '';
+  box.innerHTML = `<section class="panel" id="prRes">
+    <div class="row"><h2>進步情形</h2><span class="hint">依每次測驗的分數整理；「第一次」是剛學完時的實力，「最高」是重做後的結果</span></div>
+    ${r.active ? `<p class="muted">已有測驗紀錄 ${r.active} / ${r.total} 位 · 全班「第一次」平均 <b>${r.firstAvg}</b> 分 → 「最高」平均 <b>${r.bestAvg}</b> 分（<b style="${col(r.gainAvg)}">${sgn(r.gainAvg)}</b>）· 最高分比第一次高的有 <b>${r.gainUp}</b> 位${r.trendN ? ` · 後期關卡第一次作答分數比前期高的有 <b>${r.trendUp}</b> / ${r.trendN} 位` : ''}</p>
+    <div class="tbl-wrap"><table><thead><tr><th>學生</th><th class="num">作答關數</th><th class="num">第一次平均</th><th class="num">最高平均</th><th class="num">進步幅度</th><th class="num">有進步的關</th><th class="num">前期→近期<br><small class="muted">第一次作答</small></th></tr></thead>
+      <tbody>${r.rows.filter(x => x.nLevels).map(x => `<tr class="prst" tabindex="0"><td class="name"><b>${esc(x.name)}</b><small>${esc(x.cls)} ${esc(x.seat)} 號</small></td>
+        <td class="num">${x.nLevels}</td><td class="num">${x.firstAvg}</td><td class="num">${x.bestAvg}</td>
+        <td class="num"><b style="${col(x.gain)}">${sgn(x.gain)}</b></td><td class="num">${x.improved}</td>
+        <td class="num">${x.early != null ? `${x.early} → ${x.late} <b style="${col(x.trend)}">(${sgn(x.trend)})</b>` : '—'}</td></tr>
+        <tr class="prdet" hidden><td colspan="7"><div class="sess">${x.levels.map(l => `<span class="mono">關卡 ${esc(l.id)}：${l.scores.join(' → ')} 分（${l.tries} 次）</span>`).join('')}</div></td></tr>`).join('')}</tbody></table></div>
+    <p class="note">點學生那一列可以看每一關的分數變化。「進步幅度」＝最高平均 − 第一次平均；「前期→近期」把有作答的關卡分成前後兩半，比較各關「第一次作答」的平均分，看他剛學新單元時是不是越來越穩（只有 1 關時不顯示）。</p>` : '<p class="muted">還沒有人做過測驗。</p>'}
+  </section>`;
+  box.querySelectorAll('tr.prst').forEach(tr => {
+    const toggle = () => { const det = tr.nextElementSibling; det.hidden = !det.hidden; };
+    tr.onclick = toggle; tr.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } };
+  });
+}
+
+async function renderSurveyBox() {
+  const box = $('#surveyBox');
+  if (!box) return;
+  box.innerHTML = '<section class="panel"><span class="muted">載入問卷結果…</span></section>';
+  let r;
+  try { r = await api('getSurveyResults', TOKEN); } catch (e) { box.innerHTML = `<section class="panel"><span class="err">${esc(e.message)}</span></section>`; return; }
+  if (!$('#surveyBox')) return;
+  const txt = r.questions.filter(q => q.type === 'text');
+  box.innerHTML = `<section class="panel" id="svRes">
+    <div class="row"><h2>學習狀況問卷</h2><span class="hint">已填 ${r.answered} / ${r.total} 人（記名，只有老師看得到）</span>
+      <button class="btn ghost sm" id="svExp" type="button">下載問卷結果（Excel 可開）</button></div>
+    ${r.answered ? r.questions.filter(q => q.type !== 'text').map((q, i) => `<div class="svq"><b>${esc(q.text)}</b>
+      ${q.options.map(o => { const c = r.tally[q.id][o] || 0, pct = r.answered ? Math.round(c / r.answered * 100) : 0;
+        return `<div class="svbar"><span>${esc(o)}</span><div class="tr"><i style="width:${pct}%"></i></div><span class="mono">${c} 人 ${pct}%</span></div>`; }).join('')}
+    </div>`).join('') : '<p class="muted">還沒有人填寫。</p>'}
+    ${r.answered ? txt.map(q => `<div class="svq"><b>${esc(q.text)}</b>
+      ${r.rows.filter(x => x.done && x.answers[q.id]).map(x => `<div><b>${esc(x.name)}</b>：${esc(x.answers[q.id])}</div>`).join('') || '<span class="muted">（沒有人填）</span>'}</div>`).join('') : ''}
+    ${r.answered ? `<details><summary><b>每位學生的答案</b></summary><div style="display:grid;gap:8px;margin-top:8px">${r.rows.filter(x => x.done).map(x => `<details><summary><b>${esc(x.name)}</b>　<span class="muted">${esc(x.cls)} ${esc(x.seat)} 號・已過 ${x.passed} 關・${esc(x.at)}</span></summary>
+      <div style="padding:6px 0 6px 16px">${r.questions.map(q => `<div><span class="muted">${esc(q.text)}</span><br>${esc(Array.isArray(x.answers[q.id]) ? x.answers[q.id].join('、') : (x.answers[q.id] || '—'))}</div>`).join('')}</div></details>`).join('')}</div></details>` : ''}
+    <p class="note">還沒填：${r.rows.filter(x => !x.done).map(x => esc(x.name)).join('、') || '（全部都填了）'}</p>
+  </section>`;
+  $('#svExp').onclick = async () => {
+    try {
+      const x = await api('exportSurvey', TOKEN);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([x.csv], { type: 'text/csv;charset=utf-8' }));
+      a.download = x.filename; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    } catch (e) { toast(e.message); }
+  };
+}
+
+async function renderPhotoBox() {
+  const box = $('#photoBox');
+  if (!box) return;
+  let list;
+  try { list = await api('listClassPhotos', TOKEN); } catch (e) { box.innerHTML = `<section class="panel"><span class="err">${esc(e.message)}</span></section>`; return; }
+  if (!$('#photoBox')) return;
+  const days = [...new Set(list.map(p => p.date))];
+  const today = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+  box.innerHTML = `<section class="panel" id="phRes">
+    <div class="row"><h2>上課照片</h2><span class="hint">共 ${list.length} 張（有學生臉部，只有登入教師後台才看得到，不會公開）</span></div>
+    <div class="row" style="flex-wrap:wrap;gap:8px">
+      <label>上課日期 <input type="date" id="phDate" value="${today}"></label>
+      <label>說明 <input type="text" id="phCap" maxlength="100" placeholder="例如：第一次到校上課" style="min-width:200px"></label>
+      <input type="file" id="phFile" accept="image/*" multiple>
+      <button class="btn" id="phUp" type="button">上傳照片</button><span class="err" id="phMsg" role="status"></span></div>
+    ${days.map(d => `<div><h3 style="margin:8px 0 6px">${esc(d)}（${list.filter(p => p.date === d).length} 張）</h3><div class="phgrid">
+      ${list.filter(p => p.date === d).map(p => `<div class="phitem"><a href="${esc(p.url)}" target="_blank" rel="noopener"><img src="${esc(p.url)}" loading="lazy" alt="${esc(p.caption || '上課照片')}"></a>
+        <span>${esc(p.caption)}</span><button class="btn ghost sm" data-del="${esc(p.id)}" type="button">刪除</button></div>`).join('')}</div></div>`).join('') || '<p class="muted">還沒有上課照片。</p>'}
+  </section>`;
+  $('#phUp').onclick = async () => {
+    const files = [...$('#phFile').files], msg = $('#phMsg'), btn = $('#phUp');
+    if (!files.length) { msg.textContent = '請先選擇照片'; return; }
+    btn.disabled = true;
+    try {
+      for (let i = 0; i < files.length; i++) {
+        msg.textContent = `上傳中 ${i + 1} / ${files.length}…`;
+        await api('uploadClassPhoto', TOKEN, $('#phDate').value, $('#phCap').value, await shrinkImage(files[i]));
+      }
+      toast('已上傳 ' + files.length + ' 張照片');
+      renderPhotoBox();
+    } catch (e) { msg.textContent = e.message; btn.disabled = false; }
+  };
+  box.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+    if (!confirm('確定刪除這張照片？刪除後無法復原。')) return;
+    try { await api('deleteClassPhoto', TOKEN, b.dataset.del); renderPhotoBox(); } catch (e) { toast(e.message); }
+  });
+}
+
 function renderFixGrade(d) {
   const box = $('#fixGrade');
   if (!box || !d.fixMode || !d.corrections || !d.corrections.length) { if (box) box.innerHTML = ''; return; }
