@@ -1209,8 +1209,25 @@ async function renderFileBox() {
   if (!$('#fileBox') || !list.length) { if (box) box.innerHTML = ''; return; }
   box.innerHTML = `<section class="panel" id="flRes">
     <div class="row"><h2>考卷與教師文件</h2><span class="hint">只有登入教師後台才下載得到，不會公開；連結 10 分鐘內有效，過期請按重新整理</span></div>
-    <div style="display:grid;gap:6px">${list.map(f => `<a class="opt" href="${esc(f.url)}" download rel="noopener" style="text-decoration:none;color:inherit"><span>${f.ext === 'pdf' ? '📕' : '📄'}　<b>${esc(f.title)}</b>　<span class="muted">.${esc(f.ext)}　${esc(f.at)}</span></span><span style="margin-left:auto;padding-left:10px;white-space:nowrap;color:var(--accent);font-weight:600">下載</span></a>`).join('')}</div>
+    <div style="display:grid;gap:6px">${list.map((f, i) => `<a class="opt flink" href="${esc(f.url)}" data-i="${i}" rel="noopener" style="text-decoration:none;color:inherit"><span>${f.ext === 'pdf' ? '📕' : '📄'}　<b>${esc(f.title)}</b>　<span class="muted">.${esc(f.ext)}　${esc(f.at)}</span></span><span class="fldl" style="margin-left:auto;padding-left:10px;white-space:nowrap;color:var(--accent);font-weight:600">下載</span></a>`).join('')}</div>
   </section>`;
+  // 自己抓檔案再存成中文檔名（伺服器給的下載檔名會變成網址編碼的亂碼）；抓不到就退回直接開連結
+  box.querySelectorAll('.flink').forEach(a => a.onclick = async ev => {
+    ev.preventDefault();
+    const f = list[a.dataset.i], tag = a.querySelector('.fldl'), old = tag.textContent;
+    tag.textContent = '下載中…';
+    try {
+      const u = new URL(f.url); u.searchParams.delete('download');
+      const r = await fetch(u.toString());
+      if (!r.ok) throw new Error('下載失敗，連結可能已過期，請按「重新整理」再試');
+      const x = document.createElement('a');
+      x.href = URL.createObjectURL(await r.blob());
+      x.download = f.title.split('/').join('-') + '.' + f.ext;
+      document.body.appendChild(x); x.click(); x.remove();
+      setTimeout(() => URL.revokeObjectURL(x.href), 3000);
+    } catch (e) { toast(e.message || '下載失敗'); window.open(f.url, '_blank'); }
+    finally { tag.textContent = old; }
+  });
 }
 
 async function renderProgBox() {
