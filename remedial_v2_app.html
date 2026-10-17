@@ -508,6 +508,8 @@ async function showHome(pre) {
   bindSubjectBar(d.subject && d.subject.id);
   renderPractical(d.practical);
   const svb = $('#svBtn'); if (svb) svb.onclick = () => showSurvey();
+  // 問卷直達連結：網址後面加 #survey，登入後還沒填的學生會直接進問卷頁（只自動開一次）
+  if (location.hash === '#survey' && !d.surveyDone && !window.__svOpened) { window.__svOpened = true; showSurvey(); }
 }
 
 /* ───── 學習狀況問卷（學生） ───── */
