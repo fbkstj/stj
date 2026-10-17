@@ -1128,6 +1128,7 @@ async function showTeacher(pre) {
     <div id="fixGrade"></div>
     <div id="pracGrade"></div>
     <div id="progBox"></div>
+    <div id="fileBox"></div>
     <div id="surveyBox"></div>
     <div id="photoBox"></div>
     <section class="panel" id="mailBox" aria-labelledby="mailTitle">
@@ -1158,6 +1159,7 @@ async function showTeacher(pre) {
   renderFixGrade(d);
   renderPracGrade(d);
   renderProgBox();
+  renderFileBox();
   renderSurveyBox();
   renderPhotoBox();
   renderLive(d); startLive();
@@ -1199,6 +1201,18 @@ async function showTeacher(pre) {
 }
 
 /** 教師後台：訂正確認 */
+async function renderFileBox() {
+  const box = $('#fileBox');
+  if (!box) return;
+  let list;
+  try { list = await api('listTeacherFiles', TOKEN); } catch (e) { box.innerHTML = ''; return; }
+  if (!$('#fileBox') || !list.length) { if (box) box.innerHTML = ''; return; }
+  box.innerHTML = `<section class="panel" id="flRes">
+    <div class="row"><h2>考卷與教師文件</h2><span class="hint">只有登入教師後台才下載得到，不會公開；連結 10 分鐘內有效，過期請按重新整理</span></div>
+    <div style="display:grid;gap:6px">${list.map(f => `<a class="opt" href="${esc(f.url)}" download rel="noopener" style="text-decoration:none;color:inherit"><span>${f.ext === 'pdf' ? '📕' : '📄'}　<b>${esc(f.title)}</b>　<span class="muted">.${esc(f.ext)}　${esc(f.at)}</span></span><span style="margin-left:auto;padding-left:10px;white-space:nowrap;color:var(--accent);font-weight:600">下載</span></a>`).join('')}</div>
+  </section>`;
+}
+
 async function renderProgBox() {
   const box = $('#progBox');
   if (!box) return;
