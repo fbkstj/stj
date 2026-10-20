@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>考題數位化重製工作流</title>
+<style>
+:root{--bg:#f6f8f9;--card:#fff;--ink:#1d2b36;--sub:#5b6b78;--line:#dde4e8;--nav:#1f3447;--accent:#2b9aa6;--accent2:#e8f5f6;--warn:#b4570a;--warnbg:#fff4e5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a21;--card:#1a242d;--ink:#e6edf2;--sub:#9db0be;--line:#2b3946;--nav:#0e151b;--accent:#5cc4cf;--accent2:#173238;--warn:#f0a35a;--warnbg:#33261a}}
+:root[data-theme="dark"]{--bg:#121a21;--card:#1a242d;--ink:#e6edf2;--sub:#9db0be;--line:#2b3946;--nav:#0e151b;--accent:#5cc4cf;--accent2:#173238;--warn:#f0a35a;--warnbg:#33261a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.75;font-size:16px}
+header{background:var(--nav);color:#fff;padding:28px 16px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 16px}
+header .wrap{padding:0}
+h1{font-size:clamp(24px,4vw,34px);line-height:1.3}
+header p{margin-top:8px;color:#c9d7e0;max-width:46em}
+main{padding:28px 0 60px}
+section{margin-top:40px}
+h2{font-size:22px;margin-bottom:6px}
+.lead{color:var(--sub);margin-bottom:16px}
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;counter-reset:s}
+.step{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;position:relative}
+.step::before{counter-increment:s;content:counter(s);display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;margin-bottom:8px}
+.step h3{font-size:17px}.step p{color:var(--sub);font-size:14.5px;margin-top:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-top:12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+h3{font-size:18px;margin-bottom:6px}
+ul{padding-left:1.3em}li{margin:3px 0}
+table{width:100%;border-collapse:collapse;font-size:15px;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:var(--accent2)}
+.tablewrap{overflow-x:auto}
+.warn{background:var(--warnbg);border-left:4px solid var(--warn);border-radius:8px;padding:12px 14px;margin-top:12px}
+.tag{display:inline-block;background:var(--accent2);color:var(--accent);border-radius:99px;padding:1px 10px;font-size:13px;margin-right:4px}
+pre{white-space:pre-wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;font-family:inherit;font-size:15px;line-height:1.7}
+button{background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 16px;font-size:15px;cursor:pointer;margin-top:8px}
+footer{color:var(--sub);text-align:center;font-size:13px;padding:24px 16px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>考題數位化重製工作流</h1>
+<p>從紙本、PDF、手寫考卷出發:數位化 → 審題 → 修題與重新命題 → 詳解 → 排版輸出 → 上網。一套可重複使用的做法。</p>
+</div></header>
+<main class="wrap">
+
+<section>
+<h2>整體流程</h2>
+<p class="lead">每一關都有明確的輸入與輸出,後一關只用前一關確認過的結果。</p>
+<div class="flow">
+<div class="step"><h3>收件</h3><p>原始檔:掃描 PDF、手寫稿、照片。先確認用途(自用、校內、公開)與版權。</p></div>
+<div class="step"><h3>數位化</h3><p>逐題轉成文字,選項與括號作答格保留;電路圖、波形、表格另行重繪。</p></div>
+<div class="step"><h3>審題</h3><p>檢查題意、數據、單位、答案是否唯一,列出疑義清單。</p></div>
+<div class="step"><h3>修題 / 重新命題</h3><p>修正錯誤;或保留考點、更換數值與情境,產生模擬題。</p></div>
+<div class="step"><h3>詳解</h3><p>計算步驟、逐選項判斷對錯、標註假設與疑義。</p></div>
+<div class="step"><h3>排版輸出</h3><p>照原卷格式或指定格式輸出 B4 PDF(詳解版、題目版)與網頁版。</p></div>
+<div class="step"><h3>發佈</h3><p>放上網頁。涉及他人試題者先評估版權,不放公開位置。</p></div>
+</div>
+</section>
+
+<section>
+<h2>各階段輸入與輸出</h2>
+<div class="tablewrap"><table>
+<tr><th>階段</th><th>輸入</th><th>輸出</th><th>檢查點</th></tr>
+<tr><td>數位化</td><td>掃描 PDF / 手寫稿</td><td>題目文字、選項、圖形清單</td><td>題號、選項、單位、正負號、上下標是否抄錄正確</td></tr>
+<tr><td>圖形重繪</td><td>圖形截圖(放大 200–250 dpi)</td><td>標準符號 SVG 向量圖</td><td>節點、極性、電流方向與原圖逐項對照</td></tr>
+<tr><td>審題</td><td>數位化題目</td><td>疑義清單、修正建議</td><td>答案是否唯一、數據是否可解、題目文字是否有筆誤</td></tr>
+<tr><td>修題 / 命題</td><td>確認後的題目</td><td>修正題或新題</td><td>新數值是否整除、選項是否有合理誘答</td></tr>
+<tr><td>詳解</td><td>題目與答案</td><td>步驟式詳解</td><td>用第二種方法交叉驗算,答案一致才採用</td></tr>
+<tr><td>排版輸出</td><td>題庫資料</td><td>PDF(B4)、HTML</td><td>版面不超出紙張、圖不被截斷、字型正常</td></tr>
+</table></div>
+</section>
+
+<section>
+<h2>審題檢核表</h2>
+<div class="grid2">
+<div class="card"><h3>題目本身</h3><ul>
+<li>題幹有沒有筆誤(例如把「作用區」寫成「飽和區」)</li>
+<li>單位是否一致(W 與 mW、kΩ 與 Ω)</li>
+<li>數據是否足以求解,有無多餘或缺漏條件</li>
+<li>圖與文字描述是否一致(元件值、極性、電流方向)</li>
+</ul></div>
+<div class="card"><h3>答案與選項</h3><ul>
+<li>正確選項是否唯一;若有兩個合理選項,標為疑義題</li>
+<li>誘答選項是否對應常見錯誤(公式用錯、忽略負載效應等)</li>
+<li>「約為」「大約」的題,檢查近似值是否合理</li>
+<li>答案要以不同方法交叉驗算</li>
+</ul></div>
+</div>
+<div class="warn"><b>疑義題處理原則:</b>不替命題者「猜」標準答案。詳解中寫明採用的假設、備選答案,並建議向命題者確認。</div>
+</section>
+
+<section>
+<h2>修題與重新命題</h2>
+<div class="grid2">
+<div class="card"><h3>修題</h3><ul>
+<li>只改有問題的地方,其餘維持原貌</li>
+<li>改後重新計算答案與詳解</li>
+<li>保留修改紀錄(改了什麼、為什麼)</li>
+</ul></div>
+<div class="card"><h3>重新命題(模擬題)</h3><ul>
+<li>保留考點與難度,更換數值、情境、圖形</li>
+<li>數值設計成容易驗算(整除、不需計算機)</li>
+<li>選項依常見錯誤設計,避免與原題數字雷同</li>
+<li>原題只當範本,不直接複製</li>
+</ul></div>
+</div>
+</section>
+
+<section>
+<h2>圖形重繪規範</h2>
+<div class="card"><ul>
+<li>輸出為 SVG 向量圖,黑白線稿,列印與縮放都清晰</li>
+<li>電阻用鋸齒符號;電池長板為正極;電流源為圓內加箭頭;接地、節點用圓點</li>
+<li>BJT 標示基極、集極、射極與箭頭方向(NPN 向外、PNP 向內)</li>
+<li>變壓器、二極體(含稽納、發光)、電容、示波器格線、電錶刻度都用統一樣式</li>
+<li>文字標籤的下標統一處理(R<sub>1</sub>、V<sub>CC</sub>),避免與線條重疊</li>
+<li>重繪後與原圖逐元件對照,確認節點連接與極性</li>
+</ul></div>
+</section>
+
+<section>
+<h2>詳解寫法</h2>
+<div class="grid2">
+<div class="card"><h3>計算題</h3><ul>
+<li>先說明用哪個定理或模型</li>
+<li>列式 → 代入 → 結果,每一步獨立一行</li>
+<li>必要時補一行「速算」或另一種解法</li>
+</ul></div>
+<div class="card"><h3>觀念題</h3><ul>
+<li>逐選項寫「○ / ×」與一句理由</li>
+<li>錯的選項說明錯在哪裡,正確說法是什麼</li>
+<li>有爭議的選項另加「題目疑義」備註</li>
+</ul></div>
+</div>
+</section>
+
+<section>
+<h2>版面與輸出</h2>
+<div class="tablewrap"><table>
+<tr><th>項目</th><th>做法</th></tr>
+<tr><td>紙張</td><td>B4(257 × 364 mm)直式</td></tr>
+<tr><td>原卷格式</td><td>頁首標題、班級姓名座號列、資訊表格、括號作答格、單欄或雙欄,依原卷還原</td></tr>
+<tr><td>詳解版</td><td>解答表 + 詳解;或詳解直接寫在每題下方(自己看的版本)</td></tr>
+<tr><td>題目版</td><td>只有題目,無答案與詳解,可發給學生</td></tr>
+<tr><td>字型</td><td>明體(Noto Serif TC),產生 PDF 時嵌入字型</td></tr>
+<tr><td>檢查</td><td>用瀏覽器自動檢查有無超出版面、圖是否被截斷,再人工逐頁目視</td></tr>
+<tr><td>格式</td><td>PDF 供列印與傳送,HTML 供網頁瀏覽</td></tr>
+</table></div>
+</section>
+
+<section>
+<h2>資料安全與版權</h2>
+<div class="warn"><ul>
+<li><b>公開位置不放他人試題與答案</b>(公開網站、公開程式庫都算公開)。</li>
+<li>市售模擬考、他校考卷屬他人著作,僅供個人研讀;不改作後散布。</li>
+<li>自編試題要公開前,先確認尚未用於正式考試,避免洩題。</li>
+<li>只放「方法與流程」的頁面可以公開;成品檔案用私人方式交付(檔案傳送、私人雲端)。</li>
+</ul></div>
+</section>
+
+<section>
+<h2>提示詞範本</h2>
+<p class="lead">交給 AI 處理一份考卷時可直接使用,把括號內改成自己的需求。</p>
+<pre id="p">我上傳了一份【科目】考卷的【掃描 PDF / 手寫稿】,請依下列步驟處理:
+1. 數位化:逐題轉成文字,保留題號、選項、單位;電路圖與波形請重繪成黑白標準符號 SVG 向量圖。
+2. 審題:列出題目筆誤、單位問題、答案不唯一或缺條件的題目,先不要自己猜答案,標成疑義題。
+3. 修題 / 命題:【只修錯誤 / 保留考點重新出模擬題】,數值要易於驗算。
+4. 詳解:計算題寫出列式與代入;觀念題逐選項標 ○/× 並說明理由;用另一種方法交叉驗算。
+5. 排版:B4 直式,【仿原卷格式 / 詳解寫在每題下方】,輸出【詳解版 PDF、題目版 PDF】。
+6. 最後列出你的假設與需要我確認的疑義題。
+注意:成品只傳給我,不要放到公開的程式庫。</pre>
+<button id="cp" type="button">複製提示詞</button>
+</section>
+
+<section>
+<h2>實際做過的範例(規格摘要)</h2>
+<div class="tablewrap"><table>
+<tr><th>範例</th><th>題數</th><th>做法</th><th>成品</th></tr>
+<tr><td>電路學期中考</td><td>33</td><td>仿原卷、單欄</td><td>詳解版與題目版 B4 PDF</td></tr>
+<tr><td>電子電路期中考</td><td>25</td><td>仿原卷、雙欄</td><td>詳解版與題目版 B4 PDF</td></tr>
+<tr><td>統測風格模擬考</td><td>50</td><td>詳解寫在每題下方</td><td>分段 PDF 與 26 頁合訂本</td></tr>
+</table></div>
+<p class="lead" style="margin-top:10px">題目與答案內容不在本頁公開。</p>
+</section>
+
+</main>
+<footer>考題數位化重製工作流 ‧ 方法說明頁</footer>
+<script>
+document.getElementById('cp').addEventListener('click',function(){
+  var t=document.getElementById('p').innerText,b=this;
+  function ok(){b.textContent='已複製';setTimeout(function(){b.textContent='複製提示詞'},1500)}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok,function(){})}
+});
+</script>
+</body>
+</html>
