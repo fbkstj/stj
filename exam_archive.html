@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>考卷數位化成果</title>
+<style>
+:root{--bg:#f6f8f9;--card:#fff;--ink:#1d2b36;--sub:#5b6b78;--line:#dde4e8;--accent:#1f7f8a;--accent2:#e8f5f6;--warn:#8a4a0a;--warnbg:#fff4e5}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121a21;--card:#1a242d;--ink:#e6edf2;--sub:#9db0be;--line:#2b3946;--accent:#5cc4cf;--accent2:#173238;--warn:#f0a35a;--warnbg:#33261a}}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;line-height:1.75;padding:28px 16px 60px}
+.wrap{max-width:960px;margin:0 auto}
+h1{font-size:clamp(24px,4vw,32px)}.lead{color:var(--sub);margin:6px 0 20px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+h3{font-size:19px}.sub{color:var(--accent);font-weight:600;margin:2px 0 8px}.meta{color:var(--sub);font-size:15px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.b{display:inline-block;background:var(--accent);color:#fff;text-decoration:none;border-radius:8px;padding:7px 14px;font-size:15px}
+.b.o{background:var(--accent2);color:var(--accent);border:1px solid var(--accent)}
+.b:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.note{background:var(--warnbg);border-left:4px solid var(--warn);color:var(--ink);border-radius:8px;padding:12px 14px;margin-top:18px;font-size:15px}
+a.link{color:var(--accent)}
+</style>
+</head>
+<body><div class="wrap">
+<h1>考卷數位化成果</h1>
+<p class="lead">已考完的期中考卷,經數位化、電路圖重繪為標準符號向量圖、照原卷格式重新排版(B4),並附詳解。流程見<a class="link" href="exam_digitization_workflow.html">考題數位化重製工作流</a>。</p>
+<div class="grid">
+<div class="card"><h3>電路學 第一次期中考</h3><p class="sub">115 學年度第 1 學期 ‧ 33 題單選 ‧ 原卷格式 B4</p><p class="meta">詳解版 10 頁(解答表 4 頁 + 詳解 6 頁);題目版 4 頁(無答案)。電路圖已重繪為標準符號向量圖。</p><div class="btns"><a class="b" href="exams/circuit-midterm-115-1-key.pdf" target="_blank" rel="noopener">詳解版 PDF</a><a class="b o" href="exams/circuit-midterm-115-1-key.html" target="_blank" rel="noopener">詳解版 網頁</a><a class="b" href="exams/circuit-midterm-115-1-student.pdf" target="_blank" rel="noopener">題目版 PDF</a><a class="b o" href="exams/circuit-midterm-115-1-student.html" target="_blank" rel="noopener">題目版 網頁</a></div></div><div class="card"><h3>電子電路 第一次期中考</h3><p class="sub">115 學年度第 1 學期 ‧ 25 題單選 ‧ 原卷格式 B4 雙欄</p><p class="meta">詳解版 8 頁;題目版 3 頁(無答案)。含 BJT、稽納二極體、整流濾波電路等圖形重繪。</p><div class="btns"><a class="b" href="exams/electronics-midterm-115-1-key.pdf" target="_blank" rel="noopener">詳解版 PDF</a><a class="b o" href="exams/electronics-midterm-115-1-key.html" target="_blank" rel="noopener">詳解版 網頁</a><a class="b" href="exams/electronics-midterm-115-1-student.pdf" target="_blank" rel="noopener">題目版 PDF</a><a class="b o" href="exams/electronics-midterm-115-1-student.html" target="_blank" rel="noopener">題目版 網頁</a></div></div>
+</div>
+<div class="note"><b>說明:</b>原卷未附答案,本頁答案與詳解為依題目重新計算,若與命題教師的標準答案不同,以命題教師公布者為準。疑義題(題目文字有歧義者)已在詳解版中標註。PDF 為 B4 尺寸,列印時請選擇「實際大小」。</div>
+</div></body></html>
