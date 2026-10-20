@@ -198,3 +198,6 @@ https://fbkstj.github.io/stj/#page/elder_fall_tracking_project_guide　居家長
 
 【行政與課程】考題數位化重製工作流（方法說明頁，不含試題內容）：
 https://fbkstj.github.io/stj/#page/exam_digitization_workflow
+
+【行政與課程】考卷數位化成果（已考完期中考：題目卷與詳解 PDF）：
+https://fbkstj.github.io/stj/#page/exam_archive
