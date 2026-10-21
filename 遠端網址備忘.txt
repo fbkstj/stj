@@ -63,6 +63,9 @@ https://fbkstj.github.io/www/roster.html
 楊梅高中職業科校史室展區規劃（電子科・資訊科）：
 https://fbkstj.github.io/stj/school_history_room.html
 
+職業科校史展示設計文案（給設計師）：
+https://fbkstj.github.io/stj/school_history_designer.html
+
 單晶片微處理機實習重補修自學（入口頁）：
 https://fbkstj.github.io/www/remedial_mcu.html
 
@@ -120,6 +123,9 @@ https://stjwww.netlify.app/roster.html
 楊梅高中職業科校史室展區規劃（電子科・資訊科）：
 https://stjwww.netlify.app/school_history_room.html
 
+職業科校史展示設計文案（給設計師）：
+https://stjwww.netlify.app/school_history_designer.html
+
 單晶片微處理機實習重補修自學（入口頁）：
 https://stjwww.netlify.app/remedial_mcu.html
 
@@ -176,6 +182,9 @@ http://127.0.0.1:18456/roster.html
 
 楊梅高中職業科校史室展區規劃（電子科・資訊科）：
 http://127.0.0.1:18456/school_history_room.html
+
+職業科校史展示設計文案（給設計師）：
+http://127.0.0.1:18456/school_history_designer.html
 
 單晶片微處理機實習重補修自學（入口頁）：
 http://127.0.0.1:18456/remedial_mcu.html
