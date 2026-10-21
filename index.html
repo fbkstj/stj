@@ -1150,7 +1150,7 @@
                     <span class="nav-title">技藝競賽</span>
                     <span class="chevron" aria-hidden="true">&#9662;</span>
                 </button>
-                <div class="nav-sub" data-group="contest" style="--cols: 2;">
+                <div class="nav-sub" data-group="contest" style="--cols: 3;">
                     <!-- 歷屆正式試題：公開，不加密（PDF 檢視頁由 _private/skills_competition/build_pages.py 產生） -->
                     <div class="mega-col has-flyout">
                         <button class="mega-heading" type="button" aria-expanded="false">📚 歷屆試題（110～114 學年）</button>
@@ -1166,6 +1166,11 @@
                     <div class="mega-col has-flyout mock-col locked" id="mockCol">
                         <button class="mega-heading" type="button" aria-expanded="false" aria-haspopup="dialog"><span id="mockLabel">🔒 模擬試題（電腦修護第二站）</span></button>
                         <div class="mega-list" id="mockList"></div>
+                    </div>
+                    <!-- 考前衝刺猜題：與模擬試題共用同一組密碼；清單取自加密目錄中標題含「考前模擬」的群組 -->
+                    <div class="mega-col has-flyout mock-col locked" id="rushCol">
+                        <button class="mega-heading" type="button" aria-expanded="false" aria-haspopup="dialog"><span id="rushLabel">🔒 考前衝刺猜題</span></button>
+                        <div class="mega-list" id="rushList"></div>
                     </div>
                 </div>
             </div>
@@ -2488,7 +2493,7 @@
         col.addEventListener('focusin', () => requestAnimationFrame(place));
         head.addEventListener('click', (e) => {
             e.stopPropagation();
-            if (col.classList.contains('locked')) { openPw(); return; }   // 模擬試題未解鎖：先問密碼
+            if (col.classList.contains('locked')) { openPw(col); return; }   // 模擬試題／考前衝刺猜題未解鎖：先問密碼
             if (mobileMQ.matches) return;           // 手機版第二層直接攤開，不用點
             const open = !col.classList.contains('fly-open');
             closeFlyouts(col);
@@ -2557,6 +2562,11 @@
     const mockCol = document.getElementById('mockCol');
     const mockList = document.getElementById('mockList');
     const mockLabel = document.getElementById('mockLabel');
+    const rushCol = document.getElementById('rushCol');
+    const rushList = document.getElementById('rushList');
+    const rushLabel = document.getElementById('rushLabel');
+    const RUSH_GROUP = /考前模擬|考前衝刺/;          // 目錄頁中屬於「考前衝刺猜題」的群組標題
+    let pwFromCol = mockCol;
     const pwBg = document.getElementById('pwBg');
     const pwForm = document.getElementById('pwForm');
     const pwInput = document.getElementById('pwInput');
@@ -2601,13 +2611,13 @@
         return new TextDecoder().decode(plain);
     }
 
-    function addMockItem(text, onClick, extraClass) {
+    function addMockItem(text, onClick, extraClass, list) {
         const b = document.createElement('button');
         b.type = 'button';
         b.className = 'nav-sub-item' + (extraClass ? ' ' + extraClass : '');
         b.append(...text);
         b.addEventListener('click', (e) => { e.stopPropagation(); onClick(); if (e.detail) b.blur(); });
-        mockList.appendChild(b);
+        (list || mockList).appendChild(b);
         return b;
     }
     // 由解密後的目錄頁建立第二層：每個 <h2> 是一組，底下的 .card 是各版本；
@@ -2615,13 +2625,15 @@
     function buildMockMenu(html) {
         const doc = new DOMParser().parseFromString(html, 'text/html');
         mockList.textContent = '';
+        rushList.textContent = '';
         doc.querySelectorAll('main h2').forEach(h2 => {
             const grid = h2.nextElementSibling;
             if (!grid) return;
+            const list = RUSH_GROUP.test(h2.textContent) ? rushList : mockList;
             const g = document.createElement('div');
             g.className = 'mock-group';
             g.textContent = h2.textContent.split('（')[0].trim();
-            mockList.appendChild(g);
+            list.appendChild(g);
             grid.querySelectorAll('.card[data-view], a.card[href]').forEach(a => {
                 const page = a.getAttribute('data-view') || a.getAttribute('href');
                 const verEl = a.querySelector('.ver');
@@ -2634,20 +2646,25 @@
                 date.className = 'mock-date';
                 date.textContent = dateEl ? dateEl.textContent.trim() : '';
                 const src = 'skills_competition/' + page;
-                addMockItem([label, date], () => navigateToSrc(src, true)).dataset.src = src;
+                addMockItem([label, date], () => navigateToSrc(src, true), '', list).dataset.src = src;
             });
         });
-        const sep = document.createElement('div');
-        sep.className = 'mock-list-sep';
-        mockList.appendChild(sep);
-        addMockItem(['🔒 立即上鎖'], lockMock, 'mock-lock');
+        [mockList, rushList].forEach(list => {
+            const sep = document.createElement('div');
+            sep.className = 'mock-list-sep';
+            list.appendChild(sep);
+            addMockItem(['🔒 立即上鎖'], lockMock, 'mock-lock', list);
+        });
         setActiveSubItem(location.hash.startsWith('#page/') ? location.hash.slice(6) + '.html' : null);
     }
     function setMockUnlocked(on) {
-        mockCol.classList.toggle('locked', !on);
+        [mockCol, rushCol].forEach(c => {
+            c.classList.toggle('locked', !on);
+            c.querySelector('.mega-heading').setAttribute('aria-haspopup', on ? 'true' : 'dialog');
+        });
         mockLabel.textContent = (on ? '📝' : '🔒') + ' 模擬試題（電腦修護第二站）';
-        mockCol.querySelector('.mega-heading').setAttribute('aria-haspopup', on ? 'true' : 'dialog');
-        if (!on) mockList.textContent = '';
+        rushLabel.textContent = (on ? '🔥' : '🔒') + ' 考前衝刺猜題';
+        if (!on) { mockList.textContent = ''; rushList.textContent = ''; }
     }
     function lockMock() {
         storeSet(MOCK_KEY, null);
@@ -2663,7 +2680,8 @@
         return true;
     }
 
-    function openPw() {
+    function openPw(col) {
+        pwFromCol = col || mockCol;
         pwMsg.textContent = '';
         pwMsg.classList.remove('busy');
         pwInput.value = '';
@@ -2673,7 +2691,7 @@
     }
     function closePw() {
         pwBg.classList.remove('show');
-        mockCol.querySelector('.mega-heading').focus({ preventScroll: true });
+        pwFromCol.querySelector('.mega-heading').focus({ preventScroll: true });
     }
     document.getElementById('pwCancel').addEventListener('click', closePw);
     pwBg.addEventListener('click', (e) => { if (e.target === pwBg) closePw(); });
@@ -2692,11 +2710,12 @@
                 storeSet(MOCK_KEY, keyHex);
                 pwBg.classList.remove('show');
                 // 解鎖後直接把「技藝競賽」面板與第二層打開
-                const sub = mockCol.closest('.nav-sub');
+                const col = pwFromCol;
+                const sub = col.closest('.nav-sub');
                 sub.classList.add('open');
-                mockCol.classList.add('fly-open');
-                mockCol.querySelector('.mega-heading').setAttribute('aria-expanded', 'true');
-                const first = mockList.querySelector('.nav-sub-item');
+                col.classList.add('fly-open');
+                col.querySelector('.mega-heading').setAttribute('aria-expanded', 'true');
+                const first = col.querySelector('.mega-list .nav-sub-item');
                 if (first) first.focus({ preventScroll: true });
                 const g = sub.closest('.nav-group');
                 const shut = (ev) => {
