@@ -945,6 +945,16 @@
                         </div>
                     </div>
 
+                    <!-- 5-1. 測試日期（印在評審表「測試日期　年　月　日」） -->
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-black text-slate-200" for="evalTestDate">測試日期（會印在每張評審表上，空白則留白手寫）：</label>
+                        <div class="flex gap-2">
+                            <input id="evalTestDate" type="date" v-model="testDate" class="flex-1 bg-[#0f172a] border-2 border-[#475569] focus:border-sky-400 text-white font-black rounded-xl p-2.5 text-base outline-none transition-all" style="color-scheme: dark;">
+                            <button type="button" @click="testDate = ''" class="px-4 rounded-xl border-2 border-[#475569] text-slate-300 font-black hover:border-sky-400 transition-all">清除</button>
+                        </div>
+                        <p v-if="testDate" class="text-xs font-bold text-teal-300">將印出：民國 {{ testDate.split('-')[0] - 1911 }} 年 {{ parseInt(testDate.split('-')[1]) }} 月 {{ parseInt(testDate.split('-')[2]) }} 日</p>
+                    </div>
+
                     <!-- 6. 確認生成 PDF 下載按鈕 -->
                     <button
                         type="button"
@@ -1309,6 +1319,7 @@
                 const testNoStart = ref('07240001');
                 const candidateCount = ref(20);
                 const evalSignerName = ref('簡樹桐');
+                const testDate = ref('');   // yyyy-mm-dd；空白＝評審表上的測試日期留白
                 const isGeneratingPdf = ref(false);
 
                 const goHome = () => {
@@ -1548,6 +1559,26 @@
                                 color: PDFLib.rgb(0, 0, 0)
                             });
 
+                            // 寫入測試日期（民國年／月／日，各放在「年」「月」「日」字前的空格內，置中）
+                            if (testDate.value) {
+                                const [yy, mm, dd] = testDate.value.split('-');
+                                const dateParts = [
+                                    [String(parseInt(yy) - 1911), 347.0],   // 空格 332.2～360.1
+                                    [String(parseInt(mm)), 379.3],          // 空格 371.1～387.5
+                                    [String(parseInt(dd)), 406.9],          // 空格 398.6～415.1
+                                ];
+                                dateParts.forEach(([txt, cx]) => {
+                                    const w = helveticaFont.widthOfTextAtSize(txt, 11.5);
+                                    page1.drawText(txt, {
+                                        x: cx - w / 2,
+                                        y: HEIGHT - 95.0,
+                                        size: 11.5,
+                                        font: helveticaFont,
+                                        color: PDFLib.rgb(0, 0, 0)
+                                    });
+                                });
+                            }
+
                             // 填黑勾選矩形
                             const sBbox = SUBJECT_BBOX[evalSubject.value];
                             if (sBbox) {
@@ -1617,7 +1648,7 @@
                 return {
                     currentTask, viewMode, currentSide, selectedSet, sets, taskData, layoutConfig,
                     j2Headers, j3Headers, allPinsLeft, allPinsRight, showCircuit, showAhdl, showOfficialDownloads,
-                    selectedKeypad, scan, evalSignerName, copyQSF,
+                    selectedKeypad, scan, evalSignerName, testDate, copyQSF,
                     showRevisionModal, revisionSearch, selectedRevisionCategory, revisionCategories, revisionDataList, filteredRevisions, openRevisionModal,
                     setTask, currentSetData, getPinY, getResPoints, isSelected, getSignalName, isSpec, goHome,
                     evalSubject, evalCpld, evalDisplay, stationStart, testNoStart, candidateCount, isGeneratingPdf, generatePDF
