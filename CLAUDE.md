@@ -22,7 +22,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `cpld_simulator.html`、`pcb_layout.html`、`CPLD/` | 數位電子乙級 CPLD 模擬器、PCB 佈線工具、題目資料 |
 | `roster.html` | 實習處輪值表系統 |
 | `coursemap*.html` | 各學年度（110、112–115）課程地圖；`premium` 是另一種版型 |
-| `arduino.html`、`app_inventor*.html`、`fpga_keypad.html`、`instrument*.html` 等 | 各科教材 |
+| `arduino.html`、`app_inventor*.html`、`instrument*.html` 等 | 各科教材 |
 | `ai_vision_course_guide.html`、`mcp_course_automation_guide.html`、`teaching_video_pipeline_guide.html` | AI 研習手冊 |
 | `airtouch_*.html` | AirTouch 專題展示與競賽報告 |
 | `ymhs_calendar.js/.json` | 學校行事曆資料，由 `update_calendar.py` 從學校 Google 日曆抓取產生 |

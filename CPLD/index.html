@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quartus MegaWizard 精靈與 AHDL 電路設計教學系統 | 數位電子乙級</title>
+    <script>
+        try { var _t = localStorage.getItem('cpld-theme'); if (_t === 'light' || _t === 'dark') document.documentElement.setAttribute('data-theme', _t); } catch (e) {}
+    </script>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,20 +16,41 @@
     <!-- Vue 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        :root {
-            --bg-main: #090d16;
-            --panel-bg: #111827;
-            --card-bg: #1f2937;
-            --accent-sky: #38bdf8;
-            --accent-amber: #facc15;
-            --accent-emerald: #34d399;
+        /* ===== 色彩 token：深色為預設；data-theme="light" 為淺色；.fig-dark 內固定深色 ===== */
+        :root, .fig-dark {
+            --bg: #0b1220; --surface: #131c2e; --inset: #0e1626; --strong: #0a101d; --hover: #1d2a44; --line: #2a3853;
+            --text: #e8edf6; --soft: #c3cde0; --muted: #8fa0bd;
+            --accent: #38bdf8; --on-accent: #04202e; --warn: #fbbf24; --ok: #4ade80; --ok2: #2dd4bf; --danger: #f87171;
+            --indigo: #a5b4fc; --purple: #c4b5fd; --pink: #f472b6; --rose: #fb7185;
+            --tint-sky: rgba(56,189,248,.14); --tint-red: rgba(248,113,113,.14); --tint-green: rgba(74,222,128,.14);
+            --tint-amber: rgba(251,191,36,.14); --tint-teal: rgba(45,212,191,.14); --tint-indigo: rgba(129,140,248,.16);
+            --tint-purple: rgba(167,139,250,.16); --tint-rose: rgba(251,113,133,.14);
+            color-scheme: dark;
         }
+        html[data-theme="light"] {
+            --bg: #f3f5f9; --surface: #ffffff; --inset: #f1f4f9; --strong: #e9eef6; --hover: #e4eaf4; --line: #d5dcea;
+            --text: #14213d; --soft: #2d3a57; --muted: #5a6784;
+            --accent: #0369a1; --on-accent: #ffffff; --warn: #b45309; --ok: #15803d; --ok2: #0f766e; --danger: #b91c1c;
+            --indigo: #4338ca; --purple: #6d28d9; --pink: #be185d; --rose: #be123c;
+            --tint-sky: rgba(3,105,161,.10); --tint-red: rgba(185,28,28,.09); --tint-green: rgba(21,128,61,.10);
+            --tint-amber: rgba(180,83,9,.11); --tint-teal: rgba(15,118,110,.10); --tint-indigo: rgba(67,56,202,.09);
+            --tint-purple: rgba(109,40,217,.09); --tint-rose: rgba(190,18,60,.08);
+            color-scheme: light;
+        }
+        html[data-theme="light"] .fig-dark {
+            --bg: #0b1220; --surface: #131c2e; --inset: #0e1626; --strong: #0a101d; --hover: #1d2a44; --line: #2a3853;
+            --text: #e8edf6; --soft: #c3cde0; --muted: #8fa0bd;
+            --accent: #38bdf8; --on-accent: #04202e; --warn: #fbbf24; --ok: #4ade80; --ok2: #2dd4bf; --danger: #f87171;
+            color-scheme: dark;
+        }
+        .fig-dark { color: var(--text); }
 
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: var(--bg-main);
-            color: #ffffff;
+            background-color: var(--bg);
+            color: var(--text);
             min-height: 100vh;
+            line-height: 1.5;
         }
 
         .font-mono-custom {
@@ -38,15 +62,67 @@
             height: 6px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.8);
+            background: var(--inset);
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #475569;
+            background: var(--line);
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
+            background: var(--muted);
         }
+
+
+        /* ===== 舊 class 改由 token 控制，並讓畫面更清爽 ===== */
+        #app .bg-\[\#0f172a\] { background-color: var(--inset); }
+        #app .bg-\[\#1e293b\] { background-color: var(--surface); }
+        #app .bg-\[\#090d16\], #app .bg-slate-900 { background-color: var(--strong); }
+        #app .bg-slate-800, #app .bg-slate-800\/80, #app .hover\:bg-slate-700:hover, #app .hover\:bg-sky-500:hover { background-color: var(--hover); }
+        #app .border-\[\#334155\], #app .border-slate-600, #app .border-slate-700, #app .border-slate-700\/80, #app .border-slate-800, #app .hover\:border-slate-500:hover { border-color: var(--line); }
+        #app .text-white, #app .hover\:text-white:hover { color: var(--text); }
+        #app .text-slate-100, #app .text-slate-200 { color: var(--soft); }
+        #app .text-slate-300, #app .text-slate-400 { color: var(--muted); }
+        #app .text-amber-300, #app .text-amber-400, #app .hover\:text-amber-300:hover { color: var(--warn); }
+        #app .text-sky-300, #app .text-sky-400 { color: var(--accent); }
+        #app .text-emerald-300, #app .text-emerald-400 { color: var(--ok); }
+        #app .text-teal-300, #app .text-teal-400 { color: var(--ok2); }
+        #app .text-red-300, #app .text-red-400 { color: var(--danger); }
+        #app .text-indigo-300, #app .text-indigo-400 { color: var(--indigo); }
+        #app .text-purple-300, #app .text-purple-400 { color: var(--purple); }
+        #app .text-pink-400 { color: var(--pink); }
+        #app .text-rose-300, #app .text-rose-400 { color: var(--rose); }
+        #app .bg-sky-950, #app .bg-sky-500\/20 { background-color: var(--tint-sky); }
+        #app .bg-red-950, #app .bg-red-950\/40 { background-color: var(--tint-red); }
+        #app .bg-emerald-500\/20 { background-color: var(--tint-green); }
+        #app .bg-amber-950, #app .bg-amber-950\/40, #app .bg-amber-400\/20, #app .bg-amber-500\/20 { background-color: var(--tint-amber); }
+        #app .bg-teal-950, #app .bg-teal-500\/20 { background-color: var(--tint-teal); }
+        #app .bg-indigo-950, #app .bg-indigo-500\/20 { background-color: var(--tint-indigo); }
+        #app .bg-purple-950 { background-color: var(--tint-purple); }
+        #app .bg-rose-950 { background-color: var(--tint-rose); }
+        /* 彩色卡片邊框統一成中性細線（紅色警示框保留） */
+        #app .border-sky-500\/40, #app .border-sky-500\/50, #app .border-sky-500\/60, #app .border-sky-600,
+        #app .border-amber-400\/60, #app .border-amber-500\/40, #app .border-amber-500\/50, #app .border-amber-500\/60, #app .border-amber-600,
+        #app .border-emerald-500\/40, #app .border-emerald-500\/50,
+        #app .border-indigo-500\/40, #app .border-indigo-500\/50, #app .border-indigo-500\/60, #app .border-indigo-600,
+        #app .border-purple-500\/60, #app .border-purple-600,
+        #app .border-rose-500\/60, #app .border-rose-600,
+        #app .border-teal-500\/50, #app .border-teal-500\/60, #app .border-teal-600 { border-color: var(--line); }
+        html[data-theme="light"] #app :is(.bg-sky-600, .bg-indigo-600, .bg-sky-500).text-white { color: #fff; }
+
+        #app .border-2 { border-width: 1px; }
+        #app .shadow-2xl, #app .shadow-xl, #app .shadow-lg, #app .shadow-md, #app .shadow-inner { box-shadow: none; }
+        #app .ring-2, #app .ring-4 { --tw-ring-shadow: 0 0 #0000; box-shadow: none; }
+
+        /* ===== 新版元件 ===== */
+        .hdr { background: var(--surface); border-bottom: 1px solid var(--line); }
+        .logo { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+                background: var(--tint-amber); color: var(--warn); border: 1px solid var(--line); flex-shrink: 0; }
+        .tabs button { padding: 10px 16px; border-bottom: 2px solid transparent; color: var(--muted); font-weight: 700; font-size: .95rem; white-space: nowrap; transition: color .15s; }
+        .tabs button:hover { color: var(--text); }
+        .tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
+        .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--text);
+               border-radius: 10px; padding: 7px 13px; font-weight: 700; font-size: .86rem; transition: background .15s; white-space: nowrap; }
+        .btn:hover { background: var(--hover); }
 
         .fade-in { animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -132,128 +208,38 @@
         .g-g { top: 25px; left: 6px; right: 6px; height: 4px; }
     </style>
 </head>
-<body class="min-h-screen bg-[#090d16] text-slate-100 flex flex-col">
+<body class="min-h-screen flex flex-col">
     <div id="app" class="flex flex-col min-h-screen">
 
-        <!-- 頂部 Header -->
-        <header class="bg-[#0f172a] border-b-2 border-[#334155] sticky top-0 z-50 shadow-2xl px-4 md:px-6 py-3">
-            <div class="max-w-[1850px] mx-auto flex flex-wrap items-center justify-between gap-3">
-                
-                <!-- Logo & 標題 -->
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 border border-sky-400 text-white flex items-center justify-center text-2xl font-black shadow-lg">
-                        ⚡
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2.5">
-                            <h1 class="text-xl md:text-2xl font-black text-white tracking-tight">Quartus MegaWizard 精靈電路設計</h1>
-                            <span class="px-2.5 py-0.5 bg-sky-950 text-sky-300 border border-sky-500/60 rounded-lg text-xs font-mono-custom font-black">
-                                EPM3064 CPLD
-                            </span>
+        <!-- 頂部：標題＋分頁（單一區塊） -->
+        <header class="hdr sticky top-0 z-50">
+            <div class="max-w-[1450px] mx-auto px-3 md:px-5">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-2 pt-2.5 pb-1.5">
+                    <div class="flex items-center gap-2.5 mr-auto min-w-0">
+                        <div class="logo" aria-hidden="true">⚡</div>
+                        <div class="leading-tight min-w-0">
+                            <h1 class="text-base md:text-lg font-black" style="color: var(--text)">Quartus MegaWizard 精靈電路設計</h1>
+                            <p class="text-xs font-bold" style="color: var(--muted)">數位電子乙級・EPM3064 CPLD・Quartus II 9.1 / 13.0</p>
                         </div>
-                        <p class="text-xs text-slate-300 font-bold mt-0.5">數位電子乙級技術士 · MegaWizard 精靈與 AHDL 邏輯電路實作</p>
                     </div>
+                    <button type="button" class="btn" @click="toggleTheme" :aria-label="theme === 'dark' ? '切換為淺色主題' : '切換為深色主題'">
+                        <span aria-hidden="true">{{ theme === 'dark' ? '☀️' : '🌙' }}</span><span class="hidden sm:inline">{{ theme === 'dark' ? '淺色' : '深色' }}</span>
+                    </button>
+                    <a href="../cpld_simulator.html" class="btn">腳位佈局 <span aria-hidden="true" style="color: var(--muted)">→</span></a>
+                    <a href="../index.html" target="_top" @click.prevent="goHome" class="btn"><span aria-hidden="true">🏠</span><span class="hidden sm:inline">首頁</span></a>
                 </div>
-
-                <!-- 導覽切換按鈕區 -->
-                <div class="flex flex-wrap items-center gap-2">
-                    
-                    <!-- 5 大模式切換選單 -->
-                    <div class="flex bg-[#1e293b] p-1 rounded-xl border border-slate-700">
-                        <button 
-                            @click="activeTab = 'task1'" 
-                            :class="activeTab === 'task1' ? 'bg-sky-600 text-white font-black shadow-md ring-2 ring-sky-300' : 'text-slate-300 hover:text-white font-bold hover:bg-slate-700'"
-                            class="px-3 py-1.5 text-xs md:text-sm rounded-lg transition-all flex items-center gap-1"
-                        >
-                            <span>📘</span> 試題一
-                        </button>
-                        <button 
-                            @click="activeTab = 'task2'" 
-                            :class="activeTab === 'task2' ? 'bg-sky-600 text-white font-black shadow-md ring-2 ring-sky-300' : 'text-slate-300 hover:text-white font-bold hover:bg-slate-700'"
-                            class="px-3 py-1.5 text-xs md:text-sm rounded-lg transition-all flex items-center gap-1"
-                        >
-                            <span>📙</span> 試題二
-                        </button>
-                        <button 
-                            @click="activeTab = 'jn_group'" 
-                            :class="activeTab === 'jn_group' ? 'bg-amber-400 text-slate-950 font-black shadow-md ring-2 ring-amber-300' : 'text-amber-300 hover:text-white font-bold hover:bg-slate-700'"
-                            class="px-3 py-1.5 text-xs md:text-sm rounded-lg transition-all flex items-center gap-1"
-                        >
-                            <span>🎲</span> J~N 抽測組別
-                        </button>
-                        <button 
-                            @click="activeTab = 'components'" 
-                            :class="activeTab === 'components' ? 'bg-sky-600 text-white font-black shadow-md ring-2 ring-sky-300' : 'text-slate-300 hover:text-white font-bold hover:bg-slate-700'"
-                            class="px-3 py-1.5 text-xs md:text-sm rounded-lg transition-all flex items-center gap-1"
-                        >
-                            <span>🧩</span> 6大精靈庫
-                        </button>
-                        <button 
-                            @click="activeTab = 'slides'" 
-                            :class="activeTab === 'slides' ? 'bg-indigo-600 text-white font-black shadow-md ring-2 ring-indigo-300' : 'text-slate-300 hover:text-white font-bold hover:bg-slate-700'"
-                            class="px-3 py-1.5 text-xs md:text-sm rounded-lg transition-all flex items-center gap-1"
-                        >
-                            <span>📖</span> 11頁講義
-                        </button>
-                    </div>
-
-                    <!-- 串聯 CPLD 模擬系統 -->
-                    <a href="../cpld_simulator.html" class="flex items-center gap-1 px-3 py-1.5 bg-[#1e293b] hover:bg-slate-700 text-teal-300 font-black rounded-xl text-xs md:text-sm border border-teal-500/60 transition-all shadow-md">
-                        <span>📊</span> 腳位佈局 ➔
-                    </a>
-
-                    <!-- 返回首頁按鈕 -->
-                    <a href="../index.html" target="_top" @click.prevent="goHome" class="flex items-center gap-1 px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-xs md:text-sm transition-all shadow-md border-2 border-amber-300">
-                        <span>🏠</span> 首頁
-                    </a>
-
-                </div>
-
+                <nav class="tabs flex gap-1 overflow-x-auto" aria-label="內容分頁">
+                    <button type="button" @click="activeTab = 'task1'" :class="{ on: activeTab === 'task1' }" :aria-current="activeTab === 'task1' ? 'page' : null">試題一</button>
+                    <button type="button" @click="activeTab = 'task2'" :class="{ on: activeTab === 'task2' }" :aria-current="activeTab === 'task2' ? 'page' : null">試題二</button>
+                    <button type="button" @click="activeTab = 'jn_group'" :class="{ on: activeTab === 'jn_group' }" :aria-current="activeTab === 'jn_group' ? 'page' : null">J~N 抽測組別</button>
+                    <button type="button" @click="activeTab = 'components'" :class="{ on: activeTab === 'components' }" :aria-current="activeTab === 'components' ? 'page' : null">6 大精靈元件庫</button>
+                    <button type="button" @click="activeTab = 'slides'" :class="{ on: activeTab === 'slides' }" :aria-current="activeTab === 'slides' ? 'page' : null">11 頁講義</button>
+                </nav>
             </div>
         </header>
 
         <!-- 主內容區 -->
-        <main class="flex-1 max-w-[1850px] w-full mx-auto p-3 md:p-6 space-y-5">
-            
-            <!-- Hero 頂部重點橫幅 -->
-            <div class="bg-gradient-to-r from-slate-900 via-[#131b2e] to-slate-900 border-2 border-slate-700/80 rounded-2xl p-4 md:p-5 shadow-2xl relative overflow-hidden">
-                <div class="flex flex-wrap items-center justify-between gap-4">
-                    <div class="space-y-1.5 max-w-3xl">
-                        <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-0.5 bg-amber-400/20 text-amber-300 border border-amber-400/60 rounded-full text-xs font-black">
-                                🎓 數位電子乙級術科 核心軟體實作
-                            </span>
-                            <span class="text-xs text-slate-400 font-bold">Quartus II 9.1 / 13.0 + EPM3064ALC44-10</span>
-                        </div>
-                        <h2 class="text-xl md:text-2xl font-black text-white tracking-tight">
-                            Quartus MegaWizard 精靈化設計 & 官方標準字型規範
-                        </h2>
-                        <p class="text-xs md:text-sm text-slate-300 leading-relaxed font-bold">
-                            使用 Altera MegaWizard Plug-In Manager 快速生成計數除頻器（LPM_COUNTER）、解碼器（LPM_DECODE）、多工器（LPM_MUX）與栓鎖器（LPM_LATCH），並完整支援 J～N 抽測組別、12 字符標準七段字型與栓鎖扣分規範！
-                        </p>
-                    </div>
-
-                    <!-- 統計指標 Badge 組合 -->
-                    <div class="flex items-center gap-2.5 shrink-0">
-                        <div class="bg-[#090d16] border border-sky-500/40 rounded-xl p-2.5 text-center min-w-[80px] shadow-inner">
-                            <div class="text-lg md:text-xl font-mono-custom font-black text-sky-400">2 大</div>
-                            <div class="text-[10px] text-slate-400 font-bold">試題完整解析</div>
-                        </div>
-                        <div class="bg-[#090d16] border border-amber-500/40 rounded-xl p-2.5 text-center min-w-[80px] shadow-inner">
-                            <div class="text-lg md:text-xl font-mono-custom font-black text-amber-300">12 鍵</div>
-                            <div class="text-[10px] text-slate-400 font-bold">標準字型對照</div>
-                        </div>
-                        <div class="bg-[#090d16] border border-emerald-500/40 rounded-xl p-2.5 text-center min-w-[80px] shadow-inner">
-                            <div class="text-lg md:text-xl font-mono-custom font-black text-emerald-400">6 個</div>
-                            <div class="text-[10px] text-slate-400 font-bold">MegaWizard元件</div>
-                        </div>
-                        <div class="bg-[#090d16] border border-indigo-500/40 rounded-xl p-2.5 text-center min-w-[80px] shadow-inner">
-                            <div class="text-lg md:text-xl font-mono-custom font-black text-indigo-400">11 頁</div>
-                            <div class="text-[10px] text-slate-400 font-bold">精華實作講義</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <main class="flex-1 max-w-[1450px] w-full mx-auto p-3 md:p-5 space-y-4">
 
             <!-- ================= 【TAB: J~N 顯示組別】 ================= -->
             <div v-if="activeTab === 'jn_group'" class="space-y-5 fade-in">
@@ -980,6 +966,12 @@
         createApp({
             setup() {
                 const activeTab = ref('task2'); // 預設顯示試題二
+                const theme = ref(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+                const toggleTheme = () => {
+                    theme.value = theme.value === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', theme.value);
+                    try { localStorage.setItem('cpld-theme', theme.value); } catch (e) {}
+                };
                 const slideViewMode = ref('slider');
                 const currentSlideIndex = ref(1);
                 const lightboxImg = ref(null);
@@ -1340,7 +1332,7 @@ END;`;
                     activeTab, jnGroupList, selectedJn, currentJnData, standardGlyphs,
                     slideViewMode, currentSlideIndex, slidesData, prevSlide, nextSlide,
                     keypadList, selectedKey, currentKeyData, copyAhdlCode,
-                    lightboxImg, lightboxTitle, openImageModal, closeImageModal, goHome
+                    lightboxImg, lightboxTitle, openImageModal, closeImageModal, goHome, theme, toggleTheme
                 };
             }
         }).mount('#app');
