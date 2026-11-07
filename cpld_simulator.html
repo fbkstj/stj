@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>數位電子乙級學習導覽系統</title>
+    <script>
+        try { var _t = localStorage.getItem('cpld-theme'); if (_t === 'light' || _t === 'dark') document.documentElement.setAttribute('data-theme', _t); } catch (e) {}
+    </script>
     <!-- PDF-Lib & Fontkit CDN -->
     <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
     <script src="https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.min.js"></script>
@@ -16,48 +19,119 @@
     <!-- Vue 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        :root {
-            --bg-main: #0f172a;
-            --panel-bg: #1e293b;
-            --card-bg: #334155;
-            --accent-blue: #38bdf8;
-            --accent-green: #4ade80;
-            --accent-yellow: #facc15;
-            --accent-red: #f87171;
-            --text-main: #ffffff;
-            --border-color: #475569;
+        /* ===== 色彩 token：深色為預設，data-theme="light" 為淺色；.fig-dark 內固定用深色（電路圖、波形圖） ===== */
+        :root, .fig-dark {
+            --bg: #0b1220; --surface: #131c2e; --inset: #0e1626; --strong: #0a101d; --hover: #1d2a44; --line: #2a3853;
+            --text: #e8edf6; --soft: #c3cde0; --muted: #8fa0bd;
+            --accent: #38bdf8; --on-accent: #04202e; --warn: #fbbf24; --ok: #4ade80; --ok2: #2dd4bf; --danger: #f87171; --pink: #f472b6;
+            --tint-sky: rgba(56,189,248,.14); --tint-red: rgba(248,113,113,.14); --tint-green: rgba(74,222,128,.14);
+            --tint-amber: rgba(251,191,36,.14); --tint-teal: rgba(45,212,191,.14);
+            color-scheme: dark;
         }
+        html[data-theme="light"] {
+            --bg: #f3f5f9; --surface: #ffffff; --inset: #f1f4f9; --strong: #e9eef6; --hover: #e4eaf4; --line: #d5dcea;
+            --text: #14213d; --soft: #2d3a57; --muted: #5a6784;
+            --accent: #0369a1; --on-accent: #ffffff; --warn: #b45309; --ok: #15803d; --ok2: #0f766e; --danger: #b91c1c; --pink: #be185d;
+            --tint-sky: rgba(3,105,161,.10); --tint-red: rgba(185,28,28,.09); --tint-green: rgba(21,128,61,.10);
+            --tint-amber: rgba(180,83,9,.11); --tint-teal: rgba(15,118,110,.10);
+            color-scheme: light;
+        }
+        html[data-theme="light"] .fig-dark {
+            --bg: #0b1220; --surface: #131c2e; --inset: #0e1626; --strong: #0a101d; --hover: #1d2a44; --line: #2a3853;
+            --text: #e8edf6; --soft: #c3cde0; --muted: #8fa0bd;
+            --accent: #38bdf8; --on-accent: #04202e; --warn: #fbbf24; --ok: #4ade80; --ok2: #2dd4bf; --danger: #f87171; --pink: #f472b6;
+            color-scheme: dark;
+        }
+        .fig-dark { color: var(--text); }
 
         body {
             font-family: 'Noto Sans TC', sans-serif;
-            background-color: var(--bg-main);
-            color: #ffffff;
+            background-color: var(--bg);
+            color: var(--text);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             font-size: 14px;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.8);
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-radius: 10px;
-            border: 2px solid #1e293b;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #64748b;
-        }
-        
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--inset); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
         .font-mono-custom {
             font-family: 'JetBrains Mono', 'Fira Code', monospace;
         }
+
+
+        /* ===== 把舊版寫死的深色 class 改由 token 控制（兩種主題共用），並讓介面更清爽 ===== */
+        #app .bg-\[\#0f172a\] { background-color: var(--inset); }
+        #app .bg-\[\#0f172a\]\/60 { background-color: var(--inset); }
+        #app .bg-\[\#1e293b\] { background-color: var(--surface); }
+        #app .bg-\[\#090d16\], #app .bg-\[\#090d16\]\/70 { background-color: var(--strong); }
+        #app .bg-\[\#334155\], #app .hover\:bg-\[\#334155\]:hover, #app .hover\:bg-\[\#475569\]:hover,
+        #app .bg-slate-700, #app .hover\:bg-slate-700:hover, #app .hover\:bg-slate-600:hover, #app .hover\:bg-slate-800:hover,
+        #app .bg-slate-800, #app .bg-slate-900, #app .bg-slate-500, #app .bg-neutral-900 { background-color: var(--hover); }
+        #app .bg-\[\#475569\] { background-color: var(--line); }
+        #app .border-\[\#475569\], #app .border-\[\#475569\]\/70, #app .border-\[\#475569\]\/60,
+        #app .border-slate-400, #app .border-slate-500, #app .border-slate-600, #app .border-slate-700, #app .border-neutral-700 { border-color: var(--line); }
+        #app .text-white, #app .hover\:text-white:hover { color: var(--text); }
+        #app .text-slate-100, #app .text-slate-200 { color: var(--soft); }
+        #app .text-slate-300, #app .text-slate-400 { color: var(--muted); }
+        #app .text-amber-100, #app .text-amber-200, #app .text-amber-300, #app .text-amber-400,
+        #app .hover\:text-amber-200:hover, #app .group:hover .group-hover\:text-amber-300 { color: var(--warn); }
+        #app .text-sky-200, #app .text-sky-300, #app .text-sky-400, #app .hover\:text-sky-200:hover, #app .hover\:text-sky-300:hover { color: var(--accent); }
+        #app .text-emerald-300, #app .text-emerald-400 { color: var(--ok); }
+        #app .text-teal-200, #app .text-teal-300, #app .text-teal-400 { color: var(--ok2); }
+        #app .text-red-300, #app .text-red-400 { color: var(--danger); }
+        #app .text-pink-300 { color: var(--pink); }
+        #app .bg-sky-950, #app .bg-sky-950\/60, #app .bg-sky-950\/90 { background-color: var(--tint-sky); }
+        #app .bg-red-950\/60, #app .bg-red-950\/90 { background-color: var(--tint-red); }
+        #app .bg-emerald-950, #app .bg-emerald-950\/90 { background-color: var(--tint-green); }
+        #app .bg-amber-950\/40, #app .bg-amber-950\/60 { background-color: var(--tint-amber); }
+        #app .bg-teal-900 { background-color: var(--tint-teal); }
+        #app .hover\:bg-\[\#334155\]:hover { background-color: var(--hover); }
+        html[data-theme="light"] #app :is(.bg-sky-500, .bg-teal-600, .bg-teal-500, .bg-emerald-600, .bg-emerald-500).text-white { color: #fff; }
+
+        /* 邊框變細、陰影變輕 */
+        #app .border-2 { border-width: 1px; }
+        #app .shadow-xl, #app .shadow-2xl, #app .shadow-lg, #app .shadow-md { box-shadow: 0 1px 3px rgba(0,0,0,.16); }
+        html[data-theme="light"] #app .shadow-xl, html[data-theme="light"] #app .shadow-2xl,
+        html[data-theme="light"] #app .shadow-lg, html[data-theme="light"] #app .shadow-md { box-shadow: 0 1px 3px rgba(20,33,61,.10); }
+        #app .ring-2, #app .ring-4 { --tw-ring-shadow: 0 0 #0000; box-shadow: none; }
+
+        /* ===== 新版元件 ===== */
+        .hdr { background: var(--surface); border-bottom: 1px solid var(--line); }
+        .logo { width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 20px;
+                background: var(--tint-amber); color: var(--warn); border: 1px solid var(--line); flex-shrink: 0; }
+        .seg { display: inline-flex; flex-wrap: wrap; background: var(--inset); border: 1px solid var(--line); border-radius: 11px; padding: 3px; gap: 2px; }
+        .seg button { padding: 6px 14px; border-radius: 8px; font-weight: 700; font-size: .9rem; color: var(--muted); transition: background .15s, color .15s; text-align: center; }
+        .seg button:hover { color: var(--text); }
+        .seg button.on { background: var(--accent); color: var(--on-accent); }
+        .tabs button { padding: 10px 16px; border-bottom: 2px solid transparent; color: var(--muted); font-weight: 700; font-size: .95rem; white-space: nowrap; transition: color .15s; }
+        .tabs button:hover { color: var(--text); }
+        .tabs button.on { color: var(--text); border-bottom-color: var(--accent); }
+        .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--text);
+               border-radius: 10px; padding: 7px 13px; font-weight: 700; font-size: .86rem; transition: background .15s; white-space: nowrap; }
+        .btn:hover { background: var(--hover); }
+        .btn-primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+        .btn-primary:hover { background: var(--accent); filter: brightness(1.08); }
+        .btn-primary:disabled { opacity: .55; cursor: wait; }
+        .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+        .lbl { font-size: .8rem; font-weight: 700; color: var(--muted); }
+        .field { width: 100%; background: var(--inset); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 9px 12px; font-weight: 700; font-size: .95rem; outline: none; }
+        .field:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--tint-sky); }
+        .menu { position: absolute; right: 0; top: calc(100% + 8px); width: min(380px, 92vw); background: var(--surface); border: 1px solid var(--line);
+                border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.28); padding: 6px; z-index: 60; }
+        .menu .item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 9px 10px; border-radius: 9px; color: var(--text); }
+        .menu .item:hover { background: var(--hover); }
+        .menu .item small { display: block; color: var(--muted); font-weight: 600; font-size: .75rem; }
+        .menu .item .go { margin-left: auto; font-size: .8rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
+        .menu .note { margin: 4px 4px 2px; padding: 9px 10px; border-radius: 9px; background: var(--tint-amber); color: var(--soft); font-size: .78rem; line-height: 1.55; }
+        .step-h { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 1.02rem; color: var(--text); }
+        .step-n { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--accent); color: var(--on-accent); font-size: .85rem; font-weight: 900; }
+        .panel-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-weight: 800; font-size: .92rem; color: var(--text); }
 
         .fade-in { animation: fadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
@@ -82,11 +156,11 @@
 
         .step-number {
             width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
-            background: linear-gradient(135deg, #0284c7 0%, #0d9488 100%); color: white; border-radius: 50%; font-weight: 900; flex-shrink: 0;
-            font-size: 0.9rem; box-shadow: 0 2px 8px rgba(2, 132, 199, 0.4);
+            background: var(--accent); color: var(--on-accent); border-radius: 50%; font-weight: 900; flex-shrink: 0;
+            font-size: 0.9rem; 
         }
         .resistor-node {
-            background: #0f172a; border: 2px solid #38bdf8; color: #38bdf8;
+            background: var(--inset); border: 1px solid var(--accent); color: var(--accent);
             width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
             border-radius: 8px; font-weight: 900; font-size: 0.95rem; shadow: 0 2px 6px rgba(56,189,248,0.25);
         }
@@ -105,217 +179,104 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-[#0f172a] text-white">
+<body class="min-h-screen">
     <div id="app" class="flex flex-col min-h-screen">
         
-        <!-- 頂部全寬 Header -->
-        <header class="bg-[#090d16] border-b-2 border-[#475569] sticky top-0 z-50 shadow-xl px-4 md:px-6 py-2.5 md:py-3">
-            <div class="max-w-[1850px] mx-auto flex flex-wrap items-center justify-between gap-3">
-                
-                <!-- 標題與醒目標示徽章 -->
-                <div class="flex flex-wrap items-center gap-3">
-                    <div class="w-11 h-11 rounded-xl bg-amber-400/20 border-2 border-amber-400 text-amber-300 flex items-center justify-center text-2xl font-black shadow-sm">
-                        ⚡
+        <!-- 頂部：標題＋功能頁籤（單一區塊） -->
+        <header class="hdr sticky top-0 z-50">
+            <div class="max-w-[1450px] mx-auto px-3 md:px-5">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-2 pt-2.5 pb-1.5">
+                    <div class="flex items-center gap-2.5 mr-auto min-w-0">
+                        <div class="logo" aria-hidden="true">⚡</div>
+                        <div class="leading-tight min-w-0">
+                            <h1 class="text-base md:text-lg font-black" style="color: var(--text)">數位電子乙級 學習導覽</h1>
+                            <p class="text-xs font-bold" style="color: var(--muted)">{{ currentTask === 1 ? '試題一' : '試題二' }}・口訣 <span class="font-mono-custom font-black" style="color: var(--warn)">{{ taskData[currentTask].mnemonic }}</span></p>
+                        </div>
                     </div>
-                    <div class="flex flex-wrap items-center gap-3">
-                        <h1 class="text-xl md:text-2xl font-black text-white tracking-tight">數位電子乙級 學習導覽系統</h1>
-                        <span class="px-3.5 py-1 bg-sky-950/90 text-sky-300 border-2 border-sky-400 rounded-xl text-sm md:text-lg font-mono-custom font-black shadow-sm">
-                            {{ taskData[currentTask].name }}<span class="text-amber-300 font-black text-sm md:text-lg ml-1.5">（口訣：{{ taskData[currentTask].mnemonic }}）</span>
-                        </span>
+
+                    <div class="seg" role="group" aria-label="切換試題">
+                        <button type="button" @click="setTask(1)" :class="{ on: currentTask === 1 }" :aria-pressed="currentTask === 1">試題一</button>
+                        <button type="button" @click="setTask(2)" :class="{ on: currentTask === 2 }" :aria-pressed="currentTask === 2">試題二</button>
                     </div>
+
+                    <div class="relative">
+                        <button type="button" class="btn" @click.stop="showOfficialDownloads = !showOfficialDownloads" aria-haspopup="true" :aria-expanded="showOfficialDownloads">
+                            官方資料 <span aria-hidden="true" style="color: var(--muted)">▾</span>
+                        </button>
+                        <div v-if="showOfficialDownloads" class="menu fade-in" role="menu" @click.stop>
+                            <a class="item" role="menuitem" href="117002B13.pdf" target="_blank" rel="noopener noreferrer">
+                                <span aria-hidden="true">📄</span>
+                                <span><span class="font-bold">乙級 術科參考資料</span><small>117002B13.pdf・線上瀏覽</small></span>
+                                <span class="go">開啟 ↗</span>
+                            </a>
+                            <a class="item" role="menuitem" href="117002B14.7z" download="117002B14_術科Library及燒錄檔.7z">
+                                <span aria-hidden="true">📦</span>
+                                <span><span class="font-bold">術科 Library 及燒錄檔</span><small>117002B14.7z・18 KB</small></span>
+                                <span class="go">下載</span>
+                            </a>
+                            <button type="button" class="item" role="menuitem" @click="openRevisionModal(); showOfficialDownloads = false">
+                                <span aria-hidden="true">📝</span>
+                                <span><span class="font-bold">術科修訂對照表</span><small>113/10/26 最新修訂・網頁查閱</small></span>
+                                <span class="go">查閱</span>
+                            </button>
+                            <a class="item" role="menuitem" href="https://owinform.wdasec.gov.tw/" target="_blank" rel="noopener noreferrer">
+                                <span aria-hidden="true">🌐</span>
+                                <span><span class="font-bold">技能檢定中心官網</span><small>owinform.wdasec.gov.tw・職類代號 11700</small></span>
+                                <span class="go">前往 ↗</span>
+                            </a>
+                            <div class="note">💡 考場技巧：測試前可用桌面上的 <code class="font-mono-custom font-black" style="color: var(--accent)">SKC_DEtest.pof</code> 燒錄測試 CPLD 各 I/O 腳位功能正常，並於 30 分鐘內確認耗材。</div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn" @click="toggleTheme" :aria-label="theme === 'dark' ? '切換為淺色主題' : '切換為深色主題'">
+                        <span aria-hidden="true">{{ theme === 'dark' ? '☀️' : '🌙' }}</span><span class="hidden sm:inline">{{ theme === 'dark' ? '淺色' : '深色' }}</span>
+                    </button>
+                    <a href="index.html" target="_top" @click.prevent="goHome" class="btn"><span aria-hidden="true">🏠</span><span class="hidden sm:inline">首頁</span></a>
                 </div>
 
-                <!-- 頂部右側選單區 -->
-                <div class="flex flex-wrap items-center gap-3">
-                    
-                    <!-- 導覽模式切換 (四合一：邏輯模擬 / 硬體布局 / 評審表設定 / 修訂對照表) -->
-                    <div class="flex bg-[#1e293b] p-1 rounded-xl border-2 border-[#475569]">
-                        <button @click="viewMode = 'logic'" :class="viewMode === 'logic' ? 'bg-[#0284c7] text-white font-black shadow-md ring-2 ring-sky-300' : 'text-slate-100 hover:text-white font-bold hover:bg-[#334155]'" class="px-3.5 py-2 text-sm md:text-base rounded-lg transition-all flex items-center gap-1.5">
-                            <span class="text-base md:text-lg">⚡</span> 腳位邏輯模擬
-                        </button>
-                        <button @click="viewMode = 'layout'" :class="viewMode === 'layout' ? 'bg-[#0284c7] text-white font-black shadow-md ring-2 ring-sky-300' : 'text-slate-100 hover:text-white font-bold hover:bg-[#334155]'" class="px-3.5 py-2 text-sm md:text-base rounded-lg transition-all flex items-center gap-1.5">
-                            <span class="text-base md:text-lg">📐</span> 硬體布局指引
-                        </button>
-                        <button @click="viewMode = 'eval'" :class="viewMode === 'eval' ? 'bg-[#0284c7] text-white font-black shadow-md ring-2 ring-sky-300' : 'text-slate-100 hover:text-white font-bold hover:bg-[#334155]'" class="px-3.5 py-2 text-sm md:text-base rounded-lg transition-all flex items-center gap-1.5">
-                            <span class="text-base md:text-lg">📋</span> 評審表設定
-                        </button>
-                        <button @click="openRevisionModal()" :class="showRevisionModal ? 'bg-amber-500 text-slate-950 font-black shadow-md ring-2 ring-amber-300' : 'text-amber-300 hover:text-white font-bold hover:bg-[#334155]'" class="px-3.5 py-2 text-sm md:text-base rounded-lg transition-all flex items-center gap-1.5">
-                            <span class="text-base md:text-lg">📑</span> 修訂對照表
-                        </button>
-                    </div>
-
-                    <!-- 試題選擇 -->
-                    <div class="flex bg-[#1e293b] p-1 rounded-xl border-2 border-[#475569]">
-                        <button @click="setTask(1)" :class="currentTask === 1 ? 'bg-teal-600 text-white font-black shadow-md ring-2 ring-teal-300' : 'text-slate-100 hover:text-white font-bold hover:bg-[#334155]'" class="px-4 py-2 text-sm md:text-base rounded-lg transition-all flex items-center gap-1.5">
-                            <span class="text-base">📘</span> 試題一
-                        </button>
-                        <button @click="setTask(2)" :class="currentTask === 2 ? 'bg-teal-600 text-white font-black shadow-md ring-2 ring-teal-300' : 'text-slate-100 hover:text-white font-bold hover:bg-[#334155]'" class="px-4 py-2 text-sm md:text-base rounded-lg transition-all flex items-center gap-1.5">
-                            <span class="text-base">📙</span> 試題二
-                        </button>
-                    </div>
-
-                    <!-- 返回首頁按鈕 -->
-                    <a href="index.html" target="_top" @click.prevent="goHome" class="flex items-center gap-1.5 px-4 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl text-sm md:text-base transition-all shadow-md border-2 border-amber-300">
-                        <span class="text-base">🏠</span> 首頁
-                    </a>
-                </div>
+                <nav class="tabs flex gap-1 overflow-x-auto" aria-label="功能頁">
+                    <button type="button" @click="viewMode = 'logic'" :class="{ on: viewMode === 'logic' }" :aria-current="viewMode === 'logic' ? 'page' : null">腳位模擬</button>
+                    <button type="button" @click="viewMode = 'layout'" :class="{ on: viewMode === 'layout' }" :aria-current="viewMode === 'layout' ? 'page' : null">硬體布局</button>
+                    <button type="button" @click="viewMode = 'eval'" :class="{ on: viewMode === 'eval' }" :aria-current="viewMode === 'eval' ? 'page' : null">評審表</button>
+                    <button type="button" @click="openRevisionModal()" :class="{ on: showRevisionModal }">修訂對照</button>
+                </nav>
             </div>
         </header>
 
         <!-- 主內容區域 -->
-        <main class="flex-1 max-w-[1850px] w-full mx-auto p-3 md:p-4 space-y-3">
-            
-            <!-- 官方測試參考資料檔案直接下載與線上查閱區 (可隱藏折疊) -->
-            <div class="bg-[#1e293b] border-2 border-[#475569] rounded-2xl p-3.5 md:p-4 shadow-xl space-y-2.5">
-                
-                <!-- 可點擊折疊標題列 -->
-                <div @click="showOfficialDownloads = !showOfficialDownloads" class="flex flex-wrap items-center justify-between gap-2 cursor-pointer select-none border-b border-[#475569]/70 pb-2 hover:opacity-90 transition-opacity">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl text-emerald-400">📥</span>
-                        <h3 class="text-white font-black text-sm md:text-base tracking-wide flex items-center gap-1.5">
-                            勞動部技能檢定中心 官方測試參考資料
-                            <span class="text-amber-300 font-mono-custom text-xs bg-[#090d16] px-2 py-0.5 rounded border border-[#475569]">職類代號：11700 數位電子乙級</span>
-                        </h3>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <a href="https://owinform.wdasec.gov.tw/" target="_blank" rel="noopener noreferrer" @click.stop class="text-xs font-black text-sky-300 hover:text-sky-200 bg-[#090d16] hover:bg-slate-800 px-3 py-1 rounded-lg border border-[#475569] transition-all flex items-center gap-1">
-                            <span>🌐 技能檢定中心官網 (owinform.wdasec.gov.tw)</span>
-                            <span>↗</span>
-                        </a>
-                        <button type="button" class="text-xs font-black px-3 py-1 bg-[#090d16] text-amber-300 hover:text-amber-200 rounded-lg border border-[#475569] hover:bg-slate-800 transition-all flex items-center gap-1">
-                            <span>{{ showOfficialDownloads ? '▲ 隱藏資料' : '▼ 展開資料' }}</span>
-                        </button>
-                    </div>
-                </div>
+        <main class="flex-1 max-w-[1450px] w-full mx-auto p-3 md:p-5 space-y-4">
 
-                <!-- 3 核心官方資料項目組 (折疊區域) -->
-                <div v-show="showOfficialDownloads" class="grid grid-cols-1 md:grid-cols-3 gap-2.5 md:gap-3 pt-1 fade-in">
-                    
-                    <!-- 1. 乙級 術科參考資料 (在 Chrome 中直接開啟 117002B13.pdf) -->
-                    <a href="117002B13.pdf" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 bg-[#0f172a] hover:bg-[#334155] border-2 border-emerald-500/80 hover:border-emerald-400 rounded-xl transition-all group shadow-md">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-400 text-emerald-300 flex items-center justify-center text-lg font-bold group-hover:scale-105 transition-transform shrink-0">
-                                📄
-                            </div>
-                            <div>
-                                <h4 class="text-xs md:text-sm font-black text-white group-hover:text-emerald-300 transition-colors">乙級 術科參考資料</h4>
-                                <p class="text-[11px] text-emerald-300 font-extrabold">117002B13.pdf (線上直接瀏覽)</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 bg-emerald-600 group-hover:bg-emerald-500 text-white rounded-lg text-xs font-black shadow-sm flex items-center gap-1 shrink-0">
-                            <span>直接開啟</span> 👁️
-                        </span>
-                    </a>
-
-                    <!-- 2. 術科 (Library 及燒錄檔) (直接下載 117002B14.7z) -->
-                    <a href="117002B14.7z" download="117002B14_術科Library及燒錄檔.7z" class="flex items-center justify-between p-3 bg-[#0f172a] hover:bg-[#334155] border-2 border-emerald-500/80 hover:border-emerald-400 rounded-xl transition-all group shadow-md">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-lg bg-emerald-500/20 border border-emerald-400 text-emerald-300 flex items-center justify-center text-lg font-bold group-hover:scale-105 transition-transform shrink-0">
-                                📦
-                            </div>
-                            <div>
-                                <h4 class="text-xs md:text-sm font-black text-white group-hover:text-emerald-300 transition-colors">術科 Library及燒錄檔</h4>
-                                <p class="text-[11px] text-emerald-300 font-extrabold">117002B14.7z (18KB)</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 bg-emerald-600 group-hover:bg-emerald-500 text-white rounded-lg text-xs font-black shadow-sm flex items-center gap-1 shrink-0">
-                            <span>直接下載</span> 📥
-                        </span>
-                    </a>
-
-                    <!-- 3. 修訂對照表 (網頁化線上檢視 113/10/26 修訂) -->
-                    <button type="button" @click="openRevisionModal()" class="flex items-center justify-between p-3 bg-[#0f172a] hover:bg-[#334155] border-2 border-amber-500/80 hover:border-amber-400 rounded-xl transition-all group shadow-md text-left w-full">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-9 h-9 rounded-lg bg-amber-500/20 border border-amber-400 text-amber-300 flex items-center justify-center text-lg font-bold group-hover:scale-105 transition-transform shrink-0">
-                                📝
-                            </div>
-                            <div>
-                                <h4 class="text-xs md:text-sm font-black text-white group-hover:text-amber-300 transition-colors">乙級 術科修訂對照表</h4>
-                                <p class="text-[11px] text-amber-300 font-extrabold">113/10/26 最新修訂（網頁化線上查閱）</p>
-                            </div>
-                        </div>
-                        <span class="px-2.5 py-1 bg-amber-500 group-hover:bg-amber-400 text-slate-950 rounded-lg text-xs font-black shadow-sm flex items-center gap-1 shrink-0">
-                            <span>線上查閱</span> 📖
-                        </span>
-                    </button>
-
+            <!-- 題組切換列（僅腳位模擬） -->
+            <section v-if="viewMode === 'logic'" class="flex flex-wrap items-center gap-x-4 gap-y-2" aria-label="題組選擇">
+                <span class="lbl">題組</span>
+                <div class="seg" role="group" aria-label="選擇題組">
+                    <button v-for="set in sets" :key="set" type="button" @click="selectedSet = set" :class="{ on: selectedSet === set }" :aria-pressed="selectedSet === set">{{ set }} 組</button>
                 </div>
-                
-                <!-- 💡 113/10/26 最新修訂重點提示卡片 -->
-                <div v-show="showOfficialDownloads" class="mt-2 bg-[#090d16] p-2.5 rounded-xl border border-sky-500/40 text-xs flex flex-wrap items-center justify-between gap-2">
-                    <div class="flex items-center gap-2">
-                        <span class="text-amber-300 font-bold">💡 113/10/26 修訂考場技巧：</span>
-                        <span class="text-slate-200">測試前可用桌面上 <code class="text-sky-300 font-mono-custom bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">SKC_DEtest.pof</code> 燒錄測試 CPLD 各 I/O 腳位功能正常，並於 30 分鐘內確認耗材。</span>
-                    </div>
-                    <button @click="openRevisionModal()" class="text-sky-400 hover:text-sky-300 font-mono-custom font-black shrink-0 underline underline-offset-2">
-                        查看完整修訂對照表 ➔
-                    </button>
-                </div>
-            </div>
+                <p class="text-sm font-bold flex-1 min-w-[220px]" style="color: var(--soft)">{{ currentSetData.focus }}</p>
+                <button type="button" class="btn" @click="copyQSF">複製 {{ selectedSet }} 組 QSF 腳位碼</button>
+            </section>
 
-            <!-- 題組選擇區塊 (僅在邏輯模擬模式顯示) -->
-            <div v-if="viewMode === 'logic'" class="bg-[#1e293b] border-2 border-[#475569] rounded-2xl p-3.5 shadow-lg space-y-2.5 max-w-[1450px] mx-auto w-full">
-                <div class="flex items-center justify-between px-1">
-                    <h3 class="text-amber-300 font-black text-base md:text-lg flex items-center gap-2 tracking-wide">
-                        <span class="text-xl">📑</span> 選擇官方試題組<span class="text-white font-black text-sm md:text-base">（ 1 ~ 5 題組物理偏移 ）</span>：
-                    </h3>
-                    <div class="flex items-center gap-2">
-                        <button @click="copyQSF" class="text-xs font-mono-custom font-black text-amber-300 hover:text-amber-200 bg-[#090d16] hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-amber-400/80 transition-all flex items-center gap-1 shadow-sm">
-                            <span>📋 複製當前題組 ({{ selectedSet }}) QSF 腳位碼</span>
-                        </button>
-                        <span class="text-xs font-mono-custom font-black text-slate-300 bg-[#090d16] px-3 py-1 rounded-lg border border-[#475569] hidden md:inline-block">CPLD 3064 Pin Selection</span>
-                    </div>
+            <!-- 硬體視圖切換（僅硬體布局） -->
+            <section v-else-if="viewMode === 'layout'" class="flex flex-wrap items-center gap-3" aria-label="PCB 視圖">
+                <span class="lbl">PCB 視圖</span>
+                <div class="seg" role="group">
+                    <button type="button" @click="currentSide = 'front'" :class="{ on: currentSide === 'front' }">正面佈局</button>
+                    <button type="button" @click="currentSide = 'back'" :class="{ on: currentSide === 'back' }">背面佈局</button>
                 </div>
-                <div class="grid grid-cols-5 gap-2 md:gap-3.5">
-                    <button
-                        v-for="set in sets"
-                        :key="set"
-                        @click="selectedSet = set"
-                        :class="selectedSet === set ? 'bg-amber-400 text-slate-950 font-black shadow-2xl ring-4 ring-amber-300/60 scale-[1.03] border-2 border-amber-100' : 'bg-[#334155] text-white hover:bg-[#475569] hover:text-white font-black border-2 border-[#475569]'"
-                        class="py-3 md:py-3.5 px-2 md:px-3 rounded-2xl transition-all flex flex-row items-center justify-center whitespace-nowrap gap-1.5 md:gap-2.5"
-                    >
-                        <span class="text-base md:text-2xl font-black">題組 {{ sets.indexOf(set) + 1 }}</span>
-                        <span :class="selectedSet === set ? 'text-slate-950 font-black text-lg md:text-2xl' : 'text-amber-300 font-black text-lg md:text-2xl'" class="tracking-wider">
-                            （{{ set }}組）
-                        </span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 硬體視圖選擇區塊 (僅在布局模式顯示) -->
-            <div v-else-if="viewMode === 'layout'" class="bg-[#1e293b] border-2 border-[#475569] rounded-xl p-3 shadow-lg flex items-center justify-between max-w-[1450px] mx-auto w-full">
-                <h3 class="text-amber-300 font-black text-sm md:text-base flex items-center gap-1.5">
-                    <span class="text-lg">🔍</span> 切換硬體 PCB 佈局視圖：
-                </h3>
-                <div class="flex bg-[#0f172a] p-0.5 rounded-lg border-2 border-[#475569]">
-                    <button @click="currentSide = 'front'" :class="currentSide === 'front' ? 'bg-amber-400 text-slate-950 font-black shadow-md text-xs md:text-sm' : 'text-slate-100 hover:text-white font-bold text-xs md:text-sm'" class="px-4 py-1.5 rounded-md transition-all">📷 正面佈局</button>
-                    <button @click="currentSide = 'back'" :class="currentSide === 'back' ? 'bg-amber-400 text-slate-950 font-black shadow-md text-xs md:text-sm' : 'text-slate-100 hover:text-white font-bold text-xs md:text-sm'" class="px-4 py-1.5 rounded-md transition-all">🔍 背面佈局</button>
-                </div>
-            </div>
+            </section>
 
             <!-- 【模式一：腳位邏輯模擬】 -->
             <div v-if="viewMode === 'logic'" class="space-y-3 fade-in">
                 
-                <!-- 題組重點提示卡片 (單行 Slim 橫幅) -->
-                <div class="bg-[#1e293b] rounded-lg border-2 border-[#475569] py-1.5 px-3 shadow-md flex flex-wrap items-center gap-2">
-                    <span class="text-amber-300 text-base shrink-0">💡</span>
-                    <span class="px-2.5 py-0.5 bg-amber-400 text-slate-950 rounded-md text-xs font-black shadow-sm shrink-0">題組 {{ selectedSet }}</span>
-                    <span class="text-white font-black text-xs md:text-sm shrink-0">{{ taskData[currentTask].name }} — 腳位分配重點：</span>
-                    <span class="text-amber-200 text-xs md:text-sm font-black tracking-wide shrink-0">{{ currentSetData.focus }}</span>
-                </div>
-
                 <!-- 左右對照 Layout -->
                 <div class="grid grid-cols-1 xl:grid-cols-12 gap-3.5 items-stretch">
                     
                     <!-- 左欄：CPLD 3064 即時晶片圖形 (col-span-5) -->
                     <div class="xl:col-span-5 bg-[#1e293b] rounded-xl border-2 border-[#475569] p-3 shadow-lg flex flex-col items-center h-full">
                         <div class="w-full flex items-center justify-between mb-2">
-                            <h3 class="text-white font-black text-xs md:text-sm flex items-center gap-1.5">
-                                <span class="text-amber-300 text-base">🖥️</span> CPLD 3064 即時晶片圖形
-                            </h3>
-                            <span class="text-[11px] text-sky-300 font-black bg-[#090d16] px-2 py-0.5 rounded-md border border-[#475569]">實體腳位</span>
+                            <h3 class="font-black text-sm" style="color: var(--text)">CPLD 3064 晶片腳位</h3>
                         </div>
-                        <div class="bg-neutral-900 rounded-xl shadow-xl border-2 border-neutral-700 relative overflow-hidden w-full flex-1 flex items-center justify-center">
+                        <div class="fig-dark bg-neutral-900 rounded-xl border border-neutral-700 relative overflow-hidden w-full flex-1 flex items-center justify-center" style="background:#0b1220">
                             <svg viewBox="35 15 930 670" class="w-full h-auto p-1 max-h-[460px]">
                                 <rect x="250" y="20" width="500" height="640" rx="4" fill="#171717" stroke="#FFFFFF" stroke-width="5" />
                                 <rect x="465" y="45" width="70" height="45" rx="2" fill="#262626" stroke="#444" />
@@ -361,15 +322,12 @@
 
                     <!-- 右欄：J2 與 J3 物理腳位映射對照表 (col-span-7, 內容上下垂直置中) -->
                     <div class="xl:col-span-7 bg-[#1e293b] rounded-xl border-2 border-[#475569] shadow-lg overflow-hidden h-full flex flex-col justify-between">
-                        <div class="p-2.5 bg-[#090d16] text-white flex items-center justify-between border-b-2 border-[#475569]">
-                            <h3 class="font-black text-xs md:text-sm flex items-center gap-1.5 text-sky-300 tracking-tight">
-                                <span class="text-base">📊</span> J2 與 J3 物理腳位對照表<span class="text-amber-300 font-black text-xs">（題組 {{ selectedSet }}）</span>
-                            </h3>
-                            <span class="text-[11px] text-slate-200 font-mono-custom font-black bg-[#1e293b] px-2 py-0.5 rounded-md border border-[#475569]">Pin Map</span>
+                        <div class="panel-h">
+                            <h3 class="font-black text-sm" style="color: var(--text)">J2／J3 腳位對照表<span class="font-bold text-xs ml-1.5" style="color: var(--warn)">題組 {{ selectedSet }}</span></h3>
                         </div>
                         
-                        <div class="p-3 bg-[#0f172a] overflow-x-auto custom-scrollbar flex-1 flex flex-col justify-center items-center">
-                            <table class="w-full border border-[#475569] border-collapse bg-[#1e293b] text-center rounded-lg overflow-hidden shadow-sm my-auto">
+                        <div class="p-3 bg-[#0f172a] overflow-x-auto custom-scrollbar flex-1 flex flex-col justify-center">
+                            <table class="w-full min-w-[640px] border border-[#475569] border-collapse bg-[#1e293b] text-center rounded-lg overflow-hidden shadow-sm my-auto">
                                 <thead>
                                     <tr class="bg-[#090d16] border-b border-[#475569]">
                                         <th rowspan="2" class="border-r border-[#475569] w-10 bg-[#1e293b] font-black text-xs md:text-sm text-amber-300 p-1">組別</th>
@@ -405,11 +363,6 @@
                             </table>
                         </div>
 
-                        <!-- 簡短學習對照提示 -->
-                        <div class="p-2.5 bg-[#090d16] border-t border-[#475569] text-[11px] font-bold text-slate-300 flex items-center justify-between">
-                            <span class="text-amber-400">💡 提示：點擊上方題組 A~E，即時觀察左側 IC 引腳與右側對照表連動變化！</span>
-                            <span class="text-sky-400">100% 腳位同步</span>
-                        </div>
                     </div>
                 </div>
 
@@ -430,7 +383,7 @@
                         <div v-show="showCircuit" class="p-3.5 bg-[#0f172a] border-t-2 border-[#475569] text-center overflow-x-auto custom-scrollbar">
                             <!-- 試題一電路圖（重繪 SVG；舊圖保留為連結） -->
                             <div v-if="currentTask === 1" class="max-w-[1000px] mx-auto text-left space-y-3">
-                                <div class="bg-[#0f172a] rounded-lg border border-slate-600 p-2">
+                                <div class="fig-dark bg-[#0f172a] rounded-lg border border-slate-600 p-2">
 <svg viewBox="0 0 960 560" class="w-full h-auto" role="img" aria-labelledby="t1Title t1Desc" style="font-family:'Noto Sans TC',sans-serif">
 <title id="t1Title">試題一內部電路圖（重繪）</title>
 <desc id="t1Desc">CLK 由 PIN_43 輸入，經 1KHZ 計數器（q[11..0]）除頻。q[11..10] 一路送 2TO4 解碼器產生位數選擇 D0 到 D3（PIN_8、6、5、4），另一路接 MUX4to1 的 sel；多工器的 data0x 到 data3x 分別接常數 6、207、109、7（顯示 1、3、5、7），輸出 result[7..0] 成為 DSS[7..0] 接到 PIN_31、28、26、24、25、29、27、9。</desc>
@@ -455,7 +408,7 @@
                                         <h4 class="text-sm md:text-base font-black text-white">放開按鍵後顯示不會跳號的設計</h4>
                                     </div>
                                     <p class="text-xs md:text-sm text-slate-300 leading-relaxed">舊的設計是按下按鍵時讓計數器停止、用 latch（gate 接 OR 輸出）鎖住按鍵碼。放開按鍵時接點會彈跳，計數器可能在彈跳期間往下一列走，而 gate 關閉和列號改變幾乎同時發生，latch 就可能鎖到「舊的行＋新的列」，顯示跳到別的數字。這一版讓計數器一直掃描，改用 D 型正反器在每一列的正中間取樣。</p>
-                                    <div class="bg-[#0f172a] rounded-lg border border-slate-600 p-2">
+                                    <div class="fig-dark bg-[#0f172a] rounded-lg border border-slate-600 p-2">
                                         <svg viewBox="0 0 680 480" class="w-full h-auto" role="img" aria-labelledby="t2fixTitle t2fixDesc" style="font-family:'Noto Sans TC',sans-serif">
                                             <title id="t2fixTitle">試題二內部電路圖</title>
                                             <desc id="t2fixDesc">1KHZ 除頻掃描計數器不設 clk_en、持續計數；q[11..10] 送 2to4decoder 產生鍵盤列掃描 R0 到 R3；C0、C1、C2 經 OR3 偵測有鍵按下，接 reg4 的 enable；reg4 以 q[9] 在列中間取樣按鍵碼 q[13..10]，輸出到 7Asegment 轉成七段碼。</desc>
@@ -628,7 +581,7 @@
                                                 <p class="text-xs md:text-sm text-slate-100 font-bold leading-relaxed bg-[#0f172a] rounded-lg border border-slate-600 p-2 min-h-[3.2rem]">{{ scan.status }}</p>
                                             </div>
                                         </div>
-                                        <div class="overflow-x-auto custom-scrollbar bg-[#090d16] rounded-lg border border-slate-600 p-2">
+                                        <div class="fig-dark overflow-x-auto custom-scrollbar bg-[#090d16] rounded-lg border border-slate-600 p-2">
                                             <svg viewBox="0 0 700 330" class="h-auto" style="width:100%;min-width:660px;font-family:'Noto Sans TC',sans-serif" role="img" aria-labelledby="scanWaveTitle scanWaveDesc">
                                                 <title id="scanWaveTitle">試題二工作脈波圖</title>
                                                 <desc id="scanWaveDesc">由上到下依序為 CLK、q[9]、列號 q[11..10]、R0 到 R3、按鍵接點、OR 輸出 enable、reg4 取樣點、reg4 輸出。每一列佔 8 個 CLK，q[9] 在每一列的中間由 0 變 1，reg4 只在這個上升緣而且 enable 為 1 時存入按鍵碼。</desc>
@@ -851,122 +804,81 @@
             </div>
 
             <!-- 【模式三：評審表設定與 PDF 自動生成】 -->
-            <div v-else-if="viewMode === 'eval'" class="max-w-[760px] mx-auto space-y-4 fade-in py-2">
-                <div class="bg-[#1e293b] border-2 border-[#475569] rounded-2xl p-5 md:p-7 shadow-2xl space-y-5">
-                    
-                    <!-- 卡片標題區 -->
-                    <div class="text-center pb-3 border-b-2 border-[#475569]/60">
-                        <h2 class="text-2xl md:text-3xl font-black text-sky-400 tracking-tight flex items-center justify-center gap-2">
-                            <span>📋</span> 數位乙級 評審表設定
-                        </h2>
-                        <p class="text-xs md:text-sm font-bold text-slate-300 mt-1">配置考試題目、CPLD 接腳、顯示組合，並一鍵匯出完整評審表 PDF</p>
-                    </div>
-
-                    <!-- 1. 選擇考題 -->
-                    <div class="space-y-2">
-                        <label class="block text-sm md:text-base font-black text-amber-300">選擇考題：</label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                            <button
-                                type="button"
-                                @click="evalSubject = '1'"
-                                :class="evalSubject === '1' ? 'bg-sky-500 text-white font-black ring-2 ring-sky-300 shadow-lg border-2 border-sky-300' : 'bg-[#0f172a] text-slate-300 hover:text-white font-bold border-2 border-[#475569]'"
-                                class="p-3 rounded-xl transition-all text-left text-xs md:text-sm leading-snug flex items-center gap-2"
-                            >
-                                <span class="text-lg">📘</span>
-                                <span>第一題 11700-110201<br><strong class="text-amber-200">四位數顯示裝置</strong></span>
-                            </button>
-                            <button
-                                type="button"
-                                @click="evalSubject = '2'"
-                                :class="evalSubject === '2' ? 'bg-sky-500 text-white font-black ring-2 ring-sky-300 shadow-lg border-2 border-sky-300' : 'bg-[#0f172a] text-slate-300 hover:text-white font-bold border-2 border-[#475569]'"
-                                class="p-3 rounded-xl transition-all text-left text-xs md:text-sm leading-snug flex items-center gap-2"
-                            >
-                                <span class="text-lg">📙</span>
-                                <span>第二題 11700-110202<br><strong class="text-amber-200">鍵盤輸入顯示裝置</strong></span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 2. CPLD 指定接腳組合 -->
-                    <div class="space-y-2">
-                        <label class="block text-sm md:text-base font-black text-amber-300">CPLD 指定接腳組合：</label>
-                        <div class="grid grid-cols-5 gap-2">
-                            <button
-                                v-for="c in ['A', 'B', 'C', 'D', 'E']"
-                                :key="c"
-                                type="button"
-                                @click="evalCpld = c"
-                                :class="evalCpld === c ? 'bg-sky-500 text-white font-black ring-2 ring-sky-300 shadow-md border-2 border-sky-300' : 'bg-[#0f172a] text-slate-300 hover:text-white font-bold border-2 border-[#475569]'"
-                                class="py-2.5 rounded-xl transition-all text-base md:text-lg font-black text-center"
-                            >
-                                {{ c }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 3. 七段顯示器顯示組合 -->
-                    <div class="space-y-2">
-                        <label class="block text-sm md:text-base font-black text-amber-300">七段顯示器顯示組合：</label>
-                        <div class="grid grid-cols-5 gap-2">
-                            <button
-                                v-for="d in ['J', 'K', 'L', 'M', 'N']"
-                                :key="d"
-                                type="button"
-                                @click="evalDisplay = d"
-                                :class="evalDisplay === d ? 'bg-sky-500 text-white font-black ring-2 ring-sky-300 shadow-md border-2 border-sky-300' : 'bg-[#0f172a] text-slate-300 hover:text-white font-bold border-2 border-[#475569]'"
-                                class="py-2.5 rounded-xl transition-all text-base md:text-lg font-black text-center"
-                            >
-                                {{ d }}
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 4. 崗位編號與測試編號 -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="block text-sm font-black text-slate-200">起始崗位編號 (1~20)：</label>
-                            <input type="number" v-model.number="stationStart" min="1" max="20" class="w-full bg-[#0f172a] border-2 border-[#475569] focus:border-sky-400 text-white font-black rounded-xl p-2.5 text-base outline-none transition-all">
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-sm font-black text-slate-200">起始測試編號 (8碼)：</label>
-                            <input type="text" v-model.trim="testNoStart" placeholder="例如: 07240001" class="w-full bg-[#0f172a] border-2 border-[#475569] focus:border-sky-400 text-white font-black rounded-xl p-2.5 text-base font-mono-custom outline-none transition-all">
-                        </div>
-                    </div>
-
-                    <!-- 5. 輸出考生人數與監評簽名姓名 -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-1.5">
-                            <label class="block text-sm font-black text-slate-200">輸出考生人數：</label>
-                            <input type="number" v-model.number="candidateCount" min="1" max="100" class="w-full bg-[#0f172a] border-2 border-[#475569] focus:border-sky-400 text-white font-black rounded-xl p-2.5 text-base outline-none transition-all">
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-sm font-black text-amber-300">評審 / 監評簽名姓名：</label>
-                            <input type="text" v-model.trim="evalSignerName" placeholder="例如: 簡樹桐" class="w-full bg-[#0f172a] border-2 border-[#475569] focus:border-sky-400 text-white font-black rounded-xl p-2.5 text-base outline-none transition-all">
-                        </div>
-                    </div>
-
-                    <!-- 5-1. 測試日期（印在評審表「測試日期　年　月　日」） -->
-                    <div class="space-y-1.5">
-                        <label class="block text-sm font-black text-slate-200" for="evalTestDate">測試日期（會印在每張評審表上，空白則留白手寫）：</label>
-                        <div class="flex gap-2">
-                            <input id="evalTestDate" type="date" v-model="testDate" class="flex-1 bg-[#0f172a] border-2 border-[#475569] focus:border-sky-400 text-white font-black rounded-xl p-2.5 text-base outline-none transition-all" style="color-scheme: dark;">
-                            <button type="button" @click="testDate = ''" class="px-4 rounded-xl border-2 border-[#475569] text-slate-300 font-black hover:border-sky-400 transition-all">清除</button>
-                        </div>
-                        <p v-if="testDate" class="text-xs font-bold text-teal-300">將印出：民國 {{ testDate.split('-')[0] - 1911 }} 年 {{ parseInt(testDate.split('-')[1]) }} 月 {{ parseInt(testDate.split('-')[2]) }} 日</p>
-                    </div>
-
-                    <!-- 6. 確認生成 PDF 下載按鈕 -->
-                    <button
-                        type="button"
-                        @click="generatePDF"
-                        :disabled="isGeneratingPdf"
-                        class="w-full py-3.5 px-4 bg-gradient-to-r from-sky-500 to-teal-500 hover:from-sky-400 hover:to-teal-400 disabled:opacity-50 text-white font-black text-lg md:text-xl rounded-xl transition-all shadow-xl flex items-center justify-center gap-2 border-2 border-sky-300"
-                    >
-                        <span v-if="isGeneratingPdf" class="spinner"></span>
-                        <span>{{ isGeneratingPdf ? 'PDF 產生中，請稍候...' : '確認生成 PDF 下載 📥' }}</span>
-                    </button>
-
+            <div v-else-if="viewMode === 'eval'" class="max-w-[920px] mx-auto space-y-4 fade-in">
+                <div>
+                    <h2 class="text-xl md:text-2xl font-black" style="color: var(--text)">評審表設定</h2>
+                    <p class="text-sm font-bold mt-1" style="color: var(--muted)">三個步驟設定好，一鍵匯出整疊評審表 PDF（每位考生 2 頁：評審表＋試題動作要求）。</p>
                 </div>
+
+                <section class="card p-4 md:p-5 space-y-4" aria-labelledby="evStep1">
+                    <h3 id="evStep1" class="step-h"><span class="step-n">1</span>考題與抽籤結果</h3>
+                    <div>
+                        <div class="lbl mb-1.5">考題</div>
+                        <div class="seg" role="group" aria-label="選擇考題">
+                            <button type="button" @click="evalSubject = '1'" :class="{ on: evalSubject === '1' }" :aria-pressed="evalSubject === '1'">第一題　四位數顯示裝置</button>
+                            <button type="button" @click="evalSubject = '2'" :class="{ on: evalSubject === '2' }" :aria-pressed="evalSubject === '2'">第二題　鍵盤輸入顯示裝置</button>
+                        </div>
+                        <p class="text-xs font-bold mt-1.5" style="color: var(--muted)">試題編號 {{ evalSubject === '1' ? '11700-110201' : '11700-110202' }}</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <div class="lbl mb-1.5">CPLD 指定接腳組合</div>
+                            <div class="seg" role="group" aria-label="CPLD 接腳組合">
+                                <button v-for="c in ['A', 'B', 'C', 'D', 'E']" :key="c" type="button" @click="evalCpld = c" :class="{ on: evalCpld === c }" :aria-pressed="evalCpld === c" class="!px-4">{{ c }}</button>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="lbl mb-1.5">七段顯示器顯示組合</div>
+                            <div class="seg" role="group" aria-label="七段顯示組合">
+                                <button v-for="d in ['J', 'K', 'L', 'M', 'N']" :key="d" type="button" @click="evalDisplay = d" :class="{ on: evalDisplay === d }" :aria-pressed="evalDisplay === d" class="!px-4">{{ d }}</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card p-4 md:p-5 space-y-4" aria-labelledby="evStep2">
+                    <h3 id="evStep2" class="step-h"><span class="step-n">2</span>場次資訊</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="lbl block mb-1.5" for="evStation">起始崗位編號（1～20）</label>
+                            <input id="evStation" type="number" v-model.number="stationStart" min="1" max="20" class="field">
+                        </div>
+                        <div>
+                            <label class="lbl block mb-1.5" for="evTestNo">起始測試編號（8 碼）</label>
+                            <input id="evTestNo" type="text" v-model.trim="testNoStart" placeholder="例如：07240001" class="field font-mono-custom">
+                        </div>
+                        <div>
+                            <label class="lbl block mb-1.5" for="evCount">輸出考生人數</label>
+                            <input id="evCount" type="number" v-model.number="candidateCount" min="1" max="100" class="field">
+                        </div>
+                        <div>
+                            <label class="lbl block mb-1.5" for="evSigner">評審／監評簽名姓名</label>
+                            <input id="evSigner" type="text" v-model.trim="evalSignerName" placeholder="例如：簡樹桐" class="field">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="lbl block mb-1.5" for="evalTestDate">測試日期（印在每張評審表；空白則留白手寫）</label>
+                            <div class="flex gap-2 sm:max-w-[420px]">
+                                <input id="evalTestDate" type="date" v-model="testDate" class="field flex-1">
+                                <button type="button" class="btn" @click="testDate = ''">清除</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card p-4 md:p-5 flex flex-wrap items-center gap-4" aria-labelledby="evStep3">
+                    <div class="flex-1 min-w-[260px] space-y-1">
+                        <h3 id="evStep3" class="step-h"><span class="step-n">3</span>確認並產生 PDF</h3>
+                        <p class="text-sm font-bold" style="color: var(--soft)">
+                            共 {{ candidateCount || 0 }} 位考生・第 {{ evalSubject }} 題・接腳組合 {{ evalCpld }}・顯示組合 {{ evalDisplay }}・測試日期
+                            <span v-if="testDate" style="color: var(--ok2)">民國 {{ testDate.split('-')[0] - 1911 }} 年 {{ parseInt(testDate.split('-')[1]) }} 月 {{ parseInt(testDate.split('-')[2]) }} 日</span>
+                            <span v-else style="color: var(--muted)">留白</span>
+                        </p>
+                    </div>
+                    <button type="button" class="btn btn-primary !text-base !px-6 !py-3" @click="generatePDF" :disabled="isGeneratingPdf">
+                        <span v-if="isGeneratingPdf" class="spinner"></span>
+                        <span>{{ isGeneratingPdf ? 'PDF 產生中，請稍候…' : '產生並下載 PDF' }}</span>
+                    </button>
+                </section>
             </div>
 
         </main>
@@ -1275,7 +1187,15 @@
                 const sets = ['A', 'B', 'C', 'D', 'E'];
                 const showCircuit = ref(true); 
                 const showAhdl = ref(true); 
-                const showOfficialDownloads = ref(true);
+                const showOfficialDownloads = ref(false);   // 官方資料下拉選單
+                const theme = ref(document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+                const toggleTheme = () => {
+                    theme.value = theme.value === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', theme.value);
+                    try { localStorage.setItem('cpld-theme', theme.value); } catch (e) {}
+                };
+                document.addEventListener('click', () => { showOfficialDownloads.value = false; });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape') showOfficialDownloads.value = false; });
                 const selectedKeypad = ref(null);
                 const scan = useScanSim(() => currentTask.value === 2 && showCircuit.value);
 
@@ -1648,7 +1568,7 @@
                 return {
                     currentTask, viewMode, currentSide, selectedSet, sets, taskData, layoutConfig,
                     j2Headers, j3Headers, allPinsLeft, allPinsRight, showCircuit, showAhdl, showOfficialDownloads,
-                    selectedKeypad, scan, evalSignerName, testDate, copyQSF,
+                    selectedKeypad, scan, evalSignerName, testDate, copyQSF, theme, toggleTheme,
                     showRevisionModal, revisionSearch, selectedRevisionCategory, revisionCategories, revisionDataList, filteredRevisions, openRevisionModal,
                     setTask, currentSetData, getPinY, getResPoints, isSelected, getSignalName, isSpec, goHome,
                     evalSubject, evalCpld, evalDisplay, stationStart, testNoStart, candidateCount, isGeneratingPdf, generatePDF
