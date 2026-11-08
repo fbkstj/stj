@@ -145,7 +145,14 @@
   select:focus-visible, input[type=checkbox]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   /* 歌曲下拉選單 */
-  .songbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 12px; }
+  .songbar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+  .songbarMain { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  /* 功能鍵分組：每組一個外框＋小標題 */
+  .toolGroups { display: flex; flex-wrap: wrap; gap: 10px; }
+  .toolGroup { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 6px 8px 6px 12px;
+    border: 1px solid var(--line); border-radius: 12px; background: var(--panel2); }
+  .tgTitle { font-size: 12px; font-weight: 700; color: var(--muted); white-space: nowrap; margin-right: 4px; }
+  .tgArrow { color: var(--muted); font-size: 13px; }
   .songbox { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); white-space: nowrap; }
   .songbox select { font-size: 16px; font-weight: 600; width: 300px; max-width: 70vw; padding: 9px 12px; }
   .songbox select[disabled] { opacity: .55; cursor: not-allowed; }
@@ -402,6 +409,7 @@
   </div>
 
   <div class="songbar">
+   <div class="songbarMain">
     <label class="songbox">歌曲
       <select id="songSel" aria-label="選擇歌曲"></select>
     </label>
@@ -417,13 +425,26 @@
         <option value="37">37 鍵（C3～C6）</option>
       </select>
     </label>
-    <button id="btnOpenSong" type="button" title="載入 songs 資料夾裡的 .json 歌曲檔">📂 開啟歌曲檔…</button>
-    <input type="file" id="songFile" accept=".json,application/json" hidden>
-    <button id="btnCopyPrompt" type="button" title="複製後到 AI 工具上傳樂譜並貼上，AI 會產生可用「開啟歌曲檔」載入的 JSON">📋 複製 AI 讀譜提示語</button>
-    <button id="btnPasteJson" type="button" title="把 AI 給的 JSON 貼進來，可以直接播放或下載成 .json 檔">📝 貼上 AI 的 JSON</button>
-    <button id="btnSaveSong" type="button" title="把目前選的歌曲存成 .json 檔">💾 另存歌曲檔</button>
-    <button id="btnCode" type="button" title="貼上 AI 寫的 Arduino 程式，一鍵編譯並燒錄到板子（需要開著「燒錄小幫手」）">🧪 寫程式燒錄</button>
     <span class="songmeta" id="songMeta"></span>
+   </div>
+   <div class="toolGroups">
+    <div class="toolGroup" role="group" aria-labelledby="tgAi">
+      <span class="tgTitle" id="tgAi">🤖 AI 讀譜加歌</span>
+      <button id="btnCopyPrompt" type="button" title="複製後到 AI 工具上傳樂譜並貼上，AI 會產生歌曲的 JSON">① 📋 複製讀譜提示語</button>
+      <span class="tgArrow" aria-hidden="true">→</span>
+      <button id="btnPasteJson" type="button" title="把 AI 給的 JSON 貼進來，可以直接播放或下載成 .json 檔">② 📝 貼上 AI 的 JSON</button>
+    </div>
+    <div class="toolGroup" role="group" aria-labelledby="tgFile">
+      <span class="tgTitle" id="tgFile">📁 歌曲檔</span>
+      <button id="btnOpenSong" type="button" title="載入 songs 資料夾裡的 .json 歌曲檔">📂 開啟歌曲檔…</button>
+      <input type="file" id="songFile" accept=".json,application/json" hidden>
+      <button id="btnSaveSong" type="button" title="把目前選的歌曲存成 .json 檔">💾 另存歌曲檔</button>
+    </div>
+    <div class="toolGroup" role="group" aria-labelledby="tgCode">
+      <span class="tgTitle" id="tgCode">🔌 Arduino 程式</span>
+      <button id="btnCode" type="button" title="貼上 AI 寫的 Arduino 程式，一鍵編譯並燒錄到板子（需要開著「燒錄小幫手」）">🧪 寫程式燒錄</button>
+    </div>
+   </div>
   </div>
 
   <div class="stage">
@@ -2507,7 +2528,7 @@ $("btnCopyPrompt").addEventListener("click", async () => {
   if (!AI_PROMPT) { setInfo("找不到提示語檔案（songs\學生用AI讀譜提示語.md）"); return; }
   if (await copyText(AI_PROMPT)) {
     btn.textContent = "✅ 已複製！";
-    setTimeout(() => { btn.textContent = "📋 複製 AI 讀譜提示語"; }, 2500);
+    setTimeout(() => { btn.textContent = "① 📋 複製讀譜提示語"; }, 2500);
     setInfo("已複製提示語：① 到 AI 工具<b>先上傳樂譜</b> ② 貼上提示語送出 ③ 把 AI 給的 JSON 存成「歌名.json」（UTF-8）④ 回來按「📂 開啟歌曲檔…」");
   } else {
     setInfo("瀏覽器不允許自動複製，請改開 songs 資料夾裡的「學生用AI讀譜提示語.md」手動複製");
