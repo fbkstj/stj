@@ -1,0 +1,1856 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>音符視覺化</title>
+<style>
+  /* 樣式：標準（預設）／淺色／柔和／深色。畫布上的顏色也從這些變數讀取 */
+  :root, :root[data-theme="standard"] {
+    color-scheme: dark;
+    --bg: #0e1018;
+    --panel: #171a26;
+    --panel2: #1e2233;
+    --line: #2c3250;
+    --ink: #e9eaf2;
+    --muted: #9aa0bd;
+    --accent: #ffcc4d;
+    --good: #5fe3a1;
+    --bad: #ff7a7a;
+    --scoreBg: #12151f;
+    --noteInk: #e9eaf2;
+    --staff: #7d84a8;
+    --fallBg: #0d1019;
+    --fallGrid: #222842;
+    --fallGrid2: #181c2c;
+    --bannerBg: rgba(14, 16, 24, .78);
+    --primary: #2f5fd8;
+    --primaryLine: #4a78ee;
+    --dangerBg: #8a2f3f;
+    --dangerLine: #b4485a;
+    --dangerInk: #ffffff;
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: #eef0f5;
+    --panel: #ffffff;
+    --panel2: #f1f3f8;
+    --line: #d3d8e4;
+    --ink: #1c2030;
+    --muted: #5c6378;
+    --accent: #b97800;
+    --good: #198754;
+    --bad: #c92a2a;
+    --scoreBg: #fcfcfe;
+    --noteInk: #1c2030;
+    --staff: #8d94ab;
+    --fallBg: #eef1f7;
+    --fallGrid: #c9cfde;
+    --fallGrid2: #dde1ea;
+    --bannerBg: rgba(255, 255, 255, .85);
+    --primary: #2f5fd8;
+    --primaryLine: #2650b8;
+    --dangerBg: #c92a2a;
+    --dangerLine: #a51d1d;
+    --dangerInk: #ffffff;
+  }
+  :root[data-theme="soft"] {
+    color-scheme: dark;
+    --bg: #2a2731;
+    --panel: #35313d;
+    --panel2: #403b49;
+    --line: #554e60;
+    --ink: #f2ede6;
+    --muted: #bdb3a8;
+    --accent: #f2c48d;
+    --good: #9edcb6;
+    --bad: #f0a3a3;
+    --scoreBg: #302c37;
+    --noteInk: #f2ede6;
+    --staff: #9a90a6;
+    --fallBg: #2d2934;
+    --fallGrid: #4a4356;
+    --fallGrid2: #3a3444;
+    --bannerBg: rgba(42, 39, 49, .82);
+    --primary: #8a6fb8;
+    --primaryLine: #a58bd1;
+    --dangerBg: #a8566a;
+    --dangerLine: #c27186;
+    --dangerInk: #ffffff;
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #000000;
+    --panel: #0b0b0e;
+    --panel2: #151519;
+    --line: #26262e;
+    --ink: #f6f6f8;
+    --muted: #8f8f9a;
+    --accent: #ffd60a;
+    --good: #30d158;
+    --bad: #ff453a;
+    --scoreBg: #050507;
+    --noteInk: #f6f6f8;
+    --staff: #63636f;
+    --fallBg: #030304;
+    --fallGrid: #1f1f26;
+    --fallGrid2: #121217;
+    --bannerBg: rgba(0, 0, 0, .8);
+    --primary: #0a63e0;
+    --primaryLine: #2f7ff0;
+    --dangerBg: #b3261e;
+    --dangerLine: #d9443a;
+    --dangerInk: #ffffff;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Segoe UI", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif; }
+  body { min-height: 100vh; padding: 14px 16px 28px; }
+  h1 { font-size: 26px; margin: 0 0 2px; letter-spacing: .04em; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+  .wrap { max-width: 1240px; margin: 0 auto; }
+
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+  button {
+    font: inherit; color: var(--ink); background: var(--panel2); border: 1px solid var(--line);
+    padding: 8px 14px; border-radius: 10px; cursor: pointer; min-height: 38px;
+  }
+  button:hover { border-color: #5662a8; }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.primary { background: var(--primary); border-color: var(--primaryLine); color: #fff; font-weight: 600; }
+  button.danger { background: var(--dangerBg); border-color: var(--dangerLine); color: var(--dangerInk); font-weight: 600; }
+  button.danger[disabled] { opacity: .55; }
+  button[disabled] { opacity: .45; cursor: not-allowed; }
+  .badge { padding: 6px 12px; border-radius: 999px; font-size: 13px; background: var(--panel2);
+    border: 1px solid var(--line); color: var(--muted); }
+  .badge.on { color: var(--good); border-color: #2e6b52; }
+  .badge.sim { color: var(--accent); border-color: #7a6228; }
+  .spacer { flex: 1; }
+  .portbox, .chk { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+  select { font: inherit; color: var(--ink); background: var(--panel2); border: 1px solid var(--line);
+    border-radius: 10px; padding: 8px 10px; min-height: 38px; max-width: 260px; }
+  select:focus-visible, input[type=checkbox]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* 歌曲下拉選單 */
+  .songbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin-bottom: 12px; }
+  .songbox { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); white-space: nowrap; }
+  .songbox select { font-size: 16px; font-weight: 600; width: 300px; max-width: 70vw; padding: 9px 12px; }
+  .songbox select[disabled] { opacity: .55; cursor: not-allowed; }
+  .songmeta { color: var(--muted); font-size: 13px; }
+  .songbox select.small { width: auto; min-width: 130px; }
+  .pianoWrap { margin-top: 10px; border-radius: 10px; overflow: hidden; background: var(--fallBg); }
+  /* 樣式切換（分段按鈕） */
+  .kicker { color: var(--muted); font-size: 16px; line-height: 1.5; letter-spacing: .03em; margin: 2px 0 4px; }
+  .titleRow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+  .themeSeg { display: inline-flex; align-items: center; gap: 2px; padding: 4px; border-radius: 999px;
+    background: var(--panel2); border: 1px solid var(--line); }
+  .themeSeg .lbl { color: var(--muted); font-size: 13px; padding: 0 8px 0 10px; font-weight: 600; }
+  .themeSeg button { min-height: 30px; padding: 4px 14px; border-radius: 999px; border: 0; background: transparent;
+    color: var(--muted); font-weight: 600; font-size: 14px; }
+  .themeSeg button:hover { color: var(--ink); }
+  .themeSeg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  #piano { display: block; width: 100%; }
+  .menu { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 12px; }
+  .card {
+    text-align: left; padding: 12px 14px; border-radius: 14px; background: var(--panel);
+    border: 1px solid var(--line); display: flex; gap: 12px; align-items: center; min-height: 72px;
+  }
+  .card .num { width: 34px; height: 34px; border-radius: 50%; background: var(--panel2);
+    display: grid; place-items: center; font-weight: 700; flex: none; color: var(--muted); }
+  .card .t { font-weight: 600; font-size: 15px; line-height: 1.25; }
+  .card .m { color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .card.active { border-color: var(--accent); background: #232640; box-shadow: 0 0 0 1px var(--accent) inset; }
+  .card.active .num { background: var(--accent); color: #1a1a1a; }
+
+  .stage { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 10px; }
+  #scoreWrap { height: min(58vh, 640px); overflow-y: auto; overflow-x: hidden; border-radius: 10px;
+    background: var(--scoreBg); scroll-behavior: smooth; }
+  canvas { display: block; width: 100%; }
+  .foot { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;
+    padding: 10px 6px 2px; }
+  .info { font-size: 14px; color: var(--muted); }
+  .info b { color: var(--ink); font-weight: 600; }
+  .progress { flex: 1 1 220px; height: 8px; background: var(--panel2); border-radius: 99px; overflow: hidden; min-width: 160px; }
+  .progress > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #4dd4e6, #ffcc4d, #ff6b6b); }
+  .leds { display: flex; gap: 6px; align-items: center; }
+  .led { width: 14px; height: 14px; border-radius: 50%; background: #2a2d3e; border: 1px solid #3b405c; transition: background .06s, box-shadow .06s; }
+  .led.on { background: #ffd24d; border-color: #ffe9a3; box-shadow: 0 0 10px 3px rgba(255, 210, 77, .75); }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 10px; line-height: 1.6; }
+  code { background: var(--panel2); padding: 1px 6px; border-radius: 6px; font-size: 12px; }
+
+  /* 虛擬控制板 */
+  .boardPanel { margin-top: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 12px; }
+  .boardHead { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .boardHead h2 { font-size: 16px; margin: 0; }
+  .zoomCtl { display: flex; gap: 6px; align-items: center; }
+  .zoomCtl button { min-height: 34px; padding: 4px 12px; }
+  .boardWrap { position: relative; max-width: 760px; margin: 0 auto; border-radius: 12px; overflow: hidden;
+    background: radial-gradient(circle at 30% 20%, #4a3a2e, #2a211b 70%); touch-action: none; }
+  #board .usbPlug { transition: transform .45s cubic-bezier(.3, .7, .3, 1); }
+  #board .usbPlug.off { transform: translateX(-64px); }
+  #board { display: block; width: 100%; aspect-ratio: 1006 / 930; cursor: grab; user-select: none; }
+  #board.dragging { cursor: grabbing; }
+  #board .comp:hover { filter: brightness(1.35); }
+  #board .btnCap { cursor: pointer; transition: transform .08s; transform-box: fill-box; transform-origin: center; }
+  #board .btnCap.down { transform: scale(.88); }
+  .boardWrap.hwOnly #board .btnCap { cursor: not-allowed; }
+  #board .waves path { opacity: 0; }
+  #board .waves.on path { animation: wave .7s linear infinite; }
+  #board .waves.on path:nth-child(2) { animation-delay: .23s; }
+  #board .waves.on path:nth-child(3) { animation-delay: .46s; }
+  @keyframes wave { 0% { opacity: .95; } 100% { opacity: 0; } }
+  .boardTip { position: absolute; pointer-events: none; background: rgba(10, 12, 20, .94); border: 1px solid var(--line);
+    color: var(--ink); font-size: 13px; padding: 6px 10px; border-radius: 8px; max-width: 280px; display: none; z-index: 5; line-height: 1.55; }
+  .boardInfo { font-size: 13px; color: var(--muted); margin-top: 8px; min-height: 20px; text-align: center; line-height: 1.6; }
+  @media (prefers-reduced-motion: reduce) { #board .waves.on path { animation: none; opacity: .8; } }
+
+  @media (max-width: 860px) { .menu { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 480px) { .menu { grid-template-columns: 1fr; } body { padding: 10px; } }
+  @media (prefers-reduced-motion: reduce) { #scoreWrap { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="titleRow">
+    <div class="titleBlock">
+      <h1>♪ 音符視覺化</h1>
+      <div class="kicker">均質化-子計畫名稱：社區學校合作辦理職涯試探與學術試探活動</div>
+    </div>
+    <div class="themeSeg" role="group" aria-label="樣式">
+      <span class="lbl">樣式</span>
+      <button type="button" data-theme="standard" aria-pressed="true">標準</button>
+      <button type="button" data-theme="light" aria-pressed="false">淺色</button>
+      <button type="button" data-theme="soft" aria-pressed="false">柔和</button>
+      <button type="button" data-theme="dark" aria-pressed="false">深色</button>
+    </div>
+  </div>
+  <div class="sub">Arduino 演奏到哪個音，畫面上的音符就跟著跳動。選一首歌，按「播放」。</div>
+
+  <div class="bar">
+    <label class="portbox">連接埠
+      <select id="portSel" aria-label="選擇序列埠（Arduino）"></select>
+    </label>
+    <button id="btnConnect" class="primary">連線 Arduino</button>
+    <label class="chk"><input type="checkbox" id="autoConn" checked> 自動連線</label>
+    <label class="portbox">模式
+      <select id="modeSel" aria-label="選擇模式">
+        <option value="sync">同步（板子 ⇄ 畫面）</option>
+        <option value="hw">硬體（畫面只鏡像）</option>
+        <option value="online">線上（虛擬板、電腦發聲）</option>
+      </select>
+    </label>
+    <label class="chk"><input type="checkbox" id="muteChk"> 靜音</label>
+    <span id="badgeMode" class="badge sim">模擬模式（未連線）</span>
+    <span class="spacer"></span>
+    <button id="btnPlay">▶ 播放</button>
+    <button id="btnStop" class="danger" disabled>■ 中止</button>
+  </div>
+
+  <div class="songbar">
+    <label class="songbox">歌曲
+      <select id="songSel" aria-label="選擇歌曲"></select>
+    </label>
+    <label class="songbox">動畫
+      <select id="animSel" class="small" aria-label="選擇動畫">
+        <option value="notes">音符跳動</option>
+        <option value="piano">鋼琴</option>
+      </select>
+    </label>
+    <label class="songbox" id="keysBox" hidden>琴鍵
+      <select id="keysSel" class="small" aria-label="選擇鋼琴鍵數">
+        <option value="88">88 鍵（完整鋼琴）</option>
+        <option value="37">37 鍵（C3～C6）</option>
+      </select>
+    </label>
+    <button id="btnOpenSong" type="button" title="載入 songs 資料夾裡的 .json 歌曲檔">📂 開啟歌曲檔…</button>
+    <input type="file" id="songFile" accept=".json,application/json" hidden>
+    <span class="songmeta" id="songMeta"></span>
+  </div>
+
+  <div class="stage">
+    <div id="scoreWrap"><canvas id="score"></canvas></div>
+    <div id="pianoWrap" class="pianoWrap" hidden><canvas id="piano" aria-label="鋼琴鍵盤動畫"></canvas></div>
+    <div class="foot">
+      <div class="info" id="info">尚未開始</div>
+      <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    </div>
+  </div>
+
+  <section class="boardPanel" aria-label="虛擬控制板">
+    <div class="boardHead">
+      <h2>虛擬控制板</h2>
+      <div class="zoomCtl">
+        <button id="zoomOut" type="button" aria-label="縮小">－</button>
+        <span id="zoomPct" class="badge">100%</span>
+        <button id="zoomIn" type="button" aria-label="放大">＋</button>
+        <button id="zoomReset" type="button">重設</button>
+      </div>
+    </div>
+    <div class="boardWrap" id="boardWrap">
+      <svg id="board" role="img" aria-label="楊梅高中 Arduino Nano 控制板"></svg>
+      <div class="boardTip" id="boardTip"></div>
+    </div>
+    <div class="boardInfo" id="boardInfo">滑鼠移到元件上可看說明；滾輪或兩指縮放、拖曳移動。點「按鈕1」播放、「按鈕2」切歌／中止。</div>
+  </section>
+
+  <div class="hint">
+    鍵盤：<code>1</code>~<code>4</code> 選歌、<code>空白鍵</code> 播放 / 中止。
+    連線需使用 Chrome 或 Edge。第一次請在「連接埠」選單選「偵測 / 選擇連接埠…」，挑出 Arduino（CH340）並授權；之後瀏覽器會記住這個裝置，開啟頁面或重新插上板子時會自動偵測並連線，也可以在選單切換其他已授權的連接埠。連線期間請關閉 Arduino IDE 的序列監控視窗。
+    沒有接 Arduino 時，按「播放」會由電腦自己計時並用喇叭發聲（勾「靜音」可關掉聲音）；不用架伺服器，直接用 Chrome／Edge 開這個檔案就能播放。
+    <br>版權說明：「青花瓷」（方文山 詞、周杰倫 曲）為版權歌曲，此處旋律僅供課堂示範與練習，請勿另作他用；國歌、國旗歌、楊梅高中校歌之樂譜取自公開來源。
+  </div>
+</div>
+
+<script>
+"use strict";
+const SONGS = [{"id":1,"title":"中華民國國歌","key":"C","beats":"4/4","unitMs":100,"gap":90,"measure":32,"pickup":8,"notes":[[0,8,0],[0,24,0],[4,8,3],[4,24,3],[7,8,6],[7,24,6],[4,8,3],[2,24,1],[4,8,3],[12,24,10],[9,4,7],[7,4,6],[9,24,7],[4,8,3],[9,24,7],[7,4,6],[6,4,5],[7,29,6],[127,8,255],[7,8,6],[5,8,4],[9,8,7],[7,8,6],[12,8,10],[11,8,9],[14,8,12],[12,8,10],[9,8,7],[9,8,7],[12,8,10],[9,8,7],[7,8,6],[4,8,3],[2,8,1],[0,8,0],[7,8,6],[7,24,6],[9,4,7],[7,4,6],[7,24,6],[12,8,10],[12,24,10],[9,4,7],[7,4,6],[5,24,4],[5,8,4],[16,24,14],[14,4,12],[16,4,14],[14,24,12],[7,8,6],[14,24,12],[14,4,12],[16,4,14],[12,43,10]],"ferm":{"17":16,"54":24},"builtin":true},{"id":2,"title":"中華民國國旗歌","key":"C","beats":"4/4","unitMs":100,"gap":90,"measure":32,"pickup":0,"notes":[[4,8,3],[0,6,0],[4,2,3],[7,8,6],[7,8,6],[12,8,10],[11,6,9],[9,2,7],[9,8,7],[7,8,6],[9,8,7],[7,8,6],[7,8,6],[4,6,3],[0,2,0],[5,6,4],[5,2,4],[4,8,3],[2,16,1],[4,8,3],[0,6,0],[2,2,1],[4,8,3],[7,8,6],[12,8,10],[11,6,9],[9,2,7],[9,8,7],[7,8,6],[9,8,7],[7,8,6],[7,8,6],[5,4,4],[4,4,3],[2,6,1],[4,2,3],[2,8,1],[0,16,0],[2,12,1],[4,4,3],[5,8,4],[5,8,4],[9,8,7],[9,6,7],[9,2,7],[7,6,6],[5,2,4],[4,8,3],[4,12,3],[7,4,6],[12,8,10],[12,8,10],[14,6,12],[12,2,10],[11,4,9],[9,4,7],[7,16,6],[16,12,14],[16,4,14],[14,6,12],[12,2,10],[11,8,9],[14,12,12],[12,4,10],[11,6,9],[9,2,7],[7,8,6],[12,8,10],[12,4,10],[7,4,6],[9,4,7],[7,4,6],[5,4,4],[4,4,3],[2,8,1],[4,6,3],[5,2,4],[4,8,3],[127,8,255],[16,12,14],[16,4,14],[14,6,12],[12,2,10],[11,8,9],[14,12,12],[12,4,10],[11,6,9],[9,2,7],[7,8,6],[12,8,10],[12,4,10],[7,4,6],[11,4,9],[9,4,7],[7,4,6],[5,4,4],[4,8,3],[5,6,4],[2,2,1],[0,16,0]],"ferm":{},"builtin":true},{"id":3,"title":"楊梅高中校歌","key":"F","beats":"4/4","unitMs":75,"gap":90,"measure":32,"pickup":0,"notes":[[9,12,7],[5,2,4],[9,2,7],[12,8,9],[9,8,7],[14,12,11],[10,2,8],[12,2,9],[9,8,7],[5,8,4],[7,12,5],[9,4,7],[10,4,8],[7,4,5],[9,8,7],[10,4,8],[9,4,7],[7,4,5],[5,4,4],[7,16,5],[9,12,7],[5,2,4],[9,2,7],[12,8,9],[9,8,7],[14,12,11],[10,2,8],[12,2,9],[9,8,7],[5,8,4],[7,12,5],[9,4,7],[10,4,8],[7,4,5],[12,8,9],[9,4,7],[10,4,8],[7,6,5],[5,2,4],[5,16,4],[0,8,0],[0,6,0],[5,2,4],[9,4,7],[127,4,255],[2,4,1],[127,4,255],[7,4,5],[127,4,255],[0,4,0],[127,4,255],[5,4,4],[0,4,0],[5,4,4],[9,4,7],[14,8,11],[12,8,9],[9,16,7],[2,8,1],[2,6,1],[5,2,4],[10,4,8],[127,4,255],[14,4,11],[127,4,255],[7,4,5],[127,4,255],[12,4,9],[127,4,255],[5,4,4],[7,4,5],[9,4,7],[14,4,11],[12,8,9],[11,8,9],[12,16,9],[5,4,4],[5,8,4],[0,4,0],[9,8,7],[7,8,5],[9,4,7],[9,8,7],[5,4,4],[14,8,11],[12,8,9],[10,4,8],[10,8,8],[7,4,5],[9,8,7],[14,8,11],[12,4,9],[12,8,9],[9,4,7],[14,8,11],[12,8,9],[17,24,14],[127,8,255]],"ferm":{},"builtin":true},{"id":4,"title":"青花瓷（版權歌曲，僅供示範練習）","key":"A","beats":"2/4","unitMs":80,"gap":85,"measure":16,"pickup":0,"notes":[[127,8,255],[127,2,255],[11,2,7],[9,2,5],[6,2,2],[9,4,5],[9,2,5],[6,2,2],[9,4,5],[9,2,5],[6,2,2],[9,2,5],[6,2,2],[4,4,0],[127,2,255],[11,2,7],[9,2,5],[6,2,2],[9,4,5],[9,2,5],[6,2,2],[9,4,5],[9,2,5],[11,1,7],[13,1,9],[11,2,7],[9,2,5],[9,4,5],[127,2,255],[4,2,0],[6,2,2],[13,2,9],[13,4,9],[13,2,9],[11,2,7],[13,4,9],[13,2,9],[11,2,7],[13,2,9],[16,2,12],[13,2,9],[13,2,9],[127,2,255],[13,2,9],[13,2,9],[13,2,9],[13,2,9],[11,2,7],[11,2,7],[11,2,7],[11,4,7],[9,2,5],[11,1,7],[13,1,9],[13,2,9],[11,6,7],[127,2,255],[11,2,7],[9,2,5],[6,2,2],[9,4,5],[9,2,5],[6,2,2],[9,4,5],[9,2,5],[6,2,2],[9,2,5],[6,2,2],[4,4,0],[127,2,255],[4,2,0],[6,2,2],[13,2,9],[16,4,12],[16,2,12],[13,2,9],[16,4,12],[16,2,12],[11,1,7],[13,1,9],[11,2,7],[9,2,5],[9,4,5],[127,2,255],[11,2,7],[9,2,5],[11,2,7],[13,2,9],[11,2,7],[11,2,7],[9,2,5],[11,4,7],[9,2,5],[6,2,2],[11,2,7],[9,2,5],[9,2,5],[6,2,2],[9,4,5],[9,2,5],[9,18,5],[127,8,255],[127,2,255],[16,2,12],[16,2,12],[13,2,9],[11,2,7],[13,2,9],[6,4,2],[11,2,7],[13,2,9],[16,2,12],[13,2,9],[11,8,7],[127,2,255],[16,2,12],[16,2,12],[13,2,9],[11,2,7],[13,2,9],[4,4,0],[11,2,7],[13,2,9],[16,2,12],[11,2,7],[9,8,5],[127,2,255],[9,2,5],[11,2,7],[13,2,9],[16,2,12],[18,2,14],[16,2,12],[13,2,9],[16,2,12],[13,2,9],[13,2,9],[11,2,7],[11,8,7],[127,2,255],[9,2,5],[11,2,7],[9,2,5],[11,2,7],[9,2,5],[9,2,5],[11,2,7],[11,2,7],[13,4,9],[16,2,12],[13,2,9],[13,6,9],[127,2,255],[16,2,12],[16,2,12],[13,2,9],[11,2,7],[13,2,9],[6,4,2],[11,2,7],[13,2,9],[16,2,12],[13,2,9],[11,8,7],[127,2,255],[16,2,12],[16,2,12],[13,2,9],[11,2,7],[13,2,9],[4,4,0],[11,2,7],[13,2,9],[16,2,12],[11,2,7],[9,8,5],[127,2,255],[9,2,5],[11,2,7],[13,2,9],[16,2,12],[18,2,14],[16,2,12],[13,2,9],[16,2,12],[13,2,9],[13,2,9],[11,2,7],[11,6,7],[4,2,0],[13,2,9],[11,4,7],[9,4,5],[9,42,5],[127,4,255]],"ferm":{},"builtin":true},{"title":"中華民國國旗歌（由內建歌曲匯出）","key":"C","beats":"4/4","unitMs":100,"gap":90,"measure":32,"pickup":0,"source":"04_國旗歌_樂譜(維基百科).png","notes":[[4,8],[0,6],[4,2],[7,8],[7,8],[12,8],[11,6],[9,2],[9,8],[7,8],[9,8],[7,8],[7,8],[4,6],[0,2],[5,6],[5,2],[4,8],[2,16],[4,8],[0,6],[2,2],[4,8],[7,8],[12,8],[11,6],[9,2],[9,8],[7,8],[9,8],[7,8],[7,8],[5,4],[4,4],[2,6],[4,2],[2,8],[0,16],[2,12],[4,4],[5,8],[5,8],[9,8],[9,6],[9,2],[7,6],[5,2],[4,8],[4,12],[7,4],[12,8],[12,8],[14,6],[12,2],[11,4],[9,4],[7,16],[16,12],[16,4],[14,6],[12,2],[11,8],[14,12],[12,4],[11,6],[9,2],[7,8],[12,8],[12,4],[7,4],[9,4],[7,4],[5,4],[4,4],[2,8],[4,6],[5,2],[4,8],[null,8],[16,12],[16,4],[14,6],[12,2],[11,8],[14,12],[12,4],[11,6],[9,2],[7,8],[12,8],[12,4],[7,4],[11,4],[9,4],[7,4],[5,4],[4,8],[5,6],[2,2],[0,16]],"uncertain":[],"file":"國旗歌_測試.json"},{"title":"青花瓷（AI 讀譜・版權歌曲，僅供示範練習）","key":"A","beats":"2/4","unitMs":80,"gap":85,"measure":16,"pickup":0,"source":"06_青花瓷_簡譜(使用者提供).png","notes":[[null,8],[null,2],[11,2],[9,2],[6,2],[9,4],[9,2],[6,2],[9,4],[9,2],[6,2],[9,2],[6,2],[4,4],[null,2],[11,2],[9,2],[6,2],[9,4],[9,2],[6,2],[9,4],[9,2],[11,1],[13,1],[11,2],[9,2],[9,4],[null,2],[4,2],[6,2],[13,2],[13,4],[13,2],[11,2],[13,4],[13,2],[11,2],[13,2],[16,2],[13,2],[13,2],[null,2],[13,2],[13,2],[13,2],[13,2],[11,2],[11,2],[11,2],[11,4],[9,2],[11,1],[13,1],[13,2],[11,6],[null,2],[11,2],[9,2],[6,2],[9,4],[9,2],[6,2],[9,4],[9,2],[6,2],[9,2],[6,2],[4,4],[null,2],[4,2],[6,2],[13,2],[16,4],[16,2],[13,2],[16,4],[16,2],[11,1],[13,1],[11,2],[9,2],[9,4],[null,2],[11,2],[9,2],[11,2],[13,2],[11,2],[11,2],[9,2],[11,4],[9,2],[6,2],[11,2],[9,2],[9,2],[6,2],[9,4],[9,2],[9,18],[null,8],[null,2],[16,2],[16,2],[13,2],[11,2],[13,2],[6,4],[11,2],[13,2],[16,2],[13,2],[11,8],[null,2],[16,2],[16,2],[13,2],[11,2],[13,2],[4,4],[11,2],[13,2],[16,2],[11,2],[9,8],[null,2],[9,2],[11,2],[13,2],[16,2],[18,2],[16,2],[13,2],[16,2],[13,2],[13,2],[11,2],[11,8],[null,2],[9,2],[11,2],[9,2],[11,2],[9,2],[9,2],[11,2],[11,2],[13,4],[16,2],[13,2],[13,6],[null,2],[16,2],[16,2],[13,2],[11,2],[13,2],[6,4],[11,2],[13,2],[16,2],[13,2],[11,8],[null,2],[16,2],[16,2],[13,2],[11,2],[13,2],[4,4],[11,2],[13,2],[16,2],[11,2],[9,8],[null,2],[9,2],[11,2],[13,2],[16,2],[18,2],[16,2],[13,2],[16,2],[13,2],[13,2],[11,2],[11,6],[4,2],[13,2],[11,4],[9,4],[9,42],[null,4]],"uncertain":[{"index":73,"reason":"譜上這小節標3/4拍，但時值線加起來只有2拍，依時值線處理"},{"index":91,"reason":"小節中間又標了3/4，依時值線處理"},{"index":106,"reason":"副歌標了8va（高八度），為了蜂鳴器不要太尖，照譜面音高演奏"},{"index":188,"reason":"這裡有2/4小記號和附點，時值照線條判讀"},{"index":193,"reason":"結尾有好幾條連結線，合併成一個長音"}],"file":"青花瓷_AI讀譜.json"}].map((d) => normalizeSong(d));
+
+/* ================= 匯入歌曲（songs\*.json）轉成內部格式 ================= */
+// 回傳錯誤訊息陣列（空陣列代表沒問題）。和 tools\validate_song.py 的基本檢查一致
+function songErrors(d) {
+  const err = [];
+  if (!d || typeof d !== "object") return ["檔案內容不是歌曲資料"];
+  const need = { title: "string", key: "string", beats: "string", unitMs: "number", gap: "number", measure: "number", pickup: "number" };
+  for (const k in need) if (typeof d[k] !== need[k]) err.push(`少了欄位「${k}」或型別不對`);
+  if (!Array.isArray(d.notes) || !d.notes.length) err.push("notes 必須是至少有一個音符的清單");
+  else d.notes.forEach((n, i) => {
+    if (!Array.isArray(n) || n.length !== 2) err.push(`第 ${i} 個音符要寫成 [音高, 長度]`);
+    else if (!(Number.isInteger(n[1]) && n[1] > 0)) err.push(`第 ${i} 個音符的長度要是正整數`);
+    else if (n[0] !== null && !(Number.isInteger(n[0]) && n[0] >= -12 && n[0] <= 24)) err.push(`第 ${i} 個音符的音高要是 −12～24 的整數，或 null（休止符）`);
+  });
+  if (d.key && KEY_SIG_OK(d.key) === false) err.push(`調號「${d.key}」看不懂`);
+  return err.slice(0, 6);
+}
+function KEY_SIG_OK(k) { return ["C", "G", "D", "A", "E", "B", "F♯", "F", "B♭", "Bb", "E♭", "Eb", "A♭", "Ab", "D♭", "Db"].includes(k); }
+function normalizeSong(d) {
+  if (d.builtin) return d;
+  const pitched = d.notes.filter((n) => n[0] !== null).map((n) => n[0]);
+  const lo = Math.min(...pitched), hi = Math.max(...pitched);
+  const ledOf = (s) => (hi === lo ? 7 : Math.round(((s - lo) / (hi - lo)) * 14));   // 最低音 → LED1、最高音 → LED15
+  return {
+    title: d.title, key: d.key, beats: d.beats, unitMs: d.unitMs, gap: d.gap, measure: d.measure, pickup: d.pickup,
+    ferm: {}, imported: true, file: d.file || "", source: d.source || "",
+    uncertain: Array.isArray(d.uncertain) ? d.uncertain.filter((u) => u && Number.isInteger(u.index)) : [],
+    notes: d.notes.map((n) => (n[0] === null ? [127, n[1], 255] : [n[0], n[1], ledOf(n[0])])),
+  };
+}
+
+/* ================= 基本資料 ================= */
+const LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
+// 音名顏色：深底用明亮色、淺色樣式用較深的顏色（在白底上才看得清楚）
+const NOTE_COLORS_BRIGHT = { C: "#ff6b6b", D: "#ffa94d", E: "#ffd43b", F: "#8ce99a", G: "#4dd4e6", A: "#74a7ff", B: "#d0a2ff" };
+const NOTE_COLORS_DEEP = { C: "#d63333", D: "#d9620f", E: "#b88300", F: "#2b9446", G: "#0e8aa0", A: "#2366c8", B: "#8a3aad" };
+let NOTE_COLORS = { ...NOTE_COLORS_BRIGHT };
+let INK = "#e9eaf2";          // 譜面音符顏色（隨樣式改變）
+let STAFF = "#7d84a8";        // 譜線顏色（隨樣式改變）
+const TC = { fallBg: "#0d1019", fallGrid: "#222842", fallGrid2: "#181c2c", bannerBg: "rgba(14,16,24,.78)", accent: "#ffcc4d" };
+const THEMES = ["standard", "light", "soft", "dark"];
+let themeName = "standard";
+function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function readThemeColors() {
+  INK = cssVar("--noteInk") || INK;
+  STAFF = cssVar("--staff") || STAFF;
+  TC.fallBg = cssVar("--fallBg"); TC.fallGrid = cssVar("--fallGrid"); TC.fallGrid2 = cssVar("--fallGrid2");
+  TC.bannerBg = cssVar("--bannerBg"); TC.accent = cssVar("--accent");
+  NOTE_COLORS = { ...(themeName === "light" ? NOTE_COLORS_DEEP : NOTE_COLORS_BRIGHT) };
+}
+// 調號：正數 = 幾個升記號、負數 = 幾個降記號（匯入歌曲可用任何常見調號）
+const KEY_SIG = { C: 0, G: 1, D: 2, A: 3, E: 4, B: 5, "F♯": 6, F: -1, "B♭": -2, Bb: -2, "E♭": -3, Eb: -3, "A♭": -4, Ab: -4, "D♭": -5, Db: -5 };
+const SHARP_ORDER = ["F", "C", "G", "D", "A", "E", "B"], FLAT_ORDER = ["B", "E", "A", "D", "G", "C", "F"];
+const LETTER_PC = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const NAT_PC = { 0: "C", 2: "D", 4: "E", 5: "F", 7: "G", 9: "A", 11: "B" };
+function keyInfo(key) {
+  const n = KEY_SIG[key] !== undefined ? KEY_SIG[key] : 0;
+  const list = n > 0 ? SHARP_ORDER.slice(0, n) : FLAT_ORDER.slice(0, -n);
+  const alt = {};
+  list.forEach((l) => (alt[l] = n > 0 ? 1 : -1));
+  return { acc: Math.sign(n), list, alt };
+}
+const STD = [[32, 0, 0], [24, 16, 1], [16, 16, 0], [12, 8, 1], [8, 8, 0], [6, 4, 1], [4, 4, 0], [3, 2, 1], [2, 2, 0], [1, 1, 0]];
+// [單位, 基本時值, 是否附點]  基本時值：0=全音符 16=二分 8=四分 4=八分 2=十六分 1=三十二分
+const SYM_FONT = '"Segoe UI Symbol","Noto Music","Apple Symbols","Arial Unicode MS",serif';
+
+/* ================= 狀態 ================= */
+const $ = (id) => document.getElementById(id);
+const cvs = $("score"), ctx = cvs.getContext("2d");
+const baseCv = document.createElement("canvas"), baseCtx = baseCv.getContext("2d");
+const playedCv = document.createElement("canvas"), playedCtx = playedCv.getContext("2d");
+const wrap = $("scoreWrap");
+
+let songIdx = 0;
+let model = null;                  // 目前歌曲的版面
+let active = null;                 // {i, start}
+let maxIndex = -1;
+let particles = [], ripples = [], confetti = [];
+let banner = null;                 // {text, start}
+let mode = "idle";                 // idle | sim | serial
+let playing = false;
+let sim = null;                    // 模擬播放狀態
+let port = null, writer = null, readerLoopOn = false, boardReady = false;
+let dpr = 1, cssW = 900, cssH = 400;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ================= 版面計算 ================= */
+function spell(semi, key) {
+  const pc = ((semi % 12) + 12) % 12;
+  const ki = keyInfo(key);
+  // 1. 先找調號內的拼法；2. 再用自然音（必要時加還原記號）；3. 黑鍵：升記號調用升、降記號調用降
+  let letter = null, alt = 0;
+  for (const L of LETTERS) { const a = ki.alt[L] || 0; if ((LETTER_PC[L] + a + 12) % 12 === pc) { letter = L; alt = a; break; } }
+  if (!letter) {
+    if (NAT_PC[pc]) { letter = NAT_PC[pc]; alt = 0; }
+    else if (ki.acc < 0) { letter = NAT_PC[(pc + 1) % 12]; alt = -1; }
+    else { letter = NAT_PC[(pc + 11) % 12]; alt = 1; }
+  }
+  const midi = 60 + semi;
+  const octave = Math.floor((midi - alt) / 12) - 1;
+  const keyAlt = ki.alt[letter] || 0;
+  let acc = null;
+  if (alt !== keyAlt) acc = alt === 1 ? "♯" : alt === -1 ? "♭" : "♮";
+  return { letter, alt, octave, acc, d: octave * 7 + LETTERS.indexOf(letter) };
+}
+function nameOf(n) {
+  return n.letter + (n.alt === 1 ? "♯" : n.alt === -1 ? "♭" : "") + n.octave;
+}
+function stdType(units) {
+  let best = STD[0], bd = 1e9;
+  for (const s of STD) {
+    const d = Math.abs(s[0] - units);
+    if (d < bd || (d === bd && s[0] > best[0])) { best = s; bd = d; }
+  }
+  return { base: best[1], dot: !!best[2] };
+}
+
+function buildModel(song, width) {
+  const SP = 11;
+  const SYS_H = 150;
+  const notes = song.notes.map((a, i) => ({ i, semi: a[0], units: a[1], led: a[2], rest: a[0] === 127 }));
+  let cum = 0;
+  for (const n of notes) {
+    n.start = cum;
+    n.ms = n.units * song.unitMs;
+    n.msStart = cum * song.unitMs;
+    cum += n.units;
+    const fermU = song.ferm && song.ferm[String(n.i)];
+    const t = stdType(fermU || n.units);
+    n.base = t.base; n.dot = t.dot; n.fermata = !!fermU;
+    if (!n.rest) Object.assign(n, spell(n.semi, song.key));
+  }
+  const totalMs = cum * song.unitMs;
+
+  // 小節線
+  let nextB = song.pickup > 0 ? song.pickup : song.measure;
+  for (const n of notes) {
+    const end = n.start + n.units;
+    n.barAfter = false;
+    if (end >= nextB) {
+      if (end === nextB) n.barAfter = true;
+      while (nextB <= end) nextB += song.measure;
+    }
+  }
+  const last = notes[notes.length - 1];
+  last.barAfter = true; last.finalBar = true;
+
+  // 每個音符的寬度
+  const keyW = keyInfo(song.key).list.length * 11;
+  for (const n of notes) n.w = 22 + 9 * Math.sqrt(n.units) + (n.acc ? 13 : 0);
+
+  // 切成小節
+  const chunks = [];
+  let cur = [];
+  for (const n of notes) { cur.push(n); if (n.barAfter) { chunks.push(cur); cur = []; } }
+  if (cur.length) chunks.push(cur);
+
+  // 排成行
+  const lineLeft = (first) => 16 + 38 + keyW + (first ? 28 : 0) + 8;
+  const rightPad = 18;
+  const lines = [];
+  let line = { chunks: [], used: 0 };
+  for (const ch of chunks) {
+    const cw = ch.reduce((s, n) => s + n.w, 0) + 12;
+    const avail = width - lineLeft(lines.length === 0) - rightPad;
+    if (line.chunks.length && line.used + cw > avail) { lines.push(line); line = { chunks: [], used: 0 }; }
+    line.chunks.push(ch); line.used += cw;
+  }
+  lines.push(line);
+
+  const top0 = 22;
+  lines.forEach((ln, li) => {
+    ln.first = li === 0;
+    ln.top = top0 + li * SYS_H + 54;           // 第一線（F5）的 y
+    ln.bottom = ln.top + 4 * SP;
+    const left = lineLeft(ln.first);
+    const avail = width - left - rightPad;
+    const barPad = 12 * ln.chunks.length;
+    const noteSum = ln.used - barPad;
+    const isLast = li === lines.length - 1;
+    let scale = (avail - barPad) / noteSum;
+    scale = Math.max(1, Math.min(scale, isLast ? 1.12 : 1.9));
+    ln.left = left; ln.right = width - rightPad;
+    let cx = left;
+    ln.bars = [];
+    for (const ch of ln.chunks) {
+      for (const n of ch) {
+        n.line = li;
+        n.x = cx + (n.w * scale) / 2;
+        cx += n.w * scale;
+        n.y = n.rest ? ln.bottom - 2 * SP : ln.bottom - (n.d - 30) * SP / 2;
+      }
+      if (ch[ch.length - 1].barAfter) ln.bars.push({ x: cx + 3, final: !!ch[ch.length - 1].finalBar });
+      cx += 12;
+    }
+  });
+
+  // 連桿分組：同一拍內、連續、八分音符以下
+  const groups = [];
+  let g = [];
+  const flush = () => { if (g.length >= 2) groups.push(g); g = []; };
+  for (const n of notes) {
+    const beamable = !n.rest && (n.base === 4 || n.base === 2 || n.base === 1);
+    if (!beamable) { flush(); continue; }
+    if (g.length && (Math.floor(n.start / 8) !== Math.floor(g[0].start / 8) || n.line !== g[0].line)) flush();
+    g.push(n);
+  }
+  flush();
+  for (const n of notes) { n.group = null; }
+  groups.forEach((gr) => gr.forEach((n) => (n.group = gr)));
+
+  // 符桿方向與長度
+  for (const n of notes) {
+    if (n.rest) continue;
+    n.stemUp = n.d < 34;
+  }
+  for (const gr of groups) {
+    const avg = gr.reduce((s, n) => s + n.d, 0) / gr.length;
+    const up = avg < 34;
+    gr.forEach((n) => (n.stemUp = up));
+    const ys = gr.map((n) => n.y);
+    gr.beamY = up ? Math.min(...ys) - 3.4 * SP : Math.max(...ys) + 3.4 * SP;
+    gr.up = up;
+  }
+  for (const n of notes) {
+    if (n.rest) continue;
+    const rx = SP * 0.62;
+    n.stemX = n.stemUp ? n.x + rx - 0.8 : n.x - rx + 0.8;
+    if (n.base === 0) { n.stemEnd = null; continue; }
+    n.stemEnd = n.group ? n.group.beamY : n.stemUp ? n.y - 3.4 * SP : n.y + 3.4 * SP;
+  }
+
+  return { song, notes, lines, groups, SP, SYS_H, totalMs, height: top0 + lines.length * SYS_H + 20, width };
+}
+
+/* ================= 繪圖元件 ================= */
+function line(c, x1, y1, x2, y2, w, col) {
+  c.strokeStyle = col; c.lineWidth = w; c.beginPath(); c.moveTo(x1, y1); c.lineTo(x2, y2); c.stroke();
+}
+
+function drawHead(c, x, y, SP, filled, col) {
+  c.save();
+  c.translate(x, y); c.rotate(-0.38);
+  c.beginPath(); c.ellipse(0, 0, SP * 0.64, SP * 0.46, 0, 0, Math.PI * 2);
+  if (filled) { c.fillStyle = col; c.fill(); }
+  else { c.strokeStyle = col; c.lineWidth = 2; c.stroke(); }
+  c.restore();
+}
+
+function drawFlag(c, n, SP, col, count) {
+  c.strokeStyle = col; c.lineWidth = 2.2;
+  for (let k = 0; k < count; k++) {
+    const dy = k * 5.2 * (n.stemUp ? 1 : -1);
+    const sx = n.stemX, sy = n.stemEnd + dy;
+    c.beginPath();
+    if (n.stemUp) {
+      c.moveTo(sx, sy);
+      c.bezierCurveTo(sx + 2, sy + 6, sx + 11, sy + 9, sx + 8, sy + 19);
+    } else {
+      c.moveTo(sx, sy);
+      c.bezierCurveTo(sx + 2, sy - 6, sx + 11, sy - 9, sx + 8, sy - 19);
+    }
+    c.stroke();
+  }
+}
+
+function levelOf(n) { return n.base === 4 ? 1 : n.base === 2 ? 2 : n.base === 1 ? 3 : 0; }
+
+// 畫一個音符（符頭、加線、升降號、附點、符桿、單音符尾巴）
+function drawNote(c, m, n, col, withLedger) {
+  const SP = m.SP, ln = m.lines[n.line];
+  if (n.rest) { drawRest(c, m, n, col); return; }
+  if (withLedger) {
+    c.strokeStyle = STAFF; c.lineWidth = 1.4;
+    for (let d = 28; d >= n.d; d -= 2) {          // 低於第一線的加線
+      if (d < 30) { const y = ln.bottom - (d - 30) * SP / 2; c.beginPath(); c.moveTo(n.x - SP, y); c.lineTo(n.x + SP, y); c.stroke(); }
+    }
+    for (let d = 40; d <= n.d; d += 2) {          // 高於第五線的加線
+      const y = ln.bottom - (d - 30) * SP / 2; c.beginPath(); c.moveTo(n.x - SP, y); c.lineTo(n.x + SP, y); c.stroke();
+    }
+  }
+  drawHead(c, n.x, n.y, SP, n.base <= 8 && n.base !== 0, col);
+  if (n.acc) {
+    c.fillStyle = col; c.font = `${SP * 2.3}px ${SYM_FONT}`; c.textAlign = "center"; c.textBaseline = "middle";
+    c.fillText(n.acc, n.x - SP * 1.55, n.y - (n.acc === "♭" ? 2 : 0));
+  }
+  if (n.dot) {
+    const onLine = n.d % 2 === 0;
+    c.fillStyle = col; c.beginPath(); c.arc(n.x + SP * 1.1, n.y - (onLine ? SP * 0.5 : 0), 2, 0, Math.PI * 2); c.fill();
+  }
+  if (n.fermata) {
+    const fy = Math.min(n.y - 2.2 * SP, ln.top - 12);
+    c.strokeStyle = col; c.fillStyle = col; c.lineWidth = 2;
+    c.beginPath(); c.arc(n.x, fy + 7, 10, Math.PI * 1.1, Math.PI * 1.9); c.stroke();
+    c.beginPath(); c.arc(n.x, fy + 1, 2, 0, Math.PI * 2); c.fill();
+  }
+  if (n.base !== 0) {
+    line(c, n.stemX, n.y, n.stemX, n.stemEnd, 1.8, col);
+    if (!n.group && n.base <= 4) drawFlag(c, n, SP, col, levelOf(n));
+  }
+}
+
+function drawRest(c, m, n, col) {
+  const SP = m.SP, ln = m.lines[n.line], x = n.x, y = n.y;
+  c.fillStyle = col; c.strokeStyle = col; c.lineCap = "round"; c.lineJoin = "round";
+  if (n.base === 0) { c.fillRect(x - 7, ln.bottom - 3 * SP, 14, 5); }
+  else if (n.base === 16) { c.fillRect(x - 7, ln.bottom - 2 * SP - 5, 14, 5); }
+  else if (n.base === 8) {
+    c.lineWidth = 2.6; c.beginPath();
+    c.moveTo(x + 2, y - 13); c.lineTo(x - 4, y - 6); c.lineTo(x + 4, y + 2); c.lineTo(x - 3, y + 9);
+    c.quadraticCurveTo(x + 6, y + 8, x + 3, y + 15); c.stroke();
+  } else {
+    const dots = n.base === 4 ? 1 : n.base === 2 ? 2 : 3;
+    c.lineWidth = 2;
+    c.beginPath(); c.moveTo(x + 4, y - 9); c.lineTo(x - 3, y + 6 + (dots - 1) * 3); c.stroke();
+    for (let k = 0; k < dots; k++) { c.beginPath(); c.arc(x - 2 + k * -1.5 + 0, y - 6 + k * 6 - 0, 2.6, 0, Math.PI * 2); c.fill(); }
+  }
+  if (n.dot) { c.beginPath(); c.arc(x + 10, y - 2, 2, 0, Math.PI * 2); c.fill(); }
+  c.lineCap = "butt";
+}
+
+function drawBeams(c, g, col) {
+  const maxLv = Math.max(...g.map(levelOf));
+  for (let lv = 1; lv <= maxLv; lv++) {
+    const dy = (lv - 1) * 5.2 * (g.up ? 1 : -1);
+    let k = 0;
+    while (k < g.length) {
+      if (levelOf(g[k]) < lv) { k++; continue; }
+      let j = k;
+      while (j + 1 < g.length && levelOf(g[j + 1]) >= lv) j++;
+      let x1 = g[k].stemX, x2 = g[j].stemX;
+      if (j === k) { // 單獨的次級連桿：畫一小段朝向鄰音
+        if (k > 0) x1 = x2 - 9; else x2 = x1 + 9;
+      }
+      c.fillStyle = col;
+      const y = g.beamY + dy, h = 3.6;
+      c.fillRect(x1 - 0.9, g.up ? y : y - h, x2 - x1 + 1.8, h);
+      k = j + 1;
+    }
+  }
+}
+
+function glyph(c, ch, x, y, size, col) {
+  c.fillStyle = col; c.font = `${size}px ${SYM_FONT}`; c.textAlign = "center"; c.textBaseline = "alphabetic";
+  c.fillText(ch, x, y);
+}
+
+function drawStatic(c, m) {
+  const SP = m.SP, song = m.song;
+  c.clearRect(0, 0, m.width, m.height);
+  for (const ln of m.lines) {
+    for (let k = 0; k < 5; k++) line(c, ln.left - 44 - keyInfo(song.key).list.length * 11 - (ln.first ? 28 : 0) + 8, ln.top + k * SP, ln.right, ln.top + k * SP, 1.2, STAFF);
+    const sx = ln.left - 44 - keyInfo(song.key).list.length * 11 - (ln.first ? 28 : 0) + 8;
+    line(c, sx, ln.top, sx, ln.bottom, 1.6, STAFF);
+    // 高音譜號
+    glyph(c, "𝄞", sx + 24, ln.bottom - SP * 0.2, SP * 6.1, INK);
+    // 調號
+    const kd = { "#": [38, 35, 39, 36, 33, 37, 34], "b": [34, 37, 33, 36, 32, 35, 31] };
+    const kt = keyInfo(song.key).acc;
+    keyInfo(song.key).list.forEach((_, i) => {
+      const d = kt > 0 ? kd["#"][i] : kd["b"][i];
+      const y = ln.bottom - (d - 30) * SP / 2;
+      c.fillStyle = INK; c.font = `${SP * 2.4}px ${SYM_FONT}`; c.textAlign = "center"; c.textBaseline = "middle";
+      c.fillText(kt > 0 ? "♯" : "♭", sx + 44 + i * 11, y);
+    });
+    if (ln.first) {
+      const [a, b] = song.beats.split("/");
+      const tx = sx + 44 + keyInfo(song.key).list.length * 11 + 12;
+      c.fillStyle = INK; c.font = `bold ${SP * 2.5}px "Segoe UI",sans-serif`; c.textAlign = "center"; c.textBaseline = "middle";
+      c.fillText(a, tx, ln.top + SP * 1.0); c.fillText(b, tx, ln.top + SP * 3.0);
+    }
+    for (const b of ln.bars) {
+      line(c, b.x, ln.top, b.x, ln.bottom, 1.4, STAFF);
+      if (b.final) line(c, b.x + 5, ln.top, b.x + 5, ln.bottom, 3.6, STAFF);
+    }
+  }
+  for (const n of m.notes) drawNote(c, m, n, INK, true);
+  for (const g of m.groups) drawBeams(c, g, INK);
+  // AI 讀譜時不確定的音：虛線框（滑鼠移上去顯示原因）
+  if (song.uncertain && song.uncertain.length) {
+    c.save();
+    c.strokeStyle = TC.accent; c.lineWidth = 1.6; c.setLineDash([4, 3]);
+    for (const u of song.uncertain) {
+      const n = m.notes[u.index];
+      if (!n) continue;
+      const top = n.rest ? n.y - 16 : Math.min(n.y - 12, n.stemEnd != null ? n.stemEnd - 4 : n.y - 12);
+      const bot = n.rest ? n.y + 18 : Math.max(n.y + 12, n.stemEnd != null ? n.stemEnd + 4 : n.y + 12);
+      n.ubox = { x: n.x - 16, y: top, w: 32, h: bot - top, reason: u.reason || "AI 不確定這個音" };
+      c.strokeRect(n.ubox.x, n.ubox.y, n.ubox.w, n.ubox.h);
+    }
+    c.restore();
+  }
+}
+// 譜面滑鼠提示：移到虛線框上顯示不確定的原因
+cvs.addEventListener("mousemove", (e) => {
+  if (!model || !model.song.uncertain || !model.song.uncertain.length) { cvs.title = ""; return; }
+  const r = cvs.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  const hit = model.notes.find((n) => n.ubox && x >= n.ubox.x && x <= n.ubox.x + n.ubox.w && y >= n.ubox.y && y <= n.ubox.y + n.ubox.h);
+  cvs.title = hit ? `第 ${hit.i} 個音（${hit.rest ? "休止符" : nameOf(hit)}）：${hit.ubox.reason}` : "";
+});
+
+function markPlayed(i) {
+  if (!model) return;
+  const n = model.notes[i];
+  if (!n) return;
+  const col = n.rest ? "#6f7aa8" : NOTE_COLORS[n.letter];
+  playedCtx.save();
+  playedCtx.globalAlpha = 0.95;
+  drawNote(playedCtx, model, n, col, false);
+  playedCtx.restore();
+  if (n.group && n.group.every((x) => x.played || x === n)) {
+    n.played = true;
+    playedCtx.save(); playedCtx.globalAlpha = 0.9; drawBeams(playedCtx, n.group, NOTE_COLORS[n.letter]); playedCtx.restore();
+  }
+  n.played = true;
+}
+
+/* ================= 畫面尺寸與重繪 ================= */
+function layout() {
+  dpr = Math.max(1, window.devicePixelRatio || 1);
+  cssW = Math.max(520, Math.floor(wrap.clientWidth));
+  model = buildModel(SONGS[songIdx], cssW);
+  cssH = model.height;
+  for (const c of [cvs, baseCv, playedCv]) { c.width = Math.floor(cssW * dpr); c.height = Math.floor(cssH * dpr); }
+  cvs.style.height = cssH + "px";
+  for (const c of [ctx, baseCtx, playedCtx]) c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  baseCtx.clearRect(0, 0, cssW, cssH); playedCtx.clearRect(0, 0, cssW, cssH);
+  drawStatic(baseCtx, model);
+  // 已演奏過的音符重新上色（視窗縮放時保留進度）
+  model.notes.forEach((n) => (n.played = false));
+  for (let i = 0; i <= maxIndex && playing; i++) if (!active || i < active.i) markPlayed(i);
+}
+
+/* ================= 動畫 ================= */
+function spawnParticles(n) {
+  if (reduceMotion) return;
+  const col = NOTE_COLORS[n.letter];
+  const glyphs = ["♪", "♫", "♩", "♬"];
+  const count = 12;
+  for (let k = 0; k < count; k++) {
+    const a = -Math.PI / 2 + (Math.random() - 0.5) * 1.9;
+    const sp = 90 + Math.random() * 190;
+    particles.push({
+      x: n.x, y: n.y - 4, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp,
+      rot: (Math.random() - 0.5) * 1.5, vr: (Math.random() - 0.5) * 5,
+      life: 900 + Math.random() * 700, age: 0, col, ch: glyphs[k % 4], size: 13 + Math.random() * 12,
+    });
+  }
+  ripples.push({ x: n.x, y: n.y, start: performance.now(), col });
+  ripples.push({ x: n.x, y: n.y, start: performance.now() + 120, col });
+}
+function spawnConfetti() {
+  if (reduceMotion) return;
+  const cols = Object.values(NOTE_COLORS);
+  for (let k = 0; k < 110; k++) {
+    confetti.push({
+      x: Math.random() * cssW, y: wrap.scrollTop - 10, vx: (Math.random() - 0.5) * 120, vy: 60 + Math.random() * 180,
+      rot: Math.random() * 6, vr: (Math.random() - 0.5) * 9, life: 1800 + Math.random() * 900, age: 0,
+      col: cols[k % cols.length], w: 6 + Math.random() * 6, h: 4 + Math.random() * 6,
+    });
+  }
+}
+
+let lastFrame = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - lastFrame) / 1000);
+  lastFrame = now;
+  simTick(now);
+  if (animMode === "piano") drawPiano(now, dt);
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, cssW, cssH);
+  ctx.drawImage(baseCv, 0, 0, cssW, cssH);
+  ctx.drawImage(playedCv, 0, 0, cssW, cssH);
+
+  // 蜂鳴器聲波：音符發聲期間（扣掉音符間的小空隙）顯示
+  let buzzing = false;
+  if (active && model) {
+    const bn = model.notes[active.i];
+    buzzing = !bn.rest && now - active.start < bn.ms * ((model.song.gap || 90) / 100);
+  }
+  boardBuzz(buzzing);
+
+  if (active && model) {
+    const n = model.notes[active.i];
+    const el = now - active.start;
+    const dur = Math.max(80, n.ms);
+    const life = Math.min(1, el / dur);
+    const col = n.rest ? "#8a96c8" : NOTE_COLORS[n.letter];
+    const ln = model.lines[n.line];
+    // 垂直光柱（播放位置）
+    const g = ctx.createLinearGradient(0, ln.top - 36, 0, ln.bottom + 36);
+    g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(0.5, hexA(col, 0.20 * (1 - life * 0.6))); g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g; ctx.fillRect(n.x - 15, ln.top - 36, 30, ln.bottom - ln.top + 72);
+    if (animMode !== "piano") {             // 鋼琴模式：五線譜只留光柱與已演奏上色
+    // 光暈
+    const pulse = 0.65 + 0.35 * Math.sin(el / 90);
+    const rad = 26 + 8 * pulse;
+    const rg = ctx.createRadialGradient(n.x, n.y, 2, n.x, n.y, rad);
+    rg.addColorStop(0, hexA(col, 0.85 * (1 - life * 0.55))); rg.addColorStop(1, hexA(col, 0));
+    ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(n.x, n.y, rad, 0, Math.PI * 2); ctx.fill();
+    // 跳動 + 放大
+    const bounce = reduceMotion ? 0 : -15 * Math.exp(-el / 170) * Math.abs(Math.cos(el / 62));
+    const sc = reduceMotion ? 1.2 : 1 + 0.75 * Math.exp(-el / 190) + 0.06 * Math.sin(el / 70) * (1 - life);
+    ctx.save();
+    ctx.translate(n.x, n.y + bounce); ctx.scale(sc, sc); ctx.translate(-n.x, -n.y);
+    ctx.shadowColor = col; ctx.shadowBlur = n.rest ? 12 : 22;
+    drawNote(ctx, model, n, col, true);
+    if (n.group) drawBeams(ctx, n.group, hexA(col, 0.9));
+    ctx.restore();
+    }
+  }
+
+  // 水波
+  ripples = ripples.filter((r) => now - r.start < 800);
+  for (const r of ripples) {
+    const t = (now - r.start) / 800; if (t < 0) continue;
+    ctx.strokeStyle = hexA(r.col, 0.7 * (1 - t)); ctx.lineWidth = 2.4 * (1 - t) + 0.6;
+    ctx.beginPath(); ctx.arc(r.x, r.y, 8 + t * 46, 0, Math.PI * 2); ctx.stroke();
+  }
+  // 粒子（音符）
+  particles = particles.filter((p) => p.age < p.life);
+  for (const p of particles) {
+    p.age += dt * 1000; p.vy += 120 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+    const a = Math.max(0, 1 - p.age / p.life);
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.globalAlpha = a;
+    ctx.fillStyle = p.col; ctx.font = `${p.size}px ${SYM_FONT}`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(p.ch, 0, 0); ctx.restore();
+  }
+  // 彩帶
+  confetti = confetti.filter((p) => p.age < p.life);
+  for (const p of confetti) {
+    p.age += dt * 1000; p.vy += 60 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt;
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.globalAlpha = Math.max(0, 1 - p.age / p.life);
+    ctx.fillStyle = p.col; ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore();
+  }
+  // 結束字幕
+  if (banner) {
+    const t = (now - banner.start) / 2600;
+    if (t >= 1) banner = null;
+    else {
+      const a = t < 0.12 ? t / 0.12 : t > 0.75 ? (1 - t) / 0.25 : 1;
+      const y = wrap.scrollTop + wrap.clientHeight / 2;
+      ctx.save(); ctx.globalAlpha = a * 0.92;
+      ctx.fillStyle = TC.bannerBg; ctx.fillRect(0, y - 40, cssW, 80);
+      ctx.globalAlpha = a; ctx.fillStyle = TC.accent; ctx.font = 'bold 30px "Segoe UI","Microsoft JhengHei",sans-serif';
+      ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText(banner.text, cssW / 2, y); ctx.restore();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+function hexA(hex, a) {
+  const v = parseInt(hex.slice(1), 16);
+  return `rgba(${v >> 16},${(v >> 8) & 255},${v & 255},${a})`;
+}
+
+/* ================= 事件處理（模擬與序列埠共用） ================= */
+function setLed(idx) {               // LED 狀態只顯示在虛擬控制板上
+  if (typeof boardSetLed === "function") boardSetLed(idx);
+}
+
+function setInfo(html) { $("info").innerHTML = html; }
+
+function onSongStart() {
+  active = null; maxIndex = -1; particles = []; ripples = []; confetti = []; banner = null;
+  model.notes.forEach((n) => (n.played = false));
+  playedCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  playedCtx.clearRect(0, 0, cssW, cssH);
+  playing = true; updateButtons();
+  $("bar").style.width = "0%";
+  setInfo("演奏中…");
+  pianoReset();
+}
+
+function onNote(i) {
+  if (!model || i < 0 || i >= model.notes.length) return;
+  const noteAt = performance.now();
+  if (active) markPlayed(active.i);
+  const n = model.notes[i];
+  active = { i, start: performance.now() };
+  maxIndex = Math.max(maxIndex, i);
+  playing = true; updateButtons();
+  setLed(n.rest ? -1 : n.led);
+  if (!n.rest && animMode !== "piano") spawnParticles(n);
+  if (sim && !sim.stream) beep(n);                   // 沒有用實體板子時，由電腦發聲
+  pianoOnNote(i, noteAt);
+  $("bar").style.width = ((n.msStart / model.totalMs) * 100).toFixed(1) + "%";
+  const label = n.rest ? "休止符" : `<b>${nameOf(n)}</b>`;
+  setInfo(`第 <b>${i + 1}</b> / ${model.notes.length} 個音　${label}`);
+  // 自動捲動到目前這一行
+  const ln = model.lines[n.line];
+  const top = ln.top - 70, bot = ln.bottom + 60;
+  if (top < wrap.scrollTop || bot > wrap.scrollTop + wrap.clientHeight) wrap.scrollTop = Math.max(0, top - 10);
+}
+
+function onEnd() {
+  const finished = model && maxIndex >= model.notes.length - 1;
+  pianoOnEnd(!!finished);
+  if (active) { markPlayed(active.i); active = null; }
+  setLed(-1);
+  playing = false; updateButtons();
+  if (finished) {
+    spawnConfetti(); banner = { text: "♪ 演奏完畢 ♪", start: performance.now() };
+    $("bar").style.width = "100%";
+    setInfo("演奏完畢");
+  } else {
+    setInfo("已中止");
+  }
+}
+
+/* ================= 模擬播放 ================= */
+// stream = true：網頁計時，並把每個音用 T 指令即時傳給板子演奏（匯入歌曲用，不必重新燒錄）
+function startSim(stream) {
+  stopAll(true);
+  mode = "sim";
+  onSongStart();
+  sim = { t0: performance.now() + 250, idx: 0, stream: !!stream };
+  setBadge(stream ? "即時傳音給板子演奏中" : undefined);
+}
+function streamNote(n) {
+  if (n.rest) return;
+  const freq = Math.round(440 * Math.pow(2, (n.semi - 9) / 12));
+  const soundMs = Math.max(20, Math.round(n.ms * ((model.song.gap || 90) / 100)));
+  sendChar(`T${freq},${soundMs},${n.led === 255 ? 255 : n.led}\n`);
+}
+function simTick(now) {
+  if (!sim || !model) return;
+  const el = now - sim.t0;
+  if (el < 0) return;
+  while (sim.idx < model.notes.length && el >= model.notes[sim.idx].msStart) {
+    if (sim.stream) streamNote(model.notes[sim.idx]);
+    onNote(sim.idx); sim.idx++;
+  }
+  if (sim.idx >= model.notes.length && el >= model.totalMs) { sim = null; onEnd(); mode = port ? "serial" : "idle"; setBadge(); }
+}
+
+/* ================= 序列埠 ================= */
+/* ---- 連接埠清單：自動偵測已授權的裝置，也可手動選擇 ---- */
+const NEW_PORT = "__new__";
+const ALL_PORTS = "__all__";
+const isPickerChoice = (v) => v === NEW_PORT || v === ALL_PORTS;
+const noPortYet = (v) => v === "" || isPickerChoice(v);   // 尚未選定任何已授權的連接埠
+const USB_FILTERS = [{ usbVendorId: 0x1a86 }, { usbVendorId: 0x2341 }, { usbVendorId: 0x10c4 }, { usbVendorId: 0x0403 }];
+let knownPorts = [];
+const hex4 = (v) => v.toString(16).toUpperCase().padStart(4, "0");
+function portInfo(p) { try { return p.getInfo() || {}; } catch (e) { return {}; } }
+function isArduinoLike(p) { const v = portInfo(p).usbVendorId; return v === 0x1a86 || v === 0x2341 || v === 0x10c4 || v === 0x0403; }
+function portLabel(p, i) {
+  const inf = portInfo(p), vid = inf.usbVendorId;
+  const name = vid === 0x1a86 ? "Arduino Nano（CH340）" : vid === 0x2341 ? "Arduino" : "序列裝置";
+  return `${name} #${i + 1}` + (vid ? ` · ${hex4(vid)}:${hex4(inf.usbProductId || 0)}` : "");
+}
+async function refreshPorts(keep) {
+  const sel = $("portSel");
+  if (!("serial" in navigator)) {
+    sel.innerHTML = "<option>此瀏覽器不支援</option>"; sel.disabled = true; $("btnConnect").disabled = true; $("autoConn").disabled = true;
+    return;
+  }
+  try { knownPorts = await navigator.serial.getPorts(); } catch (e) { knownPorts = []; }
+  const prev = keep ? sel.value : null;
+  sel.innerHTML = "";
+  const ph = document.createElement("option"); ph.value = ""; ph.textContent = "— 請選擇連接埠 —"; sel.appendChild(ph);
+  knownPorts.forEach((p, i) => {
+    const o = document.createElement("option"); o.value = String(i); o.textContent = portLabel(p, i); sel.appendChild(o);
+  });
+  const o = document.createElement("option"); o.value = NEW_PORT;
+  o.textContent = knownPorts.length ? "＋ 選擇其他連接埠…" : "＋ 偵測 / 選擇連接埠…";
+  sel.appendChild(o);
+  const o2 = document.createElement("option"); o2.value = ALL_PORTS;
+  o2.textContent = "＋ 顯示所有序列裝置…";
+  sel.appendChild(o2);
+  let pick = knownPorts.findIndex(isArduinoLike);
+  if (pick < 0 && knownPorts.length) pick = 0;
+  sel.value = prev && [...sel.options].some((x) => x.value === prev) ? prev : pick >= 0 ? String(pick) : "";
+}
+async function autoConnect() {
+  if (port || !$("autoConn").checked || !knownPorts.length) return;
+  const sel = $("portSel");
+  if (noPortYet(sel.value)) return;
+  await connectSerial(true);
+}
+async function connectSerial(silent) {
+  if (!("serial" in navigator)) { alert("這個瀏覽器不支援 Web Serial，請改用 Chrome 或 Edge。"); return; }
+  const sel = $("portSel");
+  let p = null;
+  if (noPortYet(sel.value)) {
+    if (silent) return;
+    const all = sel.value === ALL_PORTS;
+    try {
+      p = await navigator.serial.requestPort(all ? {} : { filters: USB_FILTERS });
+    } catch (e) {
+      if (e && e.name === "NotFoundError") {
+        setInfo(all ? "沒有選擇任何裝置" : "沒有選擇裝置，或找不到 Arduino。可改選「顯示所有序列裝置…」再試一次");
+      } else {
+        setInfo("無法開啟連接埠視窗，請改按右邊的「連線 Arduino」按鈕");
+      }
+      return;
+    }
+    await refreshPorts(false);
+    const idx = knownPorts.indexOf(p);
+    if (idx >= 0) sel.value = String(idx);
+  } else {
+    p = knownPorts[parseInt(sel.value, 10)];
+  }
+  if (!p) return;
+  try {
+    await p.open({ baudRate: 115200 });
+  } catch (e) {
+    const msg = "無法開啟序列埠：可能被 Arduino IDE 的序列監控視窗或其他程式占用，請先關閉。";
+    if (silent) setInfo(msg); else alert(msg + "\n" + (e && e.message ? e.message : ""));
+    return;
+  }
+  port = p;
+  writer = p.writable.getWriter();
+  boardReady = false;
+  mode = "serial"; setBadge("板子啟動中…");
+  readLoop();
+  setTimeout(() => { if (port && !boardReady) { boardReady = true; setBadge(); } }, 3000);
+}
+
+function initPorts() {
+  refreshPorts(false).then(autoConnect);
+  if ("serial" in navigator) {
+    navigator.serial.addEventListener("connect", () => { refreshPorts(true).then(autoConnect); });   // 插上板子時自動偵測
+    navigator.serial.addEventListener("disconnect", (e) => {
+      if (port && e.target === port) disconnectSerial(true);
+      refreshPorts(true);
+    });
+  }
+}
+
+async function readLoop() {
+  const dec = new TextDecoderStream();
+  const closed = port.readable.pipeTo(dec.writable).catch(() => {});
+  const reader = dec.readable.getReader();
+  let buf = "";
+  try {
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += value;
+      let k;
+      while ((k = buf.indexOf("\n")) >= 0) { handleLine(buf.slice(0, k).trim()); buf = buf.slice(k + 1); }
+    }
+  } catch (e) { /* 斷線 */ }
+  try { reader.releaseLock(); } catch (e) {}
+  await closed;
+  if (port) disconnectSerial(true);
+}
+
+function handleLine(s) {
+  if (!s) return;
+  boardFlash("TX");                                   // 板子送出資料：TX 燈閃一下
+  const [t, v] = s.split(",");
+  if (t === "H") { boardReady = true; setBadge(); return; }
+  if (runMode === "online") return;                  // 線上模式：不理會實體板子的事件
+  if (t === "B") { boardPress(parseInt(v, 10)); }
+  else if (t === "C") { const k = parseInt(v, 10) - 1; if (k >= 0 && k < SONGS.length && !playing) selectSong(k, true); }
+  else if (t === "S") { const k = parseInt(v, 10) - 1; if (k >= 0 && k < SONGS.length) { if (k !== songIdx) selectSong(k, true); onSongStart(); } }
+  else if (t === "N") { onNote(parseInt(v, 10)); }
+  else if (t === "E") { onEnd(); }
+}
+
+async function sendChar(ch) {
+  if (!writer) return;
+  try { await writer.write(new TextEncoder().encode(ch)); boardFlash("RX"); } catch (e) { /* ignore */ }
+}
+
+async function disconnectSerial(silent) {
+  const p = port; port = null; boardReady = false;
+  try { if (writer) { writer.releaseLock(); } } catch (e) {}
+  writer = null;
+  try { if (p) await p.close(); } catch (e) {}
+  mode = "idle"; playing = false; active = null; setLed(-1); updateButtons(); setBadge();
+  refreshPorts(true);
+  if (!silent) setInfo("已中斷連線");
+}
+
+/* ================= 介面 ================= */
+function setBadge(txt) {
+  const b = $("badgeMode");
+  if (port && runMode !== "online") { b.className = "badge on"; b.textContent = txt || "已連線 Arduino"; }
+  else if (runMode === "online") { b.className = "badge sim"; b.textContent = mode === "sim" ? "線上播放中" : "線上模式（虛擬板）"; }
+  else { b.className = "badge sim"; b.textContent = mode === "sim" ? "模擬播放中" : "模擬模式（未連線）"; }
+  $("btnConnect").textContent = port ? "中斷連線" : "連線 Arduino";
+  if (typeof boardPower === "function") boardPower();
+}
+function updateButtons() {
+  $("btnStop").disabled = !playing;
+  $("btnPlay").disabled = playing;
+  $("songSel").disabled = playing;          // 演奏中不能換歌
+}
+
+function stopAll(quiet) {
+  if (sim) { sim = null; if (!quiet) onEnd(); }
+  if (useBoard() && playing) sendChar("x");          // 內建歌曲或即時傳音中：叫板子停
+}
+
+function selectSong(k, fromBoard) {
+  if (playing && !fromBoard) return;
+  songIdx = k;
+  active = null; maxIndex = -1; particles = []; ripples = []; confetti = []; banner = null;
+  $("songSel").value = String(k);
+  const sm = SONGS[k];
+  $("songMeta").textContent = `${sm.key} 大調 · ${sm.beats} 拍 · ${sm.notes.length} 個音 · 約 ${Math.round(sm.notes.reduce((a, n) => a + n[1], 0) * sm.unitMs / 1000)} 秒`;
+  layout();
+  wrap.scrollTop = 0;
+  const s = SONGS[k];
+  setInfo(`<b>${s.title}</b>　${s.key} 大調　${s.notes.length} 個音符` +
+    (s.imported ? `　<span title="原始樂譜">📄 ${s.source || s.file}</span>` + (s.uncertain.length ? `　⚠ 有 ${s.uncertain.length} 個不確定的音（虛線框）` : "") : ""));
+  $("bar").style.width = "0%";
+  setLed(-1);
+}
+
+function buildMenu() {
+  const sel = $("songSel");
+  sel.innerHTML = "";
+  const gIn = document.createElement("optgroup"); gIn.label = "內建歌曲";
+  const gImp = document.createElement("optgroup"); gImp.label = "匯入歌曲";
+  let n = 0;
+  SONGS.forEach((s, i) => {
+    const o = document.createElement("option");
+    o.value = String(i);
+    o.textContent = s.builtin ? `${i + 1}. ${s.title}` : `★ ${s.title}`;
+    (s.builtin ? gIn : gImp).appendChild(o);
+    if (!s.builtin) n++;
+  });
+  sel.appendChild(gIn);
+  if (n) sel.appendChild(gImp);
+}
+function addImportedSong(d, fileName) {
+  const errs = songErrors(d);
+  if (errs.length) {
+    alert(`「${fileName}」不能載入，請檢查：\n・${errs.join("\n・")}\n\n格式說明在 songs 資料夾的 README.md`);
+    return;
+  }
+  d.file = fileName;
+  SONGS.push(normalizeSong(d));
+  buildMenu();
+  selectSong(SONGS.length - 1, false);
+  setInfo(`已載入「<b>${SONGS[SONGS.length - 1].title}</b>」`);
+}
+
+function play() {
+  if (playing) return;
+  const builtin = !!SONGS[songIdx].builtin;
+  if (useBoard() && boardReady) {
+    if (builtin) { sendChar(String(songIdx + 1)); setInfo("已送出指令，等待板子開始…"); }
+    else startSim(true);                             // 匯入歌曲：網頁計時，一個音一個音傳給板子
+  }
+  else if (useBoard()) { setInfo("板子還在啟動，請稍候再按一次"); }
+  else startSim(false);
+}
+function stop() {
+  if (!playing) return;
+  if (sim) {
+    const wasStream = sim.stream;
+    sim = null; onEnd(); mode = port ? "serial" : "idle"; setBadge();
+    if (wasStream && port) sendChar("x");
+  }
+  else if (useBoard()) sendChar("x");
+}
+
+$("btnConnect").addEventListener("click", () => { if (port) disconnectSerial(false); else connectSerial(false); });
+$("portSel").addEventListener("change", () => {
+  if (port) return;                                         // 已連線時，先按「中斷連線」再換埠
+  const v = $("portSel").value;
+  if (v === "") return;
+  if (isPickerChoice(v)) connectSerial(false);              // 選「偵測 / 選擇連接埠…」：直接跳出選擇視窗
+  else if ($("autoConn").checked) connectSerial(true);
+});
+$("btnPlay").addEventListener("click", play);
+$("btnStop").addEventListener("click", stop);
+document.addEventListener("keydown", (e) => {
+  if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if (e.target && e.target.tagName === "SELECT" && e.code === "Space") return;   // 下拉選單自己處理空白鍵
+  if (e.key >= "1" && e.key <= "4") selectSong(parseInt(e.key, 10) - 1, false);
+  else if (e.code === "Space") { e.preventDefault(); playing ? stop() : play(); }
+});
+let rz = 0;
+window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => { if (!playing) layout(); }, 150); });
+
+/* ================= 鋼琴動畫（掉落音條 + 琴鍵按下） ================= */
+const PIANO = { low: -39, high: 48, fallH: 220, keyH: 120, lookMs: 2500 };   // 預設完整 88 鍵：A0（C4 往下 39 個半音）~ C8
+const KEY_RANGES = { "88": [-39, 48], "37": [-12, 24] };                      // 37 鍵 = C3 ~ C6
+const pPc = (s) => ((s % 12) + 12) % 12;   // 音級 0~11（負數也正確）
+let animMode = "notes";                    // notes 音符跳動 | piano 鋼琴
+const pv = $("piano"), pctx = pv.getContext("2d");
+let pW = 600, pDpr = 1;
+let pKeys = [];                            // 以半音編號為索引：{semi, black, x, w, h, name}
+let pTimeline = null;                      // 曲子時間 = now − pTimeline.origin
+const pPressed = new Map();                // semi -> {start, end, color}
+let pSparks = [], pRestFlash = 0, pSweep = 0;
+const pHitLog = [];                        // 量測用：{i, noteAt, pressAt, barGapPx}
+
+function pIsBlack(semi) { return [1, 3, 6, 8, 10].includes(pPc(semi)); }
+function layoutPiano() {
+  pDpr = Math.max(1, window.devicePixelRatio || 1);
+  pW = Math.max(280, Math.floor($("pianoWrap").clientWidth || wrap.clientWidth));
+  const H = PIANO.fallH + PIANO.keyH;
+  pv.width = Math.floor(pW * pDpr); pv.height = Math.floor(H * pDpr); pv.style.height = H + "px";
+  const whites = [];
+  for (let s = PIANO.low; s <= PIANO.high; s++) if (!pIsBlack(s)) whites.push(s);
+  const ww = pW / whites.length, bw = ww * 0.6, bh = PIANO.keyH * 0.62;
+  pKeys = [];
+  for (let s = PIANO.low; s <= PIANO.high; s++) {
+    const oct = 4 + Math.floor(s / 12), pc = pPc(s);
+    if (!pIsBlack(s)) {
+      const wi = whites.indexOf(s);
+      pKeys[s] = { semi: s, black: false, x: wi * ww, w: ww, h: PIANO.keyH, name: LETTERS[[0, 2, 4, 5, 7, 9, 11].indexOf(pc)] + oct, isC: pc === 0, isMiddleC: s === 0 };
+    } else {
+      const leftWhites = whites.filter((w) => w < s).length;
+      pKeys[s] = { semi: s, black: true, x: leftWhites * ww - bw / 2, w: bw, h: bh };
+    }
+  }
+}
+function pSongTime(now) {
+  if (sim) return now - sim.t0;
+  if (pTimeline) return now - pTimeline.origin;
+  return null;
+}
+function pSoundMs(n) {                      // 發聲長度：保留至少 60ms 放開，讓同一鍵連按看得出來
+  const g = (model.song.gap || 90) / 100;
+  return Math.max(30, Math.min(n.ms * g, n.ms - 60));
+}
+function pianoReset() {
+  pPressed.clear(); pSparks = []; pRestFlash = 0; pSweep = 0;
+  pTimeline = { origin: performance.now() };
+}
+function pianoOnNote(i, noteAt) {
+  const n = model.notes[i];
+  const now = performance.now();
+  pTimeline = { origin: now - n.msStart };   // 每收到一個音就重新校正時間軸
+  if (n.rest) { pRestFlash = now; return; }
+  const k = pKeys[n.semi];
+  if (!k) return;
+  pPressed.set(n.semi, { start: now, end: now + pSoundMs(n), color: NOTE_COLORS[n.letter] });
+  pHitLog.push({
+    i, noteAt, pressAt: now,
+    schedErr: sim ? noteAt - (sim.t0 + n.msStart) : null,                     // 模擬播放：實際觸發 vs 排定時間
+    barGapPx: ((pSongTime(now) - n.msStart) / PIANO.lookMs) * PIANO.fallH,    // 按下瞬間音條底部離鍵盤幾像素
+  });
+  if (!reduceMotion) {
+    const cx = k.x + k.w / 2;
+    const cnt = 6 + Math.floor(Math.random() * 5);
+    for (let s = 0; s < cnt; s++) {
+      const a = -Math.PI / 2 + (Math.random() - 0.5) * 1.6, sp = 80 + Math.random() * 160;
+      pSparks.push({ x: cx, y: PIANO.fallH, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, age: 0, life: 350 + Math.random() * 350, col: NOTE_COLORS[n.letter] });
+    }
+  }
+}
+function pianoOnEnd(finished) {
+  if (finished) { if (!reduceMotion) pSweep = performance.now(); }
+  else { pPressed.clear(); pSparks = []; }
+  pTimeline = null;
+}
+function pRound(c, x, y, w, h, r) {
+  r = Math.min(r, w / 2, h / 2);
+  c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+  c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+}
+function drawPiano(now, dt) {
+  const c = pctx, FH = PIANO.fallH, KH = PIANO.keyH;
+  c.setTransform(pDpr, 0, 0, pDpr, 0, 0);
+  c.clearRect(0, 0, pW, FH + KH);
+  // 掉落區背景與八度格線
+  c.fillStyle = TC.fallBg; c.fillRect(0, 0, pW, FH);
+  for (let s = PIANO.low; s <= PIANO.high; s++) {
+    const k = pKeys[s];
+    if (k && !k.black && (pPc(s) === 0 || pPc(s) === 5)) { c.fillStyle = pPc(s) === 0 ? TC.fallGrid : TC.fallGrid2; c.fillRect(k.x, 0, 1, FH); }
+  }
+  // 掉落音條
+  const st = model ? pSongTime(now) : null;
+  if (st !== null && model) {
+    c.save(); c.beginPath(); c.rect(0, 0, pW, FH); c.clip();
+    for (const n of model.notes) {
+      if (n.rest) continue;
+      const k = pKeys[n.semi]; if (!k) continue;
+      const bottom = FH - ((n.msStart - st) / PIANO.lookMs) * FH;
+      const top = bottom - (pSoundMs(n) / PIANO.lookMs) * FH;
+      if (bottom < 0 || top > FH) continue;
+      const col = NOTE_COLORS[n.letter];
+      const pad = k.black ? 1 : 3;
+      c.globalAlpha = 0.92;
+      c.fillStyle = col; pRound(c, k.x + pad, top, k.w - pad * 2, bottom - top, 5); c.fill();
+      c.globalAlpha = 1;
+      c.strokeStyle = "rgba(255,255,255,.35)"; c.lineWidth = 1; c.stroke();
+      if (bottom - top > 16 && k.w > 14) {
+        c.fillStyle = themeName === "light" ? "rgba(255,255,255,.95)" : "rgba(10,12,20,.85)"; c.font = 'bold 10px "Segoe UI",sans-serif'; c.textAlign = "center"; c.textBaseline = "top";
+        c.fillText(nameOf(n).replace(/\d$/, ""), k.x + k.w / 2, top + 3);
+      }
+    }
+    c.restore();
+  }
+  // 休止符：鍵盤上緣淡色細光帶
+  if (pRestFlash && now - pRestFlash < 350) {
+    c.fillStyle = `rgba(160,175,230,${0.55 * (1 - (now - pRestFlash) / 350)})`;
+    c.fillRect(0, FH - 3, pW, 3);
+  }
+  // 琴鍵
+  const isDown = (s) => { const p = pPressed.get(s); return p && now < p.end ? p : null; };
+  const drawKey = (k) => {
+    const p = isDown(k.semi), dy = p ? 3 : 0, y = FH + dy;
+    if (!k.black) {
+      const g = c.createLinearGradient(0, y, 0, y + k.h);
+      if (p) { g.addColorStop(0, p.color); g.addColorStop(1, "#ffffff"); }
+      else { g.addColorStop(0, "#e9eaf0"); g.addColorStop(1, "#ffffff"); }
+      c.fillStyle = g; c.fillRect(k.x + 0.5, y, k.w - 1, k.h - dy);
+      c.strokeStyle = "#2a2d38"; c.lineWidth = 1; c.strokeRect(k.x + 0.5, y, k.w - 1, k.h - dy);
+      // 88 鍵太密只標 C 鍵；37 鍵每個白鍵都標。中央 C（C4）加橘色圓點
+      if (k.isC || k.w >= 34) {
+        c.fillStyle = k.isMiddleC ? "#d9620f" : k.isC ? "#20232e" : "#8a8fa3";
+        c.font = `${k.isC ? "bold " : ""}${Math.max(8, Math.min(12, k.w * 0.48))}px "Segoe UI",sans-serif`;
+        c.textAlign = "center"; c.textBaseline = "bottom";
+        c.fillText(k.name, k.x + k.w / 2, FH + k.h - 5);
+        if (k.isMiddleC) { c.beginPath(); c.arc(k.x + k.w / 2, FH + k.h - 24, Math.max(2.5, k.w * 0.16), 0, Math.PI * 2); c.fill(); }
+      }
+    } else {
+      const g = c.createLinearGradient(0, y, 0, y + k.h);
+      if (p) { g.addColorStop(0, p.color); g.addColorStop(1, "#2a2d38"); }
+      else { g.addColorStop(0, "#2c2f3a"); g.addColorStop(1, "#0f1016"); }
+      c.fillStyle = g; pRound(c, k.x, y - 1, k.w, k.h - dy, 3); c.fill();
+    }
+    if (p) {   // 柔光暈
+      const rg = c.createRadialGradient(k.x + k.w / 2, FH, 2, k.x + k.w / 2, FH, k.w * 1.4);
+      rg.addColorStop(0, hexA(p.color, 0.55)); rg.addColorStop(1, hexA(p.color, 0));
+      c.fillStyle = rg; c.fillRect(k.x - k.w, FH - k.w * 1.4, k.w * 3, k.w * 1.4 + 6);
+    }
+  };
+  for (let s = PIANO.low; s <= PIANO.high; s++) if (pKeys[s] && !pKeys[s].black) drawKey(pKeys[s]);
+  for (let s = PIANO.low; s <= PIANO.high; s++) if (pKeys[s] && pKeys[s].black) drawKey(pKeys[s]);
+  c.fillStyle = "#5b2230"; c.fillRect(0, FH - 2, pW, 2);          // 琴鍵上方的紅絨布條
+  // 火花
+  pSparks = pSparks.filter((p) => p.age < p.life);
+  for (const p of pSparks) {
+    p.age += dt * 1000; p.vy += 260 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    c.globalAlpha = Math.max(0, 1 - p.age / p.life); c.fillStyle = p.col;
+    c.beginPath(); c.arc(p.x, p.y, 2.2, 0, Math.PI * 2); c.fill();
+  }
+  c.globalAlpha = 1;
+  // 曲終掃光
+  if (pSweep) {
+    const t = (now - pSweep) / 1100;
+    if (t >= 1) pSweep = 0;
+    else {
+      const x = t * (pW + 160) - 80;
+      const g = c.createLinearGradient(x - 80, 0, x + 80, 0);
+      g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(0.3, "rgba(77,212,230,.55)");
+      g.addColorStop(0.5, "rgba(255,204,77,.7)"); g.addColorStop(0.7, "rgba(255,107,107,.55)"); g.addColorStop(1, "rgba(255,255,255,0)");
+      c.globalCompositeOperation = "lighter"; c.fillStyle = g; c.fillRect(x - 80, FH, 160, KH);
+      c.globalCompositeOperation = "source-over";
+    }
+  }
+}
+function setAnimMode(m) {
+  animMode = m === "piano" ? "piano" : "notes";
+  $("animSel").value = animMode;
+  $("pianoWrap").hidden = animMode !== "piano";
+  $("keysBox").hidden = animMode !== "piano";
+  if (animMode === "piano") layoutPiano();
+  try { localStorage.setItem("viz.anim", animMode); } catch (e) { /* 無法儲存就算了 */ }
+}
+function setKeyRange(v) {
+  const key = KEY_RANGES[v] ? v : "88";
+  [PIANO.low, PIANO.high] = KEY_RANGES[key];
+  $("keysSel").value = key;
+  pPressed.clear(); pSparks = [];
+  if (animMode === "piano") layoutPiano();
+  try { localStorage.setItem("viz.keys", key); } catch (e) { /* 無法儲存就算了 */ }
+}
+function initPiano() {
+  let saved = "notes", savedKeys = "88";
+  try { saved = localStorage.getItem("viz.anim") || "notes"; savedKeys = localStorage.getItem("viz.keys") || "88"; } catch (e) { /* 預設 */ }
+  setKeyRange(savedKeys);
+  setAnimMode(saved);
+  $("animSel").addEventListener("change", () => setAnimMode($("animSel").value));
+  $("keysSel").addEventListener("change", () => setKeyRange($("keysSel").value));
+  window.addEventListener("resize", () => { if (animMode === "piano") layoutPiano(); });
+}
+
+/* ================= 虛擬控制板 ================= */
+const LED_COLOR = "#ff3b30";          // 已確認：板子上的 LED 是紅色
+const LED1_IS_INDEX0 = true;          // 已實測確認：絲印 LED1（最右）= 程式索引 0（D2）
+const LED_PINS = ["D2", "D3", "D4", "D5", "D6", "D7", "D8", "D9", "D10", "D11", "D12", "D13", "A0", "A1", "A2"];
+const SVG_NS = "http://www.w3.org/2000/svg";
+const BOARD_FONT = '"Microsoft JhengHei","PingFang TC","Noto Sans TC",sans-serif';
+const BASE_VB = { x: 178, y: 135, w: 1006, h: 930 };
+const LENS_OFF = "#b9dcc4";
+let vb = { ...BASE_VB };
+let runMode = "sync";                 // sync 同步 | hw 硬體 | online 線上
+const BD = { leds: [], small: {}, caps: {}, waves: null, buzzing: false, smallTimers: {} };
+
+function sv(tag, attrs, parent, text) {
+  const e = document.createElementNS(SVG_NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function comp(parent, tip) { return sv("g", { "data-tip": tip, class: "comp" }, parent); }
+function silk(parent, x, y, s, size, attrs) {
+  return sv("text", Object.assign({ x, y, "font-size": size, fill: "#f1f1f1", "font-family": BOARD_FONT, "font-weight": 600 }, attrs || {}), parent, s);
+}
+// 晶片電阻：白色絲印框 + 兩端銲錫 + 黑色本體與印字
+function chipRes(parent, x, y, w, h, code, vertical) {
+  sv("rect", { x: x - 4, y: y - 4, width: w + 8, height: h + 8, fill: "none", stroke: "#e4e4e4", "stroke-width": 1.6, rx: 2 }, parent);
+  if (vertical) {
+    sv("rect", { x, y, width: w, height: h * 0.22, fill: "#cfcfcf" }, parent);
+    sv("rect", { x, y: y + h * 0.78, width: w, height: h * 0.22, fill: "#cfcfcf" }, parent);
+    sv("rect", { x, y: y + h * 0.22, width: w, height: h * 0.56, fill: "#141414" }, parent);
+    silk(parent, 0, 0, code, 8.5, { transform: `translate(${x + w / 2 + 3},${y + h / 2}) rotate(-90)`, "text-anchor": "middle", fill: "#d4d4d4", "font-family": "Consolas,monospace" });
+  } else {
+    sv("rect", { x, y, width: w * 0.22, height: h, fill: "#cfcfcf" }, parent);
+    sv("rect", { x: x + w * 0.78, y, width: w * 0.22, height: h, fill: "#cfcfcf" }, parent);
+    sv("rect", { x: x + w * 0.22, y, width: w * 0.56, height: h, fill: "#141414" }, parent);
+    silk(parent, x + w / 2, y + h / 2 + 3, code, 8.5, { "text-anchor": "middle", fill: "#d4d4d4", "font-family": "Consolas,monospace" });
+  }
+}
+function hexagon(cx, cy, r) {
+  const p = [];
+  for (let k = 0; k < 6; k++) { const a = Math.PI / 6 + k * Math.PI / 3; p.push(`${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`); }
+  return p.join(" ");
+}
+function pinRole(name) {
+  const i = LED_PINS.indexOf(name);
+  if (i >= 0) { const n = LED1_IS_INDEX0 ? i + 1 : 15 - i; return `接 LED${n}（程式索引 ${i}）`; }
+  return {
+    A3: "接 按鈕1（INPUT_PULLUP，按下為 LOW）", A4: "接 按鈕2（INPUT_PULLUP，按下為 LOW）", A5: "經 Q1 電晶體驅動蜂鳴器",
+    A6: "只能當類比輸入（本程式拿來讀亂數種子）", A7: "只能當類比輸入", TX1: "序列埠傳送（經 CH340 到電腦）", RX0: "序列埠接收",
+    GND: "接地", RST: "重置", "5V": "5V 電源", "3V3": "3.3V 電源", REF: "類比參考電壓 AREF", VIN: "外部電源輸入（7~12V）",
+  }[name] || "";
+}
+
+function buildBoard() {
+  const svg = $("board");
+  svg.innerHTML = "";
+  const defs = sv("defs", {}, svg);
+  const f = sv("filter", { id: "glow", x: "-100%", y: "-100%", width: "300%", height: "300%" }, defs);
+  sv("feGaussianBlur", { stdDeviation: 7 }, f);
+  const pat = sv("pattern", { id: "pcbgrid", width: 9, height: 9, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" }, defs);
+  sv("rect", { width: 9, height: 9, fill: "#17191c" }, pat);
+  sv("path", { d: "M0 4.5 H9 M4.5 0 V9", stroke: "#22252a", "stroke-width": 1.2 }, pat);
+
+  // 電路板
+  const pcb = comp(svg, "黑色電路板（PCB）：楊梅高中資訊科／電子科 自製擴充板");
+  sv("rect", { x: 410, y: 150, width: 700, height: 900, rx: 6, fill: "url(#pcbgrid)", stroke: "#2c2f34", "stroke-width": 3 }, pcb);
+
+  // 標題絲印
+  const ttl = comp(svg, "絲印：楊梅高中 資訊科／電子科");
+  silk(ttl, 505, 238, "楊梅高中", 78, { "font-weight": 500 });
+  silk(ttl, 865, 197, "資訊科", 42, { "font-weight": 500 });
+  silk(ttl, 865, 243, "電子科", 42, { "font-weight": 500 });
+
+  // 15 顆 LED 與限流電阻
+  BD.leds = [];
+  for (let i = 0; i < 15; i++) {
+    const n = LED1_IS_INDEX0 ? i + 1 : 15 - i;          // 絲印編號
+    const x = 1057 - (n - 1) * 43;
+    const rg = comp(svg, `LED${n} 的限流電阻（102 = 1kΩ）：限制流過 LED 的電流`);
+    chipRes(rg, x - 9, 262, 18, 36, "102", true);
+    const g = comp(svg, `LED${n}：接 ${LED_PINS[i]}（程式索引 ${i}），HIGH 點亮`);
+    const glow = sv("circle", { cx: x, cy: 351, r: 24, fill: LED_COLOR, filter: "url(#glow)", opacity: 0 }, g);
+    sv("rect", { x: x - 14, y: 325, width: 28, height: 54, fill: "none", stroke: "#e4e4e4", "stroke-width": 1.6, rx: 2 }, g);
+    sv("rect", { x: x - 9, y: 332, width: 18, height: 40, fill: "#ece8dc", rx: 2 }, g);
+    const lens = sv("rect", { x: x - 6, y: 342, width: 12, height: 18, fill: LENS_OFF, rx: 2 }, g);
+    silk(g, 0, 0, `LED${n}`, 15, { transform: `translate(${x - 5},${388}) rotate(90)`, "font-family": "Arial,sans-serif" });
+    BD.leds.push({ glow, lens, on: false });
+  }
+
+  // Arduino Nano
+  const nano = comp(svg, "Arduino Nano 控制板（藍色），主晶片 ATmega328P，USB 轉序列晶片 CH340");
+  sv("rect", { x: 372, y: 455, width: 782, height: 326, rx: 8, fill: "#1d4fa0", stroke: "#153c7c", "stroke-width": 3 }, nano);
+  for (const [hx, hy] of [[392, 474], [1134, 474], [392, 762], [1134, 762]]) sv("circle", { cx: hx, cy: hy, r: 9, fill: "#101215", stroke: "#c9c9c9", "stroke-width": 2 }, nano);
+  const topNames = ["D12", "D11", "D10", "D9", "D8", "D7", "D6", "D5", "D4", "D3", "D2", "GND", "RST", "RX0", "TX1"];
+  const botNames = ["D13", "3V3", "REF", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "5V", "RST", "GND", "VIN"];
+  const drawRow = (names, y, ly, squareName) => names.forEach((nm, j) => {
+    const x = 445 + j * 46.43;
+    const g = comp(svg, `${nm} 腳位${pinRole(nm) ? "：" + pinRole(nm) : ""}`);
+    if (nm === squareName) sv("rect", { x: x - 12, y: y - 12, width: 24, height: 24, fill: "#cfcfcf" }, g);
+    else sv("circle", { cx: x, cy: y, r: 12.5, fill: "#cfcfcf" }, g);
+    sv("circle", { cx: x, cy: y, r: 5.5, fill: "#2a2a2a" }, g);
+    silk(g, x, ly, nm, 16, { "text-anchor": "middle", "font-family": "Arial,sans-serif", "font-weight": 700 });
+  });
+  drawRow(topNames, 482, 514, "TX1");
+  drawRow(botNames, 760, 738, "VIN");
+
+  const usb = comp(svg, "Mini-B USB 接頭：供電、燒錄程式、和電腦序列通訊");
+  sv("rect", { x: 338, y: 543, width: 104, height: 148, rx: 4, fill: "#c9cdd2", stroke: "#8b9096", "stroke-width": 2 }, usb);
+  sv("rect", { x: 352, y: 565, width: 76, height: 104, rx: 3, fill: "#a2a8ae" }, usb);
+  sv("rect", { x: 366, y: 586, width: 48, height: 62, rx: 2, fill: "#2b2e33" }, usb);
+
+  // USB 線與插頭：網頁連上板子時插入，未連上時退出
+  const plugTip = sv("g", { "data-tip": "", class: "comp" }, svg);
+  const plug = sv("g", { class: "usbPlug off" }, plugTip);
+  sv("path", { d: "M 214 617 C 172 617, 168 712, 196 806 S 248 990, 236 1090", fill: "none", stroke: "#1e2024", "stroke-width": 22, "stroke-linecap": "round" }, plug);
+  sv("path", { d: "M 214 611 C 176 611, 172 708, 200 802 S 252 986, 240 1086", fill: "none", stroke: "#3b3f46", "stroke-width": 3, "stroke-linecap": "round" }, plug);
+  sv("rect", { x: 206, y: 597, width: 30, height: 40, rx: 6, fill: "#25272c" }, plug);
+  for (const gx of [214, 222, 230]) sv("line", { x1: gx, y1: 600, x2: gx, y2: 634, stroke: "#34373d", "stroke-width": 2 }, plug);
+  sv("rect", { x: 232, y: 563, width: 72, height: 108, rx: 12, fill: "#1d1f23", stroke: "#3a3d43", "stroke-width": 2 }, plug);
+  for (const gy of [585, 597, 609, 621, 633, 645]) sv("line", { x1: 244, y1: gy, x2: 292, y2: gy, stroke: "#2b2e33", "stroke-width": 3 }, plug);
+  sv("rect", { x: 300, y: 576, width: 54, height: 82, rx: 3, fill: "#b9bec4", stroke: "#878c92", "stroke-width": 2 }, plug);
+  sv("rect", { x: 312, y: 592, width: 36, height: 50, rx: 2, fill: "#d3d7db" }, plug);
+  BD.usbLabel = silk(svg, 268, 548, "USB 未連接", 18, { "text-anchor": "middle", fill: "#9aa0bd", "font-family": "Arial,'Microsoft JhengHei',sans-serif", "font-weight": 700 });
+  BD.usbPlug = plug; BD.usbTip = plugTip;
+
+  const chip = comp(svg, "ATmega328P 微控制器：執行你寫的 Arduino 程式（32KB Flash、2KB SRAM）");
+  const cg = sv("g", { transform: "rotate(45 662 615)" }, chip);
+  for (let k = 0; k < 8; k++) {
+    const o = -42 + k * 12;
+    sv("rect", { x: 662 + o - 2.5, y: 548, width: 5, height: 10, fill: "#bfc3c8" }, cg);
+    sv("rect", { x: 662 + o - 2.5, y: 672, width: 5, height: 10, fill: "#bfc3c8" }, cg);
+    sv("rect", { x: 595, y: 615 + o - 2.5, width: 10, height: 5, fill: "#bfc3c8" }, cg);
+    sv("rect", { x: 719, y: 615 + o - 2.5, width: 10, height: 5, fill: "#bfc3c8" }, cg);
+  }
+  sv("rect", { x: 604, y: 557, width: 116, height: 116, rx: 3, fill: "#1c1c1e" }, cg);
+  sv("circle", { cx: 616, cy: 569, r: 4, fill: "#3a3a3d" }, cg);
+  silk(cg, 662, 612, "ATMEGA", 13, { "text-anchor": "middle", fill: "#6d6f75", "font-family": "Arial,sans-serif" });
+  silk(cg, 662, 628, "328P", 13, { "text-anchor": "middle", fill: "#6d6f75", "font-family": "Arial,sans-serif" });
+
+  const xt = comp(svg, "石英振盪器：提供 16MHz 時脈");
+  sv("rect", { x: 742, y: 533, width: 40, height: 22, rx: 7, fill: "#e0e0e0", stroke: "#9a9a9a", "stroke-width": 1.5 }, xt);
+
+  const nn = comp(svg, "Arduino Nano 字樣");
+  silk(nn, 0, 0, "NANO", 32, { transform: "translate(826,628) rotate(-90)", "text-anchor": "middle", "font-family": "Arial,sans-serif", "font-weight": 500 });
+
+  const rst = comp(svg, "RESET 重置按鈕：按一下讓程式從頭開始");
+  sv("rect", { x: 856, y: 540, width: 16, height: 14, fill: "#c0c0c0" }, rst);
+  sv("rect", { x: 856, y: 656, width: 16, height: 14, fill: "#c0c0c0" }, rst);
+  sv("rect", { x: 836, y: 552, width: 56, height: 106, rx: 3, fill: "#dadada", stroke: "#9a9a9a", "stroke-width": 1.5 }, rst);
+  sv("rect", { x: 849, y: 573, width: 30, height: 64, rx: 2, fill: "#c4c4c4", stroke: "#aaa" }, rst);
+
+  const smallInfo = {
+    RX: ["RX：板子「接收」電腦資料時閃爍", "#ffb000"], TX: ["TX：板子「送出」資料給電腦時閃爍", "#ffb000"],
+    POW: ["POW：電源指示燈，通電就亮", "#ff3b30"], L: ["L：接在 D13，和 D13 的 LED 一起亮", "#ffb000"],
+  };
+  ["RX", "TX", "POW", "L"].forEach((nm, k) => {
+    const y = 560 + k * 38;
+    const g = comp(svg, smallInfo[nm][0]);
+    chipRes(g, 912, y - 9, 40, 18, "102", false);
+    const glow = sv("circle", { cx: 985, cy: y, r: 15, fill: smallInfo[nm][1], filter: "url(#glow)", opacity: 0 }, g);
+    sv("rect", { x: 968, y: y - 9, width: 34, height: 18, rx: 2, fill: "#ece8dc" }, g);
+    const lens = sv("rect", { x: 978, y: y - 6, width: 14, height: 12, rx: 2, fill: LENS_OFF }, g);
+    silk(g, 1018, y + 8, nm === "POW" ? "POW" : nm, 22, { "font-family": "Arial,sans-serif", "font-weight": 700 });
+    BD.small[nm] = { glow, lens, color: smallInfo[nm][1], on: false };
+  });
+
+  const icsp = comp(svg, "ICSP 排針（2×3）：可用外部燒錄器燒錄 bootloader");
+  sv("rect", { x: 1080, y: 548, width: 92, height: 140, rx: 3, fill: "#1a1a1a" }, icsp);
+  for (const px of [1103, 1149]) for (const py of [572, 618, 664]) sv("rect", { x: px - 7, y: py - 7, width: 14, height: 14, fill: "#c9a54a" }, icsp);
+  sv("line", { x1: 1103, y1: 572, x2: 1128, y2: 527, stroke: "#c9a54a", "stroke-width": 7, "stroke-linecap": "round" }, icsp);
+
+  // 下方：按鈕、電阻、電晶體、撥動開關
+  const tact = (cx, n, rName, rx, tipText) => {
+    const rg = comp(svg, `${rName}（102 = 1kΩ）：按鈕${n} 的上拉電阻，沒按時讓 ${n === 1 ? "A3" : "A4"} 保持 HIGH，按下時變 LOW`);
+    silk(rg, rx - 8, 815, rName, 16, { "font-family": "Arial,sans-serif" });
+    chipRes(rg, rx, 832, 34, 16, "102", false);
+    silk(comp(svg, `絲印：按鈕${n}`), rx + 52, 852, `按鈕${n}`, 36, { "font-weight": 500 });
+    const g = comp(svg, tipText);
+    sv("rect", { x: cx - 92, y: 866, width: 184, height: 96, fill: "none", stroke: "#e4e4e4", "stroke-width": 1.6 }, g);
+    for (const [lx, ly] of [[cx - 96, 872], [cx - 96, 940], [cx + 74, 872], [cx + 74, 940]]) sv("rect", { x: lx, y: ly, width: 22, height: 16, fill: "#b9bdc3" }, g);
+    sv("rect", { x: cx - 52, y: 862, width: 104, height: 104, rx: 6, fill: "#232323", stroke: "#3a3a3a", "stroke-width": 2 }, g);
+    for (const [dx, dy] of [[-40, -40], [40, -40], [-40, 40], [40, 40]]) sv("circle", { cx: cx + dx, cy: 914 + dy, r: 4, fill: "#3b3b3b" }, g);
+    const cap = sv("circle", { cx, cy: 914, r: 34, fill: "#2c2c2c", stroke: "#4c4c4c", "stroke-width": 3, class: "btnCap", "data-btn": n }, g);
+    BD.caps[n] = cap;
+  };
+  tact(550, 1, "R17", 478, "按鈕1：接 A3（INPUT_PULLUP，按下為 LOW）。功能：播放目前曲目。點一下可模擬按下");
+  tact(745, 2, "R18", 672, "按鈕2：接 A4（INPUT_PULLUP，按下為 LOW）。功能：待機時切下一首、播放中按下中止。點一下可模擬按下");
+
+  const r20 = comp(svg, "R20（102 = 1kΩ）：蜂鳴器驅動電路的一部分，A5 經 R20 接到 Q1 基極");
+  silk(r20, 872, 815, "R20", 16, { "font-family": "Arial,sans-serif" });
+  chipRes(r20, 866, 834, 42, 18, "102", false);
+  const r19 = comp(svg, "R19（印字依照片判讀為 103 = 10kΩ）：蜂鳴器驅動電路的一部分，接在 Q1 基極（常見作用是下拉，讓 A5 沒輸出時 Q1 確實關閉）");
+  chipRes(r19, 870, 876, 18, 42, "103", true);
+  silk(r19, 0, 0, "R19", 15, { transform: "translate(858,916) rotate(-90)", "font-family": "Arial,sans-serif" });
+  const q1 = comp(svg, "Q1：NPN 電晶體（SOT-23），由 A5 控制、用來驅動蜂鳴器。蜂鳴器本體裝在控制板下方，正面看不到");
+  sv("rect", { x: 906, y: 880, width: 52, height: 46, fill: "none", stroke: "#e4e4e4", "stroke-width": 1.6 }, q1);
+  sv("rect", { x: 902, y: 890, width: 14, height: 7, fill: "#cfcfcf" }, q1);
+  sv("rect", { x: 902, y: 908, width: 14, height: 7, fill: "#cfcfcf" }, q1);
+  sv("rect", { x: 948, y: 899, width: 14, height: 7, fill: "#cfcfcf" }, q1);
+  sv("rect", { x: 914, y: 886, width: 34, height: 34, rx: 2, fill: "#151515" }, q1);
+  silk(q1, 924, 948, "Q1", 16, { "font-family": "Arial,sans-serif" });
+
+  const sw = comp(svg, "SW3：蜂鳴器開關（單位 DIP 撥動開關）。撥到 ON 蜂鳴器才會響，撥到 OFF 就靜音");
+  silk(sw, 1002, 812, "SW3", 22, { "font-family": "Arial,sans-serif" });
+  sv("rect", { x: 1018, y: 816, width: 24, height: 14, fill: "#c9a54a" }, sw);
+  sv("rect", { x: 1018, y: 954, width: 24, height: 14, fill: "#c9a54a" }, sw);
+  sv("rect", { x: 994, y: 828, width: 72, height: 128, fill: "none", stroke: "#e4e4e4", "stroke-width": 1.6 }, sw);
+  sv("rect", { x: 1002, y: 834, width: 56, height: 116, rx: 3, fill: "#121212" }, sw);
+  silk(sw, 1030, 858, "ON", 16, { "text-anchor": "middle", "font-family": "Arial,sans-serif" });
+  sv("rect", { x: 1016, y: 866, width: 28, height: 58, rx: 2, fill: "#2a2a2a" }, sw);
+  sv("rect", { x: 1019, y: 869, width: 22, height: 26, rx: 2, fill: "#efefef" }, sw);
+  silk(sw, 1030, 944, "1", 16, { "text-anchor": "middle", "font-family": "Arial,sans-serif" });
+
+  // 蜂鳴器聲波（蜂鳴器本體在控制板下方，聲波畫在驅動電路 Q1 / SW3 旁）
+  BD.waves = sv("g", { class: "waves", "aria-hidden": "true" }, svg);
+  for (const r of [26, 42, 58]) {
+    sv("path", { d: `M ${966 + r * 0.55} ${903 - r * 0.85} A ${r} ${r} 0 0 1 ${966 + r * 0.55} ${903 + r * 0.85}`, fill: "none", stroke: "#ffd24d", "stroke-width": 4, "stroke-linecap": "round" }, BD.waves);
+  }
+
+  // 底部絲印
+  const bt = comp(svg, "絲印：均質化計畫的子計畫名稱");
+  silk(bt, 520, 1000, "均質化-子計畫名稱：社區學校合作", 31, { "font-weight": 500, textLength: 492, lengthAdjust: "spacingAndGlyphs" });
+  silk(bt, 520, 1037, "辦理職涯試探與學術試探活動", 31, { "font-weight": 500, textLength: 432, lengthAdjust: "spacingAndGlyphs" });
+
+  // 四角尼龍支柱（最上層）
+  for (const [cx, cy] of [[452, 196], [1062, 196], [446, 1020], [1062, 1020]]) {
+    const g = comp(svg, "白色尼龍六角支柱：把電路板墊高、固定");
+    sv("polygon", { points: hexagon(cx, cy, 46), fill: "#e9ecef", stroke: "#c3c8ce", "stroke-width": 2 }, g);
+    sv("circle", { cx, cy, r: 17, fill: "#d3d8dd", stroke: "#bfc5cb", "stroke-width": 2 }, g);
+  }
+
+  applyVB();
+  bindBoardInput();
+}
+
+function setSmall(nm, on) {
+  const s = BD.small[nm];
+  if (!s || s.on === on) return;
+  s.on = on;
+  s.lens.setAttribute("fill", on ? s.color : LENS_OFF);
+  s.glow.setAttribute("opacity", on ? 0.9 : 0);
+}
+function boardFlash(nm) {
+  setSmall(nm, true);
+  clearTimeout(BD.smallTimers[nm]);
+  BD.smallTimers[nm] = setTimeout(() => setSmall(nm, false), 70);
+}
+function boardSetLed(idx) {
+  BD.leds.forEach((L, i) => {
+    const on = i === idx;
+    if (L.on === on) return;
+    L.on = on;
+    L.lens.setAttribute("fill", on ? LED_COLOR : LENS_OFF);
+    L.glow.setAttribute("opacity", on ? 0.85 : 0);
+  });
+  setSmall("L", idx === 11);                     // L 燈接在 D13
+}
+function boardPower() {
+  setSmall("POW", !!port || runMode === "online");
+  // USB 插頭：網頁和板子連線中 = 插入；否則退出
+  const on = !!port;
+  if (BD.usbPlug) {
+    BD.usbPlug.classList.toggle("off", !on);
+    BD.usbLabel.textContent = on ? "USB 已連接" : "USB 未連接";
+    BD.usbLabel.setAttribute("fill", on ? "#5fe3a1" : "#9aa0bd");
+    BD.usbTip.setAttribute("data-tip", on
+      ? "USB 線：已插上，網頁正透過 Web Serial 和板子通訊"
+      : "USB 線：網頁尚未連上板子（請在上方選連接埠並按「連線 Arduino」）");
+  }
+}
+function boardPress(n) {
+  const c = BD.caps[n];
+  if (!c) return;
+  c.classList.add("down");
+  setTimeout(() => c.classList.remove("down"), 180);
+}
+function boardBuzz(on) {
+  if (BD.buzzing === on || !BD.waves) return;
+  BD.buzzing = on;
+  BD.waves.classList.toggle("on", on);
+}
+
+/* ---- 縮放與拖曳 ---- */
+function applyVB() {
+  $("board").setAttribute("viewBox", `${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  $("zoomPct").textContent = Math.round((BASE_VB.w / vb.w) * 100) + "%";
+}
+function clampVB() {
+  const mx = BASE_VB.w * 0.25, my = BASE_VB.h * 0.25;
+  vb.x = Math.min(Math.max(vb.x, BASE_VB.x - mx), BASE_VB.x + BASE_VB.w + mx - vb.w);
+  vb.y = Math.min(Math.max(vb.y, BASE_VB.y - my), BASE_VB.y + BASE_VB.h + my - vb.h);
+}
+function zoomAt(factor, px, py) {
+  const nw = Math.min(BASE_VB.w, Math.max(BASE_VB.w / 8, vb.w / factor));
+  const k = nw / vb.w;
+  vb.x = px - (px - vb.x) * k; vb.y = py - (py - vb.y) * k;
+  vb.w = nw; vb.h = vb.h * k;
+  if (nw >= BASE_VB.w) vb = { ...BASE_VB };
+  clampVB(); applyVB();
+}
+function zoomCenter(factor) { zoomAt(factor, vb.x + vb.w / 2, vb.y + vb.h / 2); }
+function setZoomPct(pct, cx, cy) {   // 測試與程式用：直接設定縮放百分比與中心
+  vb.w = BASE_VB.w / (pct / 100); vb.h = BASE_VB.h / (pct / 100);
+  vb.x = cx - vb.w / 2; vb.y = cy - vb.h / 2; clampVB(); applyVB();
+}
+function toSvgPt(cx, cy) {
+  const r = $("board").getBoundingClientRect();
+  return { x: vb.x + ((cx - r.left) / r.width) * vb.w, y: vb.y + ((cy - r.top) / r.height) * vb.h };
+}
+let dragMoved = false;
+function bindBoardInput() {
+  const svg = $("board"), wrapEl = $("boardWrap"), tip = $("boardTip");
+  const ptrs = new Map();
+  let pinch = null;
+  svg.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const p = toSvgPt(e.clientX, e.clientY);
+    zoomAt(Math.exp(-e.deltaY * 0.0015), p.x, p.y);
+  }, { passive: false });
+  svg.addEventListener("pointerdown", (e) => {
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    svg.setPointerCapture(e.pointerId);
+    dragMoved = false;
+    if (ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) };
+    }
+  });
+  svg.addEventListener("pointermove", (e) => {
+    showTip(e);
+    if (!ptrs.has(e.pointerId)) return;
+    const prev = ptrs.get(e.pointerId);
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 2 && pinch) {
+      const [a, b] = [...ptrs.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      const mid = toSvgPt((a.x + b.x) / 2, (a.y + b.y) / 2);
+      if (pinch.d > 0) zoomAt(d / pinch.d, mid.x, mid.y);
+      pinch.d = d; dragMoved = true;
+      return;
+    }
+    const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+    if (Math.abs(dx) + Math.abs(dy) > 0) {
+      const r = svg.getBoundingClientRect();
+      if (vb.w < BASE_VB.w) { vb.x -= (dx / r.width) * vb.w; vb.y -= (dy / r.height) * vb.h; clampVB(); applyVB(); }
+      if (Math.abs(dx) + Math.abs(dy) > 3) { dragMoved = true; svg.classList.add("dragging"); }
+    }
+  });
+  const end = (e) => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; svg.classList.remove("dragging"); };
+  svg.addEventListener("pointerup", end);
+  svg.addEventListener("pointercancel", end);
+  svg.addEventListener("pointerleave", () => { tip.style.display = "none"; });
+  svg.addEventListener("click", (e) => {
+    const cap = e.target.closest && e.target.closest(".btnCap");
+    if (cap && !dragMoved) virtualButton(parseInt(cap.getAttribute("data-btn"), 10));
+  });
+  function showTip(e) {
+    const g = e.target.closest && e.target.closest("[data-tip]");
+    if (!g) { tip.style.display = "none"; return; }
+    const t = g.getAttribute("data-tip");
+    tip.textContent = t; tip.style.display = "block";
+    $("boardInfo").textContent = t;
+    const r = wrapEl.getBoundingClientRect();
+    let x = e.clientX - r.left + 14, y = e.clientY - r.top + 14;
+    if (x + 290 > r.width) x = Math.max(6, e.clientX - r.left - 290);
+    if (y + 80 > r.height) y = e.clientY - r.top - 80;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  }
+  $("zoomIn").addEventListener("click", () => zoomCenter(1.5));
+  $("zoomOut").addEventListener("click", () => zoomCenter(1 / 1.5));
+  $("zoomReset").addEventListener("click", () => { vb = { ...BASE_VB }; applyVB(); });
+}
+
+/* ---- 畫面上的虛擬按鈕 ---- */
+function virtualButton(n) {
+  if (runMode === "hw" && port) { $("boardInfo").textContent = "硬體模式：虛擬按鈕只鏡像顯示，請按實體板子上的按鈕，或把模式改成「同步」"; return; }
+  boardPress(n);
+  if (useBoard() && SONGS[songIdx].builtin) {
+    if (!boardReady) { setInfo("板子還在啟動，請稍候"); return; }
+    sendChar(n === 1 ? "p" : "n");
+    return;
+  }
+  // 線上（或未連線）：由網頁自己模擬板子的按鈕行為
+  if (n === 1) { if (!playing) play(); }
+  else if (playing) stop();
+  else selectSong((songIdx + 1) % SONGS.length, false);
+}
+
+/* ---- 電腦發聲（線上模式／未連線時） ---- */
+let actx = null;
+function beep(n) {
+  if ($("muteChk").checked || n.rest) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    const t = actx.currentTime;
+    const dur = Math.max(0.03, (n.ms * ((model.song.gap || 90) / 100)) / 1000);
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = "square";
+    o.frequency.value = 440 * Math.pow(2, (n.semi - 9) / 12);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.05, t + 0.01);
+    g.gain.setValueAtTime(0.05, t + Math.max(0.011, dur - 0.02));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(actx.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  } catch (e) { /* 瀏覽器不支援就不發聲 */ }
+}
+
+function useBoard() { return !!port && runMode !== "online"; }
+
+$("modeSel").addEventListener("change", () => {
+  if (playing) stop();
+  runMode = $("modeSel").value;
+  $("boardWrap").classList.toggle("hwOnly", runMode === "hw");
+  const msg = { sync: "同步模式：板子和畫面雙向連動，點虛擬按鈕等於按實體按鈕", hw: "硬體模式：只操作實體板子，畫面跟著鏡像顯示", online: "線上模式：不使用實體板子，虛擬板自己跑，由電腦發聲" }[runMode];
+  $("boardInfo").textContent = msg;
+  setBadge();
+});
+
+/* ================= 樣式切換 ================= */
+function setTheme(name, save) {
+  themeName = THEMES.includes(name) ? name : "standard";
+  document.documentElement.setAttribute("data-theme", themeName);
+  document.querySelectorAll(".themeSeg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.theme === themeName)));
+  readThemeColors();
+  if (save) { try { localStorage.setItem("viz.theme", themeName); } catch (e) { /* 無法儲存就算了 */ } }
+}
+function applyThemeRedraw() {
+  // 重畫靜態譜面與已演奏上色（播放中也保留進度）
+  if (!model) return;
+  const keepScroll = wrap.scrollTop;
+  layout();
+  wrap.scrollTop = keepScroll;
+  if (animMode === "piano") layoutPiano();
+}
+(function initTheme() {
+  let saved = "standard";
+  try { saved = localStorage.getItem("viz.theme") || "standard"; } catch (e) { /* 預設 */ }
+  setTheme(saved, false);
+  document.querySelectorAll(".themeSeg button").forEach((b) => b.addEventListener("click", () => { setTheme(b.dataset.theme, true); applyThemeRedraw(); }));
+})();
+
+buildBoard();
+initPiano();
+buildMenu();
+$("songSel").addEventListener("change", () => selectSong(parseInt($("songSel").value, 10), false));
+$("btnOpenSong").addEventListener("click", () => $("songFile").click());
+$("songFile").addEventListener("change", async () => {
+  const f = $("songFile").files[0];
+  $("songFile").value = "";
+  if (!f) return;
+  if (playing) stop();
+  let d;
+  try { d = JSON.parse(await f.text()); }
+  catch (e) { alert(`「${f.name}」不是正確的歌曲檔（JSON 格式錯誤）：\n${e.message}`); return; }
+  addImportedSong(d, f.name);
+});
+selectSong(0, false);
+updateButtons();
+setBadge();
+initPorts();
+requestAnimationFrame(frame);
+
+// 讓外部（測試）能直接驅動畫面
+window.__viz = { onSongStart, onNote, onEnd, selectSong, get model() { return model; }, pHitLog };
+</script>
+</body>
+</html>

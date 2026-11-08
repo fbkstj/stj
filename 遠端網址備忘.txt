@@ -210,3 +210,6 @@ https://fbkstj.github.io/stj/#page/exam_digitization_workflow
 
 【行政與課程】考卷數位化成果（已考完期中考：題目卷與詳解 PDF）：
 https://fbkstj.github.io/stj/#page/exam_archive
+
+【模擬實作】Arduino 音符視覺化（五線譜／鋼琴動畫、虛擬控制板、Web Serial 連 Arduino Nano；原始產生器在雲端硬碟 114學年均質化上課簡報\Arduino\07_音符視覺化\tools）：
+https://fbkstj.github.io/stj/#page/arduino_music
