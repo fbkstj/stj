@@ -387,6 +387,7 @@
     </label>
     <button id="btnOpenSong" type="button" title="載入 songs 資料夾裡的 .json 歌曲檔">📂 開啟歌曲檔…</button>
     <input type="file" id="songFile" accept=".json,application/json" hidden>
+    <button id="btnCopyPrompt" type="button" title="複製後到 AI 工具上傳樂譜並貼上，AI 會產生可用「開啟歌曲檔」載入的 JSON">📋 複製 AI 讀譜提示語</button>
     <span class="songmeta" id="songMeta"></span>
   </div>
 
@@ -2138,6 +2139,30 @@ initPiano();
 buildMenu();
 $("songSel").addEventListener("change", () => selectSong(parseInt($("songSel").value, 10), false));
 $("btnOpenSong").addEventListener("click", () => $("songFile").click());
+/* ---- 複製學生用 AI 讀譜提示語（內容來自 songs\學生用AI讀譜提示語.md） ---- */
+const AI_PROMPT = "你是會看五線譜和簡譜的音樂老師。請讀我上傳的樂譜，把「主旋律」轉成下面規定格式的 JSON，讓我的「音符視覺化」網頁播放。\n\n【重要規則】\n1. 只根據我上傳的樂譜讀，不要憑記憶寫旋律，也不要上網找。\n2. 只讀主旋律（有兩個聲部疊在一起時，取學生齊唱的那一部；鋼琴譜只讀右手最上面那一行）。音符上方的小數字如果是指法，不要當成簡譜。\n3. 看不清楚或不確定的音，照樣先填你最可能的答案，但一定要寫進 uncertain，說明原因。\n4. 最後只輸出一個 JSON 程式碼區塊，前後用一兩句話說明你不確定的地方就好。\n\n【JSON 格式】\n{\n  \"title\": \"歌名\",\n  \"key\": \"調號\",\n  \"beats\": \"拍號\",\n  \"unitMs\": 90,\n  \"gap\": 88,\n  \"measure\": 一小節的長度,\n  \"pickup\": 弱起長度,\n  \"source\": \"樂譜檔名或來源\",\n  \"notes\": [[音高, 長度], [音高, 長度], ...],\n  \"lyrics\": \"歌詞\",\n  \"uncertain\": [{\"index\": 第幾個音, \"reason\": \"原因\"}]\n}\n\n【各欄位怎麼填】\n- key：只能填 C、G、D、A、E、B、F♯、F、B♭、E♭、A♭、D♭ 其中一個（看調號：沒有升降 = C，一個降 = F，兩個降 = B♭，一個升 = G，兩個升 = D，三個升 = A）。簡譜看「1=?」。\n- beats：例如 \"4/4\"、\"3/4\"、\"2/4\"。\n- unitMs：一個 32 分音符幾毫秒，一般填 90（數字越大越慢）。\n- gap：填 88。\n- measure：一小節有幾個 32 分音符。4/4 拍 = 32，3/4 拍 = 24，2/4 拍 = 16。\n- pickup：第一小節不完整（弱起）時，填它的長度；沒有弱起填 0。\n- 如果中間某一小節換了拍號，再加一個欄位 \"measureOverrides\": {\"小節編號\": 長度}，例如第 8 小節是 2/4 拍就寫 {\"8\": 16}（第 1 小節 = 弱起後第一個完整小節）。\n\n【音高：比中央 Do（C4）高幾個半音】\n- C4=0、D4=2、E4=4、F4=5、G4=7、A4=9、B4=11、C5=12、D5=14、E5=16、F5=17、G5=19、A5=21、B5=23、C6=24\n- 低八度減 12（例如 G3 = -5，C3 = -12）；升記號 +1、降記號 -1（例如 F♯4 = 6、B♭4 = 10、E♭4 = 3）。\n- 記得套用調號：例如 F 大調裡所有的 B 都是 B♭。\n- 休止符的音高寫 null。\n- 可用範圍是 -12（C3）到 24（C6），超出的話整首移高或移低一個八度。\n- 簡譜：1=C 時，1 2 3 4 5 6 7 = 0 2 4 5 7 9 11；數字上加點 +12、下加點 -12；1=G 時全部再 +7，以此類推。\n\n【長度：幾個 32 分音符（一定是正整數）】\n- 全音符 32、附點二分 24、二分 16、附點四分 12、四分 8、附點八分 6、八分 4、附點十六分 3、十六分 2、32 分 1\n- 簡譜：沒有底線 = 四分音符 8；一條底線 = 八分 4；兩條 = 十六分 2；後面加「-」每個 +8；附點 ×1.5。\n- 連結線（同一個音用弧線連起來）要合併成一個音，長度相加。\n\n【歌詞】\n- 一個音對一個字。一個字唱好幾個音（圓滑線）的地方，後面的音寫「_」；休止符也寫「_」。\n- lyrics 的總字數（含 _）必須剛好等於 notes 的音符數。\n- 樂譜上沒有歌詞，或是有版權的流行歌，lyrics 填空字串 \"\"。\n\n【輸出前自己檢查】\n1. 每一小節的長度加起來，要剛好等於 measure（弱起小節等於 pickup，換拍號的小節照 measureOverrides）。\n2. lyrics 字數 = notes 數量（或是空字串）。\n3. 音高都是整數或 null，長度都是正整數。\n4. 有不對的地方先修正再輸出。\n\n【範例】小蜜蜂第一句「嗡嗡嗡　嗡嗡嗡」（簡譜 5 3 3 - | 4 2 2 -）\n{\n  \"title\": \"小蜜蜂（第一句）\",\n  \"key\": \"C\", \"beats\": \"4/4\", \"unitMs\": 90, \"gap\": 88,\n  \"measure\": 32, \"pickup\": 0, \"source\": \"小蜜蜂簡譜\",\n  \"notes\": [[7, 8], [4, 8], [4, 16], [5, 8], [2, 8], [2, 16]],\n  \"lyrics\": \"嗡嗡嗡嗡嗡嗡\",\n  \"uncertain\": []\n}";
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) { /* 改用舊方法 */ }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand("copy");
+    ta.remove();
+    return ok;
+  } catch (e) { return false; }
+}
+$("btnCopyPrompt").addEventListener("click", async () => {
+  const btn = $("btnCopyPrompt");
+  if (!AI_PROMPT) { setInfo("找不到提示語檔案（songs\學生用AI讀譜提示語.md）"); return; }
+  if (await copyText(AI_PROMPT)) {
+    btn.textContent = "✅ 已複製！";
+    setTimeout(() => { btn.textContent = "📋 複製 AI 讀譜提示語"; }, 2500);
+    setInfo("已複製提示語：① 到 AI 工具<b>先上傳樂譜</b> ② 貼上提示語送出 ③ 把 AI 給的 JSON 存成「歌名.json」（UTF-8）④ 回來按「📂 開啟歌曲檔…」");
+  } else {
+    setInfo("瀏覽器不允許自動複製，請改開 songs 資料夾裡的「學生用AI讀譜提示語.md」手動複製");
+  }
+});
 $("songFile").addEventListener("change", async () => {
   const f = $("songFile").files[0];
   $("songFile").value = "";
