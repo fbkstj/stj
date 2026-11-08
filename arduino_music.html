@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>音符視覺化</title>
 <style>
-  /* 樣式：標準（預設）／淺色／柔和／深色。畫布上的顏色也從這些變數讀取 */
+  /* 樣式：標準／淺色（預設）／柔和／深色。畫布上的顏色也從這些變數讀取 */
   :root, :root[data-theme="standard"] {
     color-scheme: dark;
     --bg: #0e1018;
@@ -107,9 +107,19 @@
   html, body { margin: 0; background: var(--bg); color: var(--ink);
     font-family: "Segoe UI", "Microsoft JhengHei", "PingFang TC", system-ui, sans-serif; }
   body { min-height: 100vh; padding: 14px 16px 28px; }
-  .musicBanner { margin: 0 0 10px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; }
-  .musicBanner svg { display: block; width: 100%; height: clamp(96px, 12vw, 150px); }
-  .sub { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+  .musicBanner {
+    display: grid; grid-template-columns: minmax(0, 500fr) minmax(0, 644fr); align-items: center;
+    gap: 12px; padding: 8px 14px; margin-bottom: 10px; overflow: hidden;
+    border: 1px solid #bed3e4; border-radius: 18px;
+    background: linear-gradient(110deg, #fbfdff 0%, #edf5ff 54%, #eaf7f4 100%);
+  }
+  .musicBanner h1 { margin: 0; }
+  .musicBanner svg { display: block; width: 100%; height: auto; font-family: "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif; }
+  @media (max-width: 780px) {
+    .musicBanner { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 6px 10px; }
+    .musicBanner h1 { max-width: 500px; }
+  }
+  .sub { color: var(--muted); font-size: 13px; margin: 0; }
   .wrap { max-width: 1240px; margin: 0 auto; }
 
   .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
@@ -142,8 +152,7 @@
   .songbox select.small { width: auto; min-width: 130px; }
   .pianoWrap { margin-top: 10px; border-radius: 10px; overflow: hidden; background: var(--fallBg); }
   /* 樣式切換（分段按鈕） */
-  .kicker { color: var(--muted); font-size: 16px; line-height: 1.5; letter-spacing: .03em; margin: 2px 0 4px; }
-  .titleRow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+  .titleRow { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-bottom: 12px; }
   .themeSeg { display: inline-flex; align-items: center; gap: 2px; padding: 4px; border-radius: 999px;
     background: var(--panel2); border: 1px solid var(--line); }
   .themeSeg .lbl { color: var(--muted); font-size: 13px; padding: 0 8px 0 10px; font-weight: 600; }
@@ -213,85 +222,93 @@
 </head>
 <body>
 <div class="wrap">
-  <h1 class="musicBanner">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 144" preserveAspectRatio="xMinYMid slice"
-         role="img" aria-labelledby="musicBannerTitle">
-      <title id="musicBannerTitle">音符視覺化</title>
+  <header class="musicBanner">
+    <h1>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 192" role="img"
+           aria-labelledby="musicBannerTitle musicBannerProject">
+        <title id="musicBannerTitle">音符視覺化</title>
+        <desc id="musicBannerProject">均質化子計畫名稱：社區學校合作辦理職涯試探與學術試探活動</desc>
+        <defs>
+          <linearGradient id="musicMark" x2="1" y2="1">
+            <stop stop-color="#245c9d"/>
+            <stop offset="1" stop-color="#158285"/>
+          </linearGradient>
+        </defs>
+        <rect x="20" y="27" width="70" height="70" rx="19" fill="url(#musicMark)"/>
+        <g transform="translate(20 27)" fill="#fff">
+          <ellipse cx="25" cy="49" rx="8" ry="5" transform="rotate(-18 25 49)"/>
+          <ellipse cx="45" cy="42" rx="8" ry="5" transform="rotate(-18 45 42)"/>
+          <path d="M32 48V27l20-7v21M32 32l20-7" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        </g>
+        <text x="110" y="44" fill="#206d76" font-size="15" font-weight="700" letter-spacing="2.2">ARDUINO NANO × MUSIC</text>
+        <text x="108" y="91" fill="#172e53" font-size="47" font-weight="800" letter-spacing="3">音符視覺化</text>
+        <path d="M20 117h440" stroke="#b9cfde"/>
+        <text x="20" y="141" fill="#206d76" font-size="16" font-weight="700">均質化子計畫名稱</text>
+        <text x="20" y="168" fill="#2f4864" font-size="19" font-weight="600">社區學校合作辦理職涯試探與學術試探活動</text>
+      </svg>
+    </h1>
+    <svg class="musicFlow" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 644 192" role="img"
+         aria-labelledby="musicFlowTitle">
+      <title id="musicFlowTitle">輸入樂譜，由代理 AI 辨識音高與節拍，再選擇用電腦或 Arduino 演奏</title>
       <defs>
-        <linearGradient id="bannerBg">
-          <stop stop-color="#10192d"/>
-          <stop offset=".56" stop-color="#182648"/>
-          <stop offset="1" stop-color="#24224c"/>
-        </linearGradient>
-        <linearGradient id="bannerMark" x2="1" y2="1" gradientUnits="objectBoundingBox">
-          <stop stop-color="#70eadc"/>
-          <stop offset="1" stop-color="#81aaff"/>
-        </linearGradient>
-        <pattern id="bannerGrid" width="22" height="22" patternUnits="userSpaceOnUse">
-          <circle cx="1" cy="1" r="1" fill="#b6cdff" opacity=".18"/>
+        <pattern id="musicGrid" width="14" height="14" patternUnits="userSpaceOnUse">
+          <circle cx="2" cy="2" r="1" fill="#7199bd" opacity=".23"/>
         </pattern>
+        <linearGradient id="musicAgent" x2="1" y2="1">
+          <stop stop-color="#e1ecff"/>
+          <stop offset="1" stop-color="#e4f6f4"/>
+        </linearGradient>
       </defs>
-      <path fill="url(#bannerBg)" d="M0 0h1200v144H0z"/>
-      <path fill="url(#bannerGrid)" d="M480 0h720v144H480z"/>
-      <g transform="translate(32 36)">
-        <rect width="72" height="72" rx="19" fill="url(#bannerMark)"/>
-        <g fill="#142344" stroke="#142344" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-          <ellipse cx="28" cy="49" rx="7" ry="4" transform="rotate(-18 28 49)"/>
-          <ellipse cx="46" cy="41" rx="7" ry="4" transform="rotate(-18 46 41)"/>
-          <path d="M34 48V27l18-8v21M34 32l18-8" fill="none"/>
-        </g>
+      <rect x="0" y="8" width="640" height="176" rx="24" fill="url(#musicGrid)"/>
+      <g fill="none" stroke="#3c8a9f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M176 96h34m-7-6 7 6-7 6M390 96h23l28-44h25m-7-6 7 6-7 6M413 96l28 44h25m-7-6 7 6-7 6"/>
       </g>
-      <text x="128" y="49" fill="#9be9e4" font-family="system-ui, sans-serif" font-size="14" font-weight="700" letter-spacing="2.8">ARDUINO NANO × MUSIC</text>
-      <text x="126" y="101" fill="#f5f8ff" font-family="'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif" font-size="46" font-weight="800" letter-spacing="4">音符視覺化</text>
-      <g fill="none" stroke-linejoin="round">
-        <path d="M490 51H836M490 62H836M490 73H836M490 84H836M490 95H836" stroke="#b7cbff" opacity=".27"/>
-        <path d="M838 62h38l17-17h54m-109 39h60l17 17h32m140-56h42l19-19h39m-100 74h27l16 16h56" stroke="#8de5e1" stroke-width="2" opacity=".6"/>
+      <circle cx="413" cy="96" r="4" fill="#3c8a9f"/>
+      <rect x="8" y="30" width="168" height="132" rx="18" fill="#fff" stroke="#bdd3e4"/>
+      <rect x="211" y="30" width="179" height="132" rx="18" fill="url(#musicAgent)" stroke="#9ab9d7"/>
+      <rect x="467" y="15" width="169" height="74" rx="16" fill="#fff" stroke="#bdd3e4"/>
+      <rect x="467" y="103" width="169" height="74" rx="16" fill="#fff" stroke="#bdd3e4"/>
+      <g fill="none" stroke="#285d98" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M78 45h21l8 8v26H78zM99 45v8h8M84 60h17m-17 6h17m-17 6h17"/>
+        <path d="M93 70V57l6 2"/>
+        <ellipse cx="90" cy="70" rx="3" ry="2" fill="#285d98"/>
+        <rect x="478" y="35" width="25" height="17" rx="3"/>
+        <path d="M491 52v5m-6 0h12m9-16q7 5 0 10"/>
       </g>
-      <g stroke-width="3" stroke-linejoin="round">
-        <g fill="#74e5d6" stroke="#74e5d6">
-          <ellipse cx="530" cy="84" rx="7" ry="4" transform="rotate(-17 530 84)"/>
-          <path d="M536 83V55"/>
-          <ellipse cx="760" cy="79" rx="7" ry="4" transform="rotate(-17 760 79)"/>
-          <path d="M766 78V49"/>
-        </g>
-        <g fill="#a7bfff" stroke="#a7bfff">
-          <ellipse cx="588" cy="73" rx="7" ry="4" transform="rotate(-17 588 73)"/>
-          <ellipse cx="633" cy="62" rx="7" ry="4" transform="rotate(-17 633 62)"/>
-          <path d="M594 72V44l45-11v28m-45-13 45-11" fill="none"/>
-        </g>
-        <g fill="#ffd381" stroke="#ffd381">
-          <ellipse cx="704" cy="51" rx="7" ry="4" transform="rotate(-17 704 51)"/>
-          <path d="M710 50V24q4 7 12 9" fill="none"/>
-        </g>
+      <g fill="none" stroke="#167773" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M300 43l5 12 12 5-12 5-5 12-5-12-12-5 12-5zM319 44v9m-4-4h8m-42 20v8m-4-4h8"/>
+        <rect x="477" y="127" width="31" height="20" rx="4"/>
+        <rect x="486" y="132" width="11" height="10" rx="2" fill="#167773"/>
+        <path d="M481 127v-4m7 4v-4m7 4v-4m7 4v-4m-21 24v4m7-4v4m7-4v4m7-4v4"/>
       </g>
-      <g fill="#8de5e1">
-        <circle cx="838" cy="62" r="3"/><circle cx="838" cy="84" r="3"/>
-        <circle cx="1187" cy="26" r="3"/><circle cx="1186" cy="116" r="3"/>
+      <g fill="#172e53" font-size="24" font-weight="800" text-anchor="middle">
+        <text x="92" y="113">輸入樂譜</text>
+        <text x="300" y="113">代理 AI 讀譜</text>
       </g>
-      <g transform="translate(947 28)">
-        <rect width="140" height="88" rx="14" fill="#101a32" stroke="#5e86b0"/>
-        <rect x="15" y="16" width="110" height="55" rx="5" fill="#e2ecff"/>
-        <path d="M37 16v55m22-55v55m22-55v55m22-55v55" stroke="#425473"/>
-        <path d="M59 48h22v23H59z" fill="#75dfd2"/>
-        <path d="M31 16h12v31H31zM53 16h12v31H53zM97 16h12v31H97z" fill="#192640"/>
-        <rect x="75" y="16" width="12" height="31" rx="2" fill="#ffd381"/>
-        <path d="M29 80h82" stroke="#46648f" stroke-width="2" stroke-linecap="round"/>
+      <g fill="#345571" font-size="17" font-weight="600" text-anchor="middle">
+        <text x="92" y="138">簡譜或五線譜</text>
+        <text x="300" y="138">辨識音高與節拍</text>
+      </g>
+      <g fill="#172e53" font-size="20" font-weight="800">
+        <text x="518" y="49">電腦演奏</text>
+        <text x="518" y="137">Arduino</text>
+      </g>
+      <g fill="#345571" font-size="17" font-weight="600">
+        <text x="518" y="71">喇叭發聲</text>
+        <text x="518" y="159">蜂鳴器・LED</text>
       </g>
     </svg>
-  </h1>
+  </header>
   <div class="titleRow">
-    <div class="titleBlock">
-      <div class="kicker">均質化-子計畫名稱：社區學校合作辦理職涯試探與學術試探活動</div>
-    </div>
+    <p class="sub">選一首歌，或開啟 AI 轉出的歌曲檔（JSON），再按「播放」。</p>
     <div class="themeSeg" role="group" aria-label="樣式">
       <span class="lbl">樣式</span>
-      <button type="button" data-theme="standard" aria-pressed="true">標準</button>
-      <button type="button" data-theme="light" aria-pressed="false">淺色</button>
+      <button type="button" data-theme="standard" aria-pressed="false">標準</button>
+      <button type="button" data-theme="light" aria-pressed="true">淺色</button>
       <button type="button" data-theme="soft" aria-pressed="false">柔和</button>
       <button type="button" data-theme="dark" aria-pressed="false">深色</button>
     </div>
   </div>
-  <div class="sub">Arduino 演奏到哪個音，畫面上的音符就跟著跳動。選一首歌，按「播放」。</div>
 
   <div class="bar">
     <label class="portbox">連接埠
@@ -412,7 +429,8 @@ let INK = "#e9eaf2";          // 譜面音符顏色（隨樣式改變）
 let STAFF = "#7d84a8";        // 譜線顏色（隨樣式改變）
 const TC = { fallBg: "#0d1019", fallGrid: "#222842", fallGrid2: "#181c2c", bannerBg: "rgba(14,16,24,.78)", accent: "#ffcc4d" };
 const THEMES = ["standard", "light", "soft", "dark"];
-let themeName = "standard";
+const DEFAULT_THEME = "light";
+let themeName = DEFAULT_THEME;
 function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 function readThemeColors() {
   INK = cssVar("--noteInk") || INK;
@@ -1892,7 +1910,7 @@ $("modeSel").addEventListener("change", () => {
 
 /* ================= 樣式切換 ================= */
 function setTheme(name, save) {
-  themeName = THEMES.includes(name) ? name : "standard";
+  themeName = THEMES.includes(name) ? name : DEFAULT_THEME;
   document.documentElement.setAttribute("data-theme", themeName);
   document.querySelectorAll(".themeSeg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.theme === themeName)));
   readThemeColors();
@@ -1907,8 +1925,8 @@ function applyThemeRedraw() {
   if (animMode === "piano") layoutPiano();
 }
 (function initTheme() {
-  let saved = "standard";
-  try { saved = localStorage.getItem("viz.theme") || "standard"; } catch (e) { /* 預設 */ }
+  let saved = DEFAULT_THEME;
+  try { saved = localStorage.getItem("viz.theme") || DEFAULT_THEME; } catch (e) { /* 預設 */ }
   setTheme(saved, false);
   document.querySelectorAll(".themeSeg button").forEach((b) => b.addEventListener("click", () => { setTheme(b.dataset.theme, true); applyThemeRedraw(); }));
 })();
