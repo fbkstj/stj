@@ -114,11 +114,7 @@
     background: linear-gradient(110deg, #fbfdff 0%, #edf5ff 54%, #eaf7f4 100%);
   }
   .musicBanner h1 { margin: 0; }
-  .musicBanner .logoStatic { display: none; }
-  @media (prefers-reduced-motion: reduce) {
-    .musicBanner .logoAnim { display: none; }
-    .musicBanner .logoStatic { display: inline; }
-  }
+  .musicBanner .logoStatic { display: none; }   /* 一律顯示 GIF 動畫 LOGO（使用者要求，即使系統關閉動畫效果也播放） */
   .musicBanner svg { display: block; width: 100%; height: auto; font-family: "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif; }
   @media (max-width: 780px) {
     .musicBanner { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 6px 10px; }
