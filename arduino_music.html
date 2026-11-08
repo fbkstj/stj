@@ -362,6 +362,7 @@
       </select>
     </label>
     <label class="chk"><input type="checkbox" id="muteChk"> 靜音</label>
+    <label class="chk" title="電腦喇叭自動配和弦（板子的蜂鳴器一次只能發一個音）"><input type="checkbox" id="chordChk" checked> 和弦伴奏</label>
     <span id="badgeMode" class="badge sim">模擬模式（未連線）</span>
     <span class="spacer"></span>
     <button id="btnPlay">▶ 播放</button>
@@ -552,6 +553,54 @@ function spell(semi, key) {
   if (alt !== keyAlt) acc = alt === 1 ? "♯" : alt === -1 ? "♭" : "♮";
   return { letter, alt, octave, acc, d: octave * 7 + LETTERS.indexOf(letter) };
 }
+/* ================= 自動配和弦 =================
+   歌曲資料只有旋律，所以每兩拍（16 個 32 分音符）看旋律用了哪些音，
+   從該調的 I、ii、iii、IV、V、vi 六個和弦挑最搭的；開頭、結尾偏好主和弦 I。 */
+const KEY_TONIC = { C: 0, G: 7, D: 2, A: 9, E: 4, B: 11, "F♯": 6, F: 5, "B♭": 10, Bb: 10, "E♭": 3, Eb: 3, "A♭": 8, Ab: 8, "D♭": 1, Db: 1 };
+const MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11];
+const CHORD_BIAS = [0.35, 0.05, 0, 0.2, 0.28, 0.1];       // I ii iii IV V vi 的偏好
+const PC_SHARP = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
+const PC_FLAT = ["C", "D♭", "D", "E♭", "E", "F", "G♭", "G", "A♭", "A", "B♭", "B"];
+function buildChords(song, notes) {
+  const tonic = KEY_TONIC[song.key] !== undefined ? KEY_TONIC[song.key] : 0;
+  const names = (KEY_SIG[song.key] || 0) < 0 ? PC_FLAT : PC_SHARP;
+  const cands = [0, 1, 2, 3, 4, 5].map((d) => {
+    const pcs = [0, 2, 4].map((k) => (tonic + MAJOR_STEPS[(d + k) % 7]) % 12);
+    const minor = d === 1 || d === 2 || d === 5;
+    return { d, pcs, root: pcs[0], name: names[pcs[0]] + (minor ? "m" : "") };
+  });
+  const total = notes.length ? notes[notes.length - 1].start + notes[notes.length - 1].units : 0;
+  const SEG = 16;
+  const bounds = [0];
+  let b = song.pickup > 0 ? song.pickup : SEG;
+  while (b < total) { bounds.push(b); b += SEG; }
+  bounds.push(total);
+  const segs = [];
+  let prev = null;
+  for (let s = 0; s + 1 < bounds.length; s++) {
+    const a = bounds[s], z = bounds[s + 1];
+    const inSeg = notes.filter((n) => !n.rest && n.start + n.units > a && n.start < z);
+    let best = prev;
+    if (inSeg.length) {
+      let bestScore = -1;
+      for (const c of cands) {
+        let sc = CHORD_BIAS[c.d] * (z - a);
+        inSeg.forEach((n, k) => {
+          const dur = Math.min(n.start + n.units, z) - Math.max(n.start, a);
+          const pc = ((n.semi % 12) + 12) % 12;
+          if (c.pcs.includes(pc)) sc += dur * (k === 0 ? 1.5 : 1);     // 拍點上的音比較重要
+          else sc -= dur * 0.3;
+        });
+        if ((s === 0 || s + 2 === bounds.length) && c.d === 0) sc += 0.4 * (z - a);   // 頭尾偏好主和弦
+        if (sc > bestScore) { bestScore = sc; best = c; }
+      }
+    }
+    segs.push({ startU: a, endU: z, msStart: a * song.unitMs, ms: (z - a) * song.unitMs, chord: best, fresh: best !== prev });
+    prev = best;
+  }
+  return segs;
+}
+
 function nameOf(n) {
   return n.letter + (n.alt === 1 ? "♯" : n.alt === -1 ? "♭" : "") + n.octave;
 }
@@ -684,7 +733,8 @@ function buildModel(song, width) {
     n.stemEnd = n.group ? n.group.beamY : n.stemUp ? n.y - 3.4 * SP : n.y + 3.4 * SP;
   }
 
-  return { song, notes, lines, groups, SP, SYS_H, totalMs, height: top0 + lines.length * SYS_H + 20, width };
+  const chords = buildChords(song, notes);
+  return { song, notes, lines, groups, chords, SP, SYS_H, totalMs, height: top0 + lines.length * SYS_H + 20, width };
 }
 
 /* ================= 繪圖元件 ================= */
@@ -927,6 +977,7 @@ function frame(now) {
   lastFrame = now;
   simTick(now);
   if (animMode === "piano") drawPiano(now, dt);
+  chordTick(now);
 
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, cssW, cssH);
@@ -1047,6 +1098,7 @@ function onSongStart() {
   $("bar").style.width = "0%";
   setInfo("演奏中…");
   pianoReset();
+  chordIdx = -1; stopChordVoices();
 }
 
 function onNote(i) {
@@ -1063,7 +1115,8 @@ function onNote(i) {
   pianoOnNote(i, noteAt);
   $("bar").style.width = ((n.msStart / model.totalMs) * 100).toFixed(1) + "%";
   const si = singingIndex(i);
-  const label = (n.rest ? "休止符" : `<b>${nameOf(n)}</b>`) + (si >= 0 ? `　「<b>${model.notes[si].lyric}</b>」` : "");
+  const cn = $("chordChk").checked ? chordNameAt(n.start) : "";
+  const label = (n.rest ? "休止符" : `<b>${nameOf(n)}</b>`) + (si >= 0 ? `　「<b>${model.notes[si].lyric}</b>」` : "") + (cn ? `　和弦 <b>${cn}</b>` : "");
   setInfo(`第 <b>${i + 1}</b> / ${model.notes.length} 個音　${label}`);
   // 自動捲動到目前這一行
   const ln = model.lines[n.line];
@@ -1074,6 +1127,7 @@ function onNote(i) {
 function onEnd() {
   const finished = model && maxIndex >= model.notes.length - 1;
   pianoOnEnd(!!finished);
+  stopChordVoices(); chordIdx = -1;
   if (active) { markPlayed(active.i); active = null; }
   setLed(-1);
   playing = false; updateButtons();
@@ -1984,6 +2038,58 @@ function beep(n) {
   } catch (e) { /* 瀏覽器不支援就不發聲 */ }
 }
 
+/* ---- 和弦伴奏（只用電腦喇叭；板子的蜂鳴器一次只能發一個音） ---- */
+let chordVoices = [], chordIdx = -1;
+function chordsEnabled() { return $("chordChk").checked && !$("muteChk").checked; }
+function stopChordVoices() {
+  if (!actx) { chordVoices = []; return; }
+  const t = actx.currentTime;
+  for (const v of chordVoices) {
+    try { v.g.gain.cancelScheduledValues(t); v.g.gain.setTargetAtTime(0.0001, t, 0.03); v.o.stop(t + 0.2); } catch (e) { /* 已停止 */ }
+  }
+  chordVoices = [];
+}
+function playChordSeg(seg) {
+  stopChordVoices();
+  if (!seg || !seg.chord || !chordsEnabled()) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    const t = actx.currentTime, dur = Math.max(0.2, seg.ms / 1000);
+    // 和弦三個音放在 C3～B3（旋律下方），再加一個低八度的根音當低音
+    const tones = seg.chord.pcs.map((p) => -12 + p).sort((a, b) => a - b);
+    tones.unshift(-24 + seg.chord.root);
+    tones.forEach((s, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = i === 0 ? "sine" : "triangle";
+      o.frequency.value = 440 * Math.pow(2, (s - 9) / 12);
+      const peak = i === 0 ? 0.055 : 0.024;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(peak * 0.6, t + Math.min(0.35, dur * 0.5));
+      g.gain.setValueAtTime(peak * 0.6, t + Math.max(0.36, dur - 0.08));
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(actx.destination);
+      o.start(t); o.stop(t + dur + 0.05);
+      chordVoices.push({ o, g });
+    });
+  } catch (e) { /* 瀏覽器不支援就不發聲 */ }
+}
+// 每個畫格檢查：曲子時間走到下一段（兩拍）就換和弦。時間軸和鋼琴動畫共用，接板子時也會對齊
+function chordTick(now) {
+  if (!playing || !model || !model.chords || !model.chords.length) return;
+  const st = pSongTime(now);
+  if (st === null || st < 0) return;
+  let k = chordIdx;
+  while (k + 1 < model.chords.length && st >= model.chords[k + 1].msStart) k++;
+  if (k !== chordIdx && k >= 0) { chordIdx = k; playChordSeg(model.chords[k]); }
+}
+function chordNameAt(startU) {
+  if (!model || !model.chords) return "";
+  const seg = model.chords.find((c) => startU >= c.startU && startU < c.endU);
+  return seg && seg.chord ? seg.chord.name : "";
+}
+
 function useBoard() { return !!port && runMode !== "online"; }
 
 $("modeSel").addEventListener("change", () => {
@@ -2016,6 +2122,15 @@ function applyThemeRedraw() {
   try { saved = localStorage.getItem("viz.theme") || DEFAULT_THEME; } catch (e) { /* 預設 */ }
   setTheme(saved, false);
   document.querySelectorAll(".themeSeg button").forEach((b) => b.addEventListener("click", () => { setTheme(b.dataset.theme, true); applyThemeRedraw(); }));
+})();
+
+(function initChordToggle() {
+  try { const v = localStorage.getItem("viz.chords"); if (v !== null) $("chordChk").checked = v === "1"; } catch (e) { /* 預設開 */ }
+  $("chordChk").addEventListener("change", () => {
+    try { localStorage.setItem("viz.chords", $("chordChk").checked ? "1" : "0"); } catch (e) { /* 無法儲存 */ }
+    if (!chordsEnabled()) stopChordVoices(); else chordIdx = -1;
+  });
+  $("muteChk").addEventListener("change", () => { if (!chordsEnabled()) stopChordVoices(); else chordIdx = -1; });
 })();
 
 buildBoard();
