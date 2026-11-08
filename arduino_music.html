@@ -602,6 +602,7 @@ let mode = "idle";                 // idle | sim | serial
 let playing = false;
 let sim = null;                    // 模擬播放狀態
 let port = null, writer = null, readerLoopOn = false, boardReady = false;
+let serialReader = null, serialPipe = null;   // 讀取中的串流：中斷連線時要先取消，port.close() 才會真的放開 COM 埠
 let dpr = 1, cssW = 900, cssH = 400;
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -1336,6 +1337,7 @@ async function readLoop() {
   const dec = new TextDecoderStream();
   const closed = port.readable.pipeTo(dec.writable).catch(() => {});
   const reader = dec.readable.getReader();
+  serialReader = reader; serialPipe = closed;
   let buf = "";
   try {
     for (;;) {
@@ -1371,9 +1373,14 @@ async function sendChar(ch) {
 
 async function disconnectSerial(silent) {
   const p = port; port = null; boardReady = false;
+  // 先停止讀取（串流被鎖住時 close() 會失敗，COM 埠就一直被占著，燒錄會「存取被拒」）
+  const rd = serialReader, pipe = serialPipe;
+  serialReader = null; serialPipe = null;
+  try { if (rd) await rd.cancel(); } catch (e) {}
+  try { if (pipe) await pipe; } catch (e) {}
   try { if (writer) { writer.releaseLock(); } } catch (e) {}
   writer = null;
-  try { if (p) await p.close(); } catch (e) {}
+  try { if (p) await p.close(); } catch (e) { console.warn("序列埠關閉失敗", e); }
   mode = "idle"; playing = false; active = null; setLed(-1); updateButtons(); setBadge();
   refreshPorts(true);
   if (!silent) setInfo("已中斷連線");
