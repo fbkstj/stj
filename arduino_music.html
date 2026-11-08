@@ -266,10 +266,38 @@
         <path d="M176 96h34m-7-6 7 6-7 6M390 96h23l28-44h25m-7-6 7 6-7 6M413 96l28 44h25m-7-6 7 6-7 6"/>
       </g>
       <circle cx="413" cy="96" r="4" fill="#3c8a9f"/>
-      <rect x="8" y="30" width="168" height="132" rx="18" fill="#fff" stroke="#bdd3e4"/>
-      <rect x="211" y="30" width="179" height="132" rx="18" fill="url(#musicAgent)" stroke="#9ab9d7"/>
-      <rect x="467" y="15" width="169" height="74" rx="16" fill="#fff" stroke="#bdd3e4"/>
-      <rect x="467" y="103" width="169" height="74" rx="16" fill="#fff" stroke="#bdd3e4"/>
+      <!-- 流程動畫（3 秒一輪）：輸入樂譜亮 → 小球沿箭頭跑 → AI 讀譜亮、✦ 閃爍 → 小球分兩路 → 兩個輸出亮 -->
+      <rect x="8" y="30" width="168" height="132" rx="18" fill="#fff" stroke="#bdd3e4">
+        <animate attributeName="stroke" values="#bdd3e4;#2f7fb8;#2f7fb8;#bdd3e4;#bdd3e4" keyTimes="0;0.03;0.2;0.28;1" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-width" values="1;3;3;1;1" keyTimes="0;0.03;0.2;0.28;1" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="211" y="30" width="179" height="132" rx="18" fill="url(#musicAgent)" stroke="#9ab9d7">
+        <animate attributeName="stroke" values="#9ab9d7;#9ab9d7;#167773;#167773;#9ab9d7;#9ab9d7" keyTimes="0;0.25;0.28;0.55;0.62;1" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-width" values="1;1;3;3;1;1" keyTimes="0;0.25;0.28;0.55;0.62;1" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="467" y="15" width="169" height="74" rx="16" fill="#fff" stroke="#bdd3e4">
+        <animate attributeName="stroke" values="#bdd3e4;#bdd3e4;#2f7fb8;#2f7fb8;#bdd3e4" keyTimes="0;0.74;0.78;0.97;1" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-width" values="1;1;3;3;1" keyTimes="0;0.74;0.78;0.97;1" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <rect x="467" y="103" width="169" height="74" rx="16" fill="#fff" stroke="#bdd3e4">
+        <animate attributeName="stroke" values="#bdd3e4;#bdd3e4;#167773;#167773;#bdd3e4" keyTimes="0;0.74;0.78;0.97;1" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-width" values="1;1;3;3;1" keyTimes="0;0.74;0.78;0.97;1" dur="3s" repeatCount="indefinite"/>
+      </rect>
+      <!-- 沿箭頭跑的小球 -->
+      <g fill="#ffb000">
+        <circle r="5" opacity="0">
+          <animateMotion path="M176 96H210" dur="3s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.06;0.25;1"/>
+          <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.05;0.07;0.24;0.26;1" dur="3s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="5" opacity="0">
+          <animateMotion path="M390 96H413L441 52H466" dur="3s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.56;0.76;1"/>
+          <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.55;0.57;0.75;0.77;1" dur="3s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="5" opacity="0">
+          <animateMotion path="M390 96H413L441 140H466" dur="3s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0.56;0.76;1"/>
+          <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.55;0.57;0.75;0.77;1" dur="3s" repeatCount="indefinite"/>
+        </circle>
+      </g>
       <g fill="none" stroke="#285d98" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M78 45h21l8 8v26H78zM99 45v8h8M84 60h17m-17 6h17m-17 6h17"/>
         <path d="M93 70V57l6 2"/>
@@ -277,8 +305,16 @@
         <rect x="478" y="35" width="25" height="17" rx="3"/>
         <path d="M491 52v5m-6 0h12m9-16q7 5 0 10"/>
       </g>
+      <!-- AI 讀譜時 ✦ 放大閃爍 -->
+      <g transform="translate(300 60)">
+        <g>
+          <animateTransform attributeName="transform" type="scale" values="1;1;1.3;1;1.3;1;1" keyTimes="0;0.28;0.35;0.42;0.49;0.56;1" dur="3s" repeatCount="indefinite"/>
+          <g transform="translate(-300 -60)" fill="none" stroke="#167773" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M300 43l5 12 12 5-12 5-5 12-5-12-12-5 12-5zM319 44v9m-4-4h8m-42 20v8m-4-4h8"/>
+          </g>
+        </g>
+      </g>
       <g fill="none" stroke="#167773" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M300 43l5 12 12 5-12 5-5 12-5-12-12-5 12-5zM319 44v9m-4-4h8m-42 20v8m-4-4h8"/>
         <rect x="477" y="127" width="31" height="20" rx="4"/>
         <rect x="486" y="132" width="11" height="10" rx="2" fill="#167773"/>
         <path d="M481 127v-4m7 4v-4m7 4v-4m7 4v-4m-21 24v4m7-4v4m7-4v4m7-4v4"/>
