@@ -1135,7 +1135,26 @@ function buildMenu() {
   sel.appendChild(gIn);
   if (n) sel.appendChild(gImp);
 }
+// 看起來像帳號金鑰／憑證檔（Google OAuth、服務帳戶、token 等）
+function looksLikeCredential(d, fileName) {
+  if (/client_secret|credential|token|secret|apikey|api_key|service[-_]?account/i.test(fileName)) return true;
+  if (!d || typeof d !== "object") return false;
+  const keys = Object.keys(d).concat(d.installed ? Object.keys(d.installed) : [], d.web ? Object.keys(d.web) : []);
+  return keys.some((k) => /client_id|client_secret|private_key|access_token|refresh_token|api_key/i.test(k));
+}
 function addImportedSong(d, fileName) {
+  if (looksLikeCredential(d, fileName)) {
+    alert(`「${fileName}」看起來是帳號金鑰（憑證）檔，不是歌曲檔，所以沒有載入。\n\n` +
+      "請放心：網頁只在你的電腦上讀取檔案，不會上傳到任何地方。\n" +
+      "但這類金鑰檔請不要分享或傳給別人。\n\n" +
+      "歌曲檔通常放在 songs 資料夾，裡面會有 title、notes 等欄位。");
+    return;
+  }
+  if (d && typeof d === "object" && !("notes" in d) && !("title" in d)) {
+    alert(`「${fileName}」不是歌曲檔（裡面沒有 title、notes 等歌曲資料），所以沒有載入。\n\n` +
+      "歌曲檔通常放在 songs 資料夾，格式說明在同資料夾的 README.md。");
+    return;
+  }
   const errs = songErrors(d);
   if (errs.length) {
     alert(`「${fileName}」不能載入，請檢查：\n・${errs.join("\n・")}\n\n格式說明在 songs 資料夾的 README.md`);
