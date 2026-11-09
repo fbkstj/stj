@@ -604,6 +604,8 @@ let STAFF = "#7d84a8";        // 譜線顏色（隨樣式改變）
 const TC = { fallBg: "#0d1019", fallGrid: "#222842", fallGrid2: "#181c2c", bannerBg: "rgba(14,16,24,.78)", accent: "#ffcc4d" };
 const THEMES = ["standard", "light", "soft", "dark"];
 const DEFAULT_THEME = "light";
+// 2026-11-09 改用新的儲存名稱：預設改成淺色後，讓之前存過的舊選擇（例如深色）失效一次，大家都回到淺色
+const THEME_KEY = "viz.theme2";
 let themeName = DEFAULT_THEME;
 function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 function readThemeColors() {
@@ -2282,7 +2284,7 @@ function setTheme(name, save) {
   document.documentElement.setAttribute("data-theme", themeName);
   document.querySelectorAll(".themeSeg button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.theme === themeName)));
   readThemeColors();
-  if (save) { try { localStorage.setItem("viz.theme", themeName); } catch (e) { /* 無法儲存就算了 */ } }
+  if (save) { try { localStorage.setItem(THEME_KEY, themeName); } catch (e) { /* 無法儲存就算了 */ } }
 }
 function applyThemeRedraw() {
   // 重畫靜態譜面與已演奏上色（播放中也保留進度）
@@ -2294,7 +2296,7 @@ function applyThemeRedraw() {
 }
 (function initTheme() {
   let saved = DEFAULT_THEME;
-  try { saved = localStorage.getItem("viz.theme") || DEFAULT_THEME; } catch (e) { /* 預設 */ }
+  try { saved = localStorage.getItem(THEME_KEY) || DEFAULT_THEME; } catch (e) { /* 預設 */ }
   setTheme(saved, false);
   document.querySelectorAll(".themeSeg button").forEach((b) => b.addEventListener("click", () => { setTheme(b.dataset.theme, true); applyThemeRedraw(); }));
 })();
