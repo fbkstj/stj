@@ -262,11 +262,11 @@
   .boardTip { position: absolute; pointer-events: none; background: rgba(10, 12, 20, .94); border: 1px solid var(--line);
     color: var(--ink); font-size: 13px; padding: 6px 10px; border-radius: 8px; max-width: 280px; display: none; z-index: 5; line-height: 1.55; }
   .boardInfo { font-size: 13px; color: var(--muted); margin-top: 8px; min-height: 20px; text-align: center; line-height: 1.6; }
-  @media (prefers-reduced-motion: reduce) { #board .waves.on path { animation: none; opacity: .8; } }
+  .reduceMotion #board .waves.on path { animation: none; opacity: .8; }   /* 「效果」選精簡（或跟隨系統且系統關閉動畫）時 */
 
   @media (max-width: 860px) { .menu { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 480px) { .menu { grid-template-columns: 1fr; } body { padding: 10px; } }
-  @media (prefers-reduced-motion: reduce) { #scoreWrap { scroll-behavior: auto; } }
+  .reduceMotion #scoreWrap { scroll-behavior: auto; }
 </style>
 </head>
 <body>
@@ -432,6 +432,13 @@
       <select id="keysSel" class="small" aria-label="選擇鋼琴鍵數">
         <option value="88">88 鍵（完整鋼琴）</option>
         <option value="37">37 鍵（C3～C6）</option>
+      </select>
+    </label>
+    <label class="songbox" title="音符跳動、放大彈跳、爆炸粒子、結束掃光等動態效果">效果
+      <select id="motionSel" class="small" aria-label="動態效果">
+        <option value="on">完整（彈跳＋爆炸）</option>
+        <option value="auto">跟隨系統設定</option>
+        <option value="off">精簡（不爆炸）</option>
       </select>
     </label>
     <span class="songmeta" id="songMeta"></span>
@@ -661,7 +668,21 @@ let sim = null;                    // 模擬播放狀態
 let port = null, writer = null, readerLoopOn = false, boardReady = false;
 let serialReader = null, serialPipe = null;   // 讀取中的串流：中斷連線時要先取消，port.close() 才會真的放開 COM 埠
 let dpr = 1, cssW = 900, cssH = 400;
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// 動態效果：on = 一律完整（預設，2026-11-09 使用者要求：很多學校電腦關掉了 Windows「動畫效果」，
+// 跟隨系統會看不到彈跳與爆炸）；auto = 跟隨系統的「減少動態效果」；off = 精簡
+const systemReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+let motionMode = "on", reduceMotion = false;
+function applyMotion(mode, save) {
+  motionMode = ["on", "auto", "off"].includes(mode) ? mode : "on";
+  reduceMotion = motionMode === "off" || (motionMode === "auto" && systemReduce.matches);
+  document.documentElement.classList.toggle("reduceMotion", reduceMotion);
+  const sel = document.getElementById("motionSel");
+  if (sel) sel.value = motionMode;
+  if (save) { try { localStorage.setItem("viz.motion", motionMode); } catch (e) { /* 無法儲存就算了 */ } }
+}
+try { applyMotion(localStorage.getItem("viz.motion") || "on", false); } catch (e) { applyMotion("on", false); }
+systemReduce.addEventListener("change", () => applyMotion(motionMode, false));
+document.getElementById("motionSel").addEventListener("change", (e) => applyMotion(e.target.value, true));
 
 /* ================= 版面計算 ================= */
 function spell(semi, key) {
