@@ -182,6 +182,13 @@ button,input{font:inherit;color:inherit}
 .svpop .card .big{font-size:3rem;line-height:1}
 .svpop .card h2{margin:0;font-size:1.3rem}
 .svpop .btn.go{background:linear-gradient(135deg,#00676a,#0a9a8f);color:#fff}
+.exres{background:var(--surface);border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:14px;padding:16px 20px;margin:0 0 16px;display:grid;gap:8px;box-shadow:var(--shadow)}
+.exres h2{margin:0;font-size:1.15rem}
+.exres .sc{font-size:2.2rem;font-weight:700;line-height:1}
+.exres .sc small{font-size:1rem;font-weight:500;margin-left:4px}
+.exres .wr{display:flex;flex-wrap:wrap;gap:6px}
+.exres .wr span{background:var(--sunk);border-radius:8px;padding:2px 10px;font-size:.92rem}
+.exres .wr b{color:#b3261e}
 .svq{display:grid;gap:6px;margin-bottom:14px}
 .svq>b{font-weight:600}
 .svbar{display:grid;grid-template-columns:minmax(110px,1.2fr) 3fr 64px;gap:8px;align-items:center;font-size:.92rem}
@@ -495,6 +502,7 @@ async function showHome(pre) {
       <h1>${esc(d.student.name)}，繼續你的關卡</h1>
       <p class="muted">依序看完影片、通過測驗（${d.passScore} 分及格）就能解鎖下一關。在關卡頁面學習的時間會自動記錄成上課時數。</p>
     </section>
+    ${(d.exams || []).map(e => { const w = Object.keys(e.wrong || {}).sort((a, b) => a - b); return `<section class="exres" role="region" aria-label="考試成績"><h2>📋 ${esc(e.exam)} 考試成績</h2><div class="sc">${e.score}<small>分（答對 ${e.right} / ${e.total} 題，每題 ${Math.round(100 / e.total)} 分）</small></div>${w.length ? `<div class="muted">答錯或未答的題號與正確答案：</div><div class="wr">${w.map(q => `<span>第 ${q} 題 <b>${esc(e.wrong[q])}</b></span>`).join('')}</div>` : '<div class="muted">全部答對！</div>'}<p class="muted" style="margin:0;font-size:.9rem">依答案對錯計分；對成績有疑問請找任課老師。</p></section>`; }).join('')}
     <section class="stats" aria-label="學習概況">
       <div class="stat"><span>已通過關卡</span><b>${passed}<small>/ ${d.levels.length} 關</small></b></div>
       <div class="stat"><span>累計學習時間</span><b>${d.minutes}<small>分鐘 · 約 ${d.periods} / ${d.periodsNeeded} 節</small></b></div>
