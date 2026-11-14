@@ -3,7 +3,7 @@
     const layers = Array.from(carousel.querySelectorAll("img"));
     const toggle = carousel.querySelector("button");
     const slides = [
-        "01-realistic-circuit-and-title-kai.webp",
+        "01-realistic-circuit-and-title-subtitle-kai.webp",
         "02-blueprint-wide-title-kai.webp",
         "03-isometric-wide-title-kai.webp",
         "04-watercolor-wide-title-kai.webp",
