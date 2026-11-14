@@ -2,7 +2,6 @@
     const carousel = document.getElementById("mastheadCarousel");
     const layers = Array.from(carousel.querySelectorAll("img"));
     const toggle = carousel.querySelector("button");
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const slides = [
         "01-realistic-wide-desk-extended.webp",
         "02-blueprint-wide.webp",
@@ -13,12 +12,11 @@
         "07-quantum-wide.webp"
     ];
     const directory = new URL(".", document.currentScript.src);
-    const still = layers[0].src;
     let visible = 0;
     let current = -1;
     let revision = 0;
     let timer;
-    let paused = reducedMotion.matches;
+    let paused = false;
 
     function updateToggle() {
         toggle.textContent = paused ? (current < 0 ? "播放動畫" : "繼續輪播") : "暫停輪播";
@@ -56,17 +54,6 @@
         preload.src = new URL(slides[(current + 1) % slides.length], directory).href;
     }
 
-    function updateMotion() {
-        revision++;
-        paused = reducedMotion.matches;
-        if (paused) {
-            layers[visible].src = still;
-            current = -1;
-        }
-        updateToggle();
-        schedule();
-    }
-
     toggle.addEventListener("click", () => {
         revision++;
         paused = !paused;
@@ -77,7 +64,7 @@
         revision++;
         schedule();
     });
-    reducedMotion.addEventListener("change", updateMotion);
     toggle.hidden = false;
-    updateMotion();
+    updateToggle();
+    schedule();
 })();
