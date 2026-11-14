@@ -4,13 +4,13 @@
     const toggle = carousel.querySelector("button");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const slides = [
-        "01-realistic-esp32.webp",
-        "02-blueprint.webp",
-        "03-isometric.webp",
-        "04-watercolor.webp",
-        "05-minimal.webp",
-        "06-retro.webp",
-        "07-quantum.webp"
+        "01-realistic-wide-desk-extended.webp",
+        "02-blueprint-wide.webp",
+        "03-isometric-wide.webp",
+        "04-watercolor-wide.webp",
+        "05-minimal-wide.webp",
+        "06-retro-wide.webp",
+        "07-quantum-wide.webp"
     ];
     const directory = new URL(".", document.currentScript.src);
     const still = layers[0].src;
