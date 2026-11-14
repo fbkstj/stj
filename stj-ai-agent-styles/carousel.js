@@ -18,11 +18,15 @@
     let current = -1;
     let revision = 0;
     let timer;
-    let paused = false;
+    let paused = reducedMotion.matches;
+
+    function updateToggle() {
+        toggle.textContent = paused ? (current < 0 ? "播放動畫" : "繼續輪播") : "暫停輪播";
+    }
 
     function schedule() {
         clearTimeout(timer);
-        if (!paused && !document.hidden && !reducedMotion.matches) {
+        if (!paused && !document.hidden) {
             timer = setTimeout(advance, current < 0 ? 0 : 15000);
         }
     }
@@ -40,7 +44,7 @@
             }
             return;
         }
-        if (pending !== revision || paused || document.hidden || reducedMotion.matches) return;
+        if (pending !== revision || paused || document.hidden) return;
 
         incoming.classList.add("is-visible");
         layers[visible].classList.remove("is-visible");
@@ -54,18 +58,19 @@
 
     function updateMotion() {
         revision++;
-        toggle.hidden = reducedMotion.matches;
-        if (reducedMotion.matches) {
+        paused = reducedMotion.matches;
+        if (paused) {
             layers[visible].src = still;
             current = -1;
         }
+        updateToggle();
         schedule();
     }
 
     toggle.addEventListener("click", () => {
         revision++;
         paused = !paused;
-        toggle.textContent = paused ? "繼續輪播" : "暫停輪播";
+        updateToggle();
         schedule();
     });
     document.addEventListener("visibilitychange", () => {
@@ -73,5 +78,6 @@
         schedule();
     });
     reducedMotion.addEventListener("change", updateMotion);
+    toggle.hidden = false;
     updateMotion();
 })();
