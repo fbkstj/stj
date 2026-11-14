@@ -180,6 +180,41 @@
             margin: 0 auto;
         }
 
+        .masthead-carousel {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+            aspect-ratio: 1200 / 320;
+        }
+
+        .masthead-carousel img {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 500ms ease;
+        }
+
+        .masthead-carousel img.is-visible {
+            opacity: 1;
+        }
+
+        .masthead-toggle {
+            position: absolute;
+            right: 8px;
+            bottom: 8px;
+            padding: 4px 9px;
+            border: 1px solid #9bc2d2;
+            border-radius: 5px;
+            background: #071827;
+            color: #fff;
+            font: inherit;
+            font-size: 12px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .masthead-carousel img { transition: none; }
+        }
+
         /* ---------- Layout shell ---------- */
         .layout {
             display: flex;
@@ -1144,10 +1179,15 @@
 <body>
 
 <header class="site-masthead">
-    <img src="stj-quantum-masthead.png" width="1200" height="320"
-        alt="簡老師的個人網站 — AI × 電學 × 智慧教學。電學與電子學、Arduino 實作、AI 視覺。"
-        fetchpriority="high">
+    <div class="masthead-carousel" id="mastheadCarousel" role="group"
+        aria-label="簡老師的個人網站。AI 與電學的智慧教學。電學與電子學、Arduino 實作、AI 視覺。">
+        <img class="is-visible" src="stj-ai-agent-styles/01-realistic-esp32-still.webp"
+            width="1200" height="320" alt="" fetchpriority="high">
+        <img width="1200" height="320" alt="">
+        <button class="masthead-toggle" type="button" hidden>暫停輪播</button>
+    </div>
 </header>
+<script src="stj-ai-agent-styles/carousel.js" defer></script>
 
 <div class="layout">
     <aside class="sidebar">
