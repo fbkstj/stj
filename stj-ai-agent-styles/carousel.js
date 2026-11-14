@@ -3,13 +3,13 @@
     const layers = Array.from(carousel.querySelectorAll("img"));
     const toggle = carousel.querySelector("button");
     const slides = [
-        "01-realistic-pen-drawing.webp",
-        "02-blueprint-wide-led-pen.webp",
-        "03-isometric-wide-led-pen.webp",
-        "04-watercolor-wide-led-pen.webp",
-        "05-minimal-wide-led-pen.webp",
-        "06-retro-wide-led-pen.webp",
-        "07-quantum-wide-led-pen.webp"
+        "01-realistic-pen-drawing-15s-raised.webp",
+        "02-blueprint-wide-led-pen-15s-raised.webp",
+        "03-isometric-wide-led-pen-15s-raised.webp",
+        "04-watercolor-wide-led-pen-15s-raised.webp",
+        "05-minimal-wide-led-pen-15s-raised.webp",
+        "06-retro-wide-led-pen-15s-raised.webp",
+        "07-quantum-wide-led-pen-15s-raised.webp"
     ];
     const directory = new URL(".", document.currentScript.src);
     let visible = 0;
