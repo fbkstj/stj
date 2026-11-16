@@ -205,39 +205,13 @@
 
   function skipUpload(keys) { keys.forEach(function (k) { addToSet(LS_SKIP, k); }); }
 
-  /** 把本機全部紀錄下載成 JSON 備份檔 */
-  function exportBackup() {
-    var all = readLocal();
-    var payload = { app: 'ymhs-roster', version: 1, exported_at: new Date().toISOString(), rosters: all };
-    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    var a = document.createElement('a');
-    var d = new Date();
-    var stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
-    a.href = URL.createObjectURL(blob);
-    a.download = '輪值表備份_' + stamp + '.json';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-    return Object.keys(all).length;
-  }
-
-  /** 讀入備份檔，合併到本機（同一個月以備份檔為準）。回傳匯入的月份清單 */
-  function importBackup(file) {
-    return file.text().then(function (text) {
-      var obj;
-      try { obj = JSON.parse(text); } catch (e) { throw new Error('這不是輪值表備份檔（JSON 格式錯誤）'); }
-      var rosters = obj && obj.app === 'ymhs-roster' ? obj.rosters : obj;
-      if (!rosters || typeof rosters !== 'object' || Array.isArray(rosters)) throw new Error('這不是輪值表備份檔');
-      var keys = Object.keys(rosters).filter(function (k) { return /^\d{4}-(0[1-9]|1[0-2])$/.test(k); });
-      if (!keys.length) throw new Error('備份檔裡沒有任何月份資料');
-      var local = readLocal();
-      keys.forEach(function (k) {
-        local[k] = rosters[k];
-        addToSet(LS_DIRTY, k);              // 登入後會送上雲端
-        removeFromSet(LS_DELETED, k);
-      });
-      writeLocal(local);
-      return keys.sort();
+  /** 網頁從備份檔匯入月份後呼叫：這些月份以本機為準，下次同步時送上雲端（不會被雲端舊版蓋掉） */
+  function markDirty(keys) {
+    keys.forEach(function (k) {
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(k)) return;
+      addToSet(LS_DIRTY, k);
+      removeFromSet(LS_DELETED, k);
+      removeFromSet(LS_SKIP, k);
     });
   }
 
@@ -253,7 +227,6 @@
     isPending: function (key) { return readSet(LS_DIRTY).indexOf(key) >= 0; },
     login: login, logout: logout, sync: sync,
     saveKey: saveKey, removeKey: removeKey,
-    uploadLocal: uploadLocal, skipUpload: skipUpload,
-    exportBackup: exportBackup, importBackup: importBackup,
+    uploadLocal: uploadLocal, skipUpload: skipUpload, markDirty: markDirty,
   };
 })();

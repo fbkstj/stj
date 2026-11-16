@@ -127,7 +127,6 @@
           const [loginPw, setLoginPw] = useState('');
           const [loginRemember, setLoginRemember] = useState(false);
           const [loginErr, setLoginErr] = useState('');
-          const importRef = useRef(null);
 
           // Helpers
           const getDaysInMonth = (y, m) => new Date(y, m, 0).getDate();
@@ -150,8 +149,9 @@
               message: msg,
               onCancel: onNo,
               onConfirm: () => {
-                onYes();
+                // 先關掉確認視窗再執行，onYes 裡如果又跳出訊息才不會被一起關掉
                 setModalConfig(prev => ({...prev, isOpen: false}));
+                onYes();
               }
             });
           };
@@ -276,29 +276,6 @@
 
           const handleLogout = () => {
             showConfirm('要登出雲端嗎？\n這台電腦上已同步的輪值表仍會保留，只是不會再和雲端同步。', () => Cloud.logout());
-          };
-
-          const handleExport = () => {
-            const n = Cloud.exportBackup();
-            showMessage(`已下載備份檔（共 ${n} 個月）。\n建議放在雲端硬碟保存。`);
-          };
-
-          const handleImportFile = (e) => {
-            const file = e.target.files && e.target.files[0];
-            e.target.value = '';
-            if (!file) return;
-            Cloud.importBackup(file)
-              .then(keys => {
-                loadSavedList();
-                setReloadTick(t => t + 1);
-                if (Cloud.isLoggedIn()) {
-                  runSync();
-                  showMessage(`已匯入 ${keys.length} 個月，並同步到雲端。`);
-                } else {
-                  showMessage(`已匯入 ${keys.length} 個月到這台電腦。\n登入雲端後會自動上傳。`);
-                }
-              })
-              .catch(err => showMessage('匯入失敗：' + err.message));
           };
 
           const hasConsecutiveConflict = (name, dateKey, currentRoster) => {
@@ -556,8 +533,16 @@ ${months.join('、')}
                   setRosterData(current[key].rosterData || {});
                   setTargetStats(current[key].targetStats || {});
                 }
+                // 匯入的月份標成「待上傳」，否則下次同步時雲端的舊版本會蓋掉剛匯入的內容
+                let cloudNote = '';
+                if (Cloud) {
+                  Cloud.markDirty(keys);
+                  if (Cloud.isLoggedIn()) { runSync(); cloudNote = '\n\n已一併上傳到雲端。'; }
+                  else cloudNote = '\n\n登入雲端後會自動上傳。';
+                  loadSavedList();
+                }
                 showMessage(`已匯入 ${keys.length} 個月份：
-${keys.sort().join('、')}`);
+${keys.sort().join('、')}` + cloudNote);
               };
               if (conflicts.length > 0) {
                 showConfirm(`這台電腦已經有以下月份的存檔：
@@ -1512,9 +1497,6 @@ ${conflicts.sort().join('、')}
                           ) : (
                             <button onClick={() => { setLoginErr(''); setLoginOpen(true); }} className="col-span-2 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm">登入雲端</button>
                           )}
-                          <button onClick={handleExport} className="py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold rounded-lg text-sm">匯出備份</button>
-                          <button onClick={() => importRef.current && importRef.current.click()} className="py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold rounded-lg text-sm">匯入備份</button>
-                          <input ref={importRef} type="file" accept=".json,application/json" className="hidden" onChange={handleImportFile} aria-label="選擇輪值表備份檔" />
                         </div>
                     </div>
                     )}
@@ -1563,7 +1545,9 @@ ${conflicts.sort().join('、')}
                         </button>
                         <div className="pt-3 border-t border-gray-200 space-y-2">
                             <p className="text-xs text-gray-500 leading-relaxed">
-                                存檔只存在這台電腦的這個瀏覽器，換電腦或清除瀏覽資料就會不見。建議定期匯出備份檔放到雲端硬碟。
+                                {cloud.loggedIn
+                                  ? '已登入雲端，存檔會同步到雲端。需要的話也可以另外匯出一份備份檔。'
+                                  : '尚未登入雲端：存檔只存在這台電腦的這個瀏覽器，換電腦或清除瀏覽資料就會不見。請登入雲端，或定期匯出備份檔放到雲端硬碟。'}
                             </p>
                             <div className="flex gap-2">
                                 <button
