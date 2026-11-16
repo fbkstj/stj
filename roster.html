@@ -384,6 +384,95 @@
             showMessage(`已成功在系統存檔：${year} 年 ${month} 月的輪值表！`);
           };
 
+          // 匯出全部存檔成備份檔（換電腦、重灌或清快取前先存一份）
+          const handleExportBackup = () => {
+            const saved = localStorage.getItem('ym_rosters') || '{}';
+            let allRosters = {};
+            try {
+              allRosters = JSON.parse(saved);
+            } catch(e) {
+              allRosters = {};
+            }
+            const months = Object.keys(allRosters).sort();
+            if (months.length === 0) {
+              showMessage('目前沒有任何存檔可以匯出。\n\n請先按「儲存目前值班表」。');
+              return;
+            }
+            const backup = {
+              type: 'ymhs-roster-backup',
+              version: 1,
+              exportedAt: new Date().toISOString(),
+              months,
+              rosters: allRosters
+            };
+            const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `楊梅高中輪值表備份_${stamp}.json`;
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+            showMessage(`已匯出 ${months.length} 個月份的存檔：
+${months.join('、')}
+
+建議把這個檔案放到雲端硬碟保存。`);
+          };
+
+          // 從備份檔還原（同月份會詢問是否覆蓋）
+          const handleImportBackup = (event) => {
+            const file = event.target.files && event.target.files[0];
+            event.target.value = '';
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+              let backup;
+              try {
+                backup = JSON.parse(reader.result);
+              } catch(e) {
+                showMessage('這個檔案讀不到內容，請確認是本系統匯出的備份檔。');
+                return;
+              }
+              const incoming = (backup && backup.rosters) ? backup.rosters : backup;
+              if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) {
+                showMessage('這個檔案不是本系統的備份檔，無法匯入。');
+                return;
+              }
+              const keys = Object.keys(incoming).filter(k => /^\d{4}-\d{2}$/.test(k));
+              if (keys.length === 0) {
+                showMessage('備份檔裡沒有找到任何月份資料。');
+                return;
+              }
+              let current = {};
+              try {
+                current = JSON.parse(localStorage.getItem('ym_rosters') || '{}');
+              } catch(e) {
+                current = {};
+              }
+              const conflicts = keys.filter(k => current[k]);
+              const doImport = () => {
+                keys.forEach(k => { current[k] = incoming[k]; });
+                localStorage.setItem('ym_rosters', JSON.stringify(current));
+                loadSavedList();
+                const key = `${year}-${String(month).padStart(2, '0')}`;
+                if (current[key]) {
+                  setRosterData(current[key].rosterData || {});
+                  setTargetStats(current[key].targetStats || {});
+                }
+                showMessage(`已匯入 ${keys.length} 個月份：
+${keys.sort().join('、')}`);
+              };
+              if (conflicts.length > 0) {
+                showConfirm(`這台電腦已經有以下月份的存檔：
+${conflicts.sort().join('、')}
+
+匯入會用備份檔的內容覆蓋掉它們，確定要繼續嗎？`, doImport);
+              } else {
+                doImport();
+              }
+            };
+            reader.readAsText(file, 'utf-8');
+          };
+
           // 載入指定的存檔紀錄
           const handleLoadRoster = (key) => {
             const [y, m] = key.split('-').map(Number);
@@ -1309,6 +1398,32 @@
                         >
                             💾 儲存目前值班表
                         </button>
+                        <div className="pt-3 border-t border-gray-200 space-y-2">
+                            <p className="text-xs text-gray-500 leading-relaxed">
+                                存檔只存在這台電腦的這個瀏覽器，換電腦或清除瀏覽資料就會不見。建議定期匯出備份檔放到雲端硬碟。
+                            </p>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleExportBackup}
+                                    className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors text-sm shadow-sm"
+                                >
+                                    ⬇️ 匯出備份
+                                </button>
+                                <button
+                                    onClick={() => document.getElementById('roster-import-input').click()}
+                                    className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg transition-colors text-sm shadow-sm"
+                                >
+                                    ⬆️ 匯入備份
+                                </button>
+                            </div>
+                            <input
+                                id="roster-import-input"
+                                type="file"
+                                accept="application/json,.json"
+                                onChange={handleImportBackup}
+                                style={{display: 'none'}}
+                            />
+                        </div>
                     </div>
 
                     {/* 值班次數統計 */}
