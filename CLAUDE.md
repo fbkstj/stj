@@ -31,6 +31,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `index.html` 主選單是**兩層浮動選單**（老師要求從多欄大面板改回）：第一層下拉清單；有標題的分類寫成 `<div class="mega-col has-flyout">` ＋ `<button class="mega-heading">` ＋ `<div class="mega-list">`（項目），桌面版滑鼠移入往右浮出（碰到右緣自動改往左）；沒有標題的 `mega-col` 直接列出項目。手機版（≤1080px）第二層直接攤開。新增選單項目時照這個結構寫。
 
+## 輪值表雲端存檔（2026-11-16）
+
+`roster.html` 原本只存在瀏覽器 localStorage（鍵 `ym_rosters`），換電腦看不到。改成透過 `roster_cloud.js` 同步到 Supabase（重補修那個專案，Edge Function `roster`、表 `roster_months`，原始碼與 SQL 在雲端硬碟 `claude\重補修\supabase版\`，部署步驟見該資料夾 `進度紀錄.md` 的 2026-11-16 段）。網頁照舊讀寫 localStorage，登入後才同步；讀寫雲端都要輪值表密碼（和重補修教師密碼分開，老師自己設定）。網頁裡**不放任何 Supabase 金鑰**。本機測試：`.claude/launch.json` 的 `roster-mock`（port 8790，密碼 test-pw-123）＋ `roster.html?api=http://localhost:8790`（`?api=` 只在 localhost 生效）。
+
 ## 工具腳本
 
 - `serve.py`：本機靜態伺服器（port 18456），加上 `/api/generate_pdf`。這支 API **只在本機能用**，GitHub Pages 上跑不了。

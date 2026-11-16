@@ -36,6 +36,9 @@
 <body class="bg-gray-50">
     <div id="root"></div>
 
+    <!-- 雲端存檔（Supabase）：換電腦也看得到輪值表 -->
+    <script src="roster_cloud.js"></script>
+
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
@@ -116,6 +119,16 @@
           const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false); // 行事曆對話框開關
           const rosterRef = useRef(null);
 
+          // 雲端存檔狀態
+          const Cloud = window.RosterCloud;
+          const [cloud, setCloud] = useState(() => Cloud ? Cloud.state() : { loggedIn: false, busy: false, lastSync: null, error: '' });
+          const [reloadTick, setReloadTick] = useState(0);          // 同步完成後讓目前月份重新讀取
+          const [loginOpen, setLoginOpen] = useState(false);
+          const [loginPw, setLoginPw] = useState('');
+          const [loginRemember, setLoginRemember] = useState(false);
+          const [loginErr, setLoginErr] = useState('');
+          const importRef = useRef(null);
+
           // Helpers
           const getDaysInMonth = (y, m) => new Date(y, m, 0).getDate();
           const getDayOfWeek = (y, m, d) => new Date(y, m - 1, d).getDay();
@@ -130,11 +143,12 @@
             setModalConfig({ isOpen: true, type: 'alert', message: msg, onConfirm: () => setModalConfig(prev => ({...prev, isOpen: false})) });
           };
 
-          const showConfirm = (msg, onYes) => {
-            setModalConfig({ 
-              isOpen: true, 
-              type: 'confirm', 
-              message: msg, 
+          const showConfirm = (msg, onYes, onNo) => {
+            setModalConfig({
+              isOpen: true,
+              type: 'confirm',
+              message: msg,
+              onCancel: onNo,
               onConfirm: () => {
                 onYes();
                 setModalConfig(prev => ({...prev, isOpen: false}));
@@ -210,7 +224,82 @@
             setTargetStats({
               '卓淑美': 0, '廖恒慶': 0, '簡樹桐': 0, '林君憲': 0, '蔡宏昌': 0, '余家賢': 0
             });
-          }, [year, month]);
+          }, [year, month, reloadTick]);
+
+          // ---------- 雲端存檔 ----------
+          const askUpload = (keys) => {
+            const list = keys.map(k => `${k.split('-')[0]} 年 ${k.split('-')[1]} 月`).join('、');
+            showConfirm(
+              `這台電腦有 ${keys.length} 個月的輪值表雲端還沒有：\n${list}\n\n要上傳到雲端嗎？（雲端已經有的月份不會被覆蓋）\n按「取消」以後不再詢問這些月份。`,
+              () => {
+                Cloud.uploadLocal(keys)
+                  .then(r => { runSync(); showMessage(`已上傳 ${r.added.length} 個月到雲端。` + (r.skipped.length ? `\n${r.skipped.length} 個月雲端已有，保留雲端版本。` : '')); })
+                  .catch(e => showMessage('上傳失敗：' + e.message));
+              },
+              () => Cloud.skipUpload(keys)
+            );
+          };
+
+          const runSync = (opts = {}) => {
+            if (!Cloud || !Cloud.isLoggedIn()) return Promise.resolve();
+            return Cloud.sync()
+              .then(r => {
+                loadSavedList();
+                setReloadTick(t => t + 1);
+                if (r.localOnly.length) askUpload(r.localOnly);
+                else if (opts.notify) showMessage('已和雲端同步完成。');
+              })
+              .catch(e => { loadSavedList(); if (opts.notify) showMessage('同步失敗：' + e.message); });
+          };
+
+          useEffect(() => {
+            if (!Cloud) return;
+            const off = Cloud.subscribe(st => setCloud(Object.assign({}, st)));
+            runSync();
+            return off;
+          }, []);
+
+          const handleLogin = (e) => {
+            e.preventDefault();
+            setLoginErr('');
+            Cloud.login(loginPw, loginRemember)
+              .then(r => {
+                setLoginOpen(false);
+                setLoginPw('');
+                loadSavedList();
+                setReloadTick(t => t + 1);
+                if (r.localOnly.length) askUpload(r.localOnly);
+                else showMessage('已登入雲端，輪值表已同步。');
+              })
+              .catch(err => setLoginErr(err.message));
+          };
+
+          const handleLogout = () => {
+            showConfirm('要登出雲端嗎？\n這台電腦上已同步的輪值表仍會保留，只是不會再和雲端同步。', () => Cloud.logout());
+          };
+
+          const handleExport = () => {
+            const n = Cloud.exportBackup();
+            showMessage(`已下載備份檔（共 ${n} 個月）。\n建議放在雲端硬碟保存。`);
+          };
+
+          const handleImportFile = (e) => {
+            const file = e.target.files && e.target.files[0];
+            e.target.value = '';
+            if (!file) return;
+            Cloud.importBackup(file)
+              .then(keys => {
+                loadSavedList();
+                setReloadTick(t => t + 1);
+                if (Cloud.isLoggedIn()) {
+                  runSync();
+                  showMessage(`已匯入 ${keys.length} 個月，並同步到雲端。`);
+                } else {
+                  showMessage(`已匯入 ${keys.length} 個月到這台電腦。\n登入雲端後會自動上傳。`);
+                }
+              })
+              .catch(err => showMessage('匯入失敗：' + err.message));
+          };
 
           const hasConsecutiveConflict = (name, dateKey, currentRoster) => {
             if (!name) return false;
@@ -381,7 +470,16 @@
             };
             localStorage.setItem('ym_rosters', JSON.stringify(allRosters));
             loadSavedList();
-            showMessage(`已成功在系統存檔：${year} 年 ${month} 月的輪值表！`);
+            if (!Cloud) {
+              showMessage(`已成功在系統存檔：${year} 年 ${month} 月的輪值表！`);
+              return;
+            }
+            Cloud.saveKey(key).then(where => {
+              loadSavedList();
+              showMessage(where === 'cloud'
+                ? `已存檔並同步到雲端：${year} 年 ${month} 月的輪值表！\n其他電腦登入後就看得到。`
+                : `已存在這台電腦：${year} 年 ${month} 月的輪值表。\n` + (Cloud.isLoggedIn() ? '雲端暫時連不上，下次同步會自動補上傳。' : '尚未登入雲端，登入後會自動上傳。'));
+            });
           };
 
           // 載入指定的存檔紀錄
@@ -569,6 +667,9 @@
                 delete allRosters[key];
                 localStorage.setItem('ym_rosters', JSON.stringify(allRosters));
                 loadSavedList();
+                if (Cloud) Cloud.removeKey(key).then(where => {
+                  if (where !== 'cloud') showMessage('已從這台電腦刪除。' + (Cloud.isLoggedIn() ? '\n雲端暫時連不上，下次同步時會一併刪除。' : '\n登入雲端後會一併從雲端刪除。'));
+                });
                 if (key === `${year}-${String(month).padStart(2, '0')}`) {
                   setRosterData({});
                   setTargetStats({
@@ -1070,6 +1171,33 @@
                   </a>
               </div>
 
+              {/* 雲端登入 */}
+              {loginOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+                  <form onSubmit={handleLogin} className="bg-white rounded-lg p-6 max-w-sm w-full shadow-2xl space-y-4">
+                    <h3 id="loginTitle" className="text-xl font-bold text-gray-800">登入雲端存檔</h3>
+                    <p className="text-sm text-gray-600">輸入實習處輪值表的密碼。登入後，存檔會同步到雲端，換電腦也看得到。</p>
+                    <div>
+                      <label htmlFor="rosterPw" className="block text-sm font-bold text-gray-700 mb-1">密碼</label>
+                      <input id="rosterPw" type="password" autoComplete="current-password" autoFocus value={loginPw}
+                             onChange={e => setLoginPw(e.target.value)}
+                             className="w-full border border-gray-300 rounded-md px-3 py-2 text-lg" />
+                    </div>
+                    <label className="flex items-center gap-2 text-sm text-gray-700">
+                      <input type="checkbox" checked={loginRemember} onChange={e => setLoginRemember(e.target.checked)} className="w-4 h-4" />
+                      記住這台電腦 30 天（公用電腦請勿勾選）
+                    </label>
+                    {loginErr && <p className="text-sm text-red-700" role="alert">{loginErr}</p>}
+                    <div className="flex justify-end gap-3">
+                      <button type="button" onClick={() => setLoginOpen(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md font-medium">取消</button>
+                      <button type="submit" disabled={cloud.busy || !loginPw} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white rounded-md font-medium">
+                        {cloud.busy ? '登入中…' : '登入'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
               {/* Modal for Messages */}
               {modalConfig.isOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1078,8 +1206,8 @@
                     <p className="text-gray-600 mb-6 text-lg whitespace-pre-line">{modalConfig.message}</p>
                     <div className="flex justify-end gap-3">
                       {modalConfig.type === 'confirm' && (
-                        <button 
-                          onClick={() => setModalConfig(prev => ({...prev, isOpen: false}))}
+                        <button
+                          onClick={() => { const f = modalConfig.onCancel; setModalConfig(prev => ({...prev, isOpen: false})); if (f) f(); }}
                           className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md font-medium text-lg"
                         >
                           取消
@@ -1268,6 +1396,40 @@
                 {/* 右側控制與統計面板 */}
                 <div className="w-full lg:w-1/5 space-y-6">
                     
+                    {/* 雲端存檔 */}
+                    {Cloud && (
+                    <div className="bg-white p-5 rounded-lg shadow-sm border border-gray-200 space-y-3" aria-live="polite">
+                        <h3 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center gap-2">
+                            <span aria-hidden="true">☁️</span> 雲端存檔
+                        </h3>
+                        {cloud.loggedIn ? (
+                          <p className="text-sm text-green-800 bg-green-50 border border-green-200 rounded-md px-3 py-2">
+                            {cloud.busy ? '同步中…' : (cloud.lastSync ? `已同步（${cloud.lastSync.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' })}）` : '已登入')}
+                            ，換電腦登入也看得到。
+                          </p>
+                        ) : (
+                          <p className="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                            尚未登入：存檔只會留在這台電腦。
+                          </p>
+                        )}
+                        {cloud.error && <p className="text-sm text-red-700">⚠ {cloud.error}</p>}
+                        {Cloud.pendingCount() > 0 && <p className="text-sm text-amber-800">有 {Cloud.pendingCount()} 筆變更還沒送上雲端。</p>}
+                        <div className="grid grid-cols-2 gap-2">
+                          {cloud.loggedIn ? (
+                            <>
+                              <button onClick={() => runSync({ notify: true })} disabled={cloud.busy} className="py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-lg text-sm">立即同步</button>
+                              <button onClick={handleLogout} className="py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold rounded-lg text-sm">登出</button>
+                            </>
+                          ) : (
+                            <button onClick={() => { setLoginErr(''); setLoginOpen(true); }} className="col-span-2 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-sm">登入雲端</button>
+                          )}
+                          <button onClick={handleExport} className="py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold rounded-lg text-sm">匯出備份</button>
+                          <button onClick={() => importRef.current && importRef.current.click()} className="py-2 border border-gray-300 hover:bg-gray-100 text-gray-700 font-bold rounded-lg text-sm">匯入備份</button>
+                          <input ref={importRef} type="file" accept=".json,application/json" className="hidden" onChange={handleImportFile} aria-label="選擇輪值表備份檔" />
+                        </div>
+                    </div>
+                    )}
+
                     {/* 留存輪值表 */}
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 space-y-4">
                         <h3 className="text-xl font-bold text-gray-800 border-b pb-2 flex items-center gap-2">
@@ -1290,6 +1452,7 @@
                                             <span className="flex items-center gap-2">
                                                 <IconFileText size={16} className={isCurrent ? 'text-yellow-600' : 'text-gray-400'} />
                                                 {y} 年 {m} 月 輪值表
+                                                {Cloud && Cloud.isPending(key) && <span className="text-xs font-normal text-amber-700 bg-amber-50 border border-amber-200 rounded px-1">未上傳</span>}
                                             </span>
                                             <button 
                                                 onClick={(e) => handleDeleteSaved(key, e)}
