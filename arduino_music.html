@@ -537,7 +537,7 @@
     <div class="vHead"><h2 id="videoTitle">▶ 領取 AI 額度與設定 Codex 教學</h2><span class="spacer"></span><button type="button" id="videoMax" title="把影片放大到整個視窗（再按一次還原）">⛶ 最大化</button><button type="button" id="videoFull" title="全螢幕播放，按 Esc 離開">⛶ 全螢幕</button><button value="cancel">關閉</button></div>
     <div class="vTabs" id="videoTabs"><button type="button" data-v="0">① 音符視覺化與 AI 讀譜（10 分 57 秒）</button><button type="button" data-v="1">② 領取 AI 額度與設定 Codex（約 2 分）</button><button type="button" data-v="2">③ 上網找樂譜（1 分 46 秒）</button></div>
     <video id="tutorialVideo" controls preload="metadata" playsinline src="ai_tutorial.mp4"></video>
-    <div class="vRecovery"><button type="button" id="videoPlay">▶ 播放影片</button><button type="button" id="videoRetry">重新載入</button><a id="videoDirect" href="ai_tutorial.mp4" target="_blank" rel="noopener">獨立視窗播放 ↗</a><span id="videoStatus" role="status" aria-live="polite">準備影片中…</span></div>
+    <div class="vRecovery"><button type="button" id="videoPlay">▶ 播放影片</button><button type="button" id="videoRetry">重新載入</button><a id="videoDirect" href="ai_tutorial.mp4" target="_blank" rel="noopener">獨立視窗播放 ↗</a><a id="videoHD" href="videos/arduino_music/tutorial-20261119.mp4" target="_blank" rel="noopener" hidden>1080p 高畫質 ↗</a><span id="videoStatus" role="status" aria-live="polite">準備影片中…</span></div>
     <p class="vNote" id="videoNote">影片有中文語音與字幕。畫面中的個人帳號與檔名已打上馬賽克。這組額度會保存你送出的文字問題，請不要輸入個人資料。</p>
   </form>
 </dialog>
@@ -2415,7 +2415,7 @@ function pasteParse() {
   return d;
 }
 const VIDEOS = [
-  { src: "videos/arduino_music/tutorial-20261119.mp4", poster: "videos/arduino_music/tutorial-20261119.jpg", title: "▶ 音符視覺化與 AI 讀譜教學",
+  { src: "videos/arduino_music/tutorial-20261119-web720.mp4", poster: "videos/arduino_music/tutorial-20261119.jpg", title: "▶ 音符視覺化與 AI 讀譜教學",
     note: "台灣女聲、稍慢語速與繁體中文字幕。包含選曲播放、Arduino 連線、AI 讀譜、JSON 匯入與校正；已剪除長時間等待。AI 讀譜結果仍需對照原譜核對。" },
   { src: "ai_tutorial.mp4", title: "▶ 領取 AI 額度與設定 Codex 教學",
     note: "影片有中文語音與字幕。畫面中的個人帳號與檔名已打上馬賽克。這組額度會保存你送出的文字問題，請不要輸入個人資料。" },
@@ -2431,6 +2431,7 @@ function setVideo(i) {
     el.load();
   }
   $("videoDirect").href = v.src;
+  $("videoHD").hidden = i !== 0;
   $("videoPlay").textContent = "▶ 播放影片";
   $("videoStatus").textContent = el.readyState >= 2 ? "可開始播放" : "準備影片中…";
   $("videoTitle").textContent = v.title;
