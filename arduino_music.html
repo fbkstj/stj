@@ -168,8 +168,6 @@
   #videoDlg { width: min(1000px, calc(100vw - 24px)); border: 1px solid var(--line); border-radius: 16px; padding: 0; background: var(--panel); color: var(--ink); }
   #videoDlg::backdrop { background: rgba(0, 0, 0, .65); }
   #videoDlg h2 { margin: 0; font-size: 18px; }
-  #videoDlg .vChoice { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 16px 12px; }
-  #videoDlg .vChoice select { max-width: 100%; min-width: 0; }
   #videoDlg .vHead { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 12px 16px; }
   #videoDlg .vHead .spacer { flex: 1; }
   #videoDlg video { display: block; width: 100%; max-height: 70vh; background: #000; }
@@ -177,6 +175,9 @@
   #videoDlg.vMax form { display: flex; flex-direction: column; height: 100%; }
   #videoDlg.vMax video { flex: 1; min-height: 0; max-height: none; height: 100%; }
   #videoDlg.vMax .vNote { display: none; }
+  #videoDlg .vTabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 12px; }
+  #videoDlg .vTabs button[aria-pressed="true"] { background: #1a73e8; color: #fff; border-color: transparent; }
+  #videoDlg.vMax .vTabs { padding-bottom: 8px; }
   #videoDlg .vNote { margin: 0; padding: 10px 16px 14px; font-size: 13px; color: var(--muted); }
 
   .pasteForm { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
@@ -468,7 +469,7 @@
       <span class="tgArrow" aria-hidden="true">→</span>
       <button id="btnPasteJson" type="button" title="把 AI 給的 JSON 貼進來，可以直接播放或下載成 .json 檔">② 📝 貼上 AI 的 JSON</button>
       <a class="linkBtn" href="https://ai.nmking.io/epdka" target="_blank" rel="noopener noreferrer" title="課程使用的 AI 工具入口（會在新分頁開啟）">🔗 AI 工具入口</a>
-      <button id="btnTutorial" type="button" title="音符視覺化操作與 AI 讀譜教學（女聲、中文字幕，約 11 分鐘）">▶ 教學影片</button>
+      <button id="btnTutorial" type="button" title="教學影片：① 音符視覺化與 AI 讀譜、② 領取 AI 額度與設定 Codex、③ 上網找樂譜（含中文語音與字幕）">▶ 教學影片</button>
     </div>
     <div class="toolGroup" role="group" aria-labelledby="tgFile">
       <span class="tgTitle" id="tgFile">📁 歌曲檔</span>
@@ -530,10 +531,10 @@
 
 <dialog id="videoDlg" aria-labelledby="videoTitle">
   <form method="dialog">
-    <div class="vHead"><h2 id="videoTitle">▶ 音符視覺化與 AI 讀譜教學</h2><span class="spacer"></span><button type="button" id="videoMax" title="把影片放大到整個視窗（再按一次還原）">⛶ 最大化</button><button type="button" id="videoFull" title="全螢幕播放，按 Esc 離開">⛶ 全螢幕</button><button value="cancel">關閉</button></div>
-    <div class="vChoice"><label for="tutorialSelect">選擇教學：</label><select id="tutorialSelect"><option value="music">音符視覺化與 AI 讀譜（10 分 57 秒）</option><option value="setup">領取 AI 額度與設定 Codex（約 2 分鐘）</option></select></div>
-    <video id="tutorialVideo" controls preload="none" playsinline src="videos/arduino_music/tutorial-20261119.mp4" poster="videos/arduino_music/tutorial-20261119.jpg"></video>
-    <p class="vNote" id="tutorialNote">台灣女聲、稍慢語速與繁體中文字幕。包含選曲播放、Arduino 連線、AI 讀譜、JSON 匯入與校正；已剪除長時間等待。AI 讀譜結果仍需對照原譜核對。</p>
+    <div class="vHead"><h2 id="videoTitle">▶ 領取 AI 額度與設定 Codex 教學</h2><span class="spacer"></span><button type="button" id="videoMax" title="把影片放大到整個視窗（再按一次還原）">⛶ 最大化</button><button type="button" id="videoFull" title="全螢幕播放，按 Esc 離開">⛶ 全螢幕</button><button value="cancel">關閉</button></div>
+    <div class="vTabs" id="videoTabs"><button type="button" data-v="0">① 音符視覺化與 AI 讀譜（10 分 57 秒）</button><button type="button" data-v="1">② 領取 AI 額度與設定 Codex（約 2 分）</button><button type="button" data-v="2">③ 上網找樂譜（1 分 46 秒）</button></div>
+    <video id="tutorialVideo" controls preload="none" playsinline src="ai_tutorial.mp4"></video>
+    <p class="vNote" id="videoNote">影片有中文語音與字幕。畫面中的個人帳號與檔名已打上馬賽克。這組額度會保存你送出的文字問題，請不要輸入個人資料。</p>
   </form>
 </dialog>
 
@@ -2408,21 +2409,30 @@ function pasteParse() {
   if (errs.length) { msg.className = "pasteMsg err"; msg.textContent = "格式有問題：\n・" + errs.join("\n・") + "\n可以把這些訊息貼回給 AI，請它修正後重新給你 JSON。"; return null; }
   return d;
 }
+const VIDEOS = [
+  { src: "videos/arduino_music/tutorial-20261119.mp4", poster: "videos/arduino_music/tutorial-20261119.jpg", title: "▶ 音符視覺化與 AI 讀譜教學",
+    note: "台灣女聲、稍慢語速與繁體中文字幕。包含選曲播放、Arduino 連線、AI 讀譜、JSON 匯入與校正；已剪除長時間等待。AI 讀譜結果仍需對照原譜核對。" },
+  { src: "ai_tutorial.mp4", title: "▶ 領取 AI 額度與設定 Codex 教學",
+    note: "影片有中文語音與字幕。畫面中的個人帳號與檔名已打上馬賽克。這組額度會保存你送出的文字問題，請不要輸入個人資料。" },
+  { src: "find_score.mp4", title: "▶ 上網找樂譜（AI 讀譜加歌 第 1 步）",
+    note: "影片有中文語音與字幕，示範用 Bing 圖片搜尋找《小星星》簡譜。右鍵選單與「已存檔」提示是示意畫面。網路上的樂譜可能有版權，只在課堂練習使用，不要再上傳分享。" },
+];
+function setVideo(i) {
+  const v = VIDEOS[i] || VIDEOS[0], el = $("tutorialVideo");
+  if (el.getAttribute("src") !== v.src) {
+    el.pause(); el.setAttribute("src", v.src);
+    if (v.poster) el.setAttribute("poster", v.poster); else el.removeAttribute("poster");
+    el.load();
+  }
+  $("videoTitle").textContent = v.title;
+  $("videoNote").textContent = v.note;
+  document.querySelectorAll("#videoTabs button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.v === i)));
+  try { localStorage.setItem("viz.video3", String(i)); } catch (e) { /* 無法儲存就算了 */ }
+}
+document.querySelectorAll("#videoTabs button").forEach(b => b.addEventListener("click", () => setVideo(+b.dataset.v)));
+try { setVideo(+(localStorage.getItem("viz.video3") || 0)); } catch (e) { setVideo(0); }
 $("btnTutorial").addEventListener("click", () => { $("videoDlg").showModal(); });
 $("videoDlg").addEventListener("close", () => { $("tutorialVideo").pause(); });
-$("tutorialSelect").addEventListener("change", () => {
-  const music = $("tutorialSelect").value === "music";
-  const video = $("tutorialVideo");
-  video.pause();
-  video.src = music ? "videos/arduino_music/tutorial-20261119.mp4" : "ai_tutorial.mp4";
-  if (music) video.poster = "videos/arduino_music/tutorial-20261119.jpg";
-  else video.removeAttribute("poster");
-  $("videoTitle").textContent = music ? "▶ 音符視覺化與 AI 讀譜教學" : "▶ 領取 AI 額度與設定 Codex 教學";
-  $("tutorialNote").textContent = music
-    ? "台灣女聲、稍慢語速與繁體中文字幕。包含選曲播放、Arduino 連線、AI 讀譜、JSON 匯入與校正；已剪除長時間等待。AI 讀譜結果仍需對照原譜核對。"
-    : "影片有中文語音與字幕。畫面中的個人帳號與檔名已打上馬賽克。這組額度會保存你送出的文字問題，請不要輸入個人資料。";
-  video.load();
-});
 function setVideoMax(on) {
   $("videoDlg").classList.toggle("vMax", on);
   $("videoMax").textContent = on ? "🗗 還原大小" : "⛶ 最大化";
