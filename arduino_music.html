@@ -129,6 +129,10 @@
     padding: 8px 14px; border-radius: 10px; cursor: pointer; min-height: 38px;
   }
   button:hover { border-color: #5662a8; }
+  a.linkBtn { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 14px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--ink); font-size: 14px; text-decoration: none; }
+  a.linkBtn:hover { border-color: #5662a8; }
+  a.linkBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   button.primary { background: var(--primary); border-color: var(--primaryLine); color: #fff; font-weight: 600; }
   button.danger { background: var(--dangerBg); border-color: var(--dangerLine); color: var(--dangerInk); font-weight: 600; }
@@ -449,6 +453,7 @@
       <button id="btnCopyPrompt" type="button" title="複製後到 AI 工具上傳樂譜並貼上，AI 會產生歌曲的 JSON">① 📋 複製讀譜提示語</button>
       <span class="tgArrow" aria-hidden="true">→</span>
       <button id="btnPasteJson" type="button" title="把 AI 給的 JSON 貼進來，可以直接播放或下載成 .json 檔">② 📝 貼上 AI 的 JSON</button>
+      <a class="linkBtn" href="https://ai.nmking.io/epdka" target="_blank" rel="noopener noreferrer" title="課程使用的 AI 工具入口（會在新分頁開啟）">🔗 AI 工具入口</a>
     </div>
     <div class="toolGroup" role="group" aria-labelledby="tgFile">
       <span class="tgTitle" id="tgFile">📁 歌曲檔</span>
