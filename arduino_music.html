@@ -178,6 +178,9 @@
   #videoDlg .vTabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 16px 12px; }
   #videoDlg .vTabs button[aria-pressed="true"] { background: #1a73e8; color: #fff; border-color: transparent; }
   #videoDlg.vMax .vTabs { padding-bottom: 8px; }
+  #videoDlg .vRecovery { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 16px; font-size: 13px; }
+  #videoDlg .vRecovery a { color: var(--ink); }
+  #videoStatus { color: var(--muted); }
   #videoDlg .vNote { margin: 0; padding: 10px 16px 14px; font-size: 13px; color: var(--muted); }
 
   .pasteForm { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
@@ -533,7 +536,8 @@
   <form method="dialog">
     <div class="vHead"><h2 id="videoTitle">▶ 領取 AI 額度與設定 Codex 教學</h2><span class="spacer"></span><button type="button" id="videoMax" title="把影片放大到整個視窗（再按一次還原）">⛶ 最大化</button><button type="button" id="videoFull" title="全螢幕播放，按 Esc 離開">⛶ 全螢幕</button><button value="cancel">關閉</button></div>
     <div class="vTabs" id="videoTabs"><button type="button" data-v="0">① 音符視覺化與 AI 讀譜（10 分 57 秒）</button><button type="button" data-v="1">② 領取 AI 額度與設定 Codex（約 2 分）</button><button type="button" data-v="2">③ 上網找樂譜（1 分 46 秒）</button></div>
-    <video id="tutorialVideo" controls preload="none" playsinline src="ai_tutorial.mp4"></video>
+    <video id="tutorialVideo" controls preload="metadata" playsinline src="ai_tutorial.mp4"></video>
+    <div class="vRecovery"><button type="button" id="videoPlay">▶ 播放影片</button><button type="button" id="videoRetry">重新載入</button><a id="videoDirect" href="ai_tutorial.mp4" target="_blank" rel="noopener">獨立視窗播放 ↗</a><span id="videoStatus" role="status" aria-live="polite">準備影片中…</span></div>
     <p class="vNote" id="videoNote">影片有中文語音與字幕。畫面中的個人帳號與檔名已打上馬賽克。這組額度會保存你送出的文字問題，請不要輸入個人資料。</p>
   </form>
 </dialog>
@@ -1630,6 +1634,7 @@ $("portSel").addEventListener("change", () => {
 $("btnPlay").addEventListener("click", play);
 $("btnStop").addEventListener("click", stop);
 document.addEventListener("keydown", (e) => {
+  if (document.querySelector("dialog[open]")) return; // 彈窗內的空白鍵交由影片控制項處理
   if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
   if (e.target && e.target.tagName === "SELECT" && e.code === "Space") return;   // 下拉選單自己處理空白鍵
   if (e.key >= "1" && e.key <= "4") selectSong(parseInt(e.key, 10) - 1, false);
@@ -2418,12 +2423,16 @@ const VIDEOS = [
     note: "影片有中文語音與字幕，示範用 Bing 圖片搜尋找《小星星》簡譜。右鍵選單與「已存檔」提示是示意畫面。網路上的樂譜可能有版權，只在課堂練習使用，不要再上傳分享。" },
 ];
 function setVideo(i) {
+  i = Number.isInteger(i) && i >= 0 && i < VIDEOS.length ? i : 0;
   const v = VIDEOS[i] || VIDEOS[0], el = $("tutorialVideo");
   if (el.getAttribute("src") !== v.src) {
     el.pause(); el.setAttribute("src", v.src);
     if (v.poster) el.setAttribute("poster", v.poster); else el.removeAttribute("poster");
     el.load();
   }
+  $("videoDirect").href = v.src;
+  $("videoPlay").textContent = "▶ 播放影片";
+  $("videoStatus").textContent = el.readyState >= 2 ? "可開始播放" : "準備影片中…";
   $("videoTitle").textContent = v.title;
   $("videoNote").textContent = v.note;
   document.querySelectorAll("#videoTabs button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.v === i)));
@@ -2431,7 +2440,44 @@ function setVideo(i) {
 }
 document.querySelectorAll("#videoTabs button").forEach(b => b.addEventListener("click", () => setVideo(+b.dataset.v)));
 try { setVideo(+(localStorage.getItem("viz.video3") || 0)); } catch (e) { setVideo(0); }
-$("btnTutorial").addEventListener("click", () => { $("videoDlg").showModal(); });
+$("btnTutorial").addEventListener("click", () => {
+  if (playing) stop();
+  $("videoDlg").showModal();
+  const video = $("tutorialVideo");
+  video.preload = "auto";
+  if (video.readyState === 0) video.load();
+});
+const teachingVideo = $("tutorialVideo");
+$("videoPlay").addEventListener("click", async () => {
+  if (!teachingVideo.paused) { teachingVideo.pause(); return; }
+  $("videoStatus").textContent = "正在載入影片…";
+  try { await teachingVideo.play(); }
+  catch (e) { $("videoStatus").textContent = "播放未成功，請重新載入，或改用獨立視窗播放。"; }
+});
+$("videoRetry").addEventListener("click", () => {
+  const resumeAt = teachingVideo.currentTime;
+  teachingVideo.pause();
+  const source = $("videoDirect").getAttribute("href");
+  teachingVideo.src = source + "?retry=" + Date.now();
+  teachingVideo.addEventListener("loadedmetadata", () => {
+    if (resumeAt > 0 && resumeAt < teachingVideo.duration) teachingVideo.currentTime = resumeAt;
+  }, { once: true });
+  $("videoStatus").textContent = "正在重新載入，完成後請按播放。";
+  teachingVideo.load();
+});
+for (const name of ["waiting", "stalled", "loadstart"]) teachingVideo.addEventListener(name, () => {
+  $("videoStatus").textContent = "影片緩衝中；若持續卡住，請重新載入或用獨立視窗播放。";
+});
+teachingVideo.addEventListener("canplay", () => { $("videoStatus").textContent = teachingVideo.paused ? "可開始播放" : "播放中"; });
+teachingVideo.addEventListener("playing", () => {
+  $("videoStatus").textContent = "播放中";
+  $("videoPlay").textContent = "⏸ 暫停影片";
+});
+teachingVideo.addEventListener("pause", () => {
+  $("videoPlay").textContent = "▶ 播放影片";
+  $("videoStatus").textContent = "已暫停，按播放即可繼續。";
+});
+teachingVideo.addEventListener("error", () => { $("videoStatus").textContent = "影片載入失敗，請重新載入或用獨立視窗播放。"; });
 $("videoDlg").addEventListener("close", () => { $("tutorialVideo").pause(); });
 function setVideoMax(on) {
   $("videoDlg").classList.toggle("vMax", on);
