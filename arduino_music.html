@@ -171,6 +171,10 @@
   #videoDlg .vHead { display: flex; align-items: center; gap: 10px; padding: 12px 16px; }
   #videoDlg .vHead .spacer { flex: 1; }
   #videoDlg video { display: block; width: 100%; max-height: 70vh; background: #000; }
+  #videoDlg.vMax { width: 100vw; height: 100vh; max-width: 100vw; max-height: 100vh; margin: 0; border-radius: 0; border: 0; }
+  #videoDlg.vMax form { display: flex; flex-direction: column; height: 100%; }
+  #videoDlg.vMax video { flex: 1; min-height: 0; max-height: none; height: 100%; }
+  #videoDlg.vMax .vNote { display: none; }
   #videoDlg .vNote { margin: 0; padding: 10px 16px 14px; font-size: 13px; color: var(--muted); }
 
   .pasteForm { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
@@ -524,7 +528,7 @@
 
 <dialog id="videoDlg" aria-labelledby="videoTitle">
   <form method="dialog">
-    <div class="vHead"><h2 id="videoTitle">▶ 領取 AI 額度與設定 Codex 教學</h2><span class="spacer"></span><button value="cancel">關閉</button></div>
+    <div class="vHead"><h2 id="videoTitle">▶ 領取 AI 額度與設定 Codex 教學</h2><span class="spacer"></span><button type="button" id="videoMax" title="把影片放大到整個視窗（再按一次還原）">⛶ 最大化</button><button type="button" id="videoFull" title="全螢幕播放，按 Esc 離開">⛶ 全螢幕</button><button value="cancel">關閉</button></div>
     <video id="tutorialVideo" controls preload="none" playsinline src="ai_tutorial.mp4"></video>
     <p class="vNote">影片有中文語音與字幕。畫面中的個人帳號與檔名已打上馬賽克。這組額度會保存你送出的文字問題，請不要輸入個人資料。</p>
   </form>
@@ -2403,6 +2407,18 @@ function pasteParse() {
 }
 $("btnTutorial").addEventListener("click", () => { $("videoDlg").showModal(); });
 $("videoDlg").addEventListener("close", () => { $("tutorialVideo").pause(); });
+function setVideoMax(on) {
+  $("videoDlg").classList.toggle("vMax", on);
+  $("videoMax").textContent = on ? "🗗 還原大小" : "⛶ 最大化";
+  try { localStorage.setItem("viz.videoMax", on ? "1" : "0"); } catch (e) { /* 無法儲存就算了 */ }
+}
+try { setVideoMax(localStorage.getItem("viz.videoMax") === "1"); } catch (e) { setVideoMax(false); }
+$("videoMax").addEventListener("click", () => setVideoMax(!$("videoDlg").classList.contains("vMax")));
+$("videoFull").addEventListener("click", async () => {
+  const v = $("tutorialVideo");
+  try { await (v.requestFullscreen ? v.requestFullscreen() : v.webkitRequestFullscreen()); }
+  catch (e) { setVideoMax(true); }   // 不能全螢幕（例如被框架擋住）就改成填滿視窗
+});
 $("btnPasteJson").addEventListener("click", () => { $("pasteMsg").textContent = ""; $("pasteDlg").showModal(); $("pasteText").focus(); });
 $("pasteLoad").addEventListener("click", () => {
   const d = pasteParse();
