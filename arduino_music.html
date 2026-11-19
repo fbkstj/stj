@@ -165,6 +165,14 @@
   #pasteDlg { width: min(720px, calc(100vw - 32px)); border: 1px solid var(--line); border-radius: 16px; padding: 0;
     background: var(--panel); color: var(--ink); }
   #pasteDlg::backdrop { background: rgba(0, 0, 0, .55); }
+  #videoDlg { width: min(1000px, calc(100vw - 24px)); border: 1px solid var(--line); border-radius: 16px; padding: 0; background: var(--panel); color: var(--ink); }
+  #videoDlg::backdrop { background: rgba(0, 0, 0, .65); }
+  #videoDlg h2 { margin: 0; font-size: 18px; }
+  #videoDlg .vHead { display: flex; align-items: center; gap: 10px; padding: 12px 16px; }
+  #videoDlg .vHead .spacer { flex: 1; }
+  #videoDlg video { display: block; width: 100%; max-height: 70vh; background: #000; }
+  #videoDlg .vNote { margin: 0; padding: 10px 16px 14px; font-size: 13px; color: var(--muted); }
+
   .pasteForm { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
   .pasteForm h2 { margin: 0; font-size: 18px; }
   .pasteHint { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
@@ -454,6 +462,7 @@
       <span class="tgArrow" aria-hidden="true">→</span>
       <button id="btnPasteJson" type="button" title="把 AI 給的 JSON 貼進來，可以直接播放或下載成 .json 檔">② 📝 貼上 AI 的 JSON</button>
       <a class="linkBtn" href="https://ai.nmking.io/epdka" target="_blank" rel="noopener noreferrer" title="課程使用的 AI 工具入口（會在新分頁開啟）">🔗 AI 工具入口</a>
+      <button id="btnTutorial" type="button" title="領取 AI 額度與設定 Codex 的教學影片（含中文語音與字幕，約 2 分鐘）">▶ 教學影片</button>
     </div>
     <div class="toolGroup" role="group" aria-labelledby="tgFile">
       <span class="tgTitle" id="tgFile">📁 歌曲檔</span>
@@ -512,6 +521,14 @@
     <br>版權說明：「青花瓷」（方文山 詞、周杰倫 曲）為版權歌曲，此處旋律僅供課堂示範與練習，請勿另作他用；國歌、國旗歌、楊梅高中校歌之樂譜取自公開來源。
   </div>
 </div>
+
+<dialog id="videoDlg" aria-labelledby="videoTitle">
+  <form method="dialog">
+    <div class="vHead"><h2 id="videoTitle">▶ 領取 AI 額度與設定 Codex 教學</h2><span class="spacer"></span><button value="cancel">關閉</button></div>
+    <video id="tutorialVideo" controls preload="none" playsinline src="ai_tutorial.mp4"></video>
+    <p class="vNote">影片有中文語音與字幕。畫面中的個人帳號與檔名已打上馬賽克。這組額度會保存你送出的文字問題，請不要輸入個人資料。</p>
+  </form>
+</dialog>
 
 <dialog id="pasteDlg" aria-labelledby="pasteTitle">
   <form method="dialog" class="pasteForm">
@@ -2384,6 +2401,8 @@ function pasteParse() {
   if (errs.length) { msg.className = "pasteMsg err"; msg.textContent = "格式有問題：\n・" + errs.join("\n・") + "\n可以把這些訊息貼回給 AI，請它修正後重新給你 JSON。"; return null; }
   return d;
 }
+$("btnTutorial").addEventListener("click", () => { $("videoDlg").showModal(); });
+$("videoDlg").addEventListener("close", () => { $("tutorialVideo").pause(); });
 $("btnPasteJson").addEventListener("click", () => { $("pasteMsg").textContent = ""; $("pasteDlg").showModal(); $("pasteText").focus(); });
 $("pasteLoad").addEventListener("click", () => {
   const d = pasteParse();
